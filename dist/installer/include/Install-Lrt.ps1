@@ -83,7 +83,7 @@ function Install-Lrt {
     if (! (Test-Path -Path $ScopeInfo.Path)) {
         if ($Scope -eq "User") {
             # Ok to create missing Modules directory for [User] scope
-            $_created = New-Item -Path $Env:HOME -Name "WindowsPowerShell\Modules" `
+            $_created = New-Item -Path $HOME -Name "WindowsPowerShell\Modules" `
                 -ItemType Directory -ErrorAction SilentlyContinue | Out-Null
             Write-Verbose "Created directory [$($_created.FullName)]"
         }
