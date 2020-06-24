@@ -1,0 +1,40 @@
+{
+    "General": {
+        "CertPolicyRequired": false
+    },
+
+    "LogRhythm": {
+        "Version":"7.5.0",
+        "DataIndexerIP": "127.0.0.1",
+        "AdminBaseUrl": "https://[NOT_SET]:8501/lr-admin-api",
+        "CaseBaseUrl": "https://[NOT_SET]:8501/lr-case-api",
+        "AieBaseUrl": "https://[NOT_SET]:8501/lr-drilldown-cache-api",
+        "SearchBaseUrl": "https://[NOT_SET]:8501/lr-search-api",
+        "ApiKey": ""
+    },
+
+    "LogRhythmEcho": {
+        "BaseUrl": "https://[NOT_SET]:33333/api"
+    },
+    
+    "RecordedFuture": {
+        "BaseUrl": "https://api.recordedfuture.com/v2/",
+        "ApiKey": ""
+    },
+
+    "VirusTotal": {
+        "BaseUrl": "http://www.virustotal.com/vtapi/v2",
+        "ApiKey": "",
+        "Commercial": "False"
+    },
+    "UrlScan": {
+        "BaseUrl": "https://urlscan.io/api/v1",
+        "ScreenshotUrl": "https://urlscan.io/screenshots/",
+        "ApiKey": "",
+        "PublicScans": "On"
+    },
+
+    "SecretServer": {
+        "BaseUrl": "https://[NOT_SET]/winauthwebservices/sswinauthwebservice.asmx"
+    }
+}

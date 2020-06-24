@@ -1,0 +1,132 @@
+{
+    "General": {
+        "Name": "General",
+        "Optional": false,
+        "HasKey": false,
+
+        "Fields": {
+            "CertPolicyRequired": {
+            "Prompt": "Trust self-signed SSL Certs?",
+            "Hint": "yes or no",
+            "InputCmd": "Get-InputYesNo",
+            "FallThru": false
+            }
+        }
+    },
+
+    "LogRhythm": {
+        "Name": "LogRhythm",
+        "Optional": false,
+        "HasKey": true,
+
+        "Fields": {
+            "Version": {
+                "Prompt": "LogRhythm Version",
+                "Hint": "x.x.x",
+                "InputCmd": "Get-InputVersion",
+                "FallThru": false
+            },
+    
+            "DataIndexerIP": {
+                "Prompt": "Data Indexer IP Address",
+                "Hint": "Hostname or IP (x.x.x.x)",
+                "InputCmd": "Get-InputIpAddress",
+                "FallThru": false
+            },
+    
+            "AdminBaseUrl": {
+                "Prompt": "LogRhythm Platform Manager",
+                "Hint": "Hostname or IP (x.x.x.x)",
+                "InputCmd": "Get-InputApiUrl",
+                "FallThru": false
+            },
+    
+            "CaseBaseUrl": {
+                "Prompt": "",
+                "Hint": "",
+                "InputCmd": "Get-InputApiUrl",
+                "FallThru": true
+            },
+    
+            "AieBaseUrl": {
+                "Prompt": "",
+                "Hint": "",
+                "InputCmd": "Get-InputApiUrl",
+                "FallThru": true
+            },
+    
+            "SearchBaseUrl": {
+                "Prompt": "",
+                "Hint": "",
+                "InputCmd": "Get-InputApiUrl",
+                "FallThru": true
+            }
+        }
+    },
+
+    "LogRhythmEcho": {
+        "Name": "LogRhythm Echo",
+        "Optional": true,
+        "HasKey": false,
+
+        "Fields": {
+            "BaseUrl": {
+                "Prompt": "LogRhythm Echo Hostname",
+                "Hint": "Hostname or IP (x.x.x.x)",
+                "InputCmd": "Get-InputApiUrl",
+                "FallThru": false
+            }
+        }
+    },
+
+    "RecordedFuture": {
+        "Name": "Recorded Future",
+        "Optional": true,
+        "HasKey": true,
+        
+        "Fields": {}
+    },
+
+    "VirusTotal": {
+        "Name": "VirusTotal",
+        "Optional": true,
+        "HasKey": true,
+        "Fields": {
+            "Commercial": {
+                "Prompt": "Use a VirusTotal commercial key",
+                "Hint": "yes or no",
+                "InputCmd": "Get-InputYesNo",
+                "FallThru": false
+            }
+        }
+    },
+
+    "UrlScan": {
+        "Name": "UrlScan",
+        "Optional": true,
+        "HasKey": true,
+        "Fields": {
+            "PublicScans": {
+                "Prompt": "Use Public scans",
+                "Hint": "yes or no",
+                "InputCmd": "Get-InputYesNo",
+                "FallThru": false
+            }
+        }
+    },
+
+    "SecretServer": {
+        "Name": "Secret Server",
+        "Optional": true,
+        "HasKey": false,
+
+        "Fields": {
+            "BaseUrl": {
+                "Prompt": "SecretServer Hostname",
+                "Hint": "Hostname or IP (x.x.x.x)",
+                "InputCmd": "Get-InputApiUrl",
+                "FallThru": false
+            }
+        }
+    }
+}

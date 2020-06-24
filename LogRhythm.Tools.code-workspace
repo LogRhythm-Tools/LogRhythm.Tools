@@ -1,0 +1,21 @@
+{
+	"folders": 
+	[{
+        "path": "."
+    }],
+	"settings": 
+	{
+		"workbench.colorCustomizations": { 
+			"titleBar.activeBackground": "#000000" ,
+			"titleBar.activeForeground": "#ebdbb2",
+			"titleBar.border": "#000000"
+		},
+		"window.title": "LogRhythm.Tools",
+
+		"files.exclude": {
+			"*.code-workspace": true,
+			".vscode": true,
+			".gitattributes": true
+		}
+	}
+}
