@@ -90,7 +90,7 @@ Function Get-LrtInstallerInfo {
     # User: Path / InstallPath
     $UserScope = $Info.InstallScopes.User
     $UserScope.Path = Join-Path `
-        -Path $Env:HOME `
+        -Path $HOME `
         -ChildPath "Documents\WindowsPowerShell\Modules"
         $UserScope.InstallPath = Join-Path `
         -Path $UserScope.Path `
