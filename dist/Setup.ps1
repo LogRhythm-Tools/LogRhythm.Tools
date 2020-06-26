@@ -122,7 +122,9 @@ Write-Host "`nWelcome to LogRhythm.Tools!" -ForegroundColor Green
 
 Write-Host "`nIn the questions that follow, you will be prompted for some basic information about your LogRhythm deployment."
 Write-Host "There are also several optional integrations you can enable if you have the necessary licenses or API Keys."
-Write-Host "`n* Note *`nThe [Enter] key will accept the value shown in brackets for that property."
+Write-Host "`n* Note *`nIf you already have a configuration file from a previous installation, you can hit [Enter] at any prompt" -ForegroundColor DarkGray
+Write-Host "for which you'd like to keep the existing value." -ForegroundColor DarkGray
+Write-Host "Configuration Directory: [%LocalAppData%\LogRhythm.Tools\LogRhythm.Tools.json]" -ForegroundColor DarkGray
 #endregion
 
 

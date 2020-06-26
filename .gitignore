@@ -13,4 +13,4 @@ PowerShell_transcript*
 [Bb]uild/[Rr]elease/*
 [Bb]uild/BuildInfo.json
 
-[Tt]est(s)?/*/data/*
+[Tt]ests/*/data/*
