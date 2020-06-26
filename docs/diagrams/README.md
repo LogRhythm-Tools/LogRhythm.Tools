@@ -6,7 +6,7 @@ This directory contains reference diagrams that depict the installation structur
 **6/26/2020**
 Diagram for LogRhythm.Tools 1.0.0 RC1 added.
 
-[[./LR.Tools_1.0.0RC1.png]]
+<img src="https://raw.githubusercontent.com/LogRhythm-Tools/LogRhythm.Tools/Documentation/docs/diagrams/LR.Tools_1.0.0RC1.png" width="750" />
 
 ## How to view, edit, and export
 
