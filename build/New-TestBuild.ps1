@@ -1,4 +1,3 @@
-using namespace System.Security.Cryptography
 using namespace System.IO
 
 <#
@@ -23,24 +22,24 @@ using namespace System.IO
 
 .PARAMETER RemoveOld
     Remove previous builds from the build\out directory.
-.PARAMETER ApiTokenPath
-    The ApiTokenPath parameter may be used to specify an alternative path to a LogRhythm
-    credential.
+.PARAMETER PassThru
+    Will return the BuildInfo object for the build created by New-TestBuild.
+    (see Get-LrtBuild for more information)
 .INPUTS
     N/A
 .OUTPUTS
     If the PassThru switch is set, an object representing the latest build information
-    is returned. For more, Get-Help on Get-LrtBuild
+    is returned. (see Get-LrtBuild for more information)
 .EXAMPLE
     PS C:\> .\New-TestBuild.ps1 -RemoveOld
 .NOTES
-    The LrtBuilder module, included in LogRhythm.Tools, is used for
+    The Lrt.Builder module, included in LogRhythm.Tools, is used for
     creating a new module build.  You can also manually build the module
-    by importing LrtBuilder and using its functions.
+    by importing Lrt.Builder and using its functions.
 
     For more information on LrtBuilder:
     
-    PS > Import-Module .\build\LrtBuilder.psm1
+    PS > Import-Module .\build\Lrt.Builder.psm1
     PS > Get-Help New-LrtBuild
 .LINK
     https://github.com/LogRhythm-Tools/LogRhythm.Tools
@@ -52,10 +51,7 @@ Param(
     [switch] $RemoveOld,
 
     [Parameter(Mandatory = $false, Position = 2)]
-    [switch] $PassThru,
-
-    [Parameter(Mandatory = $false, Position = 3)]
-    [switch] $Dev
+    [switch] $PassThru
 )
 
 $StopWatch = [System.Diagnostics.Stopwatch]::StartNew()
@@ -64,29 +60,21 @@ Get-Module LogRhythm.Tools | Remove-Module -Force
 
 #region: Remove Old Builds                                                               
 if ($RemoveOld) {
-    $Removed = 0
-    $Failed = 0
-    Get-ChildItem "$PSScriptRoot\build\out" | Where-Object { $_.psiscontainer} | ForEach-Object {
-        try {
-            Remove-Item -Recurse $_.FullName -Force -ErrorAction Stop
-            #  -ErrorAction SilentlyContinue | Out-Null
-            $Removed++
-        }
-        catch {
-            Write-Host "Failed to remove build $($_.FullName) due to a loaded .dll." -ForegroundColor Blue
-            Write-Host "To force the removal, close all PowerShell & VSCode windows and run this script again." -ForegroundColor Blue
-            $Failed++
-        }
+    try {
+        Remove-Item -Path $PSScriptRoot\debug\ -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
+    } catch {
+        Write-Host "Failed to remove old builds in [$PSScriptRoot\debug]" -ForegroundColor Red
+        Write-Host "Close any applications which may have an open handle to this directory and try again." -ForegroundColor Yellow
+
     }
-    Write-Host "[Removed: $Removed] | [Failed: $Failed] " -ForegroundColor DarkGray
 }    
 #endregion
 
 
 
 #region: BUILD                                                                           
-Get-Module Lrt.Builder.psm1 | Remove-Module -Force
-Import-Module $PSScriptRoot\build\LrtBuilder.psm1
+Get-Module Lrt.Builder | Remove-Module -Force
+Import-Module $PSScriptRoot\Lrt.Builder.psm1
 
 
 # Headers
@@ -110,8 +98,7 @@ if (Test-Path $NewBuildPath) {
 Write-Host "Import Build:       " -NoNewline
 try {
     Import-Module $NewBuildPath
-}
-catch {
+} catch {
     Write-Host "[Failed]" -ForegroundColor Red
     throw [Exception] "Failed to import build. Review errors / call stack."
 }
@@ -121,7 +108,7 @@ Write-Host "[Success]" -ForegroundColor Green
 
 # Build Info
 $StopWatch.Stop()
-Write-Host "  <Completed in $($StopWatch.Elapsed.TotalMilliseconds) ms>" -ForegroundColor DarkGray
+Write-Host "`n<Completed in $($StopWatch.Elapsed.TotalMilliseconds) ms>" -ForegroundColor DarkGray
 
 if ($PassThru) {
     return Get-LrtBuild
