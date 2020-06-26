@@ -52,15 +52,14 @@ Each command included in the LogRhythm.Tools module is deigned to be modular and
 
 ***Required***
 
-LogRhythm API Key
+- LogRhythm API Key
 
 ***Optional***
 
-Recorded Future API Key
-Shodan API Key
-Urlscan API Key
-VirusTotal API Key
-
+- Recorded Future API Key
+- Shodan API Key
+- Urlscan API Key
+- VirusTotal API Key
 
 ## Installation
 
