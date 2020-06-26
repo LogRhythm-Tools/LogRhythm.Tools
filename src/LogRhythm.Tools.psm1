@@ -22,11 +22,11 @@ $ConfigDirPath = Join-Path `
 
 $ConfigFileInfo = [System.IO.FileInfo]::new((Join-Path -Path $ConfigDirPath -ChildPath $PreferencesFileName))
 
-# Try to load the Config File from Local AppData, fallback to the copy in the install directory.
+# Try to load the Config File from Local AppData or fail
 if ($ConfigFileInfo.Exists) {
     $LrtConfig = Get-Content -Path $ConfigFileInfo.FullName -Raw | ConvertFrom-Json
 } else {
-    Write-Error "Failed to load configuration file.  Run Setup.ps1 from a published release to create one."
+    throw [Exception] "Failed to load configuration from [$ConfigDirPath]. Run Setup.ps1 to create required configuration items."
 }
 #endregion
 
@@ -92,38 +92,18 @@ foreach ($include in $Includes.GetEnumerator()) {
 
 
 #region: Import API Keys                                                                 
-# Load API Keys from LrtConfig
 foreach($ConfigCategory in $LrtConfig.PSObject.Properties) {
-    # $myObject.PSobject.Properties.name -match "myPropertyNameToTest"
-
-    foreach($ConfigCategory in $LrtConfig.PSObject.Properties){                                   
-        if("ApiKey" -in $ConfigCategory.Value.PSObject.Properties.Name) {
-            $KeyFileName = $ConfigCategory.Name + ".ApiKey.xml"
-            $KeyFile = [FileInfo]::new("$ConfigDirPath\$KeyFileName")
-
-            if ($KeyFile.Exists) {
-                $LrtConfig.($ConfigCategory.Name).ApiKey = Import-Clixml -Path $KeyFile.FullName    
-            } else {
-                Write-Warning "Unable to load key: $KeyFileName from $($ConfigDirPath)"
-            }
-            continue
+    if($ConfigCategory.Value.PSObject.Properties.Name -eq "ApiKey") {
+        $KeyFileName = $ConfigCategory.Name + ".ApiKey.xml"
+        $KeyFile = [FileInfo]::new("$ConfigDirPath\$KeyFileName")
+        if ($KeyFile.Exists) {
+            $LrtConfig.($ConfigCategory.Name).ApiKey = Import-Clixml -Path $KeyFile.FullName
+            Write-Verbose "[$($ConfigCategory.Name)]: Loaded API Key"
+        } else {
+            Write-Verbose "[$($ConfigCategory.Name)]: API key not found"
         }
     }
 }
-#     if($ConfigCategory.Value.PSObject.Properties.Name -eq "ApiKey") {
-#         $ConfigCategory.Value.PSObject.Properties.Value
-#     }
-#     if ($ConfigCategory.Value.PSObject.Properties) {
-#         $KeyFileName = $ConfigCategory.Name + ".ApiKey.xml"
-#         Write-Host "$ConfigDirPath\$KeyFileName"
-#         $KeyFile = [FileInfo]::new("$ConfigDirPath\$KeyFileName")
-#         if ($KeyFile.Exists) {
-#             $ConfigCategory.Value.ApiKey = Import-Clixml -Path $KeyFile.FullName
-#         } else {
-            
-#         }
-#     }
-# }
 #endregion
 
 
