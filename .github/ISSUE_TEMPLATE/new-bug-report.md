@@ -1,6 +1,6 @@
 ---
-name: Custom - Bug Report
-about: Describe this issue template's purpose here.
+name: New Bug Report
+about: For submitting errors and unexpected behavior
 title: ''
 labels: ''
 assignees: ''
