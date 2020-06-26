@@ -3,7 +3,8 @@
 # =============================================================
 # Ignore testing creds - we don't use XML in the projcect.
 # If we do, we will need to update.
-*.xml
+*ApiKey.xml
+!docs\diagrams\*.xml
 
 # Ingore Transcripts
 PowerShell_transcript*
