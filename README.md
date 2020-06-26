@@ -12,12 +12,15 @@ LogRhythm.Tools is a PowerShell module for interacting with LogRhythm APIs. The 
 - LogRhythm Echo
 
 **Third Party Integrations:**
+
 LogRhythm.Tools supports API access to various third party vendors.  Access to these services requires authorization keys provided by the third party and is not granted as a part of the LogRhythm.Tools module.  
 
 - Virus Total
 - Recorded Future
 - Shodan
 - Urlscan
+
+---------
 
 Each command included in the LogRhythm.Tools module is deigned to be modular and built to leverage the power of the PowerShell pipeline.  The output of one LRT command can be sent for processing as input to the another command. And that output can be sent to yet another command. The result is a complex command chain or pipeline that is composed of a series of simple commands.
 
