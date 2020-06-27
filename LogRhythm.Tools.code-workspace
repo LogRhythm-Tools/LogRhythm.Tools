@@ -15,7 +15,8 @@
 		"files.exclude": {
 			"*.code-workspace": true,
 			".vscode": true,
-			".gitattributes": true
+			".gitattributes": true,
+			".github": true
 		}
 	}
 }
