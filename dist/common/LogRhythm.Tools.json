@@ -13,6 +13,13 @@
         "ApiKey": ""
     },
 
+    "ActiveDirectory": {
+        "DomainName": "",
+        "Server": "",
+        "ModuleLoaded": false,
+        "Credential": ""
+    },
+
     "LogRhythmEcho": {
         "BaseUrl": "https://[NOT_SET]:33333/api"
     },
