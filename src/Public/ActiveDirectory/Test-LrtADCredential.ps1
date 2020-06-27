@@ -3,7 +3,7 @@ using namespace System.IO
 using namespace System.Collections.Generic
 using namespace System.DirectoryServices.AccountManagement
 
-Function Test-LrPSADCredential {
+Function Test-LrtADCredential {
     <#
     .SYNOPSIS
         Validate an Active Directory user account credential object against the local domain.
@@ -16,7 +16,7 @@ Function Test-LrPSADCredential {
     .OUTPUTS
         Boolean value representing the validation result.
     .EXAMPLE
-        Test-LrPSADCredential -Credential (Get-Credential)
+        Test-LrtADCredential -Credential (Get-Credential)
     .LINK       
     #>
     

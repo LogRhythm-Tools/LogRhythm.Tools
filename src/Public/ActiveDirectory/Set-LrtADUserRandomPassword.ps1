@@ -3,7 +3,7 @@ using namespace System
 Get-Module ActiveDirectory | Remove-Module
 #Requires -Modules ActiveDirectory
 
-Function Set-SrfADUserRandomPassword {
+Function Set-LrtADUserRandomPassword {
     <#
     .SYNOPSIS
         Randomly set a new password for user account.

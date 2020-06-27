@@ -4,12 +4,12 @@ using namespace Microsoft.ActiveDirectory.Management
 
 Get-Module ActiveDirectory | Remove-Module
 #Requires -Modules ActiveDirectory
-Function Get-LrPSADUserInfo {
+Function Get-LrtADUserInfo {
     <#
     .SYNOPSIS 
         Retrieves information about and Active Directory user object.
     .DESCRIPTION
-        The Get-LrPSADUserInfo cmdlet retrieves information about an Active Directory 
+        The Get-LrtADUserInfo cmdlet retrieves information about an Active Directory 
         user object, and calculates or looks up information that is commonly desired,
         such as determining if an account is a Service Account, and the number of days
         since the last password change.
@@ -35,9 +35,9 @@ Function Get-LrPSADUserInfo {
         - OrgUnits:         [List]      OU Hierarchy
         - ADUser:           [ADUser]    Full ADUser Object
     .EXAMPLE
-        $UserInfo = Get-LrPSADUserInfo -Identity bjones
+        $UserInfo = Get-LrtADUserInfo -Identity bjones
     .EXAMPLE
-        PS C:\> if((Get-LrPSADUserInfo bjones).HasManager) { "Has a manager." }
+        PS C:\> if((Get-LrtADUserInfo bjones).HasManager) { "Has a manager." }
         ---
         Determine if a the account has a manager.
     #>

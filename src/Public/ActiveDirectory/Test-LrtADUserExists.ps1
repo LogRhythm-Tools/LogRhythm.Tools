@@ -1,11 +1,11 @@
-Function Test-LrPSADUserExists {
+Function Test-LrtADUserExists {
     <#
     .SYNOPSIS 
         Return true if user exists in ActiveDirectory, false if not.
     .PARAMETER Identity
         User identity to check
     .EXAMPLE
-        if(Test-LrPSADUserExists -Identity bjones) { "User Exists." }
+        if(Test-LrtADUserExists -Identity bjones) { "User Exists." }
     #>
 
     [CmdletBinding()]
@@ -15,5 +15,5 @@ Function Test-LrPSADUserExists {
         [string] $Identity
     )
 
-    return (Get-LrPSADUserInfo -Identity $Identity).Exists
+    return (Get-LrtADUserInfo -Identity $Identity).Exists
 }

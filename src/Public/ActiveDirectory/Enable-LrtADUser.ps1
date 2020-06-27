@@ -1,9 +1,6 @@
 using namespace System
 
-Get-Module ActiveDirectory | Remove-Module
-#Requires -Modules ActiveDirectory
-
-Function Disable-SrfADUser {
+Function Enable-LrtADUser {
     <#
     .SYNOPSIS
         Disable an Active Directory user account.
@@ -13,7 +10,7 @@ Function Disable-SrfADUser {
         [pscredential] Credentials to use for local auth.
         Default: Current User
     .EXAMPLE
-        Disable-SrfADUser -Identity testuser -Credential (Get-Credential)
+        Disable-LrtADUser -Identity bobsmith -Credential (Get-Credential)
     #>
     
     [CmdletBinding()]
@@ -24,6 +21,10 @@ Function Disable-SrfADUser {
         [pscredential] $Credential
     )
     $ThisFunction = $MyInvocation.MyCommand
+    $Verbose = $false
+    if ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {
+        $Verbose = $true
+    }
 
     # Get Domain
     $Domain = Get-ADDomain
@@ -34,21 +35,21 @@ Function Disable-SrfADUser {
 
     # Check User Account
     if (!(Test-SrfADUserExists $Identity)) {
-        Write-Verbose "[$ThisFunction]: Could not find user [$Identity]."
+        Write-Verbose "[$ThisFunction]: Could not find user [$Identity]"
         return $false
     }
 
     try {
-        Get-ADUser -Identity $Identity | Disable-ADAccount -Credential $Credential -ErrorAction Stop
+        Get-ADUser -Identity $Identity | Enable-ADAccount -Credential $Credential -ErrorAction Stop
     }
     catch [exception] {
-        Write-Verbose "[$ThisFunction]: Error encoutered while trying to disable [$Identity]"
+        Write-Verbose "[$ThisFunction]: Error encoutered while trying to enable [$Identity]"
         return $false
     }
 
     $Detail = Get-ADUser -Identity $Identity -Properties Enabled
-    if (-not ($Detail.Enabled)) {
-        Write-Verbose "Account successfully disabled."
+    if ($Detail.Enabled) {
+        Write-Verbose "Account successfully enabled"
         return $true
     } else {
         return $false
