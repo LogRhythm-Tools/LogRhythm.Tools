@@ -63,8 +63,7 @@ using namespace System.Security.Principal
 [CmdletBinding()]
 Param( )
 
-#TODO: [Setup] Need a convenient way to call setup seperately from installing
-#TODO: [Setup] Include LR Locations
+#TODO: Need a convenient way to call setup seperately from installing
 
 #region: Import Commands                                                                           
 # Import Lrt.Installer
@@ -76,7 +75,6 @@ Import-Module (Join-Path -Path $LrtInstallerPath -ChildPath "Lrt.Installer.psm1"
 # Create / Get Configuration Directory
 # NOTE: If a configuration file already exists in AppData and there are significant changes in the latest build,
 # the installed version should be overwritten.
-#RESEARCH: [Setup.ps1] Create user workflow for this?
 $ConfigInfo = New-LrtConfig
 
 # Import LogRhythm.Tools.json
@@ -176,7 +174,6 @@ foreach($ConfigCategory in $LrtConfigInput.PSObject.Properties) {
             }
 
             # Break the loop on this field if no input (keep the same value)
-            #TODO: TEST THIS THOROUGHLY + add message that it will stay the same?
             if ([string]::IsNullOrEmpty($Response)) {
                 break
             }
@@ -190,7 +187,6 @@ foreach($ConfigCategory in $LrtConfigInput.PSObject.Properties) {
             Write-Verbose "Command: $cmd"
 
             $Result = Invoke-Expression $cmd
-            #TODO: Add a mechanism here to handle "blank" answers in which the current value is kept
 
             # Input OK - Update configuration object
             if ($Result.Valid) {

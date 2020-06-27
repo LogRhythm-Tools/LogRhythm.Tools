@@ -26,7 +26,6 @@ function Uninstall-LrtVersion {
     .LINK
         https://github.com/LogRhythm-Tools/LogRhythm.Tools
 #>
-#TODO: Remove this probably...
 
     [CmdletBinding()]
     Param(
