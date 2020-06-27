@@ -1,8 +1,5 @@
 using namespace System
 
-Get-Module ActiveDirectory | Remove-Module
-#Requires -Modules ActiveDirectory
-
 Function Set-LrtADUserRandomPassword {
     <#
     .SYNOPSIS

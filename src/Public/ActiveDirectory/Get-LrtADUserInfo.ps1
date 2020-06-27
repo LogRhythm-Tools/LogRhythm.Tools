@@ -2,8 +2,6 @@ using namespace System
 using namespace System.Collections.Generic
 using namespace Microsoft.ActiveDirectory.Management
 
-Get-Module ActiveDirectory | Remove-Module
-#Requires -Modules ActiveDirectory
 Function Get-LrtADUserInfo {
     <#
     .SYNOPSIS 
