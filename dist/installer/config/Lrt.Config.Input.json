@@ -69,7 +69,7 @@
     "LogRhythmEcho": {
         "Name": "LogRhythm Echo",
         "Optional": true,
-        "Message": "",
+        "Message": "Echo is a utility which allows users to replay native logs and PCAPs into LogRhythm for testing and verification purposes.",
         "HasKey": false,
 
         "Fields": {
@@ -85,7 +85,7 @@
     "RecordedFuture": {
         "Name": "Recorded Future",
         "Optional": true,
-        "Message": "",
+        "Message": "Use of Recorded Future requires an API key which can be purchased from recordedfuture.com",
         "HasKey": true,
         
         "Fields": {}
@@ -94,7 +94,7 @@
     "VirusTotal": {
         "Name": "VirusTotal",
         "Optional": true,
-        "Message": "",
+        "Message": "You may use a personal or commercial key for integration with VirusTotal",
         "HasKey": true,
         "Fields": {
             "Commercial": {
@@ -124,7 +124,7 @@
     "SecretServer": {
         "Name": "Secret Server",
         "Optional": true,
-        "Message": "",
+        "Message": "SecretServer is a PAM solution available from thycotic.com",
         "HasKey": false,
 
         "Fields": {
