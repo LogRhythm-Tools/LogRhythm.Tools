@@ -13,6 +13,10 @@
         "ApiKey": ""
     },
 
+    "LogRhythmEcho": {
+        "BaseUrl": "https://[NOT_SET]:33333/api"
+    },
+    
     "ActiveDirectory": {
         "DomainName": "",
         "Server": "",
@@ -20,10 +24,6 @@
         "Credential": ""
     },
 
-    "LogRhythmEcho": {
-        "BaseUrl": "https://[NOT_SET]:33333/api"
-    },
-    
     "RecordedFuture": {
         "BaseUrl": "https://api.recordedfuture.com/v2/",
         "ApiKey": ""
