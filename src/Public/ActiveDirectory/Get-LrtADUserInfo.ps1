@@ -2,6 +2,9 @@ using namespace System
 using namespace System.Collections.Generic
 using namespace Microsoft.ActiveDirectory.Management
 
+
+Get-Module ActiveDirectory | Remove-Module
+#Requires -Modules ActiveDirectory
 Function Get-LrtADUserInfo {
     <#
     .SYNOPSIS 
@@ -45,19 +48,25 @@ Function Get-LrtADUserInfo {
         [Parameter(
             Mandatory = $true,
             Position = 0,
-            ValueFromPipeline = $true
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true
         )]
         [ValidateNotNullOrEmpty()]
-        [string] $Identity
+        [ADUser] $Identity,
+
+
+        [Parameter(Mandatory = $false, Position = 1)]
+        [string] $Server = $LrtConfig.ActiveDirectory.Server,
+
+
+        [Parameter(Mandatory = $false, Position = 2)]
+        [pscredential] $Credential = $LrtConfig.ActiveDirectory.Credential
     )
 
 
     Begin {
-        $ThisFunction = $MyInvocation.MyCommand
-        $Verbose = $false
-        if ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {
-            $Verbose = $true
-        }
+        # Import Module ActiveDirectory
+        Import-LrtADModule
     }
 
 
@@ -69,9 +78,6 @@ Function Get-LrtADUserInfo {
             $Identity = $DomainCheck[1]
         }
 
-        $SvcPattern = "[sS][vV][cC].*?"
-        $OUPattern = "[oO][uU]=.*?"
-        $AdminPattern = "^.*?([aA][dD][mM][iI][nN]).*?$"
         # Setup a result object
         $OrgUnits = [List[string]]::new()
 
@@ -83,15 +89,12 @@ Function Get-LrtADUserInfo {
             Team = ""
             EmailAddress = $EmailAddress
             Exists = $false
+            Message = ""
             Enabled = $false
             LockedOut = $false
             PasswordExpired = $false
             PasswordAge = 9999
-            HasManager = $false
-            ManagerName = ""
-            ManagerEmail = ""
-            IsSvcAccount = $false
-            IsAdminAccount = $false
+            Manager = ""
             OrgUnits = $OrgUnits
             ADUser = $null
             Owner = $null
@@ -100,14 +103,8 @@ Function Get-LrtADUserInfo {
         # If user doesn't exist, return the default non-existing account object
         try {
             $User = Get-ADUser -Identity $Identity -Properties * -ErrorAction Stop
-        }
-        catch [ADIdentityNotFoundException] {
-            Write-Verbose "[$ThisFunction]: $Identity not found in Active Directory."
-            return $Result
-        }
-        catch {
-            Write-Verbose "[$ThisFunction]: Encountered unexpected error while running Get-ADUser."
-            return $Result
+        } catch {
+            $Result.Message = $PSItem.Exception.Message
         }
 
         # Include the ADUser object in the result
@@ -133,12 +130,7 @@ Function Get-LrtADUserInfo {
 
         # Manager
         if ($User.Manager) {
-            Write-Verbose "Manager: $($User.Manager)"
-            $Result.HasManager = $true
-
-            $Manager = Get-ADUser -Identity $User.Manager -Properties *
-            $Result.ManagerName = $Manager.Name
-            $Result.ManagerEmail = $Manager.EmailAddress
+            $Result.Manager = Get-LrtADUserInfo -Identity $User.Manager
         }
         
         # Org Units
@@ -148,29 +140,6 @@ Function Get-LrtADUserInfo {
                 $Result.OrgUnits.Add(($value -split '=')[1])
             }
         }
-
-        # IsSvcAccount - if in a Service Account OU or matches "Svc" pattern
-        if ($Result.OrgUnits.Contains("Service Accounts")) {
-            $Result.IsSvcAccount = $true
-        } else {
-            $Result.IsSvcAccount = $User.SamAccountName -match $SvcPattern
-        }
-
-        # IsAdminAccount - if in one of the groups below
-        if ($Result.OrgUnits.Contains("Administrators")) {
-            $Result.IsAdminAccount = $true
-            if ($Result.SamAccountName -match $AdminPattern) {
-                $LookFor = ($Result.SamAccountName).Substring(0, $Result.SamAccountName.Length-2)
-                try {
-                    $Result.Owner = Get-ADUser -Identity $LookFor -Properties * -ErrorAction Stop
-                }
-                catch {
-                    Write-Verbose "[$ThisFunction]: $($Result.SamAccountName) is in the Administrators OU."
-                    Write-Verbose "[$ThisFunction]: Failed to find a non-privileged account (tried $LookFor)."
-                }
-            }
-        }
-
         return $Result
     }
 
