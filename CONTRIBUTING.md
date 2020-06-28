@@ -17,12 +17,27 @@ After you submit a PR, Project maintainers and contributors will review and disc
 
 ## Pull Requests
 
-> Golden Rule: One pull request, one concern
+> Golden Rule: One pull request, one concern.  
 
-- A Pull Request represents a way to deliver value to the application in the form of a set of changes that **together form a high-level concern**
+- Each pull request should accomplish a clear goal.
+ - Bug fixes: What was the bug?  How did you fix it?
+ - New features: What is it?  How is it used?
+- A Pull Request represents a way to deliver value to the application in the form of a set of changes that **together form a high-level concern**.
 - Pull Requests should address a single concern, should be atomic, changing only that which is required to address the topic.
-- Pull Requests should not change things that are not directly concerned with the functionality that is being addressed. 
+ - Keep requests small to support review, testing, and conflict resolution efforts minimal.
+- Pull Requests should not change things that are not directly concerned with the functionality that is being addressed.
+- Ensure your branch is up-to-date to reduce potential merge conflicts that could occur.
 - If changes such as whitespace, typo fixes, variable renaming, and the like are not related to the topic of the PR, they should be done in a different one.
+
+### Pull Request Rejection Criteria
+
+Common criteria that will result in Pull Requests being rejected from LogRhythm.Tools:
+
+- Malicious code.
+- Code that does not align with the project's coding conventions.
+- Code that introduces breaks in established functionality.
+- Code that is plagiarized and/or violates terms of use of the origin author.
+
 
 ## Coding Conventions
 
