@@ -1,10 +1,5 @@
-# =============================================================
-# Custom
-# =============================================================
-# Ignore testing creds - we don't use XML in the projcect.
-# If we do, we will need to update.
+# Ignore ApiKeys that might make their way into the repo
 *ApiKey.xml
-!docs\diagrams\*.xml
 
 # Ingore Transcripts
 PowerShell_transcript*
@@ -14,4 +9,6 @@ PowerShell_transcript*
 [Bb]uild/[Rr]elease/*
 [Bb]uild/BuildInfo.json
 
+# Ignore test data
 [Tt]ests/*/data/*
+[Tt]ests/data/*
