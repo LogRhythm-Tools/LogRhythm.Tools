@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<remv1:Remediation-Plugin Name="Recorded Future Threat List" Guid="552560ae-da91-4028-9a7c-e9d25688338e" xmlns:remv1="RemediationVersion1.xsd" Version="1" IsLogRhythmPlugin="false">
+  <remv1:Action Name="Sync All" Command="powershell.exe">
+    <remv1:ConstantParameter Name="Script" Order="1" Switch="-file SmartResponse-RfThreatListSync.ps1" />
+    <remv1:ConstantParameter Name="List Type" Switch="-Scope all" Order="2" />
+  </remv1:Action>
+  <remv1:Action Name="Sync IPs" Command="powershell.exe">
+    <remv1:ConstantParameter Name="Script" Order="1" Switch="-file SmartResponse-RfThreatListSync.ps1" />
+    <remv1:ConstantParameter Name="List Type" Switch="-Scope ip" Order="2" />
+  </remv1:Action>
+  <remv1:Action Name="Sync Hashes" Command="powershell.exe">
+    <remv1:ConstantParameter Name="Script" Order="1" Switch="-file SmartResponse-RfThreatListSync.ps1" />
+    <remv1:ConstantParameter Name="List Type" Switch="-Scope hash" Order="2" />
+  </remv1:Action>
+  <remv1:Action Name="Sync URLs" Command="powershell.exe">
+    <remv1:ConstantParameter Name="Script" Order="1" Switch="-file SmartResponse-RfThreatListSync.ps1" />
+    <remv1:ConstantParameter Name="List Type" Switch="-Scope url" Order="2" />
+  </remv1:Action>
+  <remv1:Action Name="Sync Domains" Command="powershell.exe">
+    <remv1:ConstantParameter Name="Script" Order="1" Switch="-file SmartResponse-RfThreatListSync.ps1" />
+    <remv1:ConstantParameter Name="List Type" Switch="-Scope domain" Order="2" />
+  </remv1:Action>
+</remv1:Remediation-Plugin>
