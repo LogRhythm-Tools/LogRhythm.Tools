@@ -139,6 +139,11 @@ $FallThruValue = ""
 # $ConfigCategory -> Process each top-level config category (General, LogRhythm, etc.)
 foreach($ConfigCategory in $LrtConfigInput.PSObject.Properties) {
     Write-Host "`n[ $($ConfigCategory.Value.Name) ]`n=========================================" -ForegroundColor Green
+
+    # Display category message to user
+    if ($ConfigCategory.Value.Message) {
+        Write-Host $ConfigCategory.Value.Message -ForegroundColor DarkGray
+    }
     $ConfigOpt = $true
 
     #region: Category::Skip Category If Optional                                                               
