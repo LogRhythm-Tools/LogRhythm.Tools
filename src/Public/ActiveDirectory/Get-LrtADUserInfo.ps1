@@ -2,9 +2,6 @@ using namespace System
 using namespace System.Collections.Generic
 using namespace Microsoft.ActiveDirectory.Management
 
-
-Get-Module ActiveDirectory | Remove-Module
-#Requires -Modules ActiveDirectory
 Function Get-LrtADUserInfo {
     <#
     .SYNOPSIS 
@@ -47,9 +44,9 @@ Function Get-LrtADUserInfo {
     Param(
         [Parameter(
             Mandatory = $true,
-            Position = 0,
             ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true
+            ValueFromPipelineByPropertyName = $true,
+            Position = 0
         )]
         [ValidateNotNullOrEmpty()]
         [ADUser] $Identity,
@@ -78,43 +75,41 @@ Function Get-LrtADUserInfo {
             $Identity = $DomainCheck[1]
         }
 
-        # Setup a result object
-        $OrgUnits = [List[string]]::new()
 
-        # Result Object
+        # User Result Object
         $Result = [PSCustomObject]@{
-            Name = $Identity
-            SamAccountName = ""
-            Title = ""
-            Team = ""
-            EmailAddress = $EmailAddress
-            Exists = $false
-            Message = ""
-            Enabled = $false
-            LockedOut = $false
+            Name            = $Identity
+            SamAccountName  = ""
+            Title           = ""
+            EmailAddress    = $EmailAddress
+            Exists          = $false
+            Message         = ""
+            Enabled         = $false
+            LockedOut       = $false
             PasswordExpired = $false
-            PasswordAge = 9999
-            Manager = ""
-            OrgUnits = $OrgUnits
-            ADUser = $null
-            Owner = $null
+            PasswordAge     = 9999
+            Manager         = ""
+            OrgUnits        = [List[string]]::new()
+            ADUser          = $null
+            Owner           = $null
+            Groups          = [List[string]]::new()
         }
 
-        # If user doesn't exist, return the default non-existing account object
+
+        # Try to get [ADUser] from Get-LrtADUser cmdlet, which will use Server/Credential as needed
         try {
-            $User = Get-ADUser -Identity $Identity -Properties * -ErrorAction Stop
+            $User = Get-LrtADUser -Identity $Identity -Server $Server -Credential $Credential
+            $Result.ADUser = $User
         } catch {
             $Result.Message = $PSItem.Exception.Message
+            return $Result
         }
 
-        # Include the ADUser object in the result
-        $Result.ADUser = $User
 
         # Basic Properties
         $Result.Name = $User.Name
         $Result.SamAccountName = $User.SamAccountName
         $Result.Title = $User.Title
-        $Result.Team = $User.extensionAttribute8
         $Result.EmailAddress = $User.EmailAddress
         $Result.Exists = $true
         $Result.Enabled = $User.Enabled
@@ -130,9 +125,18 @@ Function Get-LrtADUserInfo {
 
         # Manager
         if ($User.Manager) {
-            $Result.Manager = Get-LrtADUserInfo -Identity $User.Manager
+            try {
+                $Result.Manager = Get-LrtADUserInfo -Identity $User.Manager -Server $Server -Credential $Credential
+            }
+            catch {
+                # if something goes wrong we will just plug in the default manager field
+                # into the result instead of the manager's name.
+                $err = $PSItem.Exception.Message
+                Write-Warning "Manager lookup for [$($Result.Name)]: $err"
+                $Result.Manager = $User.Manager
+            }
         }
-        
+
         # Org Units
         $DN = ($User.DistinguishedName) -split ','
         foreach ($value in $DN) {

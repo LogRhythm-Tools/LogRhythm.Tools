@@ -18,10 +18,9 @@
     },
     
     "ActiveDirectory": {
-        "DomainName": "",
         "Server": "",
-        "ModuleLoaded": false,
-        "Credential": ""
+        "Credential": "",
+        "ModuleLoaded": false
     },
 
     "RecordedFuture": {

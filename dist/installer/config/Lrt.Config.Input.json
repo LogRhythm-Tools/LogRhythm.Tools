@@ -82,6 +82,22 @@
         }
     },
 
+    "ActiveDirectory": {
+        "Name": "Active Directory",
+        "Message": "The AD properties only need to be set if the desired domain isn't returned by Get-ADDomain",
+        "Optional": true,
+        "HasKey": false,
+
+        "Fields": {
+            "Server": {
+                "Prompt": "AD Directory Server",
+                "Hint": "(valid domain)",
+                "InputCmd": "Get-InputHostname",
+                "FallThru": false
+            }
+        }
+    },
+
     "RecordedFuture": {
         "Name": "Recorded Future",
         "Optional": true,

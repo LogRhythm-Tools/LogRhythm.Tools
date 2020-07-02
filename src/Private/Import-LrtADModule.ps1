@@ -15,6 +15,7 @@ Function Import-LrtADModule {
     [CmdletBinding()]
     Param( )
 
+
     # Does Lrt already know if the module is loaded?
     if (! $LrtConfig.ActiveDirectory.ModuleLoaded) {
 
