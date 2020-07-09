@@ -157,7 +157,6 @@ A great place to start is reviewing all of the lists that are available to us th
     owner            : 1
 </code>
 
-
 #### Retrieving list values
 The list LRT : Domain : ConfLo : Blacklisted Dns Name appears interesting and we want to review only the list values populated on the list.  For this we'll make use of the Get-LrListItems cmdlet where we can reference our target list by its name, LRT : Domain : ConfLo : Blacklisted Dns Name or by its GUID 7328F064-6E70-45E8-8881-B9917F15C9D3.  This is thanks to the implementation design of the LogRhythm Tools cmdlets. 
 
@@ -177,7 +176,6 @@ The list LRT : Domain : ConfLo : Blacklisted Dns Name appears interesting and we
     amle-sun.eu
     icst.na.its.ac.id
 </code>
-
 
 #### Removing an item from a list
 Reviewing the results from our Blacklisted Dns Name's it looks like a mistake has been introduced with the logrhythm.com entry.  This example will showcase how to remove a specific value from this list.  With this method we will change from referencing the list from the name property and instead reference the list by its GUID.
@@ -206,8 +204,8 @@ Reviewing the results from our Blacklisted Dns Name's it looks like a mistake ha
     needToNotify     : False
     doesExpire       : False
     owner            : 1
-    listItemsCount   : 0</code>
-
+    listItemsCount   : 0
+</code>
 
 To validate we can check our list's results to verify the removal.
 
@@ -224,8 +222,8 @@ To validate we can check our list's results to verify the removal.
     appum.com
     avacarvisual.com.br
     amle-sun.eu
-    icst.na.its.ac.id</code>
-
+    icst.na.its.ac.id
+</code>
 
 #### Remove all items from a list
 Lets say we want to carry out some maintenance and clear out all the results from our Blacklisted Dns Name list.  For this example we'll utiize Powershell's pipeline processing and two LogRhythm Tools cmdlets.  The first cmdlet is from our earlier retrieving list items example that will be paired with the removing an item example.
@@ -256,7 +254,6 @@ Lets say we want to carry out some maintenance and clear out all the results fro
     owner            : 1
     listItemsCount   : 0
 </code>
-
 
 This example begins to show some of the flexibility and capability of the LogRhythm Tools PowerShell module.  The results show we successfully cleared out the number of entries contained in our target list through a single line of code with two cmdlets.  The same method we've applied for removing items from LogRhythm Lists can also be applied to adding items to lists. 
 
