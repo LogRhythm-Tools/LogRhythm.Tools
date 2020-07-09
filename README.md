@@ -87,7 +87,7 @@ Our 1.0 release is just around the corner, and we will be publishing a pre-relea
     * <code>Get-LrUsers</code>
 
 ### Installation Demo
-<img src="https://raw.githubusercontent.com/LogRhythm-Tools/LogRhythm.Tools/Documentation/docs/examples/LR.Tools_Installer.gif" width="750" />
+<img src="https://raw.githubusercontent.com/LogRhythm-Tools/LogRhythm.Tools/Documentation-2/docs/examples/LR.Tools_Installer.gif" width="750" />
 
 For additional examples on how to leverage LogRhythm.Tools check out the [Examples](#examples) section.
 
