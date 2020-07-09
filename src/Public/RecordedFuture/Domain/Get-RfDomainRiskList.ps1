@@ -32,7 +32,24 @@ Function Get-RfDomainRiskList {
         Returns only the Name value of the associated list.
 
         This object is returned as an array to support passing arrays via pipeline as a parameter.
-    .INPUTS
+    .EXAMPLE
+        PS C:\> Get-RfDomainRiskList -List fastFlux
+        ---
+        Name                                           Risk RiskString EvidenceDetails
+        ----                                           ---- ---------- ---------------
+        google8.ddns.net                                 69 5/40       {"EvidenceDetails": [{"Rule": "Recently Resolved to Host of Many DDNS Names", "CriticalityLabel": "Unusual", "EvidenceString": "Domain associated with DDNS Name Hosts: Recently resolved to 37 IP Addresses hosting 1…
+        hafacenj.ddns.net                                68 4/40       {"EvidenceDetails": [{"Rule": "Recently Resolved to Host of Many DDNS Names", "CriticalityLabel": "Unusual", "EvidenceString": "Domain associated with DDNS Name Hosts: Recently resolved to 67 IP Addresses hosting 1…
+        conquer.ddns.net                                 68 4/40       {"EvidenceDetails": [{"Rule": "Recently Resolved to Unusual IP", "CriticalityLabel": "Unusual", "EvidenceString": "From DNS resolution data collected by Recorded Future: Recently resolved to 7 Unusual IP Addresses …
+        rezaxone4444.gotdns.ch                           33 5/40       {"EvidenceDetails": [{"Rule": "Recently Resolved to Host of Many DDNS Names", "CriticalityLabel": "Unusual", "EvidenceString": "Domain associated with DDNS Name Hosts: Recently resolved to 8 IP Addresses hosting 10…
+        holamundo.ddns.net                               32 4/40       {"EvidenceDetails": [{"Rule": "Recently Resolved to Host of Many DDNS Names", "CriticalityLabel": "Unusual", "EvidenceString": "Domain associated with DDNS Name Hosts: Recently resolved to 11 IP Addresses hosting 1…
+    .EXAMPLE
+        PS C:\> Get-RfDomainRiskList -List fastFlux -ValuesOnly
+        ---
+        google8.ddns.net
+        hafacenj.ddns.net
+        conquer.ddns.net
+        rezaxone4444.gotdns.ch
+        holamundo.ddns.net
     .NOTES
         RecordedFuture-API
     .LINK
