@@ -24,6 +24,12 @@ LogRhythm.Tools supports API access to various third party vendors.  Access to t
 
 Each command included in the LogRhythm.Tools module is deigned to be modular and built to leverage the power of the PowerShell pipeline.  The output of one LRT command can be sent for processing as input to the another command. And that output can be sent to yet another command. The result is a complex command chain or pipeline that is composed of a series of simple commands.
 
+## Coming Soon
+
+Our 1.0 release is just around the corner, and we will be publishing a pre-release candidate on July 31st, 2020.  Stay tuned for more information, documentation and other materials that will help you in getting started with the LogRhythm.Tools module!
+
+# Getting Started
+
 ## [Requirements](#Requirements)
 
 **Operating Systems**
@@ -68,9 +74,9 @@ Each command included in the LogRhythm.Tools module is deigned to be modular and
 ## Installation
 
 * <a href="https://github.com/LogRhythm-Tools/LogRhythm.Tools/releases" target="_blank">Download</a> and extract the LogRhythm.Tools release package
-* Run setup.ps1 on a host that meets LogRhythm.Tools system [requirements](#Requirements)
+* Run <code>Setup.ps1</code> on a host that meets LogRhythm.Tools system [requirements](#Requirements)
 * Follow the directions presented through the interactive installer
-  * To apply configuration changes re-run the setup.ps1
+  * To apply configuration changes re-run the <code>Setup.ps1</code>
 * Once installation has been complete follow these steps to test basic functionality
   * Open <code>powershell.exe</code>
   * Enter <code>Import-Module LogRhythm.Tools</code>
@@ -80,11 +86,10 @@ Each command included in the LogRhythm.Tools module is deigned to be modular and
     * <code>Get-LrEntities</code>
     * <code>Get-LrUsers</code>
 
+### Installation Demo
+<img src="https://raw.githubusercontent.com/LogRhythm-Tools/LogRhythm.Tools/Documentation/docs/examples/LR.Tools_Installer.gif" width="750" />
+
 For additional examples on how to leverage LogRhythm.Tools check out the [Examples](#examples) section.
-
-## Coming Soon
-
-Our 1.0 release is just around the corner, and we will be publishing a pre-release candidate on July 31st, 2020.  Stay tuned for more information, documentation and other materials that will help you in getting started with the LogRhythm.Tools module!
 
 ---------
 
@@ -173,6 +178,7 @@ The list LRT : Domain : ConfLo : Blacklisted Dns Name appears interesting and we
     icst.na.its.ac.id
 </code>
 
+
 #### Removing an item from a list
 Reviewing the results from our Blacklisted Dns Name's it looks like a mistake has been introduced with the logrhythm.com entry.  This example will showcase how to remove a specific value from this list.  With this method we will change from referencing the list from the name property and instead reference the list by its GUID.
 
@@ -200,8 +206,8 @@ Reviewing the results from our Blacklisted Dns Name's it looks like a mistake ha
     needToNotify     : False
     doesExpire       : False
     owner            : 1
-    listItemsCount   : 0
-</code>
+    listItemsCount   : 0</code>
+
 
 To validate we can check our list's results to verify the removal.
 
@@ -218,8 +224,8 @@ To validate we can check our list's results to verify the removal.
     appum.com
     avacarvisual.com.br
     amle-sun.eu
-    icst.na.its.ac.id
-</code>
+    icst.na.its.ac.id</code>
+
 
 #### Remove all items from a list
 Lets say we want to carry out some maintenance and clear out all the results from our Blacklisted Dns Name list.  For this example we'll utiize Powershell's pipeline processing and two LogRhythm Tools cmdlets.  The first cmdlet is from our earlier retrieving list items example that will be paired with the removing an item example.
@@ -250,6 +256,7 @@ Lets say we want to carry out some maintenance and clear out all the results fro
     owner            : 1
     listItemsCount   : 0
 </code>
+
 
 This example begins to show some of the flexibility and capability of the LogRhythm Tools PowerShell module.  The results show we successfully cleared out the number of entries contained in our target list through a single line of code with two cmdlets.  The same method we've applied for removing items from LogRhythm Lists can also be applied to adding items to lists. 
 
