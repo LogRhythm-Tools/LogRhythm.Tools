@@ -21,6 +21,8 @@ Function Test-LrFilterType {
         IsValid    IdentifierValue    IdentifierType
         -------    ---------------    --------------
         True       tstr@example.com   Email
+    .NOTES
+        LogRhythm-API    
     .LINK
         https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
