@@ -2,19 +2,16 @@ using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
 
-Function Start-EchoUseCase {
+Function Start-LrEchoUseCase {
     <#
     .SYNOPSIS
         Start a LogRhythm Echo use cases.
     .DESCRIPTION
-        Start-EchoUseCase returns a , including it's details and list items.
+        Start-EchoUseCase returns 
     .OUTPUTS
-        PSCustomObject representing the specified LogRhythm List and its contents.
 
-        If parameter ListItemsOnly is specified, a string collection is returned containing the
-        list's item values.
     .EXAMPLE
-        PS C:\> Get-LrList -Identity "edea82e3-8d0b-4370-86f0-d96bcd4b6c19" -Credential $MyKey
+        PS C:\> STart-LrEchoUseCase
     .NOTES
         LogRhythm-API
     .LINK
@@ -50,7 +47,7 @@ Function Start-EchoUseCase {
 
     Process {      
         if ((!$Id) -and ($Title)) {
-            $Id = $(Get-EchoUseCases -Title $Title -ExactName | Select-Object -ExpandProperty Id)
+            $Id = $(Get-EchoUseCases -Title $Title -Exact | Select-Object -ExpandProperty Id)
         } elseif((!$Id) -and (!$Title)) {
             Return "Please provide Echo Case ID# or Title"
         }
