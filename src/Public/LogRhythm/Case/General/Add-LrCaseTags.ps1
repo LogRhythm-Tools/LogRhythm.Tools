@@ -24,6 +24,7 @@ Function Add-LrTagsToCase {
         PSCustomObject representing the modified LogRhythm Case.
     .EXAMPLE
         PS C:\> 
+        Add examples
     .NOTES
         LogRhythm-API
     .LINK

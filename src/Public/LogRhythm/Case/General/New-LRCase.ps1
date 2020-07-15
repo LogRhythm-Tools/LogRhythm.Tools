@@ -28,6 +28,8 @@ Function New-LrCase {
         PSCustomObject representing the newly created case.
     .EXAMPLE
         PS C:\> New-LrCase -Name "test" -Priority 5 -Summary "test summary" -DueDate "10-20-2020 14:22:11" -Credential $cred
+        
+        Add output
     .NOTES
         LogRhythm-API
     .LINK

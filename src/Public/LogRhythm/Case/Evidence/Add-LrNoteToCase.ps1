@@ -22,7 +22,9 @@ Function Add-LrNoteToCase {
     .OUTPUTS
         PSCustomObject representing the (new|modified) LogRhythm object.
     .EXAMPLE
-        PS C:\> 
+        PS C:\> Add-LrNoteToCase -Id 1780 -Text "Review of alarm 21202 indicated manual action from System Administrator."
+        ---
+        Add output
     .NOTES
         LogRhythm-API
     .LINK

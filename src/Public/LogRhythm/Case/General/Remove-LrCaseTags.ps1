@@ -2,12 +2,12 @@ using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
 
-Function Remove-LrTagsFromCase {
+Function Remove-LrCaseTags {
     <#
     .SYNOPSIS
         Remove tags to a LogRhythm case.
     .DESCRIPTION
-        The Remove-LrTagsToCase cmdlet removes tags to an existing case.
+        The Remove-LrCaseTags cmdlet removes tags to an existing case.
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
         Note: You can bypass the need to provide a Credential by setting
@@ -24,6 +24,8 @@ Function Remove-LrTagsFromCase {
         PSCustomObject representing the modified LogRhythm Case.
     .EXAMPLE
         PS C:\> 
+
+        Add example.
     .NOTES
         LogRhythm-API
     .LINK

@@ -41,8 +41,9 @@ Function Update-LrCasePlaybookProcedure {
         System.Object representing the returned LogRhythm playbook procedures on the applicable case.
 
     .EXAMPLE
-        PS C:\> Update-LrCasePlaybookProcedure -Credential $Token -CaseId "F47CF405-CAEC-44BB-9FDB-644C33D58F2A"
+        PS C:\> Update-LrCasePlaybookProcedure -CaseId "F47CF405-CAEC-44BB-9FDB-644C33D58F2A"
 
+        Add example
     .NOTES
         LogRhythm-API
     .LINK

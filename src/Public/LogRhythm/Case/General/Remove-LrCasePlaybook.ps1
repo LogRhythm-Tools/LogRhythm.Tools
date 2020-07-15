@@ -22,9 +22,11 @@ Function Remove-LrCasePlaybook {
     .INPUTS
         [System.Object] "Id" ==> [Id] : The ID of the Case to modify.
     .OUTPUTS
-        PSCustomObject representing the added playbook.
+        PSCustomObject representing the removed playbook.
     .EXAMPLE
         PS C:\> 
+
+        Add example
     .NOTES
         LogRhythm-API
     .LINK

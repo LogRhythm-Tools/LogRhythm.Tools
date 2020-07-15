@@ -24,6 +24,8 @@ Function Add-LrAlarmToCase {
         The updated [LrCase] object.
     .EXAMPLE
         PS C:\> AddLrAlarmToCase -Id 1780 -AlarmNumbers @(21202, 21203, 21204)
+        --- 
+        Add output
     .NOTES
         LogRhythm-API
     .LINK
