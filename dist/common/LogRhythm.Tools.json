@@ -36,5 +36,10 @@
 
     "SecretServer": {
         "BaseUrl": "https://[NOT_SET]/winauthwebservices/sswinauthwebservice.asmx"
+    },
+	
+	"Shodan": {
+        "BaseUrl": "https://api.shodan.io"
+		"ApiKey": ""
     }
 }

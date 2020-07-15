@@ -128,5 +128,13 @@
                 "FallThru": false
             }
         }
+    },
+	
+	"Shodan": {
+        "Name": "Shodan",
+        "Optional": true,
+        "HasKey": true,
+		
+        "Fields": {}
     }
 }
