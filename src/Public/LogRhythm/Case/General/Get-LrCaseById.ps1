@@ -20,7 +20,7 @@ Function Get-LrCaseById {
     .OUTPUTS
         PSCustomObject representing the (new|modified) LogRhythm object.
     .EXAMPLE
-        PS C:\> Get-LrCaseById -Credential $CredAPI -Id 1785
+        PS C:\> Get-LrCaseById -Id 1785
 
             id                      : 16956857-3965-4B83-AAE6-C9B33A38D15E
             number                  : 1785
