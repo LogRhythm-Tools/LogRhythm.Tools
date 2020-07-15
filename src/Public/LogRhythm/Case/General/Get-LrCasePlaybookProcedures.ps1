@@ -28,7 +28,7 @@ Function Get-LrCasePlaybookProcedures {
 
         If no prceodures are found, this cmdlet will return null.
     .EXAMPLE
-        PS C:\> Get-LrCasePlaybookProcedures -Credential $Token -CaseId 8703 -Id "4CAB940D-CFF7-442E-A54A-5D4949FA783D"
+        PS C:\> Get-LrCasePlaybookProcedures -CaseId 8703 -Id "4CAB940D-CFF7-442E-A54A-5D4949FA783D"
         ---
         id            : C8C47BEC-7E77-44C0-AB7A-3DFA2AF6E9FF
         name          : Drill down on the alarm to gain additional insight
