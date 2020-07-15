@@ -6,7 +6,7 @@ Function Get-RfIPRiskLists {
     .SYNOPSIS
         Retrieve the available RecordedFuture IP threat lists.
     .DESCRIPTION
-        
+        List IP Risk rules.
     .PARAMETER Token
         PSCredential containing an API Token in the Password field.
 
@@ -19,6 +19,136 @@ Function Get-RfIPRiskLists {
 
         This object is returned as an array to support passing arrays via pipeline as a parameter.
     .INPUTS
+        Switch -> NamesOnly
+        Switch -> DescriptionsOnly
+    .EXAMPLE
+        PS C:\> Get-RfIPRiskLists
+        ---
+        name             : recentActiveCnc
+        count            : 446
+        criticalityLabel : Very Malicious
+        description      : Actively Communicating C&C Server
+        criticality      : 4
+        relatedEntities  : {aLubo1}
+
+        name             : spam
+        count            : 121169
+        criticalityLabel : Unusual
+        description      : Historical Spam Source
+        criticality      : 1
+        relatedEntities  : {}
+
+        name             : cyberSignalHigh
+        count            : 0
+        criticalityLabel : Unusual
+        description      : Cyber Exploit Signal: Important
+        criticality      : 1
+        relatedEntities  : {}
+
+        name             : maliciousPacketSource
+        count            : 17322
+        criticalityLabel : Suspicious
+        description      : Malicious Packet Source
+        criticality      : 2
+        relatedEntities  : {}
+
+        name             : ssl
+        count            : 5825
+        criticalityLabel : Unusual
+        description      : Historical Bad SSL Association
+        criticality      : 1
+        relatedEntities  : {}
+
+        name             : recentOpenProxies
+        count            : 15591
+        criticalityLabel : Suspicious
+        description      : Recent Open Proxies
+        criticality      : 2
+        relatedEntities  : {}
+
+        name             : threatResearcher
+        count            : 76310
+        criticalityLabel : Unusual
+        description      : Historical Threat Researcher
+        criticality      : 1
+        relatedEntities  : {}
+
+        name             : rfTrending
+        count            : 314
+        criticalityLabel : Unusual
+        description      : Trending in Recorded Future Analyst Community
+        criticality      : 1
+        relatedEntities  : {}
+
+        name             : malwareDelivery
+        count            : 21
+        criticalityLabel : Suspicious
+        description      : Malware Delivery
+        criticality      : 2
+        relatedEntities  : {}
+
+        name             : intermediateCncServer
+        count            : 1122
+        criticalityLabel : Suspicious
+        description      : Recent C&C Server
+        criticality      : 2
+        relatedEntities  : {}
+
+        name             : linkedToAPT
+        count            : 3419
+        criticalityLabel : Unusual
+        description      : Historically Linked to APT
+        criticality      : 1
+        relatedEntities  : {}
+
+        name             : recentThreatResearcher
+        count            : 283
+        criticalityLabel : Suspicious
+        description      : Recent Threat Researcher
+        criticality      : 2
+        relatedEntities  : {}
+
+        name             : bogusBgp
+        count            : 18165
+        criticalityLabel : Unusual
+        description      : Inside Possible Bogus BGP Route
+        criticality      : 1
+        relatedEntities  : {}
+
+        name             : recentlyDefaced
+        count            : 1269
+        criticalityLabel : Suspicious
+        description      : Recently Defaced Site
+        criticality      : 2
+        relatedEntities  : {}
+
+        name             : sshDictAttacker
+        count            : 3315835
+        criticalityLabel : Unusual
+        description      : Historical SSH/Dictionary Attacker
+        criticality      : 1
+        relatedEntities  : {}
+
+        name             : phishingHost
+        count            : 11063
+        criticalityLabel : Malicious
+        description      : Phishing Host
+        criticality      : 3
+        relatedEntities  : {}
+
+        name             : cyberSignalMedium
+        count            : 0
+        criticalityLabel : Unusual
+        description      : Cyber Exploit Signal: Medium
+        criticality      : 1
+        relatedEntities  : {}
+
+        name             : cncNameserver
+        count            : 124
+        criticalityLabel : Suspicious
+        description      : Nameserver for C&C Server
+        criticality      : 2
+        relatedEntities  : {}
     .NOTES
         RecordedFuture-API
     .LINK
