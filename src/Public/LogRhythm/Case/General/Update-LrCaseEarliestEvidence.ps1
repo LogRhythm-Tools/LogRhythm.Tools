@@ -7,7 +7,7 @@ Function Update-LrCaseEarliestEvidence {
     .SYNOPSIS
         Update the earliest evidence timestamp of an existing case using a custom timestamp
     .DESCRIPTION
-        The Update-LrCaseEarliestEvidenceFromDrilldown cmdlet updates an existing case's earliest evidence based on a timestamp.
+        The Update-LrCaseEarliestEvidence cmdlet updates an existing case's earliest evidence based on a timestamp.
 
         Case Status must not be closed.
     .PARAMETER Credential
@@ -27,7 +27,7 @@ Function Update-LrCaseEarliestEvidence {
     .OUTPUTS
         Optional summary output to validate Case Update status.
     .EXAMPLE
-        PS C:\> Update-LrCaseEarliestEvidenceFromDrilldown -Id 8699 -Timestamp %TIME -Summary
+        PS C:\> Update-LrCaseEarliestEvidence -Id 8699 -Timestamp %TIME -Summary
         ---
         Updated Case: 8699 Earliest Evidence to Date: 2019-12-19T08:58:40Z
     .NOTES
