@@ -37,9 +37,33 @@ Function Get-RfIPRiskList {
     .PARAMETER IPv6
         Sets the return object to return only Hash values that are of the IPv6 type.
     .INPUTS
-
+        String -> Token
+        String -> List
+        String -> Format
+        Bool   -> Compressed
+        Int    -> MinimumRisk
+        Int    -> MaximumRisk
+        Switch -> ValuesOnly
+        Switch -> IPv4
+        Switch -> IPv6
     .EXAMPLE
-
+        PS C:\> Get-RfIpRiskList -List openProxies
+        ---
+        Name            Risk RiskString EvidenceDetails
+        ----            ---- ---------- ---------------
+        36.89.182.225     99 8/51       {"EvidenceDetails": [{"Rule": "Historical Honeypot Sighting", "CriticalityLabel": "Unusual", "EvidenceString": "1 sighting on 1 source: Project Honey Pot. Most recent link (Sep 10, 2018): https://www.projecthoneypot.org/ip_36.89.183.85", "Times… 
+        110.93.15.98      99 5/51       {"EvidenceDetails": [{"Rule": "Historically Linked to Intrusion Method", "CriticalityLabel": "Unusual", "EvidenceString": "1 sighting on 1 source: PasteBin. 3 related intrusion methods: Trickbot, Banking Trojan, Trojan. Most recent link (Apr 13… 
+        183.81.154.113    99 4/51       {"EvidenceDetails": [{"Rule": "Historically Linked to Intrusion Method", "CriticalityLabel": "Unusual", "EvidenceString": "2 sightings on 1 source: ReversingLabs. Most recent link (Dec 30, 2019): https://a1000.reversinglabs.com/accounts/login/?… 
+        186.159.1.217     99 8/51       {"EvidenceDetails": [{"Rule": "Historical Honeypot Sighting", "CriticalityLabel": "Unusual", "EvidenceString": "5 sightings on 2 sources: @HoneyFog, @HoneyPyLog. Most recent tweet: Fog44: 186.159.1.217-&gt;8080. Seen 9 times from me. Most recen… 
+        173.171.132.82    99 6/51       {"EvidenceDetails": [{"Rule": "Historically Linked to Intrusion Method", "CriticalityLabel": "Unusual", "EvidenceString": "7 sightings on 3 sources: @senthilkl, VirusTotal, pscforum.info. 5 related intrusion methods: Trickbot, Banking Trojan, D… 
+    .EXAMPLE
+        PS C:\> Get-RfIpRiskList -List openProxies -ValuesOnly -IPv4
+        ---
+        36.89.182.225
+        110.93.15.98
+        183.81.154.113
+        186.159.1.217
+        173.171.132.82
     .NOTES
         RecordedFuture-API
     .LINK
