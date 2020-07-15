@@ -65,7 +65,7 @@ Function Invoke-RfSync {
         [string[]] $SyncScope = "all"
     )
 
-    $ListPrefix = "F1 RF :"
+    $ListPrefix = "RF :"
     $ListReadAccess = "PublicRestrictedAdmin"
     $ListWriteAccess = "PublicRestrictedAdmin"
 
