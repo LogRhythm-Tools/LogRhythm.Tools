@@ -19,7 +19,7 @@ Function Get-VTIPReport {
     .OUTPUTS
         PSCustomObject representing the report results.
     .EXAMPLE
-        PS C:\> Get-VtIPReport -Credential $token -IpAddr "13.249.122.117"
+        PS C:\> Get-VtIPReport -IpAddr "13.249.122.117"
         ---
         undetected_urls                  : {http://www.sozcu.com.tr/?gclid=EAIaIQobChMI0aHE_b-Z5gIVxo2yCh0_oQ4kEAAYASAAEgLFHfD_BwE 
                                            68ca8f8906554731273cbfd49e659258f2ce88793601c4159daaa1806a6f467b 0 72 2019-12-10 10:43:44, 
