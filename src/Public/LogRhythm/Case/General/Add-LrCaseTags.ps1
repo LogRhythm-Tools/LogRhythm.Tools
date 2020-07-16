@@ -23,8 +23,62 @@ Function Add-LrCaseTags {
     .OUTPUTS
         PSCustomObject representing the modified LogRhythm Case.
     .EXAMPLE
-        PS C:\> 
-        Add examples
+        PS C:\> Add-LrCaseTags -Id "alpha case" -Tags Alpha
+
+    .EXAMPLE
+        PS C:\> Add-LrCaseTags -Id "alpha case" -Tags Alpha -PassThru
+
+        id                      : 56C2007B-4E8D-41C8-95C8-4F91346EC727
+        number                  : 1
+        externalId              :
+        dateCreated             : 2020-07-16T16:46:48.3522746Z
+        dateUpdated             : 2020-07-16T16:53:46.0262639Z
+        dateClosed              :
+        owner                   : @{number=2; name=LRTools; disabled=False}
+        lastUpdatedBy           : @{number=2; name=LRTools; disabled=False}
+        name                    : Alpha Case
+        status                  : @{name=Created; number=1}
+        priority                : 4
+        dueDate                 : 2020-07-17T16:46:48.3362732Z
+        resolution              :
+        resolutionDateUpdated   :
+        resolutionLastUpdatedBy :
+        summary                 : Alpha case is the first case created through API.
+        entity                  : @{number=-100; name=Global Entity; fullName=Global Entity}
+        collaborators           : {@{number=2; name=LRTools; disabled=False}}
+        tags                    : {@{number=2; text=Alpha}}
+    .EXAMPLE
+        PS C:\> Add-LrCaseTags -Id 2 -Tags Alpha -PassThru
+
+        id                      : E66A5D03-412F-43AB-B9B7-0459055827AF
+        number                  : 2
+        externalId              :
+        dateCreated             : 2020-07-16T16:47:46.0395837Z
+        dateUpdated             : 2020-07-16T16:56:27.8545625Z
+        dateClosed              :
+        owner                   : @{number=2; name=LRTools; disabled=False}
+        lastUpdatedBy           : @{number=2; name=LRTools; disabled=False}
+        name                    : Mock case
+        status                  : @{name=Created; number=1}
+        priority                : 5
+        dueDate                 : 2020-10-20T14:22:11Z
+        resolution              :
+        resolutionDateUpdated   :
+        resolutionLastUpdatedBy :
+        summary                 : Mock case summary for automation validation.
+        entity                  : @{number=-100; name=Global Entity; fullName=Global Entity}
+        collaborators           : {@{number=2; name=LRTools; disabled=False}}
+        tags                    : {@{number=2; text=Alpha}}
+    .EXAMPLE
+        PS C:\> Add-LrCaseTags -Id 5 -Tags Alpha -PassThru
+
+        Code        : 404
+        Error       : True
+        Type        : WebException
+        Note        : Not Found
+        ResponseUrl : https://127.0.0.1:8501/lr-case-api/cases//actions/addTags/
+        Tags        : {Alpha}
+        Case        : 5
     .NOTES
         LogRhythm-API
     .LINK
@@ -90,13 +144,39 @@ Function Add-LrCaseTags {
         }
         Write-Verbose "[$Me]: Case Id: $Id"
 
-        # Validate Case ID (Guid || Int)
-        $IdInfo = Test-LrCaseIdFormat $Id
-        if (! $IdInfo.IsValid) {
-            throw [ArgumentException] "Parameter [Id] should be an RFC 4122 formatted string or an integer."
-        }                                                        
+# Get Case Id
+        # Test CaseID Format
+        $IdFormat = Test-LrCaseIdFormat $Id
+        if ($IdFormat.IsGuid -eq $True) {
+            # Lookup case by GUID
+            try {
+                $Case = Get-LrCaseById -Id $Id
+            } catch {
+                $PSCmdlet.ThrowTerminatingError($PSItem)
+            }
+            # Set CaseNum
+            $CaseNumber = $Case.number
+        } elseif(($IdFormat.IsGuid -eq $False) -and ($IdFormat.ISValid -eq $true)) {
+            # Lookup case by Number
+            try {
+                $Case = Get-LrCaseById -Id $Id
+            } catch {
+                $PSCmdlet.ThrowTerminatingError($PSItem)
+            }
+            # Set CaseNum
+            $CaseNumber = $Case.number
+        } else {
+            # Lookup case by Name
+            try {
+                $Case = Get-LrCases -Name $Id -Exact
+            } catch {
+                $PSCmdlet.ThrowTerminatingError($PSItem)
+            }
+            # Set CaseNum
+            $CaseNumber = $Case.number
+        }                                                      
 
-        $RequestUrl = $BaseUrl + "/cases/$Id/actions/addTags/"
+        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/actions/addTags/"
         Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
         #endregion
 
