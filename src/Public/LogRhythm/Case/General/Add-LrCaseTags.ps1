@@ -2,7 +2,7 @@ using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
 
-Function Add-LrTagsToCase {
+Function Add-LrCaseTags {
     <#
     .SYNOPSIS
         Add tags to a LogRhythm case.
