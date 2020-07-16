@@ -22,11 +22,21 @@ Function Remove-LrCasePlaybook {
     .INPUTS
         [System.Object] "Id" ==> [Id] : The ID of the Case to modify.
     .OUTPUTS
-        PSCustomObject representing the removed playbook.
+        Successful removal of a playbook from a case returns a null.
     .EXAMPLE
-        PS C:\> 
+        PS C:\> Remove-LrCasePlaybook -Id 2 -Playbook "Phishing"
 
-        Add example
+    .EXAMPLE
+        PS C:\> Remove-LrCasePlaybook -Id "Mock case" -Playbook "Phishing"
+
+    .EXAMPLE
+        PS C:\> Remove-LrCasePlaybook -Id "Mock case" -Playbook "Phishing"
+
+        Error       : True
+        Type        : 404
+        Note        : Playbook GUID/Name not found on case: 2.  Review: Get-LrCasePlaybooks -Id 2
+        ResponseUrl :
+        Value       : Phishing
     .NOTES
         LogRhythm-API
     .LINK
@@ -68,7 +78,6 @@ Function Remove-LrCasePlaybook {
     Process {
         # Establish General Error object Output
         $ErrorObject = [PSCustomObject]@{
-            Code                  =   $null
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
