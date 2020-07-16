@@ -2,8 +2,7 @@ using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
 
-function Get-LrCaseEarliestEvidence
-{
+function Get-LrCaseEarliestEvidence {
     <#
     .SYNOPSIS
         Retrieves the earliest evidence timestamp of an existing case
