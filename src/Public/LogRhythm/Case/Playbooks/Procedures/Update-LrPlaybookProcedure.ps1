@@ -2,7 +2,7 @@ using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
 
-Function Update-LrProcedure {
+Function Update-LrPlaybookProcedure {
     <#
     .SYNOPSIS
         Apply updates to a LogRhythm playbook's procedures.
