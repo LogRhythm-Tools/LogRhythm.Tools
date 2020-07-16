@@ -23,9 +23,52 @@ Function Remove-LrCaseTags {
     .OUTPUTS
         PSCustomObject representing the modified LogRhythm Case.
     .EXAMPLE
-        PS C:\> 
+        PS C:\> Remove-LrCaseTags -Id 2 -Tags Alpha
 
-        Add example.
+
+        id                      : E66A5D03-412F-43AB-B9B7-0459055827AF
+        number                  : 2
+        externalId              :
+        dateCreated             : 2020-07-16T16:47:46.0395837Z
+        dateUpdated             : 2020-07-16T21:00:33.8159Z
+        dateClosed              :
+        owner                   : @{number=2; name=LRTools; disabled=False}
+        lastUpdatedBy           : @{number=2; name=LRTools; disabled=False}
+        name                    : Mock case
+        status                  : @{name=Created; number=1}
+        priority                : 5
+        dueDate                 : 2020-10-20T14:22:11Z
+        resolution              :
+        resolutionDateUpdated   :
+        resolutionLastUpdatedBy :
+        summary                 : Mock case summary for automation validation.
+        entity                  : @{number=-100; name=Global Entity; fullName=Global Entity}
+        collaborators           : {@{number=2; name=LRTools; disabled=False}}
+        tags                    : {}
+
+    .EXAMPLE
+        PS C:\> Remove-LrCaseTags -Id "Mock case" -Tags Alpha
+
+
+        id                      : E66A5D03-412F-43AB-B9B7-0459055827AF
+        number                  : 2
+        externalId              :
+        dateCreated             : 2020-07-16T16:47:46.0395837Z
+        dateUpdated             : 2020-07-16T21:00:33.8159Z
+        dateClosed              :
+        owner                   : @{number=2; name=LRTools; disabled=False}
+        lastUpdatedBy           : @{number=2; name=LRTools; disabled=False}
+        name                    : Mock case
+        status                  : @{name=Created; number=1}
+        priority                : 5
+        dueDate                 : 2020-10-20T14:22:11Z
+        resolution              :
+        resolutionDateUpdated   :
+        resolutionLastUpdatedBy :
+        summary                 : Mock case summary for automation validation.
+        entity                  : @{number=-100; name=Global Entity; fullName=Global Entity}
+        collaborators           : {@{number=2; name=LRTools; disabled=False}}
+        tags                    : {}
     .NOTES
         LogRhythm-API
     .LINK
