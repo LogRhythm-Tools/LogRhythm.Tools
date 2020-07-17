@@ -16,9 +16,41 @@ Function Add-LrIdentity {
         Friendly name associated with the TrueIdentity record add.  Must be unique for each API call of this cmdlet.
 
         If no SyncName is provided a unique key will be genearted.  Key format: LRT-{10*AlphaCharacters}
-    .PARAMETER Attributes
+    .PARAMETER NameFirst
 
-    .PARAMETER Identifiers
+    .PARAMETER NameMiddle
+
+    .PARAMETER NameLast
+
+    .PARAMETER DisplayIdentifier
+
+    .PARAMETER Department
+
+    .PARAMETER Manager
+
+    .PARAMETER Company
+
+    .PARAMETER PhotoThumbnail
+        Currently not supported.
+    .PARAMETER Identifier1Value
+
+    .PARAMETER Identifier1Type
+
+    .PARAMETER Identifier2Value
+
+    .PARAMETER Identifier2Type
+
+    .PARAMETER Identifier3Value
+
+    .PARAMETER Identifier3Type
+
+    .PARAMETER Identifier4Value
+
+    .PARAMETER Identifier4Type
+
+    .PARAMETER Identifier5Value
+
+    .PARAMETER Identifier5Type
 
     .PARAMETER DryRun
         Switch that will execute a dry-run of the Add-LRIdentity function.
@@ -26,7 +58,7 @@ Function Add-LrIdentity {
         PSCustomObject representing LogRhythm TrueIdentity Identity and its status.
     .EXAMPLE
         PS C:\> Add-LrIdentity -EntityId 1 -NameFirst Eric -NameLast Hart -DisplayIdentifier Eric.Hart -Department "Customer Success" -Company "LogRhythm Inc." -Identifier1Value "eric.hart@logrhythm.com" -Identifier1Type "both"
-        ----
+        ---
         vendorUniqueKey                          identityID identifierSourceAccountID
         ---------------                          ---------- -------------------------
         24638670afc7cd4e75fb8e107b223cd0680f6bae          7                         0
