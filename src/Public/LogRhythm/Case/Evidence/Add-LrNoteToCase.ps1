@@ -22,9 +22,35 @@ Function Add-LrNoteToCase {
     .OUTPUTS
         PSCustomObject representing the (new|modified) LogRhythm object.
     .EXAMPLE
-        PS C:\> Add-LrNoteToCase -Id 1780 -Text "Review of alarm 21202 indicated manual action from System Administrator."
+        PS C:\> Add-LrNoteToCase -Id 1780 -Text "Review of alarm 21202 indicated manual action from System Administrator." -PassThru
         ---
-        Add output
+
+        number        : 4
+        dateCreated   : 2020-07-17T01:49:47.0452267Z
+        dateUpdated   : 2020-07-17T01:49:47.0452267Z
+        createdBy     : @{number=1; name=lrtools; disabled=False}
+        lastUpdatedBy : @{number=1; name=lrtools; disabled=False}
+        type          : note
+        status        : completed
+        statusMessage :
+        text          : Review of alarm 21202 indicated manual action from System Administrator.
+        pinned        : False
+        datePinned    :
+    .EXAMPLE
+        PS C:\> Add-LrNoteToCase -Id 2 -Text "This is my note for case 2!" -PassThru       
+        ---
+
+        number        : 5
+        dateCreated   : 2020-07-17T01:51:45.7467156Z
+        dateUpdated   : 2020-07-17T01:51:45.7467156Z
+        createdBy     : @{number=1; name=lrtools; disabled=False}
+        lastUpdatedBy : @{number=1; name=lrtools; disabled=False}
+        type          : note
+        status        : completed
+        statusMessage :
+        text          : This is my note for case 2!
+        pinned        : False
+        datePinned    :
     .NOTES
         LogRhythm-API
     .LINK
@@ -76,12 +102,38 @@ Function Add-LrNoteToCase {
 
     Process {
         # Get Case Id
-        $IdInfo = Test-LrCaseIdFormat $Id
-        if (! $IdInfo.IsValid) {
-            throw [ArgumentException] "Parameter [Id] should be an RFC 4122 formatted string or an integer."
+        # Test CaseID Format
+        $IdFormat = Test-LrCaseIdFormat $Id
+        if ($IdFormat.IsGuid -eq $True) {
+            # Lookup case by GUID
+            try {
+                $Case = Get-LrCaseById -Id $Id
+            } catch {
+                $PSCmdlet.ThrowTerminatingError($PSItem)
+            }
+            # Set CaseNum
+            $CaseNumber = $Case.number
+        } elseif(($IdFormat.IsGuid -eq $False) -and ($IdFormat.ISValid -eq $true)) {
+            # Lookup case by Number
+            try {
+                $Case = Get-LrCaseById -Id $Id
+            } catch {
+                $PSCmdlet.ThrowTerminatingError($PSItem)
+            }
+            # Set CaseNum
+            $CaseNumber = $Case.number
+        } else {
+            # Lookup case by Name
+            try {
+                $Case = Get-LrCases -Name $Id -Exact
+            } catch {
+                $PSCmdlet.ThrowTerminatingError($PSItem)
+            }
+            # Set CaseNum
+            $CaseNumber = $Case.number
         }
 
-        $RequestUrl = $BaseUrl + "/cases/$Id/evidence/note/"
+        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/evidence/note/"
 
 
         # Request Body
