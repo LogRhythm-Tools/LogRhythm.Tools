@@ -24,6 +24,9 @@ LogRhythm.Tools supports API access to various third party vendors.  Access to t
 
 Each command included in the LogRhythm.Tools module is deigned to be modular and built to leverage the power of the PowerShell pipeline.  The output of one LRT command can be sent for processing as input to the another command. And that output can be sent to yet another command. The result is a complex command chain or pipeline that is composed of a series of simple commands.
 
+
+# Getting Started
+
 ## [Requirements](#Requirements)
 
 **Operating Systems**
@@ -68,9 +71,9 @@ Each command included in the LogRhythm.Tools module is deigned to be modular and
 ## Installation
 
 * <a href="https://github.com/LogRhythm-Tools/LogRhythm.Tools/releases" target="_blank">Download</a> and extract the LogRhythm.Tools release package
-* Run setup.ps1 on a host that meets LogRhythm.Tools system [requirements](#Requirements)
+* Run <code>Setup.ps1</code> on a host that meets LogRhythm.Tools system [requirements](#Requirements)
 * Follow the directions presented through the interactive installer
-  * To apply configuration changes re-run the setup.ps1
+  * To apply configuration changes re-run the <code>Setup.ps1</code>
 * Once installation has been complete follow these steps to test basic functionality
   * Open <code>powershell.exe</code>
   * Enter <code>Import-Module LogRhythm.Tools</code>
@@ -80,11 +83,10 @@ Each command included in the LogRhythm.Tools module is deigned to be modular and
     * <code>Get-LrEntities</code>
     * <code>Get-LrUsers</code>
 
+### Installation Demo
+<img src="https://raw.githubusercontent.com/LogRhythm-Tools/LogRhythm.Tools/master/docs/examples/LR.Tools_Installer.gif" width="750" />
+
 For additional examples on how to leverage LogRhythm.Tools check out the [Examples](#examples) section.
-
-## Coming Soon
-
-Our 1.0 release is just around the corner, and we will be publishing a pre-release candidate on July 31st, 2020.  Stay tuned for more information, documentation and other materials that will help you in getting started with the LogRhythm.Tools module!
 
 ---------
 
@@ -151,7 +153,6 @@ A great place to start is reviewing all of the lists that are available to us th
     doesExpire       : False
     owner            : 1
 </code>
-
 
 #### Retrieving list values
 The list LRT : Domain : ConfLo : Blacklisted Dns Name appears interesting and we want to review only the list values populated on the list.  For this we'll make use of the Get-LrListItems cmdlet where we can reference our target list by its name, LRT : Domain : ConfLo : Blacklisted Dns Name or by its GUID 7328F064-6E70-45E8-8881-B9917F15C9D3.  This is thanks to the implementation design of the LogRhythm Tools cmdlets. 
