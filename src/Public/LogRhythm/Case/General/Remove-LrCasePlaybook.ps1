@@ -49,10 +49,8 @@ Function Remove-LrCasePlaybook {
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
-
         [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 1)]
         [object] $Id,
-
 
         [Parameter(Mandatory = $true, Position = 2)]
         [ValidateNotNull()]
