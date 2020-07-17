@@ -6,6 +6,8 @@ Function Get-LrAgentsAccepted {
     <#
     .SYNOPSIS
         Returns details of all accepted Agents that match the specified criteria.
+        
+        This cmdlet is only available for LogRhythm SIEM's with version 7.5.0 and greater.
     .DESCRIPTION
         Get-LrAgentsAccepted returns a list of accepted Agents, including details.
     .PARAMETER Credential
@@ -226,6 +228,16 @@ Function Get-LrAgentsAccepted {
             Type                  =   $null
             Code                  =   $null
             Note                  =   $null
+        }
+
+        # Verify version
+        if ($LrtConfig.LogRhythm.Version -notmatch '7.5.\d') {
+            $ErrorObject.Error = $true
+            $ErrorObject.Code = "404"
+            $ErrorObject.Type = "Cmdlet not supported."
+            $ErrorObject.Note = "This cmdlet is available in LogRhythm version 7.5.0 and greater."
+
+            return $ErrorObject
         }
 
         #region: Process Query Parameters____________________________________________________
