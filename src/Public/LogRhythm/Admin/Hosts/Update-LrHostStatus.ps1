@@ -22,7 +22,7 @@ Function Update-LrHostStatus {
         Successful completion of this cmdlet currently returns no output.  Verify results with Get-LrHosts
     .EXAMPLE
         PS C:\> Update-LrHostStatus -HostId "" -Status "Retired"
-        ----
+        ---
     .NOTES
         LogRhythm-API        
     .LINK
