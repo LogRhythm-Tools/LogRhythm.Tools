@@ -27,17 +27,19 @@ Function Get-LrPlaybookById {
         [System.Collections.Generic.KeyNotFoundException]
     .EXAMPLE
         PS C:\> Get-LrPlaybookById -Credential $Token -Id "F47CF405-CAEC-44BB-9FDB-644C33D58F2A"
-            id            : F47CF405-CAEC-44BB-9FDB-644C33D58F2A
-            name          : Testing
-            description   : Test Playbook
-            permissions   : @{read=privateOwnerOnly; write=privateOwnerOnly}
-            owner         : @{number=35; name=Smith, Bob; disabled=False}
-            retired       : False
-            entities      : {@{number=1; name=Primary Site}}
-            dateCreated   : 2019-10-11T08:46:25.9861938Z
-            dateUpdated   : 2019-10-11T08:46:25.9861938Z
-            lastUpdatedBy : @{number=35; name=Smith, Bob; disabled=False}
-            tags          : {@{number=5; text=Malware}}
+        ---
+
+        id            : F47CF405-CAEC-44BB-9FDB-644C33D58F2A
+        name          : Testing
+        description   : Test Playbook
+        permissions   : @{read=privateOwnerOnly; write=privateOwnerOnly}
+        owner         : @{number=35; name=Smith, Bob; disabled=False}
+        retired       : False
+        entities      : {@{number=1; name=Primary Site}}
+        dateCreated   : 2019-10-11T08:46:25.9861938Z
+        dateUpdated   : 2019-10-11T08:46:25.9861938Z
+        lastUpdatedBy : @{number=35; name=Smith, Bob; disabled=False}
+        tags          : {@{number=5; text=Malware}}
     .NOTES
         LogRhythm-API
     .LINK
