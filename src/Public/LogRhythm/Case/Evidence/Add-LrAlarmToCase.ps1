@@ -23,9 +23,50 @@ Function Add-LrAlarmToCase {
     .OUTPUTS
         The updated [LrCase] object.
     .EXAMPLE
-        PS C:\> AddLrAlarmToCase -Id 1780 -AlarmNumbers @(21202, 21203, 21204)
-        --- 
-        Add output
+        PS C:\> Add-LrAlarmToCase -id 2 -AlarmNumbers 7
+        ---
+
+        id                      : 408C2E88-2E5D-4DA5-90FE-9F4D63B5B709
+        number                  : 2
+        externalId              :
+        dateCreated             : 2020-06-06T13:46:49.4964154Z
+        dateUpdated             : 2020-07-17T01:36:37.1633333Z
+        dateClosed              :
+        owner                   : @{number=1; name=lrtools; disabled=False}
+        lastUpdatedBy           : @{number=-100; name=LogRhythm Administrator; disabled=False}
+        name                    : Case 2
+        status                  : @{name=Created; number=1}
+        priority                : 5
+        dueDate                 : 2020-06-07T13:46:44Z
+        resolution              :
+        resolutionDateUpdated   :
+        resolutionLastUpdatedBy :
+        summary                 :
+        entity                  : @{number=-100; name=Global Entity; fullName=Global Entity}
+        collaborators           : {@{number=-100; name=LogRhythm Administrator; disabled=False}, @{number=1; name=lrtools; disabled=False}}
+    .EXAMPLE
+        PS C:\> Add-LrAlarmToCase -id "Case 2" -AlarmNumbers 6
+        ---
+
+        id                      : 408C2E88-2E5D-4DA5-90FE-9F4D63B5B709
+        number                  : 2
+        externalId              :
+        dateCreated             : 2020-06-06T13:46:49.4964154Z
+        dateUpdated             : 2020-07-17T01:39:28.9133333Z
+        dateClosed              :
+        owner                   : @{number=1; name=lrtools; disabled=False}
+        lastUpdatedBy           : @{number=-100; name=LogRhythm Administrator; disabled=False}
+        name                    : Case 2
+        status                  : @{name=Created; number=1}
+        priority                : 5
+        dueDate                 : 2020-06-07T13:46:44Z
+        resolution              :
+        resolutionDateUpdated   :
+        resolutionLastUpdatedBy :
+        summary                 :
+        entity                  : @{number=-100; name=Global Entity; fullName=Global Entity}
+        collaborators           : {@{number=-100; name=LogRhythm Administrator; disabled=False}, @{number=1; name=lrtools; disabled=False}}
+        tags                    : {}
     .NOTES
         LogRhythm-API
     .LINK
@@ -42,7 +83,6 @@ Function Add-LrAlarmToCase {
         [Parameter(Mandatory = $true, Position = 1)]
         [ValidateNotNull()]
         [object] $Id,
-
 
         [Parameter(Mandatory = $true, Position = 2)]
         [ValidateNotNull()]
@@ -73,13 +113,39 @@ Function Add-LrAlarmToCase {
 
 
     Process {
-        # Get Case Id
-        $IdInfo = Test-LrCaseIdFormat $Id
-        if (! $IdInfo.IsValid) {
-            throw [ArgumentException] "Parameter [Id] should be an RFC 4122 formatted string or an integer."
+ # Get Case Id
+        # Test CaseID Format
+        $IdFormat = Test-LrCaseIdFormat $Id
+        if ($IdFormat.IsGuid -eq $True) {
+            # Lookup case by GUID
+            try {
+                $Case = Get-LrCaseById -Id $Id
+            } catch {
+                $PSCmdlet.ThrowTerminatingError($PSItem)
+            }
+            # Set CaseNum
+            $CaseNumber = $Case.number
+        } elseif(($IdFormat.IsGuid -eq $False) -and ($IdFormat.ISValid -eq $true)) {
+            # Lookup case by Number
+            try {
+                $Case = Get-LrCaseById -Id $Id
+            } catch {
+                $PSCmdlet.ThrowTerminatingError($PSItem)
+            }
+            # Set CaseNum
+            $CaseNumber = $Case.number
+        } else {
+            # Lookup case by Name
+            try {
+                $Case = Get-LrCases -Name $Id -Exact
+            } catch {
+                $PSCmdlet.ThrowTerminatingError($PSItem)
+            }
+            # Set CaseNum
+            $CaseNumber = $Case.number
         }
 
-        $RequestUrl = $BaseUrl + "/cases/$Id/evidence/alarms/"
+        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/evidence/alarms/"
         #endregion
 
         #region: Request Body                                                            
@@ -127,10 +193,10 @@ Function Add-LrAlarmToCase {
         #region: Get Updated Case                                                        
         Write-Verbose "[$Me] Getting Updated Case"
         try {
-            $UpdatedCase = Get-LrCaseById -Credential $Credential -Id $Id    
+            $UpdatedCase = Get-LrCaseById -Credential $Credential -Id $CaseNumber    
         }
         catch {
-            Write-Verbose "Encountered error while retrieving updated case $Id."
+            Write-Verbose "Encountered error while retrieving updated case $CaseNumber."
             $PSCmdlet.ThrowTerminatingError($PSItem)
         }
 
