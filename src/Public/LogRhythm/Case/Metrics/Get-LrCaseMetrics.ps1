@@ -22,7 +22,33 @@ Function Get-LrCaseMetrics {
     .OUTPUTS
         PSCustomObject representing a LogRhythm Case's metrics.
     .EXAMPLE
-        PS C:\> Get-LrCaseMetrics -Id 2095 -Verbose
+        PS C:\> Get-LrCaseMetrics -Id 2095
+        --- 
+
+        created          : @{date=6/6/2020 9:46:49 AM; originalDate=6/6/2020 9:46:49 AM; customDate=; note=}
+        completed        : @{date=; originalDate=; customDate=; note=}
+        incident         : @{date=; originalDate=; customDate=; note=}
+        mitigated        : @{date=; originalDate=; customDate=; note=}
+        resolved         : @{date=; originalDate=; customDate=; note=}
+        earliestEvidence : @{date=6/5/2020 1:46:47 PM; originalDate=; customDate=6/5/2020 1:46:47 PM; note=LogRhythm Tools: Update EarliestEvidence Timestamp}
+        TTD              : 20:00:02.4964154
+        TTR              : N/A
+        TTE              : N/A
+        TTC              : N/A
+    .EXAMPLE
+        PS C:\> Get-LrCaseMetrics -Id "case 2"
+        ---
+
+        created          : @{date=6/6/2020 9:46:49 AM; originalDate=6/6/2020 9:46:49 AM; customDate=; note=}
+        completed        : @{date=; originalDate=; customDate=; note=}
+        incident         : @{date=7/16/2020 10:30:38 PM; originalDate=7/16/2020 10:30:38 PM; customDate=; note=}
+        mitigated        : @{date=7/16/2020 10:37:21 PM; originalDate=7/16/2020 10:37:21 PM; customDate=; note=}
+        resolved         : @{date=7/16/2020 10:37:38 PM; originalDate=7/16/2020 10:37:38 PM; customDate=; note=}
+        earliestEvidence : @{date=6/5/2020 1:46:47 PM; originalDate=; customDate=6/5/2020 1:46:47 PM; note=LogRhythm Tools: Update EarliestEvidence Timestamp}
+        TTD              : 20:00:02.4964154
+        TTR              : 40.12:50:32.3369253
+        TTE              : 40.12:43:49.0602425
+        TTC              : 40.12:50:49.0538522
     .NOTES
         LogRhythm-API
     .LINK
@@ -56,11 +82,36 @@ Function Get-LrCaseMetrics {
 
 
     Process {
-        #region: Main                                                                    
-        # Validate Case ID (Guid || Int)
-        $IdInfo = Test-LrCaseIdFormat $Id
-        if (! $IdInfo.IsValid) {
-            throw [ArgumentException] "Parameter [Id] should be an RFC 4122 formatted string or an integer."
+        # Get Case Id
+        # Test CaseID Format
+        $IdFormat = Test-LrCaseIdFormat $Id
+        if ($IdFormat.IsGuid -eq $True) {
+            # Lookup case by GUID
+            try {
+                $Case = Get-LrCaseById -Id $Id
+            } catch {
+                $PSCmdlet.ThrowTerminatingError($PSItem)
+            }
+            # Set CaseNum
+            $CaseNumber = $Case.number
+        } elseif(($IdFormat.IsGuid -eq $False) -and ($IdFormat.ISValid -eq $true)) {
+            # Lookup case by Number
+            try {
+                $Case = Get-LrCaseById -Id $Id
+            } catch {
+                $PSCmdlet.ThrowTerminatingError($PSItem)
+            }
+            # Set CaseNum
+            $CaseNumber = $Case.number
+        } else {
+            # Lookup case by Name
+            try {
+                $Case = Get-LrCases -Name $Id -Exact
+            } catch {
+                $PSCmdlet.ThrowTerminatingError($PSItem)
+            }
+            # Set CaseNum
+            $CaseNumber = $Case.number
         }
         
         # Request Headers
@@ -69,7 +120,7 @@ Function Get-LrCaseMetrics {
 
         # Request URI
         $Method = $HttpMethod.Get
-        $RequestUrl = $BaseUrl + "/cases/$Id/metrics"
+        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/metrics"
 
 
         # Send Request
