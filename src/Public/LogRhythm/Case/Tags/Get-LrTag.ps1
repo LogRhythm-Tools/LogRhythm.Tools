@@ -18,6 +18,7 @@ Function Get-LrTag {
         PSCustomObject representing the modified LogRhythm Case.
     .EXAMPLE
         PS C:\> New-LrTag Peaches
+        --- 
         
         number text    dateCreated            createdBy
         ------ ----    -----------            ---------

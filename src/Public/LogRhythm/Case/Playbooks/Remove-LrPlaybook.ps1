@@ -19,6 +19,7 @@ Function Remove-LrPlaybook {
         PSCustomObject representing the deleted playbook.
     .EXAMPLE
         PS C:\> Remove-LrPlaybook -Name "This ones better 9."
+        ---
 
         id            : E10111E4-DDC7-4D98-A619-5B80CA55BABF
         name          : This ones better 9.
