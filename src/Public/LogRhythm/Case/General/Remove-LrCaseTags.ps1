@@ -24,7 +24,7 @@ Function Remove-LrCaseTags {
         PSCustomObject representing the modified LogRhythm Case.
     .EXAMPLE
         PS C:\> Remove-LrCaseTags -Id 2 -Tags Alpha
-
+        ---
 
         id                      : E66A5D03-412F-43AB-B9B7-0459055827AF
         number                  : 2
@@ -48,7 +48,7 @@ Function Remove-LrCaseTags {
 
     .EXAMPLE
         PS C:\> Remove-LrCaseTags -Id "Mock case" -Tags Alpha
-
+        ---
 
         id                      : E66A5D03-412F-43AB-B9B7-0459055827AF
         number                  : 2
