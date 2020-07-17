@@ -31,7 +31,10 @@ Function Update-LrCaseEarliestEvidenceFromDrilldown {
         PS C:\> Update-LrCaseEarliestEvidenceFromDrilldown -Id 8699 -AlarmId 396658 -Summary
         ---
         Updated Case: 8699 Based on Alarm: 396658 Drilldown Date: 2019-12-19T08:58:40Z
-        
+    .EXAMPLE
+        PS C:\> Update-LrCaseEarliestEvidenceFromDrilldown -Id 2 -AlarmId 6 -PassThru  
+        ---
+        RequestedTimestamp: 07/17/2020 00:39:21 is greater than CaseCreateDate: 06/06/2020 13:46:49
     .NOTES
         LogRhythm-API
     .LINK
