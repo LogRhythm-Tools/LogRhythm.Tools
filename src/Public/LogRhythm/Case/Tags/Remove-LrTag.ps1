@@ -22,7 +22,16 @@ Function Remove-LrTag {
 
     .EXAMPLE
         PS C:\> Remove-LrTag -Tag 1
+    .EXAMPLE
+        PS C:\> Remove-LrTag -Tag 1
+        --- 
         
+        Code        : 404
+        Error       : True
+        Type        : WebException
+        Note        : Could not find tag with number 1
+        ResponseUrl : https://192.168.2.127:8501/lr-case-api/tags/1
+        Tag         : 1
     .NOTES
         LogRhythm-API
     .LINK
