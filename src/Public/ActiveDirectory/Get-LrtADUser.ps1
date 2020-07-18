@@ -7,12 +7,22 @@ Function Get-LrtADUser {
     .SYNOPSIS
         Encapsulation of Get-ADUser that will use the settings found in LogRhythm.Tools configuration
         for populating the <Server> and <Credential> parameters of that cmdlet.
+
+        For more information, run:
+        > Get-Help Get-ADUser
     .DESCRIPTION
-        The purpose of this cmdlet is to serve as an interface to the ActiveDirectory module version,
-        Get-ADUser, which will enables the configuration stored in LogRhythm.Tools to provide the
-        <sever> and <credential> parameters to the actual Get-ADUser cmdlet.
+        The purpose of this cmdlet is to serve as a SIMPLE interface to the standard ActiveDirectory module
+        command Get-ADUser, and is not intended to replace it or any other ActiveDirectory module commands.
+
+        This cmdlet merely runs Get-ADUser and automatically supplies the values for <Credential> and <Server>
+        with the corresponding values found in LrtConfig.
     .PARAMETER Identity
-        
+        Specifies an Active Directory user object by providing one of the following values. The
+        identifier in parentheses is the LDAP display name for the attribute.
+            Distinguished Name
+            GUID
+            Security Identifier (objectSid)
+            Security Accounts Manager (SAM) Account Name (sAMAccountName)        
     .PARAMETER Server
         
     .PARAMETER Credential
@@ -53,7 +63,7 @@ Function Get-LrtADUser {
     Begin {
         # Import Module ActiveDirectory
         if (! (Import-LrtADModule)) {
-            throw [Exception] ""
+            throw [Exception] "LogRhythm.Tools Failed to load ActiveDirectory module."
         }
     }
 
@@ -70,20 +80,18 @@ Function Get-LrtADUser {
         try {
             if ($Server) {
                 if ($Credential) {
-                    Write-Verbose "Get-ADUser <Server> <Credential>"
+                    Write-Verbose "Get-ADUser Options: +Credential +Server"
                     $User = Get-ADUser -Identity $Identity -Properties * -Server $Server -Credential $Credential
-                    $type = $User.GetType()
-                    Write-Host "Type: $type"
                 } else {
-                    Write-Verbose "Get-ADUser <Server>"
+                    Write-Verbose "Get-ADUser Options: +Server"
                     $User = Get-ADUser -Identity $Identity -Properties * -Server $Server
                 }
             } else {
                 if ($Credential) {
-                    Write-Verbose "Get-ADUser <Credential>"
+                    Write-Verbose "Get-ADUser Options: +Credential"
                     $User = Get-ADUser -Identity $Identity -Properties * -Credential $Credential
                 } else {
-                    Write-Verbose "Get-ADUser without extra options"
+                    Write-Verbose "Get-ADUser Options: None"
                     $User = Get-ADUser -Identity $Identity -Properties *
                 }
             }

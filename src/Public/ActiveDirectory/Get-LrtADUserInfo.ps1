@@ -19,19 +19,19 @@ Function Get-LrtADUserInfo {
         An object with the following fields is returned:
         - Name:             [string]    Common Name (CN)
         - SamAccountName:   [string]    Account Logon (7Letter)
+        - Title             [string]    User Title
         - EmailAddress:     [string]    SMTP AddressGet
         - Exists:           [boolean]   User Exists
         - Enabled:          [boolean]   User is Enabled
         - LockedOut:        [boolean]   Account is Locked
         - PasswordExpired:  [boolean]   Password is Expired
         - PasswordAge:      [integer]   Days since Password Changed
-        - HasManager:       [boolean]   Manager is Assigned
-        - ManagerName:      [boolean]   Manager Common Name
-        - ManagerEmail:     [string]    Manager SMTP Address
-        - IsSvcAccount:     [boolean]   Name like Svc* or in ServiceAccount OU
-        - IsAdminAccount:   [boolean]   In "Administrators" OU, such as "SD,PA,DA" accounts.
+        - Manager:          [ADUser]    User's manager
         - OrgUnits:         [List]      OU Hierarchy
         - ADUser:           [ADUser]    Full ADUser Object
+        - Groups:           [List]      ADGroups this user belongs to
+        - Exceptions:       [List]      List of System.Exceptions raised during the
+                                        execution of this command.
     .EXAMPLE
         $UserInfo = Get-LrtADUserInfo -Identity bjones
     .EXAMPLE
@@ -63,7 +63,9 @@ Function Get-LrtADUserInfo {
 
     Begin {
         # Import Module ActiveDirectory
-        Import-LrtADModule
+        if (! (Import-LrtADModule)) {
+            throw [Exception] "LogRhythm.Tools Failed to load ActiveDirectory module."
+        }
     }
 
 
@@ -76,75 +78,115 @@ Function Get-LrtADUserInfo {
         }
 
 
+        #region: User Object Structure                                                             
         # User Result Object
-        $Result = [PSCustomObject]@{
+        $UserInfo = [PSCustomObject]@{
             Name            = $Identity
             SamAccountName  = ""
             Title           = ""
-            EmailAddress    = $EmailAddress
+            EmailAddress    = ""
             Exists          = $false
-            Message         = ""
             Enabled         = $false
             LockedOut       = $false
             PasswordExpired = $false
-            PasswordAge     = 9999
-            Manager         = ""
+            PasswordAge     = 0
+            Manager         = $null
             OrgUnits        = [List[string]]::new()
             ADUser          = $null
-            Owner           = $null
-            Groups          = [List[string]]::new()
-        }
+            Groups          = $null
+            Exceptions      = [List[Exception]]::new()
+        }        
+        #endregion
 
 
+
+        #region: Lookup User Info                                                                         
         # Try to get [ADUser] from Get-LrtADUser cmdlet, which will use Server/Credential as needed
         try {
-            $User = Get-LrtADUser -Identity $Identity -Server $Server -Credential $Credential
-            $Result.ADUser = $User
+            $ADUser = Get-LrtADUser -Identity $Identity -Server $Server -Credential $Credential
+            $UserInfo.ADUser = $ADUser
         } catch {
-            $Result.Message = $PSItem.Exception.Message
-            return $Result
+            Write-Warning "[$Identity] User Lookup: $($PSItem.Exception.Message)"
+            $UserInfo.Exceptions.Add($PSItem.Exception)
+            return $UserInfo
         }
 
 
         # Basic Properties
-        $Result.Name = $User.Name
-        $Result.SamAccountName = $User.SamAccountName
-        $Result.Title = $User.Title
-        $Result.EmailAddress = $User.EmailAddress
-        $Result.Exists = $true
-        $Result.Enabled = $User.Enabled
-        $Result.LockedOut = $User.LockedOut
-        $Result.PasswordExpired = $User.PasswordExpired
+        $UserInfo.Name = $ADUser.Name
+        $UserInfo.SamAccountName = $ADUser.SamAccountName
+        $UserInfo.Title = $ADUser.Title
+        $UserInfo.EmailAddress = $ADUser.EmailAddress
+        $UserInfo.Exists = $true
+        $UserInfo.Enabled = $ADUser.Enabled
+        $UserInfo.LockedOut = $ADUser.LockedOut
+        $UserInfo.PasswordExpired = $ADUser.PasswordExpired
+
 
         # Password Age - sometimes PasswordLastSet is null
-        if ($User.PasswordLastSet -is [datetime]) {
-            $Result.PasswordAge = (New-TimeSpan -Start $User.PasswordLastSet -End (Get-Date)).Days    
+        if ($ADUser.PasswordLastSet -is [datetime]) {
+            $UserInfo.PasswordAge = (New-TimeSpan -Start $ADUser.PasswordLastSet -End (Get-Date)).Days    
         } else {
-            $Result.PasswordAge = $User.PasswordLastSet
+            $UserInfo.PasswordAge = $ADUser.PasswordLastSet
         }
+        #endregion
 
-        # Manager
-        if ($User.Manager) {
+
+
+        #region: Lookup Manager Info                                                                      
+        # Get Manager Info
+        if ($ADUser.Manager) {
             try {
-                $Result.Manager = Get-LrtADUserInfo -Identity $User.Manager -Server $Server -Credential $Credential
+                $UserInfo.Manager = Get-LrtADUser -Identity $ADUser.Manager -Server $Server -Credential $Credential
             }
             catch {
-                # if something goes wrong we will just plug in the default manager field
-                # into the result instead of the manager's name.
-                $err = $PSItem.Exception.Message
-                Write-Warning "Manager lookup for [$($Result.Name)]: $err"
-                $Result.Manager = $User.Manager
+                Write-Warning "[$Identity] Manager Lookup: $($PSItem.Exception.Message)"
+                $UserInfo.Exceptions.Add($PSItem.Exception)
+                # if something goes wrong we will just plug in the default manager field into the result
+                # instead of the manager's name.
+                $UserInfo.Manager = $ADUser.Manager
             }
-        }
+        }        
+        #endregion
 
-        # Org Units
-        $DN = ($User.DistinguishedName) -split ','
+
+        
+        #region: Lookup Groups                                                                            
+        # Run the appropriate version of Get-ADGroup
+        try {
+            if ($Server) {
+                if ($Credential) {
+                    $UserInfo.Groups = $ADUser.MemberOf | Get-ADGroup -Server $Server -Credential $Credential
+                } else {
+                    $UserInfo.Groups = $ADUser.MemberOf | Get-ADGroup -Server $Server
+                }
+            } else {
+                if ($Credential) {
+                    Write-Verbose "Get-ADUser Options: +Credential"
+                    $UserInfo.Groups = $ADUser.MemberOf | Get-ADGroup -Credential $Credential
+                } else {
+                    $UserInfo.Groups = $ADUser.MemberOf | Get-ADGroup
+                }
+            }
+        } catch {
+            Write-Warning "[$Identity] Group Lookup: $($PSItem.Exception.Message)"
+            $UserInfo.Exceptions.Add($PSItem.Exception)
+        }
+        #endregion
+
+
+
+        #region: Org Unit Info                                                                     
+        $DN = ($ADUser.DistinguishedName) -split ','
         foreach ($value in $DN) {
             if ($value -match $OUPattern) {
-                $Result.OrgUnits.Add(($value -split '=')[1])
+                $UserInfo.OrgUnits.Add(($value -split '=')[1])
             }
         }
-        return $Result
+        #endregion
+
+
+        return $UserInfo
     }
 
 
