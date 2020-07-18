@@ -10,9 +10,14 @@ Function Test-LrtADUserExists {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory=$true,Position=0)] 
+        [Parameter(
+            Mandatory = $true,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true,
+            Position = 0
+        )]
         [ValidateNotNullOrEmpty()]
-        [string] $Identity
+        [ADUser] $Identity
     )
 
     return (Get-LrtADUserInfo -Identity $Identity).Exists

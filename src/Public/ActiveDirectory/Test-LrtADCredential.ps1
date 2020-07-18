@@ -22,9 +22,9 @@ Function Test-LrtADCredential {
     
     [CmdletBinding()]
     Param(
-        [Parameter(ValueFromPipeline=$true)]
+        [Parameter(Mandatory = $true, ValueFromPipeline=$true)]
         [ValidateNotNull()]
-        [pscredential[]] $Credential
+        [pscredential] $Credential
     )
 
     Begin {
@@ -32,9 +32,8 @@ Function Test-LrtADCredential {
         $DS = [System.DirectoryServices.AccountManagement.PrincipalContext]::new('domain')
     }
 
+    
     Process {
-        foreach ($Cred in $Credential) {
-            $DS.ValidateCredentials($Cred.UserName, ($Cred.GetNetworkCredential().Password))
-        }
+        $DS.ValidateCredentials($Credential.UserName, ($Credential.GetNetworkCredential().Password))
     }
 }
