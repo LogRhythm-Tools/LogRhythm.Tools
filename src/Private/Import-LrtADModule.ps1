@@ -39,6 +39,17 @@ Function Import-LrtADModule {
         }
         # Module is loaded, so update LrtConfig with that
         $LrtConfig.ActiveDirectory.ModuleLoaded = $true
+
+
+        # Determine AD Server / DNSRoot to use for commands, if not explicitly set:
+        if ([string]::IsNullOrEmpty($LrtConfig.ActiveDirectory.Server)) {
+            try {
+                $LrtConfig.ActiveDirectory.Server = (Get-ADDomain).DNSRoot
+            } catch {
+                Write-Warning "LogRhythm.Tools Config: ActiveDirectory.Server is not set, and a valid DNSRoot could not be found for this host."
+                Write-Warning "ActiveDirectory commands will likely fail."
+            }
+        }
     }
     return $true
 }
