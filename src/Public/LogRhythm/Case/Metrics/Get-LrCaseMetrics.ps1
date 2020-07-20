@@ -62,11 +62,7 @@ Function Get-LrCaseMetrics {
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
 
-        [Parameter(
-            Mandatory = $true,
-            ValueFromPipeline = $true,
-            Position = 1
-        )]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 1)]
         [object] $Id
     )
 
@@ -76,50 +72,28 @@ Function Get-LrCaseMetrics {
         $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
+        # Request Headers
+        $Headers = [Dictionary[string,string]]::new()
+        $Headers.Add("Authorization", "Bearer $Token")
+
+        # HTTP Method
+        $Method = $HttpMethod.Get
+
         # Enable self-signed certificates and Tls1.2
         Enable-TrustAllCertsPolicy
     }
 
 
     Process {
-        # Get Case Id
         # Test CaseID Format
-        $IdFormat = Test-LrCaseIdFormat $Id
-        if ($IdFormat.IsGuid -eq $True) {
-            # Lookup case by GUID
-            try {
-                $Case = Get-LrCaseById -Id $Id
-            } catch {
-                $PSCmdlet.ThrowTerminatingError($PSItem)
-            }
-            # Set CaseNum
-            $CaseNumber = $Case.number
-        } elseif(($IdFormat.IsGuid -eq $False) -and ($IdFormat.ISValid -eq $true)) {
-            # Lookup case by Number
-            try {
-                $Case = Get-LrCaseById -Id $Id
-            } catch {
-                $PSCmdlet.ThrowTerminatingError($PSItem)
-            }
-            # Set CaseNum
-            $CaseNumber = $Case.number
+        $IdStatus = Test-LrCaseIdFormat $Id
+        if ($IdStatus.IsValid -eq $true) {
+            $CaseNumber = $IdStatus.CaseNumber
         } else {
-            # Lookup case by Name
-            try {
-                $Case = Get-LrCases -Name $Id -Exact
-            } catch {
-                $PSCmdlet.ThrowTerminatingError($PSItem)
-            }
-            # Set CaseNum
-            $CaseNumber = $Case.number
+            return $IdStatus
         }
         
-        # Request Headers
-        $Headers = [Dictionary[string,string]]::new()
-        $Headers.Add("Authorization", "Bearer $Token")
-
         # Request URI
-        $Method = $HttpMethod.Get
         $RequestUrl = $BaseUrl + "/cases/$CaseNumber/metrics"
 
 
@@ -128,7 +102,7 @@ Function Get-LrCaseMetrics {
             try {
                 $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
             }
-            catch [System.Net.WebException] {
+            catch {
                 $Err = Get-RestErrorMessage $_
                 throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
             }

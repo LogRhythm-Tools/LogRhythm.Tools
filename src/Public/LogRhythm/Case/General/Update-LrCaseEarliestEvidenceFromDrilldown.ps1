@@ -48,13 +48,8 @@ Function Update-LrCaseEarliestEvidenceFromDrilldown {
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
 
-        [Parameter(
-            Mandatory = $true,
-            ValueFromPipelineByPropertyName = $true,
-            Position = 1
-        )]
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 1)]
         [object] $Id,
-
 
         [Parameter(Mandatory = $true, Position = 2)]
         [ValidateNotNullOrEmpty()]
@@ -75,10 +70,12 @@ Function Update-LrCaseEarliestEvidenceFromDrilldown {
 
 
     Process {
-        # Get Case Id
-        $IdInfo = Test-LrCaseIdFormat $Id
-        if (! $IdInfo.IsValid) {
-            throw [ArgumentException] "Parameter [Id] should be an RFC 4122 formatted string or an integer."
+        # Test CaseID Format
+        $IdStatus = Test-LrCaseIdFormat $Id
+        if ($IdStatus.IsValid -eq $true) {
+            $CaseNumber = $IdStatus.CaseNumber
+        } else {
+            return $IdStatus
         }
 
         # Get Alarm AIEDrilldown Results
@@ -108,7 +105,7 @@ Function Update-LrCaseEarliestEvidenceFromDrilldown {
         $NewEarliestEvidence = ($EarliestLogDate.ToString("yyyy-MM-ddTHH:mm:ssZ"))
 
         # Send Request
-        $Response = Update-LrCaseEarliestEvidence -Id $Id -Timestamp $NewEarliestEvidence -Summary
+        $Response = Update-LrCaseEarliestEvidence -Id $CaseNumber -Timestamp $NewEarliestEvidence -Summary
         $ProcessedCount++
 
         # Return
@@ -121,9 +118,9 @@ Function Update-LrCaseEarliestEvidenceFromDrilldown {
     End {
         if ($Summary) {
             if ($UpdateEvidence -eq $true) {
-                Write-Host "Updated Case: $Id Based on Alarm: $AlarmId Drilldown Date: $NewEarliestEvidence"
+                Write-Host "Updated Case: $CaseNumber Based on Alarm: $AlarmId Drilldown Date: $NewEarliestEvidence"
             } else {
-                Write-Host "Unable to Update Case: $Id Based on Alarm: $AlarmId Drilldown Date: $NewEarliestEvidence Existing Date: $EarliestEvidenceDate"
+                Write-Host "Unable to Update Case: $CaseNumber Based on Alarm: $AlarmId Drilldown Date: $NewEarliestEvidence Existing Date: $EarliestEvidenceDate"
             }
         }
     }

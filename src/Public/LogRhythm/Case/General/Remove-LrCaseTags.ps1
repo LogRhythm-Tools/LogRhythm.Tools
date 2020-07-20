@@ -130,13 +130,15 @@ Function Remove-LrCaseTags {
         }
         Write-Verbose "[$Me]: Case Id: $Id"
 
-        # Get Case Id
-        $IdInfo = Test-LrCaseIdFormat $Id
-        if (! $IdInfo.IsValid) {
-            throw [ArgumentException] "Parameter [Id] should be an RFC 4122 formatted string or an integer."
-        }                                                        
+        # Test CaseID Format
+        $IdStatus = Test-LrCaseIdFormat $Id
+        if ($IdStatus.IsValid -eq $true) {
+            $CaseNumber = $IdStatus.CaseNumber
+        } else {
+            return $IdStatus
+        }                                                  
 
-        $RequestUrl = $BaseUrl + "/cases/$Id/actions/removeTags/"
+        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/actions/removeTags/"
         Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
         #endregion
 
@@ -172,7 +174,7 @@ Function Remove-LrCaseTags {
             try {
                 $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
             }
-            catch [System.Net.WebException] {
+            catch {
                 $Err = Get-RestErrorMessage $_
                 $ErrorObject.Code = $Err.statusCode
                 $ErrorObject.Type = "WebException"

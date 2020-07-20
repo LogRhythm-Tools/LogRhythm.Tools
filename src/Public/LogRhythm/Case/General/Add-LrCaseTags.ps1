@@ -91,20 +91,13 @@ Function Add-LrCaseTags {
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
-
-        [Parameter(
-            Mandatory = $true,
-            ValueFromPipelineByPropertyName = $true,
-            Position = 1
-        )]
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 1)]
         [ValidateNotNull()]
         [object] $Id,
-
         
         [Parameter(Mandatory = $true, Position = 2)]
         [ValidateNotNull()]
         [string[]] $Tags,
-
 
         [Parameter(Mandatory = $false, Position = 3)]
         [switch] $PassThru
@@ -144,37 +137,13 @@ Function Add-LrCaseTags {
         }
         Write-Verbose "[$Me]: Case Id: $Id"
 
-# Get Case Id
         # Test CaseID Format
-        $IdFormat = Test-LrCaseIdFormat $Id
-        if ($IdFormat.IsGuid -eq $True) {
-            # Lookup case by GUID
-            try {
-                $Case = Get-LrCaseById -Id $Id
-            } catch {
-                $PSCmdlet.ThrowTerminatingError($PSItem)
-            }
-            # Set CaseNum
-            $CaseNumber = $Case.number
-        } elseif(($IdFormat.IsGuid -eq $False) -and ($IdFormat.ISValid -eq $true)) {
-            # Lookup case by Number
-            try {
-                $Case = Get-LrCaseById -Id $Id
-            } catch {
-                $PSCmdlet.ThrowTerminatingError($PSItem)
-            }
-            # Set CaseNum
-            $CaseNumber = $Case.number
+        $IdStatus = Test-LrCaseIdFormat $Id
+        if ($IdStatus.IsValid -eq $true) {
+            $CaseNumber = $IdStatus.CaseNumber
         } else {
-            # Lookup case by Name
-            try {
-                $Case = Get-LrCases -Name $Id -Exact
-            } catch {
-                $PSCmdlet.ThrowTerminatingError($PSItem)
-            }
-            # Set CaseNum
-            $CaseNumber = $Case.number
-        }                                                      
+            return $IdStatus
+        }                                                   
 
         $RequestUrl = $BaseUrl + "/cases/$CaseNumber/actions/addTags/"
         Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
