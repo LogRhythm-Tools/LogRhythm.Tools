@@ -7,20 +7,20 @@ Function Get-LrNetworks {
     .SYNOPSIS
         Retrieve a list of Networks from the LogRhythm Entity structure.
     .DESCRIPTION
-        Get-LrNetworks returns a full LogRhythm Host object, including details and list items.
+        Get-LrNetworks returns a full LogRhythm Network object, including details and list items.
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
     .PARAMETER PageCount
         Integer representing number of pages to return.  Default is maximum, 1000.
     .PARAMETER Name
-        String used to search Entity Host records by Name.
+        String used to search Entity Network records by Name.
     .PARAMETER Entity,
-        String used to search Entity Host by Entity Name.
+        String used to search Entity Network by Entity Name.
     .PARAMETER RecordStatus,
         String used to restrict results based on RecordStatus.
         Valid entries: All, Active, Retired
     .PARAMETER Exact,
-        Switch used to specify Name search for Entity Host record is explicit.
+        Switch used to specify Name search for Entity Network record is explicit.
     .INPUTS
         [System.Int]    -> PageCount
         [System.String] -> Name
@@ -30,7 +30,7 @@ Function Get-LrNetworks {
     .OUTPUTS
         PSCustomObject representing LogRhythm TrueIdentity Identities and their contents.
     .EXAMPLE
-        PS C:\> Get-LrNetworks -Credential $MyKey
+        PS C:\> Get-LrNetworks
         ----
     .NOTES
         LogRhythm-API        
