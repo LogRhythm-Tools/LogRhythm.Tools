@@ -10,6 +10,24 @@ Function Get-LrIdentities {
         Get-LrIdentities returns a full LogRhythm List object, including it's details and list items.
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
+    .PARAMETER EntityId
+        Entity ID # for associating new TrueIdentity Identity record.
+    .PARAMETER SyncName
+        Friendly name associated with the TrueIdentity record add.  Must be unique for each API call of this cmdlet.
+
+        If no SyncName is provided a unique key will be genearted.  Key format: LRT-{10*AlphaCharacters}
+    .PARAMETER Name
+        Return results that match the Name (NameFirst, NameMiddle, NameLast) for the TrueIdentity record.
+
+        Combined with the -exact switch paramater to return only exact matched results.
+    .PARAMETER DisplayIdentifier
+        DisplayIdentifier string value for the TrueIdentity record.
+    .PARAMETER Department
+        Department string value for the TrueIdentity record.
+    .PARAMETER Manager
+        Manager string value for the TrueIdentity record.
+    .PARAMETER Company
+        Company string value for the TrueIdentity record.
     .OUTPUTS
         PSCustomObject representing LogRhythm TrueIdentity Identities and their contents.
     .EXAMPLE
