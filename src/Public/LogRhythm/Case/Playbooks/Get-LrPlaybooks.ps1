@@ -94,35 +94,22 @@ Function Get-LrPlaybooks {
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
 
-        [Parameter(
-            Mandatory = $false,
-            ValueFromPipeline = $true,
-            Position = 1
-        )]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 1)]
         [ValidateNotNullOrEmpty()]
         [string] $Name,
 
 
-        [Parameter(
-            Mandatory = $false,
-            Position = 2
-        )]
+        [Parameter(Mandatory = $false, Position = 2)]
         [ValidateSet('dateCreated','dateUpdated','name')]
         [string] $OrderBy = "dateCreated",
 
 
-        [Parameter(
-            Mandatory = $false,
-            Position = 3
-        )]
+        [Parameter(Mandatory = $false, Position = 3)]
         [ValidateSet('asc','desc')]
         [string] $Sort = "asc",
 
 
-        [Parameter(
-            Mandatory = $false,
-            Position = 4
-        )]
+        [Parameter(Mandatory = $false, Position = 4)]
         [switch] $Exact
     )
 
@@ -168,7 +155,7 @@ Function Get-LrPlaybooks {
             try {
                 $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
             }
-            catch [System.Net.WebException] {
+            catch {
                 $Err = Get-RestErrorMessage $_
                 $ErrorObject.Code = $Err.statusCode
                 $ErrorObject.Type = "WebException"

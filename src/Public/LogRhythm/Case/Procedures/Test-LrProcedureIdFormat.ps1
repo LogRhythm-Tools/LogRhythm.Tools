@@ -35,8 +35,6 @@ Function Test-LrProcedureIdFormat {
 
 
     Begin {
-
-
         # Define output object
         $OutObject = [PSCustomObject]@{
             IsGuid      =   $false
@@ -46,9 +44,7 @@ Function Test-LrProcedureIdFormat {
         }
 
         # https://docs.microsoft.com/en-us/dotnet/api/system.int32.tryparse
-        $_int = 1
-    
-        
+        $_int = 1  
     }
 
     Process {

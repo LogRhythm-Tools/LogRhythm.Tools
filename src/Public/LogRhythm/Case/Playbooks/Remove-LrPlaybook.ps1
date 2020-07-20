@@ -86,7 +86,7 @@ Function Remove-LrPlaybook {
                 return $Pb
             }
         } else {
-            $Pb = Get-LrPlaybooks -Name $Id -Credential $Credential -Exact
+            $Pb = Get-LrPlaybooks -Name $Id -Exact
             if (!$Pb.Name -eq $Id) {
                 $ErrorObject.Code = "404"
                 $ErrorObject.Error = $true
@@ -114,7 +114,7 @@ Function Remove-LrPlaybook {
             try {
                 $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
             }
-            catch [System.Net.WebException] {
+            catch {
                 $Err = Get-RestErrorMessage $_
                 $ErrorObject.Code = $Err.statusCode
                 $ErrorObject.Type = "WebException"
