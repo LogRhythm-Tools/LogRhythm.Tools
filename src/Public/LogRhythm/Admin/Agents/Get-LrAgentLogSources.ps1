@@ -325,7 +325,7 @@ Function Get-LrAgentLogSources {
             try {
                 $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
             }
-            catch [System.Net.WebException] {
+            catch {
                 $Err = Get-RestErrorMessage $_
                 $ErrorObject.Error = $true
                 $ErrorObject.Type = "System.Net.WebException"
