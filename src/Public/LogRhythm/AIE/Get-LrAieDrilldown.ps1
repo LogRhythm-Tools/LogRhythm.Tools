@@ -45,7 +45,7 @@ Function Get-LrAieDrilldown {
     .OUTPUTS
         PSCustomObject representing the Drilldown results.
     .EXAMPLE
-        PS C:\> Get-LrAieDrilldown -Credential $token -AlarmId 2261993
+        PS C:\> Get-LrAieDrilldown -AlarmId 2261993
         ---
         AlarmID           : System.Int32
         AlarmGuid         : System.String (guid)
@@ -75,11 +75,7 @@ Function Get-LrAieDrilldown {
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
 
-        [Parameter(
-            Mandatory = $true,
-            ValueFromPipeline = $true,
-            Position = 1
-        )]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 1)]
         [int] $AlarmId,
 
 
