@@ -145,6 +145,9 @@ Function Update-LrHost {
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 2)]
         [string]$Entity,
 
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 2)]
+        [int32]$EntityId,
+
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 3)]
         [string]$Name,
 
@@ -175,6 +178,9 @@ Function Update-LrHost {
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 11)]
         [string]$Location,
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 11)]
+        [int32]$LocationId,
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 12)]
         [ValidateSet('unknown', 'other', 'windowsNT4', 'windows2000professional', 'windows2000server', 'windows2003standard', 'windows2003enterprise', `
@@ -243,6 +249,47 @@ Function Update-LrHost {
             }
         }
 
+        # Verify if Name requires update
+        if (!$Name) {
+            $_name = $OriginHostRecord.name
+        } else {
+            $_name = $name
+        }
+
+        # Verify if ShortDescription requires update
+        if (!$ShortDesc) {
+            if ($OriginHostRecord.shortdesc) {
+                $_shortDesc = $OriginHostRecord.shortdesc
+            } else {
+                $_shortDesc = ""
+            }
+        } else {
+            $_shortDesc = $ShortDesc
+        }
+
+        # Verify if LongDescription requires update
+        if (!$LongDesc) {
+            if ($OriginHostRecord.longdesc) {
+                $_longDesc = $OriginHostRecord.longdesc
+            } else {
+                $_longDesc = ""
+            }   
+        } else {
+            $_longDesc = $LongDesc
+        }
+
+        # Verify if ThreatLevelComment requires update
+        if (!$ThreatLevelComment) {
+            if ($OriginHostRecord.threatLevelComment) {
+                $_threatLevelComment = $OriginHostRecord.threatLevelComment
+            } else {
+                $_threatLevelComment = ""
+            }
+            
+        } else {
+            $_threatLevelComment = $ThreatLevelComment
+        }
+
         # Lookup Entity By ID or Name
         if ($Entity) {
             if ([int]::TryParse($Entity, [ref]$_int)) {
@@ -266,29 +313,51 @@ Function Update-LrHost {
         }
         Write-Verbose "Entity: $_entity"
 
-        # TODO Location Lookup.  7.5 API
-        if ($Location) {
-            if ([int]::TryParse($Location, [ref]$_int)) {
-                Write-Verbose "[$Me]: Location parses as integer."
-                $LocationResults = Get-LrLocations -Id $Location
-                if ($LocationResults) {
-                    $_location = [PSCustomObject]@{
-                        id = $LocationResults.id
-                        name = $LocationResults.Name
+        # Location lookup
+        if ($LocationId -and $Location) {
+            if ($LocationLookup) {
+                if ($LrtConfig.LogRhythm.Version -notmatch '7.5.\d') {
+                    $LocationStatus = Show-LrLocations -Id $LocationId
+                    if ($LocationStatus) {
+                        $_locationName = $LocationStatus.name
+                        $_locationId = $LocationStatus.id
                     }
                 } else {
-                    $_location = $OriginHostRecord.Location
+                    $LocationStatus = Get-LrLocations -Id $LocationId
+                    if ($LocationStatus) {
+                        $_locationName = $LocationStatus.name
+                        $_locationId = $LocationStatus.id
+                    }
                 }
             } else {
-                $LocationResults = Get-LrLocations -Name $Location -Exact
-                if ($LocationResults) {
-                    $_location = [PSCustomObject]@{
-                        id = $LocationResults.id
-                        name = $LocationResults.Name
+                $_locationName = $Location 
+                $_locationId = $LocationId
+            }
+            $_location = [PSCustomObject][Ordered]@{
+                Id = $_locationId
+                Name = $_locationName
+            }
+        } elseif ($Location) {
+            if ($LocationLookup) {
+                if ($LrtConfig.LogRhythm.Version -notmatch '7.5.\d') {
+                    $LocationStatus = Show-LrLocations -Name $Location -Exact
+                    if ($LocationStatus) {
+                        $_locationName = $LocationStatus.name
+                        $_locationId = $LocationStatus.id
                     }
                 } else {
-                    $_location = $OriginHostRecord.Location
+                    $LocationStatus = Get-LrLocations -Name $Location -Exact
+                    if ($LocationStatus) {
+                        $_locationName = $LocationStatus.name
+                        $_locationId = $LocationStatus.id
+                    }
                 }
+                $_location = [PSCustomObject][Ordered]@{
+                    Id = $_locationId
+                    #Name = $_locationName
+                }
+            } else {
+                $_location = $OriginHostRecord.Location
             }
         } else {
             $_location = $OriginHostRecord.Location
@@ -418,12 +487,12 @@ Function Update-LrHost {
                     id = $($_entity.Id)
                     name = $($_entity.Name)
             }
-            name =  $Name
-            shortDesc = $shortDesc
-            longDesc = $longDesc
+            name =  $_name
+            shortDesc = $_shortDesc
+            longDesc = $_longDesc
             riskLevel = $_riskLevel
             threatLevel = $_threatLevel
-            threatLevelComments = $ThreatLevelComment
+            threatLevelComments = $_threatLevelComment
             recordStatusName = $_recordStatus
             hostZone = $_zone
             location = $_location
