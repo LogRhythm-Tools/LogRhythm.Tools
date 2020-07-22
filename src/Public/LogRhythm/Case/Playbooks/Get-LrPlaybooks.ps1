@@ -33,32 +33,51 @@ Function Get-LrPlaybooks {
         System.Object[] representing the returned LogRhythm playbooks.
         Returns $null if no playbooks are found based on Name filter.
     .EXAMPLE
-        PS C:\> @("Testing","Malware") | Get-LrPlaybooks -Credential $Token
-            id            : F47CF405-CAEC-44BB-9FDB-644C33D58F2A
-            name          : Testing
-            description   : Test Playbook
-            permissions   : @{read=privateOwnerOnly; write=privateOwnerOnly}
-            owner         : @{number=35; name=Smith, Bob; disabled=False}
-            retired       : False
-            entities      : {@{number=1; name=Primary Site}}
-            dateCreated   : 2019-10-11T08:46:25.9861938Z
-            dateUpdated   : 2019-10-11T08:46:25.9861938Z
-            lastUpdatedBy : @{number=35; name=Smith, Bob; disabled=False}
-            tags          : {@{number=5; text=Malware}}
+        PS C:\> Get-LrPlaybooks -Name "Newer"
+        ---
 
-            id            : BC3B367A-28CB-4E65-BE74-3B4ED5077976
-            name          : Malware Incident
-            description   : Use this Playbook when responding to malicious events that use an exploit.
-            permissions   : @{read=publicAllUsers; write=publicGlobalAdmin}
-            owner         : @{number=35; name=Smith, Bob; disabled=False}
-            retired       : False
-            entities      : {@{number=1; name=Primary Site}}
-            dateCreated   : 2019-04-10T15:27:54.1499666Z
-            dateUpdated   : 2019-09-11T14:30:53.1726298Z
-            lastUpdatedBy : @{number=35; name=Smith, Bob; disabled=False}
-            tags          : {@{number=66; text=ATP}, @{number=5; text=Malware}}
+        id            : 23F49972-166C-4B9E-9232-352FF16ACE0C
+        name          : Newer Playbook
+        description   : Its pretty good.
+        permissions   : @{read=privateOwnerOnly; write=privateOwnerOnly}
+        owner         : @{number=-100; name=LogRhythm Administrator; disabled=False}
+        retired       : False
+        entities      : {@{number=1; name=Primary Site; fullName=Primary Site}}
+        dateCreated   : 2020-06-07T12:50:58.4124223Z
+        dateUpdated   : 2020-06-07T12:50:58.4124223Z
+        lastUpdatedBy : @{number=-100; name=LogRhythm Administrator; disabled=False}
+        tags          : {@{number=9; text=abc}}
     .EXAMPLE
-        PS C:\> @("Testing","Malware") | Get-LrPlaybooks -Credential $Token | Select-Object -ExpandProperty name
+        PS C:\> @("Testing","Malware") | Get-LrPlaybooks
+        --- 
+
+        id            : F47CF405-CAEC-44BB-9FDB-644C33D58F2A
+        name          : Testing
+        description   : Test Playbook
+        permissions   : @{read=privateOwnerOnly; write=privateOwnerOnly}
+        owner         : @{number=35; name=Smith, Bob; disabled=False}
+        retired       : False
+        entities      : {@{number=1; name=Primary Site}}
+        dateCreated   : 2019-10-11T08:46:25.9861938Z
+        dateUpdated   : 2019-10-11T08:46:25.9861938Z
+        lastUpdatedBy : @{number=35; name=Smith, Bob; disabled=False}
+        tags          : {@{number=5; text=Malware}}
+
+        id            : BC3B367A-28CB-4E65-BE74-3B4ED5077976
+        name          : Malware Incident
+        description   : Use this Playbook when responding to malicious events that use an exploit.
+        permissions   : @{read=publicAllUsers; write=publicGlobalAdmin}
+        owner         : @{number=35; name=Smith, Bob; disabled=False}
+        retired       : False
+        entities      : {@{number=1; name=Primary Site}}
+        dateCreated   : 2019-04-10T15:27:54.1499666Z
+        dateUpdated   : 2019-09-11T14:30:53.1726298Z
+        lastUpdatedBy : @{number=35; name=Smith, Bob; disabled=False}
+        tags          : {@{number=66; text=ATP}, @{number=5; text=Malware}}
+    .EXAMPLE 
+        PS C:\> @("Testing","Malware") | Get-LrPlaybooks | Select-Object -ExpandProperty name
+        --- 
+
         Testing
         Malware
         Malware 2
@@ -75,35 +94,22 @@ Function Get-LrPlaybooks {
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
 
-        [Parameter(
-            Mandatory = $false,
-            ValueFromPipeline = $true,
-            Position = 1
-        )]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 1)]
         [ValidateNotNullOrEmpty()]
         [string] $Name,
 
 
-        [Parameter(
-            Mandatory = $false,
-            Position = 2
-        )]
+        [Parameter(Mandatory = $false, Position = 2)]
         [ValidateSet('dateCreated','dateUpdated','name')]
         [string] $OrderBy = "dateCreated",
 
 
-        [Parameter(
-            Mandatory = $false,
-            Position = 3
-        )]
+        [Parameter(Mandatory = $false, Position = 3)]
         [ValidateSet('asc','desc')]
         [string] $Sort = "asc",
 
 
-        [Parameter(
-            Mandatory = $false,
-            Position = 4
-        )]
+        [Parameter(Mandatory = $false, Position = 4)]
         [switch] $Exact
     )
 
@@ -149,7 +155,7 @@ Function Get-LrPlaybooks {
             try {
                 $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
             }
-            catch [System.Net.WebException] {
+            catch {
                 $Err = Get-RestErrorMessage $_
                 $ErrorObject.Code = $Err.statusCode
                 $ErrorObject.Type = "WebException"

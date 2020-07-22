@@ -14,6 +14,14 @@ Function Get-LrCaseStatusTable {
         System.Collections.Generic.List[Object]
     .EXAMPLE
         PS> Get-LrCaseStatusTable
+        
+        Number  Name      State  Transitions
+        ------  ----      -----  -----------
+            1   Created   Open   {Completed, Incident}
+            2   Completed Closed {Created}
+            3   Incident  Open   {Created, Mitigated}
+            4   Mitigated Open   {Incident, Resolved}
+            5   Resolved  Closed {Mitigated}
     .LINK
         https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
