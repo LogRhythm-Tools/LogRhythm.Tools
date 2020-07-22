@@ -30,7 +30,7 @@ Function Enable-LrtADUser {
     }
 
     # Check User Account
-    if (!(Test-SrfADUserExists $Identity)) {
+    if (!(Test-LrtADUserExists $Identity)) {
         Write-Verbose "[$ThisFunction]: Could not find user [$Identity]"
         return $false
     }
