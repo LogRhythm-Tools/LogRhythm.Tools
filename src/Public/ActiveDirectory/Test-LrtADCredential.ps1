@@ -3,7 +3,7 @@ using namespace System.IO
 using namespace System.Collections.Generic
 using namespace System.DirectoryServices.AccountManagement
 
-Function Test-LrPSADCredential {
+Function Test-LrtADCredential {
     <#
     .SYNOPSIS
         Validate an Active Directory user account credential object against the local domain.
@@ -16,15 +16,15 @@ Function Test-LrPSADCredential {
     .OUTPUTS
         Boolean value representing the validation result.
     .EXAMPLE
-        Test-LrPSADCredential -Credential (Get-Credential)
+        Test-LrtADCredential -Credential (Get-Credential)
     .LINK       
     #>
     
     [CmdletBinding()]
     Param(
-        [Parameter(ValueFromPipeline=$true)]
+        [Parameter(Mandatory = $true, ValueFromPipeline=$true)]
         [ValidateNotNull()]
-        [pscredential[]] $Credential
+        [pscredential] $Credential
     )
 
     Begin {
@@ -32,9 +32,8 @@ Function Test-LrPSADCredential {
         $DS = [System.DirectoryServices.AccountManagement.PrincipalContext]::new('domain')
     }
 
+    
     Process {
-        foreach ($Cred in $Credential) {
-            $DS.ValidateCredentials($Cred.UserName, ($Cred.GetNetworkCredential().Password))
-        }
+        $DS.ValidateCredentials($Credential.UserName, ($Credential.GetNetworkCredential().Password))
     }
 }

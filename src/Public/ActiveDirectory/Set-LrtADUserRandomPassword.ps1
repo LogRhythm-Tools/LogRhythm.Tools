@@ -1,9 +1,6 @@
 using namespace System
 
-Get-Module ActiveDirectory | Remove-Module
-#Requires -Modules ActiveDirectory
-
-Function Set-SrfADUserRandomPassword {
+Function Set-LrtADUserRandomPassword {
     <#
     .SYNOPSIS
         Randomly set a new password for user account.
@@ -12,7 +9,7 @@ Function Set-SrfADUserRandomPassword {
     .PARAMETER SecretId
         Secret Server Account Id with which to perform the action.
     .EXAMPLE
-        Set-SrfADUserPassword -Identity testuser -SecretId 121212
+        Set-LrtADUserPassword -Identity testuser -SecretId 121212
     #>
     
     [CmdletBinding()]
@@ -31,7 +28,7 @@ Function Set-SrfADUserRandomPassword {
     $ThisFunction = $MyInvocation.MyCommand
 
     # Check User Account
-    if (!(Test-SrfADUserExists $Identity)) {
+    if (!(Test-LrtADUserExists $Identity)) {
         Write-Verbose "[$ThisFunction]: Could not find user [$Identity]"
         return $false
     }
@@ -46,10 +43,11 @@ Function Set-SrfADUserRandomPassword {
         $SecurePass =  ConvertTo-SecureString `
             -AsPlainText `
             -Force `
-            -String ([System.Web.Security.Membership]::GeneratePassword(20,1))
+            -String ([Web.Security.Membership]::GeneratePassword(20,1))
     }
 
     # Set Password
+    # TODO: Use the 4 option version of Set-ADAccountPassword
     try {
         Set-ADAccountPassword -Identity $Identity -NewPassword $SecurePass -Reset -PassThru -Credential $Credential | Set-ADuser -ChangePasswordAtLogon $true
     }
@@ -59,9 +57,9 @@ Function Set-SrfADUserRandomPassword {
     }
 
     # check PasswordExpired and PasswordLastSet
-    $Result = Get-SrfADUserInfo -Identity $Identity
+    $Result = Get-LrtADUserInfo -Identity $Identity
 
     # note: the combo above sets the PasswordLastSet property to $null for some reason - a bug in the AD powershell commands maybe
-    # therefore compare the PasswordAge to null, as it is not calculated in Get-SrfADUserInfo if the property is null
+    # therefore compare the PasswordAge to null, as it is not calculated in Get-LrtADUserInfo if the property is null
     return ($Result.PasswordExpired -And ($null -eq $Result.PasswordAge))
 }

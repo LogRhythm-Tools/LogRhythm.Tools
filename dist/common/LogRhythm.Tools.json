@@ -17,6 +17,12 @@
         "BaseUrl": "https://[NOT_SET]:33333/api"
     },
     
+    "ActiveDirectory": {
+        "Server": "",
+        "Credential": "",
+        "ModuleLoaded": false
+    },
+
     "RecordedFuture": {
         "BaseUrl": "https://api.recordedfuture.com/v2/",
         "ApiKey": ""
