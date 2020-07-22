@@ -20,7 +20,7 @@ Function Get-VTHashReport {
     .OUTPUTS
         PSCustomObject representing the report results.
     .EXAMPLE
-        PS C:\> Get-VtHashReport -Credential $token -Hash b57d478a0673352579a8a0199d45e21dc1f7cdcc8fbe355daa9580e5e6b49b80
+        PS C:\> Get-VtHashReport -Hash b57d478a0673352579a8a0199d45e21dc1f7cdcc8fbe355daa9580e5e6b49b80
         ---
         scans         : @{Bkav=; MicroWorld-eScan=; CMC=; CAT-QuickHeal=; McAfee=; Cylance=; Zillya=; SUPERAntiSpyware=; Sangfor=; K7AntiVirus=; K7GW=; Arcabit=; 
                         Baidu=; Cyren=; Symantec=; ESET-NOD32=; TrendMicro-HouseCall=; Avast=; ClamAV=; Kaspersky=; BitDefender=; NANO-Antivirus=; ViRobot=; 
