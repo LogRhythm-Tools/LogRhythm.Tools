@@ -79,40 +79,46 @@ Function New-LrNetwork {
         [string]$Entity,
 
         [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName=$true, Position = 2)]
+        [int32]$EntityId,
+
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName=$true, Position = 3)]
         [string]$Name,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true,  Position = 3)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true,  Position = 4)]
         [string]$ShortDesc,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 4)]
-        [string]$LongDesc,
-
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 5)]
-        [ValidateSet('none','low-low','low-medium','low-high','medium-low','medium-medium','medium-high','high-low','high-medium','high-high', ignorecase=$true)]
-        [string]$RiskLevel = "none",
+        [string]$LongDesc,
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 6)]
         [ValidateSet('none','low-low','low-medium','low-high','medium-low','medium-medium','medium-high','high-low','high-medium','high-high', ignorecase=$true)]
-        [string]$ThreatLevel = "none",
+        [string]$RiskLevel = "none",
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 7)]
-        [string]$ThreatLevelComment,
+        [ValidateSet('none','low-low','low-medium','low-high','medium-low','medium-medium','medium-high','high-low','high-medium','high-high', ignorecase=$true)]
+        [string]$ThreatLevel = "none",
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 8)]
+        [string]$ThreatLevelComment,
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 9)]
         [ValidateSet('retired','active', ignorecase=$true)]
         [string]$RecordStatus = "active",
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 9)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 10)]
         [ValidateSet('unknown','internal','dmz','external', ignorecase=$true)]
         [string]$Zone="unknown",
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 10)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 11)]
         [string]$Location,
 
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName=$true, Position = 11)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 12)]
+        [int32]$LocationId,
+
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName=$true, Position = 13)]
         [ipaddress]$Bip,
 
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName=$true, Position = 12)]
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName=$true, Position = 14)]
         [ipaddress]$Eip
     )
 
@@ -147,12 +153,15 @@ Function New-LrNetwork {
         }
 
         # Lookup Entity By ID or Name
-        if ($Entity) {
+        if ($EntityId) {
+            Write-Verbose "[$Me]: Validating EntityId: $EntityId"
+            $_entity = Get-LrEntityDetails -Id $Entity
+        } elseif ($Entity){
             if ([int]::TryParse($Entity, [ref]$_int)) {
-                Write-Verbose "[$Me]: Entity parses as integer."
+                Write-Verbose "[$Me]: Validating Entity as Id.  EntityId: $Entity"
                 $_entity = Get-LrEntityDetails -Id $Entity
             } else {
-                Write-Verbose "[$Me]: Id does not parse as integer.  Performing string lookup."
+                Write-Verbose "[$Me]: Validating Entity as Name.  EntityName: $Entity"
                 $EntityLookup = Get-LrEntities -Name $Entity -Exact
                 if ($EntityLookup.Error -eq $true) {
                     $ErrorObject.Error = $EntityLookup.Error
@@ -165,8 +174,13 @@ Function New-LrNetwork {
                 }
             }
         } else {
-            throw [ArgumentException] "Entity [null] must be: Entity Name or Entity ID."
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "NullValue"
+            $ErrorObject.Code = 404
+            $ErrorObject.Note = "Cmdlet must be provided EntityId or Entity paramater values."
         }
+        
+
         Write-Verbose "Entity: $_entity"
 
         # TODO Location Lookup.  7.5 API

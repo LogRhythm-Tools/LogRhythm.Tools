@@ -94,7 +94,7 @@ Function Update-LrNetwork {
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
         
-        [Parameter(Mandatory = $false, ValueFromPipeline=$true, Position = 1)]
+        [Parameter(Mandatory = $false, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true, Position = 1)]
         [string]$Id,
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 2)]
@@ -104,38 +104,47 @@ Function Update-LrNetwork {
         [string]$Entity,
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 4)]
-        [string]$ShortDesc,
+        [int32]$EntityId,
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 5)]
-        [string]$LongDesc,
+        [string]$ShortDesc,
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 6)]
-        [ValidateSet('none','low-low','low-medium','low-high','medium-low','medium-medium','medium-high','high-low','high-medium','high-high', ignorecase=$true)]
-        [string]$RiskLevel,
+        [string]$LongDesc,
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 7)]
         [ValidateSet('none','low-low','low-medium','low-high','medium-low','medium-medium','medium-high','high-low','high-medium','high-high', ignorecase=$true)]
-        [string]$ThreatLevel,
+        [string]$RiskLevel,
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 8)]
-        [string]$ThreatLevelComment,
+        [ValidateSet('none','low-low','low-medium','low-high','medium-low','medium-medium','medium-high','high-low','high-medium','high-high', ignorecase=$true)]
+        [string]$ThreatLevel,
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 9)]
+        [string]$ThreatLevelComment,
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 10)]
         [ValidateSet('retired','active', ignorecase=$true)]
         [string]$RecordStatus,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 10)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 11)]
         [ValidateSet('unknown','internal','dmz','external', ignorecase=$true)]
         [string]$Zone="unknown",
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 11)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 12)]
         [string]$Location,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 12)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 13)]
+        [int32]$LocationId,
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 14)]
         [ipaddress]$Bip,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 13)]
-        [ipaddress]$Eip
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 15)]
+        [ipaddress]$Eip,
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 16)]
+        [switch]$LocationLookup
     )
 
     Begin {
@@ -169,32 +178,56 @@ Function Update-LrNetwork {
         }
 
         # Lookup Entity By ID or Name
-        if ($Entity) {
+        if ($EntityId) {
+            Write-Verbose "[$Me]: Validating EntityId: $EntityId"
+            $EntityLookup = Get-LrEntityDetails -Id $EntityId
+                if ($EntityLookup.Error -eq $true) {
+                    $ErrorObject.Error = $EntityLookup.Error
+                    $ErrorObject.Type = $EntityLookup.Type
+                    $ErrorObject.Code = $EntityLookup.Code
+                    $ErrorObject.Note = $EntityLookup.Note
+                    return $ErrorObject
+                } else {
+                    $_entity = $EntityLookup
+                }
+        } elseif ($Entity){
             if ([int]::TryParse($Entity, [ref]$_int)) {
-                Write-Verbose "[$Me]: Entity parses as integer."
-                $_entity = Get-LrEntityDetails -Id $Entity
+                Write-Verbose "[$Me]: Validating Entity as Id.  EntityId: $Entity"
+                $EntityLookup = Get-LrEntityDetails -Id $Entity
+                if ($EntityLookup.Error -eq $true) {
+                    $ErrorObject.Error = $EntityLookup.Error
+                    $ErrorObject.Type = $EntityLookup.Type
+                    $ErrorObject.Code = $EntityLookup.Code
+                    $ErrorObject.Note = $EntityLookup.Note
+                    return $ErrorObject
+                } else {
+                    $_entity = $EntityLookup
+                }
             } else {
-                Write-Verbose "[$Me]: Id does not parse as integer.  Performing string lookup."
+                Write-Verbose "[$Me]: Validating Entity as Name.  EntityName: $Entity"
                 $EntityLookup = Get-LrEntities -Name $Entity -Exact
                 if ($EntityLookup.Error -eq $true) {
-                    $ErrorObject.Error = $NetworkLookup.Error
-                    $ErrorObject.Type = $NetworkLookup.Type
-                    $ErrorObject.Code = $NetworkLookup.Code
-                    $ErrorObject.Note = $NetworkLookup.Note
+                    $ErrorObject.Error = $EntityLookup.Error
+                    $ErrorObject.Type = $EntityLookup.Type
+                    $ErrorObject.Code = $EntityLookup.Code
+                    $ErrorObject.Note = $EntityLookup.Note
                     return $ErrorObject
                 } else {
                     $_entity = $EntityLookup
                 }
             }
         } else {
-            throw [ArgumentException] "Entity [null] must be: Entity Name or Entity ID."
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "NullValue"
+            $ErrorObject.Code = 404
+            $ErrorObject.Note = "Cmdlet must be provided EntityId or Entity paramater values."
         }
         Write-Verbose "Entity: $_entity"
 
         # Lookup Network ID or Name to find Network ID
         if ($Id) {
             if ([int]::TryParse($Id, [ref]$_int)) {
-                Write-Verbose "[$Me]: Entity parses as integer."
+                Write-Verbose "[$Me]: Network ID parses as integer. Id: $Id"
                 $NetworkIdLookup = Get-LrNetworkDetails -Id $Id
                 if ($NetworkIdLookup.Error -eq $true) {
                     $ErrorObject.Error = $NetworkIdLookup.Error
@@ -203,12 +236,11 @@ Function Update-LrNetwork {
                     $ErrorObject.Note = $NetworkIdLookup.Note
                     return $ErrorObject  
                 } else {
-                    Write-Verbose "[$Me]: Network ID Lookup via Network Id"
-                    Write-Verbose "[$Me]: Matched network record: $NetworkIdLookup"
+                    Write-Verbose "[$Me]: Matched network record: $($NetworkIdLookup.id)"
                     $_networkId = $NetworkIdLookup | Select-Object -ExpandProperty id
                 }
             } else {
-                Write-Verbose "[$Me]: Id does not parse as integer.  Performing string lookup on Id."
+                Write-Verbose "[$Me]: Network ID parses as string.  Performing Network Name lookup.  Id: $Id."
                 $NetworkLookup = Get-LrNetworks -Name $Id -Exact
                 if ($EntityLookup.Error -eq $true) {
                     $ErrorObject.Error = $NetworkLookup.Error
@@ -216,13 +248,12 @@ Function Update-LrNetwork {
                     $ErrorObject.Code = $NetworkLookup.Code
                     $ErrorObject.Note = $NetworkLookup.Note
                 } else {
-                    Write-Verbose "[$Me]: Network ID Lookup via Network ID as Name"
-                    Write-Verbose "[$Me]: Matched network record: $NetworkLookup"
+                    Write-Verbose "[$Me]: Matched network record: $($NetworkLookup.id)"
                     $_networkId = $NetworkLookup | Select-Object -ExpandProperty id
                 }
             }
         } elseif ($Name) {
-            Write-Verbose "[$Me]: Id does not parse as integer.  Performing string lookup."
+            Write-Verbose "[$Me]: Performing Network Name lookup.  Id: $Name."
             $NetworkLookup = Get-LrNetworks -Name $Name -Exact
             if ($EntityLookup.Error -eq $true) {
                 $ErrorObject.Error = $NetworkLookup.Error
@@ -231,16 +262,71 @@ Function Update-LrNetwork {
                 $ErrorObject.Note = $NetworkLookup.Note
                 return $ErrorObject
             } else {
-                Write-Verbose "[$Me]: Network ID Lookup via Network Name"
-                Write-Verbose "[$Me]: Matched network record: $NetworkLookup"
+                Write-Verbose "[$Me]: Matched network record: $($NetworkLookup.id)"
                 $_networkId = $NetworkLookup | Select-Object -ExpandProperty id
             }
         } else {
-            throw [ArgumentException] "Network ID [$Id] must be an existing Network ID.  No valid Network ID provided.  No Network ID found for Network Name: $Name."
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "NullValue"
+            $ErrorObject.Code = 404
+            $ErrorObject.Note = "Cmdlet must be provided Id or Name paramater values."
         }
 
 
-        # TODO Location Lookup.  7.5 API
+        # Location lookup
+        if ($LocationId -and $Location) {
+            if ($LocationLookup) {
+                if ($LrtConfig.LogRhythm.Version -notmatch '7.5.\d') {
+                    $LocationStatus = Show-LrLocations -Id $LocationId
+                    if ($LocationStatus) {
+                        $_locationName = $LocationStatus.name
+                        $_locationId = $LocationStatus.id
+                    }
+                } else {
+                    $LocationStatus = Get-LrLocations -Id $LocationId
+                    if ($LocationStatus) {
+                        $_locationName = $LocationStatus.name
+                        $_locationId = $LocationStatus.id
+                    }
+                }
+            } else {
+                $_locationName = $Location 
+                $_locationId = $LocationId
+            }
+            $_location = [PSCustomObject][Ordered]@{
+                Id = $_locationId
+                #Name = $_locationName
+            }
+        } elseif ($Location) {
+            if ($LocationLookup) {
+                if ($LrtConfig.LogRhythm.Version -notmatch '7.5.\d') {
+                    $LocationStatus = Show-LrLocations -Name $Location -Exact
+                    if ($LocationStatus) {
+                        $_locationName = $LocationStatus.name
+                        $_locationId = $LocationStatus.id
+                    }
+                } else {
+                    $LocationStatus = Get-LrLocations -Name $Location -Exact
+                    if ($LocationStatus) {
+                        $_locationName = $LocationStatus.name
+                        $_locationId = $LocationStatus.id
+                    }
+                }
+                $_location = [PSCustomObject][Ordered]@{
+                    Id = $_locationId
+                    #Name = $_locationName
+                }
+            } else {
+                $_location = [PSCustomObject]@{
+                    Name = $Location
+                }
+            }
+        } else {
+            $_location = [PSCustomObject]@{
+                Name = ""
+            }
+        }
+
 
         # Ensure proper syntax
         if ($RecordStatus) {
@@ -248,7 +334,7 @@ Function Update-LrNetwork {
             if ($ValidStatus.Contains($($RecordStatus.ToLower()))) {
                 $_recordStatus = (Get-Culture).TextInfo.ToTitleCase($RecordStatus)
             } else {
-                throw [ArgumentException] "RecordStatus [$RecordStatus] must be: all, active, or retired."
+                throw [ArgumentException] "RecordStatus [$RecordStatus] must be: new, active, or retired."
             }
         }
 
@@ -307,9 +393,7 @@ Function Update-LrNetwork {
             threatLevelComment = $ThreatLevelComment
             recordStatusName = $_recordStatus
             hostZone = $_zone
-            location = [PSCustomObject]@{
-                name = $Location
-            }
+            location = $_location
             bip = $Bip.IPAddressToString
             eip = $Eip.IPAddressToString
         }
