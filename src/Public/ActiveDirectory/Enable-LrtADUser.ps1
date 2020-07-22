@@ -20,11 +20,7 @@ Function Enable-LrtADUser {
         [Parameter(Mandatory=$true,Position=1)]
         [pscredential] $Credential
     )
-    $ThisFunction = $MyInvocation.MyCommand
-    $Verbose = $false
-    if ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent) {
-        $Verbose = $true
-    }
+
 
     # Get Domain
     $Domain = Get-ADDomain
