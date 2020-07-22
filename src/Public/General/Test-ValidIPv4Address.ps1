@@ -20,7 +20,7 @@ Function Test-ValidIPv4Address {
            -----     -----         -----
            True      192.168.5.1   True
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework        
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools     
     #>
 
     [CmdletBinding()]
