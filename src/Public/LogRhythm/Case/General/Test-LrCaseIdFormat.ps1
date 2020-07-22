@@ -80,6 +80,7 @@ Function Test-LrCaseIdFormat {
                 $OutObject.Note = $Case.Note
             } else {
                 # Set output object results
+                $OutObject.IsValid = $true
                 $OutObject.CaseNumber = $Case.number
                 $OutObject.CaseGuid = $Case.id 
                 $OutObject.CaseName = $Case.name
@@ -93,7 +94,6 @@ Function Test-LrCaseIdFormat {
             try {
                 $Case = Get-LrCaseById -Id $Id
                 $OutObject.Note = "Case lookup performed by Case GUID."
-                $OutObject.IsValid = $true
             } catch {
                 $OutObject.IsValid = $false
                 $OutObject.Note = "Unable to retrieve results for Case GUID lookup.  ID: $Id"
@@ -104,6 +104,7 @@ Function Test-LrCaseIdFormat {
                 $OutObject.Note = $Case.Note
             } else {
                 # Set output object results
+                $OutObject.IsValid = $true
                 $OutObject.CaseNumber = $Case.number
                 $OutObject.CaseGuid = $Case.id 
                 $OutObject.CaseName = $Case.name
@@ -115,7 +116,6 @@ Function Test-LrCaseIdFormat {
             $OutObject.LookupType = "CaseName"
             try {
                 $Case = Get-LrCases -Name $Id -Exact
-                $OutObject.IsValid = $true
             } catch {
                 $OutObject.IsValid = $false
                 $OutObject.Note = "Unable to retrieve results for Case Name lookup.  Name: $Id"
@@ -124,6 +124,7 @@ Function Test-LrCaseIdFormat {
             # Determine if results represent a unique case
             if ($null -ne $Case.number) {
                 if ($Case.count -lt 2) {
+                    $OutObject.IsValid = $true
                     $OutObject.CaseNumber = $Case.number
                     $OutObject.CaseGuid = $Case.id 
                     $OutObject.CaseName = $Case.name
