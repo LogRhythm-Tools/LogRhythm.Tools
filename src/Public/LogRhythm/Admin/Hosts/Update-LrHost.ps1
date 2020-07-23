@@ -334,8 +334,8 @@ Function Update-LrHost {
                 $_locationId = $LocationId
             }
             $_location = [PSCustomObject][Ordered]@{
-                Id = $_locationId
-                Name = $_locationName
+                id = $_locationId
+                name = $_locationName
             }
         } elseif ($Location) {
             if ($LocationLookup) {
@@ -353,8 +353,8 @@ Function Update-LrHost {
                     }
                 }
                 $_location = [PSCustomObject][Ordered]@{
-                    Id = $_locationId
-                    #Name = $_locationName
+                    id = $_locationId
+                    name = $_locationName
                 }
             } else {
                 $_location = $OriginHostRecord.Location
