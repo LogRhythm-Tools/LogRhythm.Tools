@@ -41,17 +41,38 @@ Function Get-LrTags {
         dateCreated     [System.DateTime]   Date tag created
         createdBy       [Object]            Created by [LogRhythm.User]
     .EXAMPLE
-        PS C:\> @("Testing","Malware") | Get-LrTags -Credential $Token
-            number   text          dateCreated                   createdBy
-            ------   ----          -----------                   ---------
-            120      API Testing   2019-10-05T10:38:05.7133333Z  @{number=35; name=Smith, Bob; disabled=False}
-            112      Testing       2019-09-20T21:36:59.34Z       @{number=35; name=Smith, Bob; disabled=False}
-              5      Malware       2019-03-13T15:11:21.467Z      @{number=35; name=Smith, Bob; disabled=False}
+        PS C:\> Get-LrTags
+        --- 
+        
+        number text    dateCreated                  createdBy
+        ------ ----    -----------                  ---------
+            9 abc     2020-06-07T12:48:45.8266667Z @{number=-100; name=LogRhythm Administrator; disabled=False}
+            12 abd     2020-06-07T18:50:59.07Z      @{number=-100; name=LogRhythm Administrator; disabled=False}
+            13 akf     2020-06-07T18:50:59.1566667Z @{number=-100; name=LogRhythm Administrator; disabled=False}
+            6 Boxer   2020-06-06T19:24:48.4866667Z @{number=-100; name=LogRhythm Administrator; disabled=False}
+            8 Boxers  2020-06-06T19:31:24.5933333Z @{number=-100; name=LogRhythm Administrator; disabled=False}
+            10 first   2020-06-07T13:03:00.8533333Z @{number=-100; name=LogRhythm Administrator; disabled=False}
+            14 MyTagz  2020-06-17T18:04:02.12Z      @{number=-100; name=LogRhythm Administrator; disabled=False}
+            5 New2    2020-06-06T19:04:00.2133333Z @{number=-100; name=LogRhythm Administrator; disabled=False}
+            4 Peaches 2020-06-06T14:38:56.71Z      @{number=-100; name=LogRhythm Administrator; disabled=False}
+            11 second  2020-06-07T13:03:00.93Z      @{number=-100; name=LogRhythm Administrator; disabled=False}
+            7 Sticker 2020-06-06T19:24:48.56Z      @{number=-100; name=LogRhythm Administrator; disabled=False}
     .EXAMPLE
-        PS C:\> @("Testing","Malware") | Get-LrTags -Credential $Token | Select-Object -ExpandProperty text
-            API Testing
-            Testing
-            Malware
+        PS C:\> @("Testing","Malware") | Get-LrTags
+        --- 
+
+        number   text          dateCreated                   createdBy
+        ------   ----          -----------                   ---------
+        120      API Testing   2019-10-05T10:38:05.7133333Z  @{number=35; name=Smith, Bob; disabled=False}
+        112      Testing       2019-09-20T21:36:59.34Z       @{number=35; name=Smith, Bob; disabled=False}
+            5      Malware       2019-03-13T15:11:21.467Z      @{number=35; name=Smith, Bob; disabled=False}
+    .EXAMPLE
+        PS C:\> @("Testing","Malware") | Get-LrTags | Select-Object -ExpandProperty text
+        ---
+
+        API Testing
+        Testing
+        Malware
     .NOTES
         LogRhythm-API
     .LINK
@@ -65,27 +86,17 @@ Function Get-LrTags {
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
 
-        [Parameter(
-            Mandatory = $false,
-            ValueFromPipeline = $true,
-            Position = 1
-        )]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 1)]
         [ValidateNotNullOrEmpty()]
         [string] $Name,
 
         
-        [Parameter(
-            Mandatory = $false,
-            Position = 2
-        )]
+        [Parameter(Mandatory = $false, Position = 2)]
         [ValidateSet('asc','desc')]
         [string] $Sort = "asc",
 
         
-        [Parameter(
-            Mandatory = $false,
-            Position = 3
-        )]
+        [Parameter(Mandatory = $false, Position = 3)]
         [switch] $Exact
     )
 

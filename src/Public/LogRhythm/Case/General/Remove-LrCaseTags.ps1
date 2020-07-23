@@ -2,12 +2,12 @@ using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
 
-Function Remove-LrTagsFromCase {
+Function Remove-LrCaseTags {
     <#
     .SYNOPSIS
         Remove tags to a LogRhythm case.
     .DESCRIPTION
-        The Remove-LrTagsToCase cmdlet removes tags to an existing case.
+        The Remove-LrCaseTags cmdlet removes tags to an existing case.
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
         Note: You can bypass the need to provide a Credential by setting
@@ -23,7 +23,52 @@ Function Remove-LrTagsFromCase {
     .OUTPUTS
         PSCustomObject representing the modified LogRhythm Case.
     .EXAMPLE
-        PS C:\> 
+        PS C:\> Remove-LrCaseTags -Id 2 -Tags Alpha
+        ---
+
+        id                      : E66A5D03-412F-43AB-B9B7-0459055827AF
+        number                  : 2
+        externalId              :
+        dateCreated             : 2020-07-16T16:47:46.0395837Z
+        dateUpdated             : 2020-07-16T21:00:33.8159Z
+        dateClosed              :
+        owner                   : @{number=2; name=LRTools; disabled=False}
+        lastUpdatedBy           : @{number=2; name=LRTools; disabled=False}
+        name                    : Mock case
+        status                  : @{name=Created; number=1}
+        priority                : 5
+        dueDate                 : 2020-10-20T14:22:11Z
+        resolution              :
+        resolutionDateUpdated   :
+        resolutionLastUpdatedBy :
+        summary                 : Mock case summary for automation validation.
+        entity                  : @{number=-100; name=Global Entity; fullName=Global Entity}
+        collaborators           : {@{number=2; name=LRTools; disabled=False}}
+        tags                    : {}
+
+    .EXAMPLE
+        PS C:\> Remove-LrCaseTags -Id "Mock case" -Tags Alpha
+        ---
+
+        id                      : E66A5D03-412F-43AB-B9B7-0459055827AF
+        number                  : 2
+        externalId              :
+        dateCreated             : 2020-07-16T16:47:46.0395837Z
+        dateUpdated             : 2020-07-16T21:00:33.8159Z
+        dateClosed              :
+        owner                   : @{number=2; name=LRTools; disabled=False}
+        lastUpdatedBy           : @{number=2; name=LRTools; disabled=False}
+        name                    : Mock case
+        status                  : @{name=Created; number=1}
+        priority                : 5
+        dueDate                 : 2020-10-20T14:22:11Z
+        resolution              :
+        resolutionDateUpdated   :
+        resolutionLastUpdatedBy :
+        summary                 : Mock case summary for automation validation.
+        entity                  : @{number=-100; name=Global Entity; fullName=Global Entity}
+        collaborators           : {@{number=2; name=LRTools; disabled=False}}
+        tags                    : {}
     .NOTES
         LogRhythm-API
     .LINK
@@ -85,13 +130,15 @@ Function Remove-LrTagsFromCase {
         }
         Write-Verbose "[$Me]: Case Id: $Id"
 
-        # Get Case Id
-        $IdInfo = Test-LrCaseIdFormat $Id
-        if (! $IdInfo.IsValid) {
-            throw [ArgumentException] "Parameter [Id] should be an RFC 4122 formatted string or an integer."
-        }                                                        
+        # Test CaseID Format
+        $IdStatus = Test-LrCaseIdFormat $Id
+        if ($IdStatus.IsValid -eq $true) {
+            $CaseNumber = $IdStatus.CaseNumber
+        } else {
+            return $IdStatus
+        }                                                  
 
-        $RequestUrl = $BaseUrl + "/cases/$Id/actions/removeTags/"
+        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/actions/removeTags/"
         Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
         #endregion
 
@@ -127,7 +174,7 @@ Function Remove-LrTagsFromCase {
             try {
                 $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
             }
-            catch [System.Net.WebException] {
+            catch {
                 $Err = Get-RestErrorMessage $_
                 $ErrorObject.Code = $Err.statusCode
                 $ErrorObject.Type = "WebException"
