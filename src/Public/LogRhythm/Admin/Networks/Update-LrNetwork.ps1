@@ -22,13 +22,9 @@ Function Update-LrNetwork {
         
         *If the Id parameter is not provided the Name paramater will be attempted to identify the appropraite record.
     .PARAMETER Entity
-        Parameter for specifying the existing or new Entity for the network record.  
-        This parameter can be provided either Entity Name or Entity Id but not both.
-
-        [System.String] (Name) or [System.Int32]
-        Specifies a LogRhythm Network object by providing one of the following property values:
-          + Entity Name (as System.String), e.g. "Network Bravo"
-          + Entity Id (as System.String or System.Int32), e.g. 202
+        String used to search Entity parent and child records by Entity Name and update a Network record's Entity value.
+    .PARAMETER EntityId
+        Int32 used to search Entity parent and child records by Entity Id and update a Network record's Entity value.
     .PARAMETER ShortDescription
         A brief description of the network entity.
     .PARAMETER LongDescription
@@ -43,26 +39,47 @@ Function Update-LrNetwork {
         Valid entries: "None" "Low-Low" "Low-Medium" "Low-High" "Medium-Low" "Medium-Medium" "Medium-High" "High-Low" "High-Medium" "High-High"
     .PARAMETER ThreatLevelComment
         Provide context to ThreatLevel score associted with Network Record.
-
     .PARAMETER RecordStatus
         String used to restrict results based on RecordStatus.
         Valid entries: "Active", "Retired"
-    .PARAMETER HostZone
+    .PARAMETER Zone
         Set network zone.  
         
         Valid entries: "Unknown", "Internal", "DMZ", "External"
     .PARAMETER Location
-        Set the network's geographic location.
+        String value representing geographic location based on location name.  
+        
+        If no LocationId is provided in conjuction with Location it is recommended to pass the Switch Paramater -LocationLookup.
+    .PARAMETER LocationId
+        Int32 value representing the network's geographic location based on location ID.
 
-        This parameter will be enhanced with location lookup verification with LogRhythm 7.5 API.
-    .PARAMETER BeginIP
+        If no LocationName is provided in conjuction with LocationId it is recommended to pass the Switch Paramater -LocationLookup.
+    .PARAMETER BIP
         IPv4 Network starting Address.
-    .PARAMETER EndIP
+    .PARAMETER EIP
         IPv4 Network ending Address.
-    .PARAMETER Entity,
-        String used to search Entity Host by Entity Name.
+    .PARAMETER LocationLookup
+        Performs a location lookup and verification.  This paramater increases the execution time of this cmdlet.
+
+        For LogRhythm Versions 7.5.X and greater the lookup is performed via API.
+        For LogRhythm Versions 7.4.X the lookup is performed via a local locations csv contained within LogRhyhtm.Tools.
     .INPUTS
-        [System.String] -> Id
+        [System.String]    -> Id
+        [System.String]    -> Name
+        [System.String]    -> Entity
+        [System.Int32]     -> EntityId
+        [System.String]    -> ShortDesc
+        [System.String]    -> LongDesc
+        [System.String]    -> RiskLevel
+        [System.String]    -> ThreatLevel
+        [System.String]    -> ThreatLevelComment
+        [System.String]    -> RecordStatus
+        [System.String]    -> Zone
+        [System.String]    -> Location
+        [System.int32]     -> LocationId
+        [System.IpAddress] -> Bip
+        [System.IpAddress] -> Eip
+        [System.Switch]    -> LocationLookup
     .OUTPUTS
         PSCustomObject representing LogRhythm Network Entity for the updated record.
     .EXAMPLE
