@@ -43,7 +43,6 @@ Function Update-LrPlaybook {
         PSCustomObject representing the added playbook.
     .EXAMPLE
         PS C:\> Update-LrPlaybook -Id "This ones better 9." -Description "This description is better than the last." -Tags @("Srexob", "Rekcits") -Force
-        ---
 
         id            : E10111E4-DDC7-4D98-A619-5B80CA55BABF
         name          : This ones better 9.
@@ -59,7 +58,6 @@ Function Update-LrPlaybook {
 
     .EXAMPLE
         PS C:\> Update-LrPlaybook -Id "New Playbook" -Name "New2 Playbook"
-        ---
 
         id            : EB042520-5EEA-4CE5-9AF5-3A05EFD9BC88
         name          : New2 Playbook
@@ -144,7 +142,7 @@ Function Update-LrPlaybook {
                 return $Pb
             }
         } else {
-            $Pb = Get-LrPlaybooks -Name $Id -Exact
+            $Pb = Get-LrPlaybooks -Name $Id -Credential $Credential -Exact
             if (!$Pb.Name -eq $Id) {
                 $ErrorObject.Code = "404"
                 $ErrorObject.Error = $true

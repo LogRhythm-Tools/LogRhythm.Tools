@@ -2,7 +2,8 @@ using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
 
-function Get-LrCaseEarliestEvidence {
+function Get-LrCaseEarliestEvidence
+{
     <#
     .SYNOPSIS
         Retrieves the earliest evidence timestamp of an existing case
@@ -63,15 +64,15 @@ function Get-LrCaseEarliestEvidence {
     }
     
     Process {
-        # Test CaseID Format
-        $IdStatus = Test-LrCaseIdFormat $Id
-        if ($IdStatus.IsValid -eq $true) {
-            $CaseNumber = $IdStatus.CaseNumber
-        } else {
-            return $IdStatus
-        }   
+        # Get Case Id
+        $IdInfo = Test-LrCaseIdFormat $Id
+        if (! $IdInfo.IsValid) {
+            throw [ArgumentException] "Parameter [Id] should be an RFC 4122 formatted string or an integer."
+        }
 
-        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/metrics/"
+        $RequestUrl = $BaseUrl + "/cases/$Id/metrics/"
+            
+        $Response = $null
 
         # Send Request
         if ($PSEdition -eq 'Core'){

@@ -20,7 +20,7 @@ Function Get-LrCaseById {
     .OUTPUTS
         PSCustomObject representing the (new|modified) LogRhythm object.
     .EXAMPLE
-        PS C:\> Get-LrCaseById -Id 1785
+        PS C:\> Get-LrCaseById -Credential $CredAPI -Id 1785
 
             id                      : 16956857-3965-4B83-AAE6-C9B33A38D15E
             number                  : 1785
@@ -54,7 +54,11 @@ Function Get-LrCaseById {
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
 
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true,Position = 1)]
+        [Parameter(
+            Mandatory = $true,
+            ValueFromPipeline = $true,
+            Position = 1
+        )]
         [object] $Id
     )
 
@@ -74,32 +78,14 @@ Function Get-LrCaseById {
 
         # Request URI
         $Method = $HttpMethod.Get
-
-        # https://docs.microsoft.com/en-us/dotnet/api/system.int32.tryparse
-        $_int = 0
     }
 
 
     Process {
-        # Establish General Error object Output
-        $ErrorObject = [PSCustomObject]@{
-            Code                  =   $null
-            Error                 =   $false
-            Type                  =   $null
-            Note                  =   $null
-            Value                 =   $Id
-        }
-
-        # Check if ID value is an integer
-        if ([int]::TryParse($Id, [ref]$_int)) {
-            Write-Verbose "[$Me]: Id parses as integer."
-        } elseif (($Id -Is [System.Guid]) -Or (Test-Guid $Id)) {
-            Write-Verbose "[$Me]: Id parses as GUID."
-        } else {
-            $ErrorObject.Error = $true
-            $ErrorObject.Type  = "DataType"
-            $ErrorObject.Note  = "Id does not parse as integer or GUID."
-            return $ErrorObject
+        # Get Case Id
+        $IdInfo = Test-LrCaseIdFormat $Id
+        if (! $IdInfo.IsValid) {
+            throw [ArgumentException] "Parameter [Id] should be an RFC 4122 formatted string or an integer."
         }
         
         $RequestUrl = $BaseUrl + "/cases/$Id/"
@@ -109,37 +95,18 @@ Function Get-LrCaseById {
                 $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
             }
             catch {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                return $ErrorObject
+                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+                Write-Verbose "Exception Message: $ExceptionMessage"
+                return $ExceptionMessage
             }
         } else {
             try {
                 $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
             }
             catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                switch ($Err.statusCode) {
-                    "404" {
-                        $ErrorObject.Type = "KeyNotFoundException"
-                        $ErrorObject.Code = 404
-                        $ErrorObject.Note = "Value not found, or you do not have permission to view it."
-                     }
-                     "401" {
-                        $ErrorObject.Type = "UnauthorizedAccessException"
-                        $ErrorObject.Code = 401
-                        $ErrorObject.Note = "Credential '$($Credential.UserName)' is unauthorized to access 'lr-case-api'"
-                     }
-                    Default {
-                        $ErrorObject.Type = "System.Net.WebException"
-                        $ErrorObject.Note = $Err.message
-                    }
-                }
-                return $ErrorObject
+                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+                Write-Verbose "Exception Message: $ExceptionMessage"
+                return $ExceptionMessage
             }
         }
 

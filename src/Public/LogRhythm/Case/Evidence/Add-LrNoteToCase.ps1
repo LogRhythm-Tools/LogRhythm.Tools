@@ -22,35 +22,7 @@ Function Add-LrNoteToCase {
     .OUTPUTS
         PSCustomObject representing the (new|modified) LogRhythm object.
     .EXAMPLE
-        PS C:\> Add-LrNoteToCase -Id 1780 -Text "Review of alarm 21202 indicated manual action from System Administrator." -PassThru
-        ---
-
-        number        : 4
-        dateCreated   : 2020-07-17T01:49:47.0452267Z
-        dateUpdated   : 2020-07-17T01:49:47.0452267Z
-        createdBy     : @{number=1; name=lrtools; disabled=False}
-        lastUpdatedBy : @{number=1; name=lrtools; disabled=False}
-        type          : note
-        status        : completed
-        statusMessage :
-        text          : Review of alarm 21202 indicated manual action from System Administrator.
-        pinned        : False
-        datePinned    :
-    .EXAMPLE
-        PS C:\> Add-LrNoteToCase -Id 2 -Text "This is my note for case 2!" -PassThru       
-        ---
-
-        number        : 5
-        dateCreated   : 2020-07-17T01:51:45.7467156Z
-        dateUpdated   : 2020-07-17T01:51:45.7467156Z
-        createdBy     : @{number=1; name=lrtools; disabled=False}
-        lastUpdatedBy : @{number=1; name=lrtools; disabled=False}
-        type          : note
-        status        : completed
-        statusMessage :
-        text          : This is my note for case 2!
-        pinned        : False
-        datePinned    :
+        PS C:\> 
     .NOTES
         LogRhythm-API
     .LINK
@@ -63,9 +35,15 @@ Function Add-LrNoteToCase {
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 1)]
+
+        [Parameter(
+            Mandatory = $true,
+            ValueFromPipelineByPropertyName = $true,
+            Position = 1
+        )]
         [ValidateNotNull()]
         [object] $Id,
+
 
         [Parameter(Mandatory = $true, Position = 2)]
         [ValidateNotNullOrEmpty()]
@@ -95,15 +73,13 @@ Function Add-LrNoteToCase {
 
 
     Process {
-        # Test CaseID Format
-        $IdStatus = Test-LrCaseIdFormat $Id
-        if ($IdStatus.IsValid -eq $true) {
-            $CaseNumber = $IdStatus.CaseNumber
-        } else {
-            return $IdStatus
+        # Get Case Id
+        $IdInfo = Test-LrCaseIdFormat $Id
+        if (! $IdInfo.IsValid) {
+            throw [ArgumentException] "Parameter [Id] should be an RFC 4122 formatted string or an integer."
         }
 
-        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/evidence/note/"
+        $RequestUrl = $BaseUrl + "/cases/$Id/evidence/note/"
 
 
         # Request Body

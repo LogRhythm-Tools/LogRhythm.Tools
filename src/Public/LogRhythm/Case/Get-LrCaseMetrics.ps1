@@ -69,27 +69,20 @@ Function Get-LrCaseMetrics {
 
         # Request URI
         $Method = $HttpMethod.Get
-        $RequestUrl = $BaseUrl + "/cases/$Id/metrics"
+        $RequestUri = $BaseUrl + "/cases/$Id/metrics"
 
 
         # Send Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
-            }
-        }     
+        try {
+            $Response = Invoke-RestMethod `
+                -Uri $RequestUri `
+                -Headers $Headers `
+                -Method $Method
+        }
+        catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+        }        
         #endregion
 
 

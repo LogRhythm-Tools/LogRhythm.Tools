@@ -19,7 +19,6 @@ Function Remove-LrPlaybook {
         PSCustomObject representing the deleted playbook.
     .EXAMPLE
         PS C:\> Remove-LrPlaybook -Name "This ones better 9."
-        ---
 
         id            : E10111E4-DDC7-4D98-A619-5B80CA55BABF
         name          : This ones better 9.
@@ -86,7 +85,7 @@ Function Remove-LrPlaybook {
                 return $Pb
             }
         } else {
-            $Pb = Get-LrPlaybooks -Name $Id -Exact
+            $Pb = Get-LrPlaybooks -Name $Id -Credential $Credential -Exact
             if (!$Pb.Name -eq $Id) {
                 $ErrorObject.Code = "404"
                 $ErrorObject.Error = $true
@@ -114,7 +113,7 @@ Function Remove-LrPlaybook {
             try {
                 $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
             }
-            catch {
+            catch [System.Net.WebException] {
                 $Err = Get-RestErrorMessage $_
                 $ErrorObject.Code = $Err.statusCode
                 $ErrorObject.Type = "WebException"

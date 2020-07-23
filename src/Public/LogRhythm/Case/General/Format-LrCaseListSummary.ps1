@@ -20,7 +20,7 @@ Function Format-LrCaseListSummary {
     .OUTPUTS
         PSCustomObject with summary information about the case list.
     .EXAMPLE
-        PS C:\> ,(Get-LrCases -CreatedAfter "2018-10-01 00:00:00") | Format-LrCaseListSummary
+        PS C:\> ,(Get-LrCases -Credential $token -CreatedAfter "2018-10-01 00:00:00") | Format-LrCaseListSummary
         ---
             Count       : 500
             Oldest      : 2018-10-01T20:22:55.227Z
@@ -30,8 +30,6 @@ Function Format-LrCaseListSummary {
             Tags        : {@{Name=Privilege Escalation; Count=17}, @{Name=Duplicate; Count=1}...}
             Status      : {@{Name=Completed; Count=498}, @{Name=Resolved; Count=2}}
             Owners      : {@{Name=Cruise, Frank; Count=463}, @{Name=Smith, Bob; Count=36}...}
-    .NOTES
-        LogRhythm-API
     .LINK
         https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>

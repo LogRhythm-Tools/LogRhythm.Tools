@@ -41,44 +41,8 @@ Function Update-LrCasePlaybookProcedure {
         System.Object representing the returned LogRhythm playbook procedures on the applicable case.
 
     .EXAMPLE
-        PS C:\> Update-LrCasePlaybookProcedure -CaseId 2 -Id "Determine if you are investigating an incident or event" -Notes "This step has been completed!" -Status Completed
+        PS C:\> Update-LrCasePlaybookProcedure -Credential $Token -CaseId "F47CF405-CAEC-44BB-9FDB-644C33D58F2A"
 
-        id            : 5346B0E6-DF25-4181-89EB-1D7510FFE615
-        name          : Determine if you are investigating an incident or event
-        description   : Mark the case as an incident or event, accordingly.
-
-        assignee      :
-        status        : Completed
-        dueDate       :
-        notes         : This step has been completed!
-        dateUpdated   : 2020-07-16T21:11:08.4773569Z
-        lastUpdatedBy : @{number=2; name=LRTools; disabled=False}
-    .EXAMPLE
-        PS C:\> Update-LrCasePlaybookProcedure -CaseId "Mock case" -Id 1 -Notes "This step has not been completed!" -Status Notcompleted
-
-        id            : 5346B0E6-DF25-4181-89EB-1D7510FFE615
-        name          : Determine if you are investigating an incident or event
-        description   : Mark the case as an incident or event, accordingly.
-
-        assignee      :
-        status        : NotCompleted
-        dueDate       :
-        notes         : This step has not been completed!
-        dateUpdated   : 2020-07-16T21:18:52.0459919Z
-        lastUpdatedBy : @{number=2; name=LRTools; disabled=False}
-    .EXAMPLE
-        PS C:\> Update-LrCasePlaybookProcedure -CaseId "Mock case" -Id "5346B0E6-DF25-4181-89EB-1D7510FFE615" -Notes "This step is not needed." -Status Skipped
-
-        id            : 5346B0E6-DF25-4181-89EB-1D7510FFE615
-        name          : Determine if you are investigating an incident or event
-        description   : Mark the case as an incident or event, accordingly.
-
-        assignee      :
-        status        : Skipped
-        dueDate       :
-        notes         : This step is not needed.
-        dateUpdated   : 2020-07-16T21:20:11.812571Z
-        lastUpdatedBy : @{number=2; name=LRTools; disabled=False}
     .NOTES
         LogRhythm-API
     .LINK
@@ -138,24 +102,29 @@ Function Update-LrCasePlaybookProcedure {
 
 
     Process {
-        # Test CaseID Format
-        $IdStatus = Test-LrCaseIdFormat $Id
-        if ($IdStatus.IsValid -eq $true) {
-            $CaseNumber = $IdStatus.CaseNumber
+        # Get Case Id
+        $IdInfo = Test-LrCaseIdFormat $CaseId
+        if (! $IdInfo.IsValid) {
+            throw [ArgumentException] "Parameter [Id] should be an RFC 4122 formatted string or an integer."
         } else {
-            return $IdStatus
+            # Convert CaseID Into to Guid
+            if ($IdInfo.IsGuid -eq $false) {
+                # Retrieve Case Guid
+                $CaseGuid = (Get-LrCaseById -Id $CaseId).id
+            } else {
+                $CaseGuid = $CaseId
+            }
         }
-
 
         
 
         # Populate list of Case Playbooks
-        $CasePlaybooks = Get-LrCasePlaybooks -Id $CaseNumber
+        $CasePlaybooks = Get-LrCasePlaybooks -Id $CaseGuid
 
         # Validate or Retrieve Playbook Id
         if ($PlaybookId) {
             if ($null -eq $CasePlaybooks) {
-                throw [ArgumentException] "No Playbooks located on case: $CaseNumber."
+                throw [ArgumentException] "No Playbooks located on case: $CaseId."
             } else {
                 # Step through array of Playbooks assigned to case looking for match
                 $CasePlaybooks | ForEach-Object {
@@ -173,13 +142,13 @@ Function Update-LrCasePlaybookProcedure {
                     }
                 } 
                 if ($null -eq $PlaybookGuid) {
-                    throw [ArgumentException] "Parameter [PlayBookId:$PlaybookId] cannot be matched to playbooks on case: $CaseNumber."
+                    throw [ArgumentException] "Parameter [PlayBookId:$PlaybookId] cannot be matched to playbooks on case: $CaseId."
                 }
             }
         } else {
             # No matches.  Only one playbook assigned to case.  Default to single Playbook assigned to case
             if (($CasePlaybooks).Count -ge 2) {
-                throw [ArgumentException] "No Playbook specified.  More than one playbook assigned to case: $CaseNumber."
+                throw [ArgumentException] "No Playbook specified.  More than one playbook assigned to case: $CaseId."
             } elseif ($CasePlaybooks) {
                 $PlaybookGuid = $CasePlaybooks.Id
                 Write-Verbose "[$Me]: No Playbook specified.  One Playbook on case, applying PlaybookId: $PlaybookId"
@@ -187,7 +156,7 @@ Function Update-LrCasePlaybookProcedure {
         }
 
         # Populate list of Case Procedures
-        $CaseProcedures = Get-LrCasePlaybookProcedures -CaseId $CaseNumber -Id $PlaybookGuid
+        $CaseProcedures = Get-LrCasePlaybookProcedures -CaseId $CaseId -Id $PlaybookGuid
 
         # Validate or Retrieve Procedure Id
         if ($Id) {
@@ -218,14 +187,14 @@ Function Update-LrCasePlaybookProcedure {
                 }
             }
             if ($null -eq $ProcedureGuid) {
-                throw [ArgumentException] "Parameter [Id:$Id] cannot be matched to playbooks on case: $CaseNumber."
+                throw [ArgumentException] "Parameter [Id:$Id] cannot be matched to playbooks on case: $CaseId."
             }
         } else {
             throw [ArgumentException] "Parameter [Id] must be provided for applicable Procedure ID."
         }
         
         # Request URI
-        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/playbooks/$PlaybookGuid/procedures/$ProcedureGuid/"
+        $RequestUrl = $BaseUrl + "/cases/$CaseGuid/playbooks/$PlaybookGuid/procedures/$ProcedureGuid/"
         Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         # Inspect Note for Procedure Limitation
@@ -294,9 +263,9 @@ Function Update-LrCasePlaybookProcedure {
                 throw [ArgumentException] "Parameter [Assignee] must be valid user name or user id #"
             }
 
-            $CaseCollaborators = Get-LrCaseById -Id $CaseNumber | Select-Object collaborators -ExpandProperty collaborators
+            $CaseCollaborators = Get-LrCaseById -Id $CaseId | Select-Object collaborators -ExpandProperty collaborators
             if (!$CaseCollaborators.number.Contains($AssigneeNumber)) {
-                throw [ArgumentException] "Parameter [Assignee:$Assignee] not a collaborator on case $CaseNumber"
+                throw [ArgumentException] "Parameter [Assignee:$Assignee] not a collaborator on case $CaseId"
             }
         }
 
@@ -322,13 +291,13 @@ Function Update-LrCasePlaybookProcedure {
             try {
                 $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
             }
-            catch {
+            catch [System.Net.WebException] {
                 $Err = Get-RestErrorMessage $_
 
                 switch ($Err.statusCode) {
                     "404" {
                         throw [KeyNotFoundException] `
-                            "[404]: Case ID $CaseNumber or Playbook ID $PlaybookId not found, or you do not have permission to view it."
+                            "[404]: Case ID $CaseId or Playbook ID $PlaybookId not found, or you do not have permission to view it."
                      }
                      "401" {
                          throw [UnauthorizedAccessException] `
@@ -349,7 +318,7 @@ Function Update-LrCasePlaybookProcedure {
                 switch ($Err.statusCode) {
                     "404" {
                         throw [KeyNotFoundException] `
-                            "[404]: Case ID $CaseNumber or Playbook ID $PlaybookId not found, or you do not have permission to view it."
+                            "[404]: Case ID $CaseId or Playbook ID $PlaybookId not found, or you do not have permission to view it."
                      }
                      "401" {
                          throw [UnauthorizedAccessException] `

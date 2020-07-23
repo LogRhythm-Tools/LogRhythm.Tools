@@ -22,130 +22,41 @@ Function Test-LrCaseIdFormat {
         IsGuid IsValid Value
         ------ ------- -----
          False    True 181
-    .EXAMPLE
-        C:\PS> Test-LrCaseIdFormat -Id "mock case"
-
-        LookupType : CaseName
-        IsValid    : False
-        Value      : mock case
-        CaseNumber :
-        CaseName   :
-        CaseGuid   :
-        Note       : Case Name value references more than one case.
     .LINK
         https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
+        [Parameter(
+            Mandatory = $true,
+            ValueFromPipeline = $true,
+            Position=0
+        )]
         [ValidateNotNull()]
         [object] $Id
     )
 
-    begin {
-        $_int = 0
+    $OutObject = [PSCustomObject]@{
+        IsGuid      =   $false
+        IsValid     =   $false
+        Value       =   $Id
     }
 
-    process {
-        $OutObject = [PSCustomObject]@{
-            LookupType  =   $null
-            IsValid     =   $false
-            Value       =   $Id
-            CaseNumber  =   $null
-            CaseName    =   $null
-            CaseGuid    =   $null
-            Note        =   $null
-        }
+    # https://docs.microsoft.com/en-us/dotnet/api/system.int32.tryparse
+    $_int = 0
 
-
-        #region: Integer Lookup                                                                    
-        if ([int]::TryParse($Id, [ref]$_int)) {
-            $OutObject.LookupType = "CaseNumber"
-
-            # Lookup case by Number
-            try {
-                $Case = Get-LrCaseById -Id $Id
-            } catch {
-                $OutObject.Note = $PSItem.Exception.Message
-            }
-
-            # Case Found if Id exists
-            if ($Case.Id) {
-                $OutObject.IsValid = $true
-                $OutObject.CaseNumber = $Case.Number
-                $OutObject.CaseGuid = $Case.Id
-                $OutObject.CaseName = $Case.Name
-            } else {
-                # If no case, add the ErrorObject Note
-                $OutObject.Note = $Case.Note
-            }
-
-            # Return Case - we know this isn't a GUID or Name
-            return $OutObject
-        }
-        #endregion
-
-
-
-        #region: GUID Lookup                                                                       
-        if (($Id -Is [System.Guid]) -Or (Test-Guid $Id)) {
-            $OutObject.LookupType = "CaseGuid"
-
-            # Lookup case by GUID
-            try {
-                $Case = Get-LrCaseById -Id $Id
-            } catch {
-                $OutObject.Note = $PSItem.Exception.Message
-            }
-
-            # Case Found:
-            if ($Case.Id) {
-                $OutObject.IsValid = $true
-                $OutObject.CaseNumber = $Case.number
-                $OutObject.CaseGuid = $Case.id 
-                $OutObject.CaseName = $Case.name
-            } else {
-                # If no case, add the ErrorObject Note
-                $OutObject.Note = $Case.Note
-            }
-
-            # Return Case - we know this isn't a GUID or Name
-            return $OutObject
-        }
-        #endregion
-
-
-
-        #region: Name Lookup                                                                       
-        $OutObject.LookupType = "CaseName"
-        try {
-            $Case = Get-LrCases -Name $Id -Exact
-        } catch {
-            $OutObject.Note = $PSItem.Exception.Message
-        }
-
-        # Validate only a single case is returned!
-        # Note: a non-existant object always has a .count value of 0
-        if ($Case.Count -eq 0) {
-            $OutObject.Note = "Case lookup by Name returned no results."
-            return $OutObject
-        }
-        if ($Case.Count -gt 1) {
-            $OutObject.Note = "Case lookup by Name returned more than one result."
-            return $OutObject
-        }
-
-        if ($Case.Id) {
-            $OutObject.IsValid = $true
-            $OutObject.CaseNumber = $Case.Number
-            $OutObject.CaseGuid = $Case.Id
-            $OutObject.CaseName = $Case.Name
-        }
-
-        return $OutObject
-        #endregion
+    # Check if ID value is an integer
+    if ([int]::TryParse($Id, [ref]$_int)) {
+        Write-Verbose "[$Me]: Id parses as integer."
+        $OutObject.Value = $Id.ToString()
+        $OutObject.IsValid = $true
+    # Check if ID value is a Guid
+    } elseif (($Id -Is [System.Guid]) -Or (Test-Guid $Id)) {
+        $OutObject.Value = $Id.ToString()
+        $OutObject.IsValid = $true
+        $OutObject.IsGuid = $true
     }
 
-    end { }
+    return $OutObject
 }
