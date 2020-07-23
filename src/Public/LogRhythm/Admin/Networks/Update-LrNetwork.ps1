@@ -66,22 +66,73 @@ Function Update-LrNetwork {
     .OUTPUTS
         PSCustomObject representing LogRhythm Network Entity for the updated record.
     .EXAMPLE
-        PS C:\> Update-LrNetwork 
+        PS C:\> Update-LrNetwork -Id 5 -Name "New Network" -Entity "Secondary Site" -ThreatLevel "medium-high" -EIP 10.77.21.255 -Zone dmz -RecordStatus active -ShortDesc "It's not really all that new." -LongDesc "This record was first created on January 5th 2007." -ThreatLevelComment "This comment describes the risks associated with this network if it were to be the origin of abnormal activity." -Location "Spartanburg" -LocationLookup
         ----
-        entity             : @{id=-100; name=Global Entity}
-        name               : UberNet
-        shortDesc          : My new network
-        longDesc           : Really does rule.
-        riskLevel          : Low-High
-        threatLevel        : High-Low
-        threatLevelComment : its secure
+        entity             : @{id=5; name=Secondary Site}
+        name               : New Network
+        shortDesc          : It's not really all that new.
+        longDesc           : This record was first created on January 5th 2007.
+        riskLevel          : None
+        threatLevel        : Medium-High
+        threatLevelComment : This comment describes the risks associated with this network if it were to be the origin of abnormal activity.
         recordStatusName   : Active
-        hostZone           : Internal
-        location           : @{id=-1}
-        bip                : 10.7.1.1
-        eip                : 10.7.2.2
-        dateUpdated        : 2020-05-20T19:05:21.093Z
-        id                 : 9
+        hostZone           : DMZ
+        location           : @{id=29929; name=Spartanburg}
+        bip                : 10.77.20.1
+        eip                : 10.77.21.255
+        dateUpdated        : 2020-07-23T11:54:09.643Z
+        id                 : 5
+    .EXAMPLE
+        PS C:\> Update-LrNetwork -Name "New Network" -BIP 10.77.18.0
+        --- 
+        entity             : @{id=5; name=Secondary Site}
+        name               : New Network
+        shortDesc          : It's not really all that new.
+        longDesc           : This record was first created on January 5th 2007.
+        riskLevel          : None
+        threatLevel        : Medium-High
+        threatLevelComment : This comment describes the risks associated with this network if it were to be the origin of abnormal activity.
+        recordStatusName   : Active
+        hostZone           : DMZ
+        location           : @{id=29929; name=Spartanburg}
+        bip                : 10.77.18.0
+        eip                : 10.77.21.255
+        dateUpdated        : 2020-07-23T11:55:37.247Z
+        id                 : 5
+    .EXAMPLE
+        PS C:\> Update-LrNetwork -Id 5 -Name "Older Network"
+        ---
+        entity             : @{id=5; name=Secondary Site}
+        name               : Older Network
+        shortDesc          : It's not really all that new.
+        longDesc           : This record was first created on January 5th 2007.
+        riskLevel          : None
+        threatLevel        : Medium-High
+        threatLevelComment : This comment describes the risks associated with this network if it were to be the origin of abnormal activity.
+        recordStatusName   : Active
+        hostZone           : DMZ
+        location           : @{id=29929; name=Spartanburg}
+        bip                : 10.77.18.0
+        eip                : 10.77.21.255
+        dateUpdated        : 2020-07-23T11:56:22.327Z
+        id                 : 5
+    .EXAMPLE
+        PS C:\> Update-LrNetwork -Name "Older Network" -Entity "Primary Site"
+        ---
+        entity             : @{id=1; name=Primary Site}
+        name               : Older Network
+        shortDesc          : It's not really all that new.
+        longDesc           : This record was first created on January 5th 2007.
+        riskLevel          : None
+        threatLevel        : Medium-High
+        threatLevelComment : This comment describes the risks associated with this network if it were to be the origin of abnormal activity.
+        recordStatusName   : Active
+        hostZone           : DMZ
+        location           : @{id=29929; name=Spartanburg}
+        bip                : 10.77.18.0
+        eip                : 10.77.21.255
+        dateUpdated        : 2020-07-23T11:56:56.323Z
+        id                 : 5
     .NOTES
         LogRhythm-API        
     .LINK
@@ -129,7 +180,7 @@ Function Update-LrNetwork {
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 11)]
         [ValidateSet('unknown','internal','dmz','external', ignorecase=$true)]
-        [string]$Zone="unknown",
+        [string]$Zone,
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 12)]
         [string]$Location,
@@ -177,6 +228,54 @@ Function Update-LrNetwork {
             Value                 =   $Name
         }
 
+        # Lookup Network ID or Name to find Network ID
+        if ($Id) {
+            if ([int]::TryParse($Id, [ref]$_int)) {
+                Write-Verbose "[$Me]: Network ID parses as integer. Id: $Id"
+                $NetworkLookup = Get-LrNetworkDetails -Id $Id
+                if ($NetworkLookup.Error -eq $true) {
+                    $ErrorObject.Error = $NetworkLookup.Error
+                    $ErrorObject.Type = $NetworkLookup.Type
+                    $ErrorObject.Code = $NetworkLookup.Code
+                    $ErrorObject.Note = $NetworkLookup.Note
+                    return $ErrorObject  
+                } else {
+                    Write-Verbose "[$Me]: Matched network record: $($NetworkLookup.id)"
+                    $_networkId = $NetworkLookup | Select-Object -ExpandProperty id
+                }
+            } else {
+                Write-Verbose "[$Me]: Network ID parses as string.  Performing Network Name lookup.  Id: $Id."
+                $NetworkLookup = Get-LrNetworks -Name $Id -Exact
+                if ($EntityLookup.Error -eq $true) {
+                    $ErrorObject.Error = $NetworkLookup.Error
+                    $ErrorObject.Type = $NetworkLookup.Type
+                    $ErrorObject.Code = $NetworkLookup.Code
+                    $ErrorObject.Note = $NetworkLookup.Note
+                } else {
+                    Write-Verbose "[$Me]: Matched network record: $($NetworkLookup.id)"
+                    $_networkId = $NetworkLookup | Select-Object -ExpandProperty id
+                }
+            }
+        } elseif ($Name) {
+            Write-Verbose "[$Me]: Performing Network Name lookup.  Id: $Name."
+            $NetworkLookup = Get-LrNetworks -Name $Name -Exact
+            if ($EntityLookup.Error -eq $true) {
+                $ErrorObject.Error = $NetworkLookup.Error
+                $ErrorObject.Type = $NetworkLookup.Type
+                $ErrorObject.Code = $NetworkLookup.Code
+                $ErrorObject.Note = $NetworkLookup.Note
+                return $ErrorObject
+            } else {
+                Write-Verbose "[$Me]: Matched network record: $($NetworkLookup.id)"
+                $_networkId = $NetworkLookup | Select-Object -ExpandProperty id
+            }
+        } else {
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "NullValue"
+            $ErrorObject.Code = 404
+            $ErrorObject.Note = "Cmdlet must be provided Id or Name paramater values."
+        }
+
         # Lookup Entity By ID or Name
         if ($EntityId) {
             Write-Verbose "[$Me]: Validating EntityId: $EntityId"
@@ -217,60 +316,9 @@ Function Update-LrNetwork {
                 }
             }
         } else {
-            $ErrorObject.Error = $true
-            $ErrorObject.Type = "NullValue"
-            $ErrorObject.Code = 404
-            $ErrorObject.Note = "Cmdlet must be provided EntityId or Entity paramater values."
+            $_entity = $NetworkLookup.entity
         }
         Write-Verbose "Entity: $_entity"
-
-        # Lookup Network ID or Name to find Network ID
-        if ($Id) {
-            if ([int]::TryParse($Id, [ref]$_int)) {
-                Write-Verbose "[$Me]: Network ID parses as integer. Id: $Id"
-                $NetworkIdLookup = Get-LrNetworkDetails -Id $Id
-                if ($NetworkIdLookup.Error -eq $true) {
-                    $ErrorObject.Error = $NetworkIdLookup.Error
-                    $ErrorObject.Type = $NetworkIdLookup.Type
-                    $ErrorObject.Code = $NetworkIdLookup.Code
-                    $ErrorObject.Note = $NetworkIdLookup.Note
-                    return $ErrorObject  
-                } else {
-                    Write-Verbose "[$Me]: Matched network record: $($NetworkIdLookup.id)"
-                    $_networkId = $NetworkIdLookup | Select-Object -ExpandProperty id
-                }
-            } else {
-                Write-Verbose "[$Me]: Network ID parses as string.  Performing Network Name lookup.  Id: $Id."
-                $NetworkLookup = Get-LrNetworks -Name $Id -Exact
-                if ($EntityLookup.Error -eq $true) {
-                    $ErrorObject.Error = $NetworkLookup.Error
-                    $ErrorObject.Type = $NetworkLookup.Type
-                    $ErrorObject.Code = $NetworkLookup.Code
-                    $ErrorObject.Note = $NetworkLookup.Note
-                } else {
-                    Write-Verbose "[$Me]: Matched network record: $($NetworkLookup.id)"
-                    $_networkId = $NetworkLookup | Select-Object -ExpandProperty id
-                }
-            }
-        } elseif ($Name) {
-            Write-Verbose "[$Me]: Performing Network Name lookup.  Id: $Name."
-            $NetworkLookup = Get-LrNetworks -Name $Name -Exact
-            if ($EntityLookup.Error -eq $true) {
-                $ErrorObject.Error = $NetworkLookup.Error
-                $ErrorObject.Type = $NetworkLookup.Type
-                $ErrorObject.Code = $NetworkLookup.Code
-                $ErrorObject.Note = $NetworkLookup.Note
-                return $ErrorObject
-            } else {
-                Write-Verbose "[$Me]: Matched network record: $($NetworkLookup.id)"
-                $_networkId = $NetworkLookup | Select-Object -ExpandProperty id
-            }
-        } else {
-            $ErrorObject.Error = $true
-            $ErrorObject.Type = "NullValue"
-            $ErrorObject.Code = 404
-            $ErrorObject.Note = "Cmdlet must be provided Id or Name paramater values."
-        }
 
 
         # Location lookup
@@ -294,8 +342,8 @@ Function Update-LrNetwork {
                 $_locationId = $LocationId
             }
             $_location = [PSCustomObject][Ordered]@{
-                Id = $_locationId
-                #Name = $_locationName
+                id = $_locationId
+                name = $_locationName
             }
         } elseif ($Location) {
             if ($LocationLookup) {
@@ -313,70 +361,115 @@ Function Update-LrNetwork {
                     }
                 }
                 $_location = [PSCustomObject][Ordered]@{
-                    Id = $_locationId
-                    #Name = $_locationName
+                    id = $_locationId
+                    name = $_locationName
                 }
             } else {
                 $_location = [PSCustomObject]@{
-                    Name = $Location
+                    name = $Location
                 }
             }
         } else {
-            $_location = [PSCustomObject]@{
-                Name = ""
+            if ($NetworkLookup.location.id -eq -1) {
+                $_location = [PSCustomObject]@{
+                    name = ""
+                }
+            } else {
+                $_location = $NetworkLookup.location
             }
         }
 
+        # Name - Check for update or keep existing value
+        if ($Name) {
+            $_name = $Name
+        } else {
+            $_name = $NetworkLookup.name
+        }
 
-        # Ensure proper syntax
+        # ShortDesc - Check for update or keep existing value
+        if ($ShortDesc) {
+            $_shortDesc = $ShortDesc
+        } else {
+            if ($NetworkLookup.shortDesc) {
+                $_shortDesc = $NetworkLookup.shortDesc
+            } else {
+                $_shortDesc = ""
+            }
+        }
+
+        # LongDesc - Check for update or keep existing value
+        if ($LongDesc) {
+            $_longDesc = $LongDesc
+        } else {
+            if ($NetworkLookup.longDesc) {
+                $_longDesc = $NetworkLookup.longDesc
+            } else {
+                $_longDesc = ""
+            }
+        }
+
+        # ThreatLevelComment - Check for update or keep existing value
+        if ($ThreatLevelComment) {
+            $_threatLevelComment = $ThreatLevelComment
+        } else {
+            Write-Verbose "No ThreatLevelComment provided.  Retaining value from origin record.  Value: $($NetworkLookup.threatLevelComment)"
+            if ($NetworkLookup.threatLevelComment) {
+                $_threatLevelComment = $NetworkLookup.threatLevelComment
+            } else {
+                $_threatLevelComment = ""
+            }
+        }
+
+        # RecordStatus - Check for update or keep existing value
         if ($RecordStatus) {
-            $ValidStatus = "new", "retired", "active"
-            if ($ValidStatus.Contains($($RecordStatus.ToLower()))) {
-                $_recordStatus = (Get-Culture).TextInfo.ToTitleCase($RecordStatus)
-            } else {
-                throw [ArgumentException] "RecordStatus [$RecordStatus] must be: new, active, or retired."
-            }
+            $_recordStatus = (Get-Culture).TextInfo.ToTitleCase($RecordStatus)
+        } else {
+            Write-Verbose "No RecordStatus provided.  Retaining value from origin record.  Value: $($NetworkLookup.recordStatusName)"
+            $_recordStatus = $NetworkLookup.recordStatusName 
         }
 
-        # Ensure proper syntax
+        # RiskLevel - Check for update or keep existing value
         if ($RiskLevel) {
-            $ValidStatus = @("none", "low-low", "low-medium", "low-high", "medium-low", "medium-medium", "medium-high", "high-low", "high-medium", "high-high")
-            if ($ValidStatus.Contains($($RiskLevel.ToLower()))) {
-                $_riskLevel = (Get-Culture).TextInfo.ToTitleCase($RiskLevel)
-            } else {
-                throw [ArgumentException] "RiskLevel [$RiskLevel] must be: none, low-low, low-medium, low-high, medium-low, medium-medium, medium-high, high-low, high-medium, high-high"
-            }
+            $_riskLevel = (Get-Culture).TextInfo.ToTitleCase($RiskLevel)
         } else {
-            Write-Verbose "No RiskLevel provided.  Looking up value from origin record."
-            $_riskLevel = Get-LrNetworkDetails -Id $_networkId | Select-Object -ExpandProperty riskLevel
+            Write-Verbose "No RiskLevel provided.  Retaining value from origin record.  Value: $($NetworkLookup.riskLevel)"
+            $_riskLevel = $NetworkLookup.riskLevel
         }
 
-        # Ensure proper syntax
+        # ThreatLevel - Check for update or keep existing value
         if ($ThreatLevel) {
-            $ValidStatus = @("none", "low-low", "low-medium", "low-high", "medium-low", "medium-medium", "medium-high", "high-low", "high-medium", "high-high")
-            if ($ValidStatus.Contains($($ThreatLevel.ToLower()))) {
-                $_threatLevel = (Get-Culture).TextInfo.ToTitleCase($ThreatLevel)
-            } else {
-                throw [ArgumentException] "ThreatLevel [$ThreatLevel] must be: none, low-low, low-medium, low-high, medium-low, medium-medium, medium-high, high-low, high-medium, high-high"
-            }
+            $_threatLevel = (Get-Culture).TextInfo.ToTitleCase($ThreatLevel)
         } else {
-            Write-Verbose "No ThreatLevel provided.  Looking up value from origin record."
-            $_threatLevel = Get-LrNetworkDetails -Id $_networkId | Select-Object -ExpandProperty threatLevel
-            Write-Verbose "ThreatLevel: $_threatLevel"
+            Write-Verbose "No ThreatLevel provided.  Retaining value from origin record.  Value: $($NetworkLookup.threatLevel)"
+            $_threatLevel = $NetworkLookup.threatLevel
         }
 
-        # Ensure proper syntax
+        # Zone - Check for update or keep existing value
         if ($Zone) {
-            $ValidStatus = @("unknown", "internal", "dmz", "external")
-            if ($ValidStatus.Contains($($Zone.ToLower()))) {
-                if ($Zone -eq "Dmz") {
-                    $_zone = "DMZ"
-                } else {
-                    $_zone = (Get-Culture).TextInfo.ToTitleCase($Zone)
-                }
+            if ($Zone -like "dmz") {
+                $_zone = "DMZ"
             } else {
-                throw [ArgumentException] "Zone [$Zone] must be: unknown, dmz, external"
+                $_zone = (Get-Culture).TextInfo.ToTitleCase($Zone)
             }
+        } else {
+            Write-Verbose "No Zone provided.  Retaining value from origin record.  Value: $($NetworkLookup.hostZone)"
+            $_zone = $NetworkLookup.hostZone
+        }
+
+        # BIP - Check for update or keep existing value
+        if ($BIP) {
+            $_bIP = $BIP.IPAddressToString
+        } else {
+            Write-Verbose "No BIP provided.  Retaining value from origin record.  Value: $($NetworkLookup.bip)"
+            $_bIP = $NetworkLookup.BIP
+        }
+
+        # EIP - Check for update or keep existing value
+        if ($EIP) {
+            $_eIP = $EIP.IPAddressToString
+        } else {
+            Write-Verbose "No EIP provided.  Retaining value from origin record.  Value: $($NetworkLookup.eip)"
+            $_eIP = $NetworkLookup.EIP
         }
 
         #>
@@ -385,17 +478,17 @@ Function Update-LrNetwork {
                     id = $($_entity.Id)
                     name = $($_entity.Name)
             }
-            name =  $Name
-            shortDesc = $shortDesc
-            longDesc = $longDesc
+            name =  $_name
+            shortDesc = $_shortDesc
+            longDesc = $_longDesc
             riskLevel = $_riskLevel
             threatLevel = $_threatLevel
-            threatLevelComment = $ThreatLevelComment
+            threatLevelComment = $_threatLevelComment
             recordStatusName = $_recordStatus
             hostZone = $_zone
             location = $_location
-            bip = $Bip.IPAddressToString
-            eip = $Eip.IPAddressToString
+            bip = $_bIP
+            eip = $_eIP
         }
 
         # Establish Body Contents
@@ -432,22 +525,8 @@ Function Update-LrNetwork {
                 return $ErrorObject
             }
         }
-        #>
-        # [Exact] Parameter
-        # Search "Malware" normally returns both "Malware" and "Malware Options"
-        # This would only return "Malware"
-        if ($Exact) {
-            $Pattern = "^$Name$"
-            $Response | ForEach-Object {
-                if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
-                    Write-Verbose "[$Me]: Exact list name match found."
-                    $List = $_
-                    return $List
-                }
-            }
-        } else {
-            return $Response
-        }
+
+        return $Response
     }
 
     End { }
