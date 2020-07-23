@@ -38,13 +38,12 @@ Function Test-LrCaseIdFormat {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $true,ValueFromPipeline = $true,Position=0)]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
         [ValidateNotNull()]
         [object] $Id
     )
 
-    begin {  
-        # https://docs.microsoft.com/en-us/dotnet/api/system.int32.tryparse
+    begin {
         $_int = 0
     }
 
@@ -59,88 +58,94 @@ Function Test-LrCaseIdFormat {
             Note        =   $null
         }
 
-        # Check if ID value is an integer
+
+        #region: Integer Lookup                                                                    
         if ([int]::TryParse($Id, [ref]$_int)) {
-            Write-Verbose "[$Me]: Id parses as integer."
-            $OutObject.Value = $Id.ToString()
             $OutObject.LookupType = "CaseNumber"
 
             # Lookup case by Number
             try {
                 $Case = Get-LrCaseById -Id $Id
-                $OutObject.Note = "Case lookup performed by Case Number."
             } catch {
-                $OutObject.IsValid = $false
-                $OutObject.Note = "Unable to retrieve results for Case Number lookup.  Number: $Id"
+                $OutObject.Note = $PSItem.Exception.Message
             }
 
-            # Check result from Get-LrCaseById for presence of error object
-            if ($Case.error -eq $true) {
-                $OutObject.IsValid = $false
-                $OutObject.Note = $Case.Note
-            } else {
-                # Set output object results
+            # Case Found if Id exists
+            if ($Case.Id) {
                 $OutObject.IsValid = $true
-                $OutObject.CaseNumber = $Case.number
-                $OutObject.CaseGuid = $Case.id 
-                $OutObject.CaseName = $Case.name
+                $OutObject.CaseNumber = $Case.Number
+                $OutObject.CaseGuid = $Case.Id
+                $OutObject.CaseName = $Case.Name
+            } else {
+                # If no case, add the ErrorObject Note
+                $OutObject.Note = $Case.Note
             }
 
-            # Check if ID value is a Guid
-        } elseif (($Id -Is [System.Guid]) -Or (Test-Guid $Id)) {
-            $OutObject.Value = $Id.ToString()
+            # Return Case - we know this isn't a GUID or Name
+            return $OutObject
+        }
+        #endregion
+
+
+
+        #region: GUID Lookup                                                                       
+        if (($Id -Is [System.Guid]) -Or (Test-Guid $Id)) {
             $OutObject.LookupType = "CaseGuid"
+
             # Lookup case by GUID
             try {
                 $Case = Get-LrCaseById -Id $Id
-                $OutObject.Note = "Case lookup performed by Case GUID."
             } catch {
-                $OutObject.IsValid = $false
-                $OutObject.Note = "Unable to retrieve results for Case GUID lookup.  ID: $Id"
+                $OutObject.Note = $PSItem.Exception.Message
             }
-            # Check result from Get-LrCaseById for presence of error object
-            if ($Case.error -eq $true) {
-                $OutObject.IsValid = $false
-                $OutObject.Note = $Case.Note
-            } else {
-                # Set output object results
+
+            # Case Found:
+            if ($Case.Id) {
                 $OutObject.IsValid = $true
                 $OutObject.CaseNumber = $Case.number
                 $OutObject.CaseGuid = $Case.id 
                 $OutObject.CaseName = $Case.name
-            }
-            
-            # Check if ID value represents a unique case name
-        } else {
-            # Lookup case by Name
-            $OutObject.LookupType = "CaseName"
-            try {
-                $Case = Get-LrCases -Name $Id -Exact
-            } catch {
-                $OutObject.IsValid = $false
-                $OutObject.Note = "Unable to retrieve results for Case Name lookup.  Name: $Id"
+            } else {
+                # If no case, add the ErrorObject Note
+                $OutObject.Note = $Case.Note
             }
 
-            # Determine if results represent a unique case
-            if ($null -ne $Case.number) {
-                if ($Case.count -lt 2) {
-                    $OutObject.IsValid = $true
-                    $OutObject.CaseNumber = $Case.number
-                    $OutObject.CaseGuid = $Case.id 
-                    $OutObject.CaseName = $Case.name
-                    $OutObject.Note = "Case lookup performed by unique case name value."
-                } else {
-                    $OutObject.IsValid = $false
-                    $OutObject.Note = "Case Name value references more than one case."
-                }
-            }
+            # Return Case - we know this isn't a GUID or Name
+            return $OutObject
+        }
+        #endregion
+
+
+
+        #region: Name Lookup                                                                       
+        $OutObject.LookupType = "CaseName"
+        try {
+            $Case = Get-LrCases -Name $Id -Exact
+        } catch {
+            $OutObject.Note = $PSItem.Exception.Message
         }
 
+        # Validate only a single case is returned!
+        # Note: a non-existant object always has a .count value of 0
+        if ($Case.Count -eq 0) {
+            $OutObject.Note = "Case lookup by Name returned no results."
+            return $OutObject
+        }
+        if ($Case.Count -gt 1) {
+            $OutObject.Note = "Case lookup by Name returned more than one result."
+            return $OutObject
+        }
+
+        if ($Case.Id) {
+            $OutObject.IsValid = $true
+            $OutObject.CaseNumber = $Case.Number
+            $OutObject.CaseGuid = $Case.Id
+            $OutObject.CaseName = $Case.Name
+        }
 
         return $OutObject
+        #endregion
     }
 
-    end {
-
-    }
+    end { }
 }
