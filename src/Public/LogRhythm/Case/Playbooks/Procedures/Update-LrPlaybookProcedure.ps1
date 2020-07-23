@@ -2,7 +2,7 @@ using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
 
-Function Update-LrPlaybookProcedure {
+Function Update-LrProcedure {
     <#
     .SYNOPSIS
         Apply updates to a LogRhythm playbook's procedures.
@@ -234,7 +234,7 @@ Function Update-LrPlaybookProcedure {
             try {
                 $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
             }
-            catch {
+            catch [System.Net.WebException] {
                 $Err = Get-RestErrorMessage $_
                 $ErrorObject.Code = $Err.statusCode
                 $ErrorObject.Type = "WebException"

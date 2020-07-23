@@ -18,7 +18,7 @@ Function Test-LrProcedureIdFormat {
     .OUTPUTS
         System.Object with IsGuid, IsValid, Value
     .EXAMPLE
-        C:\PS> Test-LrProcedureIdFormat "5831f290-4798-4148-8165-01317d49afea"
+        C:\PS> Test-LrPlaybookIdFormat "5831f290-4798-4148-8165-01317d49afea"
         IsGuid IsValid Value
         ------ ------- -----
          False    True 181
@@ -28,23 +28,25 @@ Function Test-LrProcedureIdFormat {
 
     [CmdletBinding()]
     Param(
-        [Parameter( Mandatory = $true, ValueFromPipeline = $true, Position=0)]
+        [Parameter(
+            Mandatory = $true,
+            ValueFromPipeline = $true,
+            Position=0
+        )]
         [ValidateNotNull()]
         [object] $Id
     )
 
+    $OutObject = [PSCustomObject]@{
+        IsGuid      =   $false
+        IsInt       =   $false
+        IsValid     =   $false
+        Value       =   $Id
+    }
 
     Begin {
-        # Define output object
-        $OutObject = [PSCustomObject]@{
-            IsGuid      =   $false
-            IsInt       =   $false
-            IsValid     =   $false
-            Value       =   $Id
-        }
-
         # https://docs.microsoft.com/en-us/dotnet/api/system.int32.tryparse
-        $_int = 1  
+        $_int = 1
     }
 
     Process {
@@ -63,10 +65,9 @@ Function Test-LrProcedureIdFormat {
             $OutObject.Value = $Id.ToString()
             $OutObject.IsValid = $true
         }
-
-        return $OutObject
     }
 
     End {
+        return $OutObject
     }
 }

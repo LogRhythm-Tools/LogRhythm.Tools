@@ -29,7 +29,6 @@ Function New-LrPlaybook {
         PSCustomObject representing the added playbook.
     .EXAMPLE
         PS C:\> New-LrPlaybook -Name "This ones better 9." -Description "Just a bit different." -Tags @("Boxers", "Sticker") -Force
-        ---
 
         id            : E10111E4-DDC7-4D98-A619-5B80CA55BABF
         name          : This ones better 9.
@@ -194,7 +193,7 @@ Function New-LrPlaybook {
             try {
                 $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
             }
-            catch {
+            catch [System.Net.WebException] {
                 $Err = Get-RestErrorMessage $_
                 $ErrorObject.Code = $Err.statusCode
                 $ErrorObject.Type = "WebException"
