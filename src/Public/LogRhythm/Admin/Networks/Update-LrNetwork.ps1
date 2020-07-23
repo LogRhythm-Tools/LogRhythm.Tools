@@ -297,18 +297,18 @@ Function Update-LrNetwork {
         if ($EntityId) {
             Write-Verbose "[$Me]: Validating EntityId: $EntityId"
             $EntityLookup = Get-LrEntityDetails -Id $EntityId
-                if ($EntityLookup.Error -eq $true) {
-                    $ErrorObject.Error = $EntityLookup.Error
-                    $ErrorObject.Type = $EntityLookup.Type
-                    $ErrorObject.Code = $EntityLookup.Code
-                    $ErrorObject.Note = $EntityLookup.Note
-                    return $ErrorObject
-                } else {
-                    $_entity = $EntityLookup
-                }
+            if ($EntityLookup.Error -eq $true) {
+                $ErrorObject.Error = $EntityLookup.Error
+                $ErrorObject.Type = $EntityLookup.Type
+                $ErrorObject.Code = $EntityLookup.Code
+                $ErrorObject.Note = $EntityLookup.Note
+                return $ErrorObject
+            } else {
+                $_entity = $EntityLookup
+            }
         } elseif ($Entity){
             if ([int]::TryParse($Entity, [ref]$_int)) {
-                Write-Verbose "[$Me]: Validating Entity as Id.  EntityId: $Entity"
+                Write-Verbose "[$Me]: Validating Entity as Int32.  EntityId: $Entity"
                 $EntityLookup = Get-LrEntityDetails -Id $Entity
                 if ($EntityLookup.Error -eq $true) {
                     $ErrorObject.Error = $EntityLookup.Error
@@ -320,7 +320,7 @@ Function Update-LrNetwork {
                     $_entity = $EntityLookup
                 }
             } else {
-                Write-Verbose "[$Me]: Validating Entity as Name.  EntityName: $Entity"
+                Write-Verbose "[$Me]: Validating Entity as String.  EntityName: $Entity"
                 $EntityLookup = Get-LrEntities -Name $Entity -Exact
                 if ($EntityLookup.Error -eq $true) {
                     $ErrorObject.Error = $EntityLookup.Error
