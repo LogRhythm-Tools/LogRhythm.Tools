@@ -18,7 +18,50 @@ Function Get-RfDomainRiskLists {
         Returns only the Description value of the associated list.
 
         This object is returned as an array to support passing arrays via pipeline as a parameter.
-    .INPUTS
+    .EXAMPLE
+        PS C:\> Get-RfDomainRiskLists           
+        ---
+        name             : recentTyposquatTypo
+        count            : 199393
+        criticalityLabel : Unusual
+        description      : Recent Typosquat Similarity - Typo or Homograph
+        criticality      : 1
+        relatedEntities  : {}
+
+        name             : recentSuspiciousContent
+        count            : 0
+        criticalityLabel : Suspicious
+        description      : URL Recently Linked to Suspicious Content
+        criticality      : 2
+        relatedEntities  : {}
+
+        name             : relatedNote
+        count            : 901
+        criticalityLabel : Unusual
+        description      : Historically Referenced by Insikt Group
+        criticality      : 1
+        relatedEntities  : {}
+
+        name             : cncUrl
+        count            : 11
+        criticalityLabel : Suspicious
+        description      : C&C URL
+        criticality      : 2
+        relatedEntities  : {}
+
+        name             : resolvedVeryMaliciousIp
+        count            : 222
+        criticalityLabel : Suspicious
+        description      : Recently Resolved to Very Malicious IP
+        criticality      : 2
+        relatedEntities  : {}
+
+        name             : fastFlux
+        count            : 7946
+        criticalityLabel : Suspicious
+        description      : Recent Fast Flux DNS Name
+        criticality      : 2
+        relatedEntities  : {}
     .NOTES
         RecordedFuture-API
     .LINK

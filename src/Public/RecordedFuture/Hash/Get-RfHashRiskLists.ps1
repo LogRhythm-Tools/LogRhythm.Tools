@@ -6,7 +6,7 @@ Function Get-RfHashRiskLists {
     .SYNOPSIS
         Retrieve the available RecordedFuture Hash threat lists.
     .DESCRIPTION
-        
+        List Hash Risk rules.
     .PARAMETER Token
         PSCredential containing an API Token in the Password field.
 
@@ -19,8 +19,94 @@ Function Get-RfHashRiskLists {
 
         This object is returned as an array to support passing arrays via pipeline as a parameter.
     .INPUTS
-    .NOTES
-        RecordedFuture-API
+        Switch -> NamesOnly
+        Switch -> DescriptionsOnly
+    .EXAMPLE
+        Get-RfHashRiskLists
+        ---
+        name             : linkedToMalware
+        count            : 243971076
+        criticalityLabel : Suspicious
+        description      : Linked to Malware
+        criticality      : 2
+        relatedEntities  : {}
+
+        name             : threatResearcher
+        count            : 78650
+        criticalityLabel : Unusual
+        description      : Threat Researcher
+        criticality      : 1
+        relatedEntities  : {}
+
+        name             : rfTrending
+        count            : 23
+        criticalityLabel : Unusual
+        description      : Trending in Recorded Future Analyst Community
+        criticality      : 1
+        relatedEntities  : {}
+
+        name             : analystNote
+        count            : 3823
+        criticalityLabel : Unusual
+        description      : Reported by Insikt Group
+        criticality      : 1
+        relatedEntities  : {}
+
+        name             : linkedToVector
+        count            : 4379138
+        criticalityLabel : Suspicious
+        description      : Linked to Attack Vector
+        criticality      : 2
+        relatedEntities  : {}
+
+        name             : observedMalwareTesting
+        count            : 1284
+        criticalityLabel : Malicious
+        description      : Observed in Underground Virus Testing Sites
+        criticality      : 3
+        relatedEntities  : {}
+
+        name             : malwareSsl
+        count            : 3454
+        criticalityLabel : Malicious
+        description      : Malware SSL Certificate Fingerprint
+        criticality      : 3
+        relatedEntities  : {}
+
+        name             : historicalThreatListMembership
+        count            : 29195
+        criticalityLabel : Unusual
+        description      : Historically Reported in Threat List
+        criticality      : 1
+        relatedEntities  : {}
+
+        name             : linkedToCyberAttack
+        count            : 1264430
+        criticalityLabel : Suspicious
+        description      : Linked to Cyber Attack
+        criticality      : 2
+        relatedEntities  : {}
+
+        name             : recentActiveMalware
+        count            : 7549
+        criticalityLabel : Malicious
+        description      : Recently Active Targeting Vulnerabilities in the Wild
+        criticality      : 3
+        relatedEntities  : {aHTyRv}
+
+        name             : linkedToVuln
+        count            : 1073935
+        criticalityLabel : Suspicious
+        description      : Linked to Vulnerability
+        criticality      : 2
+        relatedEntities  : {}
+
+        name             : positiveMalwareVerdict
+        count            : 317737483
+        criticalityLabel : Malicious
+        description      : Positive Malware Verdict
+        criticality      : 3
+        relatedEntities  : {}
     .LINK
         https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
