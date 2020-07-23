@@ -85,12 +85,14 @@ Write-Host "===========================================" -ForegroundColor Gray
 
 # New Build
 Write-Host "Creating new build: " -NoNewline
-$NewBuildPath = New-LrtBuild -ReturnPsm1Path
-if (Test-Path $NewBuildPath) {
+try {
+    $NewBuildPath = New-LrtBuild -ReturnPsm1Path
     Write-Host "[Success]" -ForegroundColor Green
-} else {
-    Write-Host "[Failure]" -ForegroundColor Red
-    throw [Exception] "Failed to build LogRhythm.Tools module. Review errors / call stack."
+}
+catch {
+    Write-Host "[Failed]`n" -ForegroundColor Red
+    Write-Host "Exception`n---------`n$($PSItem.Exception.Message)" -ForegroundColor Magenta
+    return
 }
 
 
@@ -99,8 +101,9 @@ Write-Host "Import Build:       " -NoNewline
 try {
     Import-Module $NewBuildPath
 } catch {
-    Write-Host "[Failed]" -ForegroundColor Red
-    throw [Exception] "Failed to import build. Review errors / call stack."
+    Write-Host "[Failed]`n" -ForegroundColor Red
+    Write-Host "Exception`n---------`n$($PSItem.Exception.Message)" -ForegroundColor Magenta
+    return
 }
 Write-Host "[Success]" -ForegroundColor Green
 #endregion
