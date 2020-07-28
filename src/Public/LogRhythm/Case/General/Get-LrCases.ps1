@@ -354,9 +354,8 @@ Function Get-LrCases {
 
     # Tags  (Exclude Tags are removed from the final result)
     if ($Tags) {
-        $_tagNumbers = $Tags | Get-LrTagNumber
-        if (! $_tagNumbers) {
-            throw [ArgumentException] "Tag(s) $Tags not found."
+        ForEach ($Tag in $Tags) {
+            $_tagNumbers += $Tag | Get-LrTagNumber
         }
         if ($_tagNumbers.count -gt 1) {
             $_tags = $_tagNumbers -join ','
