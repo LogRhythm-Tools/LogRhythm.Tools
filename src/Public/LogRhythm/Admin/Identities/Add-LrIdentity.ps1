@@ -113,7 +113,7 @@ Function Add-LrIdentity {
         [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 10)]
         [Byte]$PhotoThumbnail,
 
-        [Parameter(Mandatory = $true, ValueFromPipeline=$false, Position = 11)]
+        [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 11)]
         [String]$Identifier1Value,
 
         [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 12)]
