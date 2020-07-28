@@ -2,19 +2,24 @@ using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
 
-Function Get-EchoUseCases {
+Function Get-LrEchoUseCases {
     <#
     .SYNOPSIS
         Retrieve list of LogRhythm Echo use cases.
     .DESCRIPTION
-        Get-EchoUseCases returns a , including it's details and list items.
+        Get-LrEchoUseCases returns a list of available Echo Use Cases.
+    .PARAMETER Title
+        Retrieve results where the Use Case Title contains the specified string.
+    .PARAMETER Description
+        Retrieve results where the Use Case Description contains the specified string.
+    .PARAMETER Id
+        Retrieve results where the Use Case ID exactly matches the specified integer.
+    .PARAMETER Exact
+        Restricts the Title search results to exact matches only.
     .OUTPUTS
-        PSCustomObject representing the specified LogRhythm List and its contents.
-
-        If parameter ListItemsOnly is specified, a string collection is returned containing the
-        list's item values.
+        PSCustomObject representing the available LogRhythm Echo use cases that are available for execution.
     .EXAMPLE
-        PS C:\> Get-LrList -Identity "edea82e3-8d0b-4370-86f0-d96bcd4b6c19" -Credential $MyKey
+        PS C:\> Get-LrEchoUseCases
     .NOTES
         LogRhythm-API        
     .LINK
@@ -37,7 +42,7 @@ Function Get-EchoUseCases {
 
         [Parameter(Mandatory=$false, ValueFromPipeline=$false, Position=3)]
         [ValidateNotNull()]
-        [switch] $ExactName
+        [switch] $Exact
     )
                                                                     
     Begin {
@@ -81,7 +86,6 @@ Function Get-EchoUseCases {
         }
 
         # Update results
-        $CasesCount = $Response.numresults
         $Response = $Response.objects
 
         if ($Title) {
@@ -100,7 +104,7 @@ Function Get-EchoUseCases {
         # [Exact] Parameter
         # Search "Malware" normally returns both "Malware" and "Malware Options"
         # This would only return "Malware"
-        if ($ExactName) {
+        if ($Exact) {
             $Pattern = "^$Title$"
             $Response | ForEach-Object {
                 if(($_.title -match $Pattern) -or ($_.title -eq $Title)) {
