@@ -190,7 +190,6 @@ Function Get-LrAieSummary {
                 #endregion
             }
         }
-
         #region: Prorcess Result                                                         
         # Shortcut to the meat of the response:
         $_dd = $Response.Data.drilldownsummary
@@ -201,7 +200,7 @@ Function Get-LrAieSummary {
             $fields = [Dictionary[string,string]]::new()
 
             foreach ($field in $ruleBlock.DDSummaries) {
-                $FieldName = $field.PIFType | Get-PIFTypeName
+                $FieldName = $field.PIFType
                 $FieldValue = ($field.DrillDownSummaryLogs | ConvertFrom-Json).field
                 $fields.Add($FieldName, $FieldValue)
             }
