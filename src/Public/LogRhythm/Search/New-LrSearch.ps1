@@ -7,40 +7,87 @@ Function New-LrSearch {
     .SYNOPSIS
         Initiate a search in the LogRhythm SIEM environment.  Requires LogRhythm 7.5.0+.
     .DESCRIPTION
-        Create-LrNetwork returns a full LogRhythm Host object, including details and list items.
+        New-LrSearch initiates a new search request.
+
+        To retrieve search results reference cmdlet: Get-LrSearchResults.
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
         Note: You can bypass the need to provide a Credential by setting
         the preference variable $LrtConfig.LogRhythm.ApiKey
         with a valid Api Token.
-    .PARAMETER Entity
-        Parameter for specifying the existing LogRhythm Entity for the new Network record to be set to.  
-        This parameter can be provided either Entity Name or Entity Id but not both.
-
-        [System.String] (Name) or [System.Int32]
-        Specifies a LogRhythm Network object by providing one of the following property values:
-          + Entity Name (as System.String), e.g. "Network Bravo"
-          + Entity Id (as System.String or System.Int32), e.g. 202
-    .PARAMETER Name
-        [System.String] Parameter for specifying a new network name.  
-        
-        *If the Id parameter is not provided the Name paramater will be attempted to identify the appropraite record.
-    .PARAMETER ShortDescription
-        A brief description of the network entity.
-    .PARAMETER LongDescription
-        An extended description of the network entity.
-    .PARAMETER RiskLevel
-        Designated network segment Risk Level.
-
-        Valid entries: "None" "Low-Low" "Low-Medium" "Low-High" "Medium-Low" "Medium-Medium" "Medium-High" "High-Low" "High-Medium" "High-High"
-    .PARAMETER ThreatLevel
-        Designated network segment Threat Level.
-
-        Valid entries: "None" "Low-Low" "Low-Medium" "Low-High" "Medium-Low" "Medium-Medium" "Medium-High" "High-Low" "High-Medium" "High-High"
-
+    .PARAMETER MaxMsgsToQuery
+        Cmdlet currently under development.
+    .PARAMETER QueryTimeout
+        Cmdlet currently under development.
+    .PARAMETER QueryRawLog
+        Cmdlet currently under development.
+    .PARAMETER QueryEventManager
+        Cmdlet currently under development.
+    .PARAMETER SearchMode
+        Cmdlet currently under development.
+    .PARAMETER SearchServerIPAddress
+        Cmdlet currently under development.
+    .PARAMETER DateCriteria
+        Cmdlet currently under development.
+    .PARAMETER DateMin
+        Cmdlet currently under development.
+    .PARAMETER DateMax
+        Cmdlet currently under development.
+    .PARAMETER LastIntervalValue
+        Cmdlet currently under development.
+    .PARAMETER LastIntervalUnit
+        Cmdlet currently under development.
+    .PARAMETER LogSource
+        Cmdlet currently under development.
+    .PARAMETER MsgFilterType
+        Cmdlet currently under development.
+    .PARAMETER GroupFilterItemType
+        Cmdlet currently under development.
+    .PARAMETER GroupFilterOperator
+        Cmdlet currently under development.
+    .PARAMETER GroupFilterMode
+        Cmdlet currently under development.
+    .PARAMETER GroupFilterGroupOperator
+        Cmdlet currently under development.
+    .PARAMETER ItemFilterItemType
+        Cmdlet currently under development.
+    .PARAMETER ItemFilterFieldOperator
+        Cmdlet currently under development.
+    .PARAMETER ItemFilterMode
+        Cmdlet currently under development.
+    .PARAMETER Param1MetaField
+        Cmdlet currently under development.
+    .PARAMETER Param1Value
+        Cmdlet currently under development.
+    .PARAMETER Param1Operator
+        Cmdlet currently under development.
+    .PARAMETER Param1MatchType
+        Cmdlet currently under development.
+    .PARAMETER Param1FilterType
+        Cmdlet currently under development.
+    .PARAMETER Param2MetaField
+        Cmdlet currently under development.
+    .PARAMETER Param2Value
+        Cmdlet currently under development.
+    .PARAMETER Param2Operator
+        Cmdlet currently under development.
+    .PARAMETER Param2MatchType
+        Cmdlet currently under development.
+    .PARAMETER Param2FilterType
+        Cmdlet currently under development.
+    .PARAMETER Param3MetaField
+        Cmdlet currently under development.
+    .PARAMETER Param3Value
+        Cmdlet currently under development.
+    .PARAMETER Param3Operator
+        Cmdlet currently under development.
+    .PARAMETER Param3MatchType
+        Cmdlet currently under development.
+    .PARAMETER Param3FilterType
+        Cmdlet currently under development.
     .INPUTS
     .OUTPUTS
-        PSCustomObject representing LogRhythm TrueIdentity Identities and their contents.
+        PSCustomObject representing the new search task, its status, and the associated TaskId used to retrieve results.
     .EXAMPLE
         PS C:\> New-LrSearch
         ----
