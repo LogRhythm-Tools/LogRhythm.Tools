@@ -84,7 +84,7 @@ Function Get-LrCasePlaybookProcedures {
 
     Process {
         # Test CaseID Format
-        $IdStatus = Test-LrCaseIdFormat $Id
+        $IdStatus = Test-LrCaseIdFormat $CaseId
         if ($IdStatus.IsValid -eq $true) {
             $CaseNumber = $IdStatus.CaseNumber
         } else {
