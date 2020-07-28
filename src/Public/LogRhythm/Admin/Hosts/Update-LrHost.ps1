@@ -195,7 +195,10 @@ Function Update-LrHost {
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 15)]
         [ValidateSet('server','none','desktop', ignorecase=$true)]
-        [string]$OSType = "server"
+        [string]$OSType = "server",
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 16)]
+        [switch]$LocationLookup
     )
 
     Begin {
@@ -284,8 +287,7 @@ Function Update-LrHost {
                 $_threatLevelComment = $OriginHostRecord.threatLevelComment
             } else {
                 $_threatLevelComment = ""
-            }
-            
+            } 
         } else {
             $_threatLevelComment = $ThreatLevelComment
         }
