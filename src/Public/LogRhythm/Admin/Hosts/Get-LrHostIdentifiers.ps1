@@ -20,14 +20,20 @@ Function Get-LrHostIdentifiers {
     .OUTPUTS
         PSCustomObject representing LogRhythm Entity Host record and its contents.
     .EXAMPLE
-        PS C:\> Get-LrHostIdentifiers -Credential $MyKey -Id "2657"
-        ----
+        PS C:\> Get-LrHostIdentifiers -Id "2657"
+        ---
         type        value                         dateAssigned
         ----        -----                         ------------
         WindowsName MYSECRETHOST                  2019-10-25T17:07:05.65Z
         IPAddress   10.1.1.5                      2019-10-25T19:15:47.943Z
         DNSName     mysecrethost.example.com      2019-12-02T18:23:17.003Z
-
+    .EXAMPLE
+        Get-LrHostIdentifiers -id "windows-a10pje5dii3.example.local"
+        ---
+        type        value           dateAssigned
+        ----        -----           ------------
+        WindowsName WIN-A10PJE5DII3 2020-06-02T17:55:37.19Z
+        IPAddress   192.168.2.127   2020-06-02T17:55:37.19Z
     .NOTES
         LogRhythm-API        
     .LINK

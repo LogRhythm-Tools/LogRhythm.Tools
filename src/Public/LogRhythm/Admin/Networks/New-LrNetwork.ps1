@@ -15,13 +15,18 @@ Function New-LrNetwork {
         This parameter can be provided either Entity Name or Entity Id but not both.
 
         [System.String] (Name) or [System.Int32]
-        Specifies a LogRhythm Network object by providing one of the following property values:
-          + Entity Name (as System.String), e.g. "Network Bravo"
+        Specifies a LogRhythm Entity object by providing one of the following property values:
+          + Entity Name (as System.String), e.g. "Site Bravo"
+          + Entity Id (as System.String or System.Int32), e.g. 202
+    .PARAMETER EntityId
+        Parameter for specifying the existing LogRhythm Entity for the new Network record to be set to.  
+        This parameter explicitly represents the Entity Id int32 value.
+
+        [System.Int32]
+        Specifies a LogRhythm Entity object by providing the value:
           + Entity Id (as System.String or System.Int32), e.g. 202
     .PARAMETER Name
         [System.String] Parameter for specifying a new network name.  
-        
-        *If the Id parameter is not provided the Name paramater will be attempted to identify the appropraite record.
     .PARAMETER ShortDescription
         A brief description of the network entity.
     .PARAMETER LongDescription
@@ -36,33 +41,104 @@ Function New-LrNetwork {
         Valid entries: "None" "Low-Low" "Low-Medium" "Low-High" "Medium-Low" "Medium-Medium" "Medium-High" "High-Low" "High-Medium" "High-High"
     .PARAMETER ThreatLevelComment
         Provide context to ThreatLevel score associted with Network Record.
-
     .PARAMETER RecordStatus
         String used to restrict results based on RecordStatus.
         Valid entries: "New", "Active", "Retired"
-    .PARAMETER HostZone
+    .PARAMETER Zone
         Set network zone.  
         
         Valid entries: "Unknown", "Internal", "DMZ", "External"
     .PARAMETER Location
-        Set the network's geographic location.
+        String value representing geographic location based on location name.  
+        
+        If no LocationId is provided in conjuction with Location it is recommended to pass the Switch Paramater -LocationLookup.
+    .PARAMETER LocationId
+        Int32 value representing the network's geographic location based on location ID.
 
-        This parameter will be enhanced with location lookup verification with LogRhythm 7.5 API.
-    .PARAMETER BeginIP
+        If no LocationName is provided in conjuction with LocationId it is recommended to pass the Switch Paramater -LocationLookup.
+    .PARAMETER BIP
         IPv4 Network starting Address.
-    .PARAMETER EndIP
+    .PARAMETER EIP
         IPv4 Network ending Address.
-    .PARAMETER Entity,
-        String used to search Entity Host by Entity Name.
+    .PARAMETER LocationLookup
+        Performs a location lookup and verification.  This paramater increases the execution time of this cmdlet.
+
+        For LogRhythm Versions 7.5.X and greater the lookup is performed via API.
+        For LogRhythm Versions 7.4.X the lookup is performed via a local locations csv contained within LogRhyhtm.Tools.
     .INPUTS
-        [System.String] -> Name
-        [System.String] -> Entity
-        [System.String] -> RecordStatus
+        [System.String]    -> Name
+        [System.String]    -> Entity
+        [System.Int32]     -> EntityId
+        [System.String]    -> ShortDesc
+        [System.String]    -> LongDesc
+        [System.String]    -> RiskLevel
+        [System.String]    -> ThreatLevel
+        [System.String]    -> ThreatLevelComment
+        [System.String]    -> RecordStatus
+        [System.String]    -> Zone
+        [System.String]    -> Location
+        [System.int32]     -> LocationId
+        [System.IpAddress] -> Bip
+        [System.IpAddress] -> Eip
+        [System.Switch]    -> LocationLookup
     .OUTPUTS
-        PSCustomObject representing LogRhythm Network and its contents.
+        PSCustomObject representing the new LogRhythm Network and its contents.
     .EXAMPLE
-        PS C:\> New-LrNetwork
-        ----
+        PS C:\> New-LrNetwork -name "DMZ Alpha" -Zone "dmz" -ShortDesc "Mature development applications for external testing." -RiskLevel "medium-medium" -ThreatLevel "medium-high" -ThreatLevelComment "Due to the development nature of the services in this zone the level has been elevated from our default DMZ value." -Bip 10.54.54.0 -Eip 10.54.54.255 -Entity "Secondary Site"
+        ---
+        entity             : @{id=5; name=Secondary Site}
+        name               : DMZ Alpha
+        shortDesc          : Mature development applications for external testing.
+        riskLevel          : Medium-Medium
+        threatLevel        : Medium-High
+        threatLevelComment : Due to the development nature of the services in this zone the level has been elevated from our default DMZ value.
+        recordStatusName   : Active
+        hostZone           : DMZ
+        location           : @{id=-1}
+        bip                : 10.54.54.0
+        eip                : 10.54.54.255
+        dateUpdated        : 2020-07-23T12:56:32.087Z
+        id                 : 6
+    .EXAMPLE
+        New-LrNetwork -name "DMZ Bravo" -Zone "dmz" -ShortDesc "Mature development applications for external testing." -RiskLevel "medium-medium" -ThreatLevel "medium-high" -ThreatLevelComment "Due to the development nature of the services in this zone the level has been elevated from our default DMZ value." -Bip 10.55.55.0 -Eip 10.55.55.255 -Entity "Secondary Site" -Location "Spartanburg" -LocationLookup
+        ---
+        entity             : @{id=5; name=Secondary Site}
+        name               : DMZ Bravo
+        shortDesc          : Mature development applications for external testing.
+        riskLevel          : Medium-Medium
+        threatLevel        : Medium-High
+        threatLevelComment : Due to the development nature of the services in this zone the level has been elevated from our default DMZ value.
+        recordStatusName   : Active
+        hostZone           : DMZ
+        location           : @{id=29929; name=Spartanburg}
+        bip                : 10.55.55.0
+        eip                : 10.55.55.255
+        dateUpdated        : 2020-07-23T12:58:34.487Z
+        id                 : 7
+    .EXAMPLE
+        PS C:\> New-LrNetwork -name "DMZ Alpha" -Zone "dmz" -ShortDesc "Mature development applications for external testing." -RiskLevel "medium-medium" -ThreatLevel "medium-high" -ThreatLevelComment "Due to the development nature of the services in this zone the level has been elevated from our default DMZ value." -Bip 10.54.54.0 -Eip 10.54.54.255
+        ---
+        Code  : 400
+        Error : True
+        Type  : NullValue
+        Note  : Cmdlet must be provided EntityId or Entity paramater values.
+        Value : DMZ Alpha
+    .EXAMPLE 
+        New-LrNetwork -name "DMZ Alpha" -Zone "dmz" -ShortDesc "Mature development applications for external testing." -RiskLevel "medium-medium" -ThreatLevel "medium-high" -ThreatLevelComment "Due to the development nature of the services in this zone the level has been elevated from our default DMZ value." -Bip 10.54.54.0 -Eip 10.54.54.255 -Entity "Secondary"
+        ---
+        Code  : 404
+        Error : True
+        Type  : NoRecordFound
+        Note  : Unable to locate exact Entity: Secondary
+        Value : DMZ Alpha
+    .EXAMPLE
+        New-LrNetwork -name "DMZ Bravo" -Zone "dmz" -ShortDesc "Mature development applications for external testing." -RiskLevel "medium-medium" -ThreatLevel "medium-high" -ThreatLevelComment "Due to the development nature of the services in this zone the level has been elevated from our default DMZ value." -Bip 10.54.54.0 -Eip 10.54.54.255 -Entity "Secondary Site"
+        ---
+        Code  : 400
+        Error : True
+        Type  : System.Net.WebException
+        Note  : Network IP range is conflicting with IP range of other networks
+        Value : DMZ Bravo
     .NOTES
         LogRhythm-API        
     .LINK
@@ -75,45 +151,54 @@ Function New-LrNetwork {
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
         
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName=$true, Position = 1)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 1)]
         [string]$Entity,
 
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName=$true, Position = 2)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 2)]
+        [int32]$EntityId,
+
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName=$true, Position = 3)]
         [string]$Name,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true,  Position = 3)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true,  Position = 4)]
         [string]$ShortDesc,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 4)]
-        [string]$LongDesc,
-
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 5)]
-        [ValidateSet('none','low-low','low-medium','low-high','medium-low','medium-medium','medium-high','high-low','high-medium','high-high', ignorecase=$true)]
-        [string]$RiskLevel = "none",
+        [string]$LongDesc,
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 6)]
         [ValidateSet('none','low-low','low-medium','low-high','medium-low','medium-medium','medium-high','high-low','high-medium','high-high', ignorecase=$true)]
-        [string]$ThreatLevel = "none",
+        [string]$RiskLevel = "none",
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 7)]
-        [string]$ThreatLevelComment,
+        [ValidateSet('none','low-low','low-medium','low-high','medium-low','medium-medium','medium-high','high-low','high-medium','high-high', ignorecase=$true)]
+        [string]$ThreatLevel = "none",
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 8)]
+        [string]$ThreatLevelComment,
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 9)]
         [ValidateSet('retired','active', ignorecase=$true)]
         [string]$RecordStatus = "active",
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 9)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 10)]
         [ValidateSet('unknown','internal','dmz','external', ignorecase=$true)]
         [string]$Zone="unknown",
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 10)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 11)]
         [string]$Location,
 
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName=$true, Position = 11)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 12)]
+        [int32]$LocationId,
+
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName=$true, Position = 13)]
         [ipaddress]$Bip,
 
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName=$true, Position = 12)]
-        [ipaddress]$Eip
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName=$true, Position = 14)]
+        [ipaddress]$Eip,
+        
+        [Parameter(Mandatory = $false, Position = 15)]
+        [switch]$LocationLookup
     )
 
     Begin {
@@ -147,13 +232,10 @@ Function New-LrNetwork {
         }
 
         # Lookup Entity By ID or Name
-        if ($Entity) {
-            if ([int]::TryParse($Entity, [ref]$_int)) {
-                Write-Verbose "[$Me]: Entity parses as integer."
-                $_entity = Get-LrEntityDetails -Id $Entity
-            } else {
-                Write-Verbose "[$Me]: Id does not parse as integer.  Performing string lookup."
-                $EntityLookup = Get-LrEntities -Name $Entity -Exact
+        if ($EntityId -or $Entity) {
+            if ($EntityId) {
+                Write-Verbose "[$Me]: Validating EntityId: $EntityId"
+                $EntityLookup = Get-LrEntityDetails -Id $Entity
                 if ($EntityLookup.Error -eq $true) {
                     $ErrorObject.Error = $EntityLookup.Error
                     $ErrorObject.Type = $EntityLookup.Type
@@ -163,13 +245,96 @@ Function New-LrNetwork {
                 } else {
                     $_entity = $EntityLookup
                 }
+            } elseif ($Entity){
+                if ([int]::TryParse($Entity, [ref]$_int)) {
+                    Write-Verbose "[$Me]: Validating Entity as Int32.  EntityId: $Entity"
+                    $EntityLookup = Get-LrEntityDetails -Id $Entity
+                    if ($EntityLookup.Error -eq $true) {
+                        $ErrorObject.Error = $EntityLookup.Error
+                        $ErrorObject.Type = $EntityLookup.Type
+                        $ErrorObject.Code = $EntityLookup.Code
+                        $ErrorObject.Note = $EntityLookup.Note
+                        return $ErrorObject
+                    } else {
+                        $_entity = $EntityLookup
+                    }
+                } else {
+                    Write-Verbose "[$Me]: Validating Entity as String.  EntityName: $Entity"
+                    $EntityLookup = Get-LrEntities -Name $Entity -Exact
+                    if ($EntityLookup.Error -eq $true) {
+                        $ErrorObject.Error = $EntityLookup.Error
+                        $ErrorObject.Type = $EntityLookup.Type
+                        $ErrorObject.Code = $EntityLookup.Code
+                        $ErrorObject.Note = $EntityLookup.Note
+                        return $ErrorObject
+                    } else {
+                        $_entity = $EntityLookup
+                    }
+                }
             }
         } else {
-            throw [ArgumentException] "Entity [null] must be: Entity Name or Entity ID."
-        }
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "NullValue"
+            $ErrorObject.Code = 400
+            $ErrorObject.Note = "Cmdlet must be provided EntityId or Entity paramater values."
+            return $ErrorObject
+        }      
+
         Write-Verbose "Entity: $_entity"
 
-        # TODO Location Lookup.  7.5 API
+        # Location lookup
+        if ($LocationId -and $Location) {
+            if ($LocationLookup) {
+                if ($LrtConfig.LogRhythm.Version -notmatch '7.5.\d') {
+                    $LocationStatus = Show-LrLocations -Id $LocationId
+                    if ($LocationStatus) {
+                        $_locationName = $LocationStatus.name
+                        $_locationId = $LocationStatus.id
+                    }
+                } else {
+                    $LocationStatus = Get-LrLocations -Id $LocationId
+                    if ($LocationStatus) {
+                        $_locationName = $LocationStatus.name
+                        $_locationId = $LocationStatus.id
+                    }
+                }
+            } else {
+                $_locationName = $Location 
+                $_locationId = $LocationId
+            }
+            $_location = [PSCustomObject][Ordered]@{
+                id = $_locationId
+                name = $_locationName
+            }
+        } elseif ($Location) {
+            if ($LocationLookup) {
+                if ($LrtConfig.LogRhythm.Version -notmatch '7.5.\d') {
+                    $LocationStatus = Show-LrLocations -Name $Location -Exact
+                    if ($LocationStatus) {
+                        $_locationName = $LocationStatus.name
+                        $_locationId = $LocationStatus.id
+                    }
+                } else {
+                    $LocationStatus = Get-LrLocations -Name $Location -Exact
+                    if ($LocationStatus) {
+                        $_locationName = $LocationStatus.name
+                        $_locationId = $LocationStatus.id
+                    }
+                }
+                $_location = [PSCustomObject][Ordered]@{
+                    id = $_locationId
+                    name = $_locationName
+                }
+            } else {
+                $_location = [PSCustomObject]@{
+                    name = $Location
+                }
+            }
+        } else {
+            $_location = [PSCustomObject][Ordered]@{
+                name = ""
+            }
+        }
 
         # Ensure proper syntax
         if ($RecordStatus) {
@@ -229,9 +394,7 @@ Function New-LrNetwork {
             threatLevelComment = $ThreatLevelComment
             recordStatusName = $_recordStatus
             hostZone = $_zone
-            location = [PSCustomObject]@{
-                name = $Location
-            }
+            location = $_location
             bip = $Bip.IPAddressToString
             eip = $Eip.IPAddressToString
         }
@@ -249,7 +412,7 @@ Function New-LrNetwork {
             try {
                 $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
             }
-            catch [System.Net.WebException] {
+            catch {
                 $Err = Get-RestErrorMessage $_
                 $ErrorObject.Error = $true
                 $ErrorObject.Type = "System.Net.WebException"

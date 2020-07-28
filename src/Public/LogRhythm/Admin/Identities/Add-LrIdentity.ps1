@@ -16,17 +16,57 @@ Function Add-LrIdentity {
         Friendly name associated with the TrueIdentity record add.  Must be unique for each API call of this cmdlet.
 
         If no SyncName is provided a unique key will be genearted.  Key format: LRT-{10*AlphaCharacters}
-    .PARAMETER Attributes
+    .PARAMETER NameFirst
+        First name string value for the TrueIdentity record.
+    .PARAMETER NameMiddle
+        Middle name string value for the TrueIdentity record.
+    .PARAMETER NameLast
+        Last name string value for the TrueIdentity record.
+    .PARAMETER DisplayIdentifier
+        DisplayIdentifier string value for the TrueIdentity record.
+    .PARAMETER Department
+        Department string value for the TrueIdentity record.
+    .PARAMETER Manager
+        Manager string value for the TrueIdentity record.
+    .PARAMETER Company
+        Company string value for the TrueIdentity record.
+    .PARAMETER PhotoThumbnail
+        Currently not supported.
+    .PARAMETER Identifier1Value
+        Identifier 1's value represented as a string.
+    .PARAMETER Identifier1Type
+        Identifier 1's type.  
 
-    .PARAMETER Identifiers
+        Valid types: email, login, both
+    .PARAMETER Identifier2Value
+        Identifier 2's value represented as a string.
+    .PARAMETER Identifier2Type
+        Identifier 2's type.  
 
-    .PARAMETER DryRun
-        Switch that will execute a dry-run of the Add-LRIdentity function.
+        Valid types: email, login, both
+    .PARAMETER Identifier3Value
+        Identifier 3's value represented as a string.
+    .PARAMETER Identifier3Type
+        Identifier 3's type.  
+
+        Valid types: email, login, both
+    .PARAMETER Identifier4Value
+        Identifier 4's value represented as a string.
+    .PARAMETER Identifier4Type
+        Identifier 4's type.  
+
+        Valid types: email, login, both
+    .PARAMETER Identifier5Value
+        Identifier 5's value represented as a string.
+    .PARAMETER Identifier5Type
+        Identifier 5's type.  
+
+        Valid types: email, login, both
     .OUTPUTS
         PSCustomObject representing LogRhythm TrueIdentity Identity and its status.
     .EXAMPLE
         PS C:\> Add-LrIdentity -EntityId 1 -NameFirst Eric -NameLast Hart -DisplayIdentifier Eric.Hart -Department "Customer Success" -Company "LogRhythm Inc." -Identifier1Value "eric.hart@logrhythm.com" -Identifier1Type "both"
-        ----
+        ---
         vendorUniqueKey                          identityID identifierSourceAccountID
         ---------------                          ---------- -------------------------
         24638670afc7cd4e75fb8e107b223cd0680f6bae          7                         0
@@ -73,7 +113,7 @@ Function Add-LrIdentity {
         [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 10)]
         [Byte]$PhotoThumbnail,
 
-        [Parameter(Mandatory = $true, ValueFromPipeline=$false, Position = 11)]
+        [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 11)]
         [String]$Identifier1Value,
 
         [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 12)]

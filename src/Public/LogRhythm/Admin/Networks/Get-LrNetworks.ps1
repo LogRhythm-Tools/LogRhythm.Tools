@@ -7,20 +7,20 @@ Function Get-LrNetworks {
     .SYNOPSIS
         Retrieve a list of Networks from the LogRhythm Entity structure.
     .DESCRIPTION
-        Get-LrNetworks returns a full LogRhythm Host object, including details and list items.
+        Get-LrNetworks returns a full LogRhythm Network object, including details and list items.
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
     .PARAMETER PageCount
         Integer representing number of pages to return.  Default is maximum, 1000.
     .PARAMETER Name
-        String used to search Entity Host records by Name.
+        String used to search Entity Network records by Name.
     .PARAMETER Entity,
-        String used to search Entity Host by Entity Name.
+        String used to search Entity Network by Entity Name.
     .PARAMETER RecordStatus,
         String used to restrict results based on RecordStatus.
         Valid entries: All, Active, Retired
     .PARAMETER Exact,
-        Switch used to specify Name search for Entity Host record is explicit.
+        Switch used to specify Name search for Entity Network record is explicit.
     .INPUTS
         [System.Int]    -> PageCount
         [System.String] -> Name
@@ -30,8 +30,79 @@ Function Get-LrNetworks {
     .OUTPUTS
         PSCustomObject representing LogRhythm TrueIdentity Identities and their contents.
     .EXAMPLE
-        PS C:\> Get-LrNetworks -Credential $MyKey
+        PS C:\> Get-LrNetworks
         ----
+        entity             : @{id=5; name=Secondary Site}
+        name               : Network a
+        riskLevel          : None
+        threatLevel        : None
+        threatLevelComment :
+        recordStatusName   : Active
+        hostZone           : Internal
+        location           : @{id=-1}
+        bip                : 192.168.1.1
+        eip                : 192.168.1.255
+        dateUpdated        : 2020-07-20T22:50:57.433Z
+        id                 : 1
+
+        entity             : @{id=1; name=Primary Site}
+        name               : Network Alpha
+        shortDesc          : Brief description value.
+        longDesc           : Additional details note.
+        riskLevel          : Medium-Medium
+        threatLevel        : None
+        threatLevelComment :
+        recordStatusName   : Active
+        hostZone           : Internal
+        location           : @{id=-1}
+        bip                : 192.168.20.1
+        eip                : 192.168.20.255
+        dateUpdated        : 2020-07-21T13:42:33.253Z
+        id                 : 3
+
+        entity             : @{id=1; name=Primary Site}
+        name               : Network Beta
+        riskLevel          : None
+        threatLevel        : None
+        threatLevelComment :
+        recordStatusName   : Active
+        hostZone           : Internal
+        location           : @{id=-1}
+        bip                : 172.16.20.1
+        eip                : 172.16.21.255
+        dateUpdated        : 2020-07-21T11:40:26.367Z
+        id                 : 4
+    .EXAMPLE
+        PS C:\> Get-LrNetworks -Entity "Secondary Site"
+        ---
+        entity             : @{id=5; name=Secondary Site}
+        name               : Network a
+        riskLevel          : None
+        threatLevel        : None
+        threatLevelComment :
+        recordStatusName   : Active
+        hostZone           : Internal
+        location           : @{id=-1}
+        bip                : 192.168.1.1
+        eip                : 192.168.1.255
+        dateUpdated        : 2020-07-20T22:50:57.433Z
+        id                 : 1
+    .EXAMPLE
+        PS C:\> Get-LrNetworks -Entity "Secondary Site" -RecordStatus "retired"
+        --- 
+        entity             : @{id=5; name=Secondary Site}
+        name               : Network a
+        riskLevel          : None
+        threatLevel        : None
+        threatLevelComment :
+        recordStatusName   : Retired
+        hostZone           : Internal
+        location           : @{id=-1}
+        bip                : 192.168.1.1
+        eip                : 192.168.1.255
+        dateUpdated        : 2020-07-23T12:33:37.153Z
+        id                 : 1
+
     .NOTES
         LogRhythm-API        
     .LINK
@@ -62,10 +133,10 @@ Function Get-LrNetworks {
         [string]$RecordStatus = "active",
 
         [Parameter(Mandatory = $false, Position = 6)]
-        [string]$BIP,
+        [ipaddress]$BIP,
 
         [Parameter(Mandatory = $false, Position = 7)]
-        [string]$EIP,
+        [ipaddress]$EIP,
 
         [Parameter(Mandatory = $false, Position = 8)]
         [string]$Entity,
@@ -90,11 +161,11 @@ Function Get-LrNetworks {
         # Define HTTP Method
         $Method = $HttpMethod.Get
 
-        # Define LogRhythm Version
-        $LrVersion = $LrtConfig.LogRhythm.Version
-
         # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
-        Enable-TrustAllCertsPolicy        
+        Enable-TrustAllCertsPolicy
+
+        # Integer Reference
+        [int32]$_int = 1
     }
 
     Process {
@@ -130,61 +201,68 @@ Function Get-LrNetworks {
 
         # Filter by Object Entity Name
         if ($Entity) {
-            $_entityName = $Entity
-            $QueryParams.Add("entity", $_entityName)
+            # Lookup Entity By ID or Name
+            if ([int]::TryParse($Entity, [ref]$_int)) {
+                Write-Verbose "[$Me]: Validating Entity as Int32.  EntityId: $Entity"
+                $EntityLookup = Get-LrEntityDetails -Id $Entity
+                if ($EntityLookup.Error -eq $true) {
+                    $ErrorObject.Error = $EntityLookup.Error
+                    $ErrorObject.Type = $EntityLookup.Type
+                    $ErrorObject.Code = $EntityLookup.Code
+                    $ErrorObject.Note = $EntityLookup.Note
+                    return $ErrorObject
+                } else {
+                    $_entity = $EntityLookup
+                }
+            } else {
+                Write-Verbose "[$Me]: Validating Entity as String.  EntityName: $Entity"
+                $EntityLookup = Get-LrEntities -Name $Entity -Exact
+                if ($EntityLookup.Error -eq $true) {
+                    $ErrorObject.Error = $EntityLookup.Error
+                    $ErrorObject.Type = $EntityLookup.Type
+                    $ErrorObject.Code = $EntityLookup.Code
+                    $ErrorObject.Note = $EntityLookup.Note
+                    return $ErrorObject
+                } else {
+                    $_entity = $EntityLookup
+                }
+            }
+
+            $_entityName = $_entity.Name
+            $QueryParams.Add("Entity", $_entityName)
         }
 
         # Return results direction, ascending or descending
         if ($Direction) {
-            $ValidStatus = "ASC", "DESC"
-            if ($ValidStatus.Contains($($Direction.ToUpper()))) {
-                if ($LrVersion -like "7.5.*") {
-                    if($Direction.ToUpper() -eq "ASC") {
-                        $_direction = "ascending"
-                    } else {
-                        $_direction = "descending"
-                    }
+            # Apply formatting based on Lr Version
+            if ($LrtConfig.LogRhythm.Version -match '7.5.\d') {
+                if($Direction.ToUpper() -eq "ASC") {
+                    $_direction = "ascending"
                 } else {
-                    $_direction = $Direction.ToUpper()
+                    $_direction = "descending"
                 }
-                $QueryParams.Add("dir", $_direction)
             } else {
-                throw [ArgumentException] "Direction [$Direction] must be: asc or desc."
+                $_direction = $Direction.ToUpper()
             }
+            $QueryParams.Add("dir", $_direction)
         }
 
         # Filter by Begin IP Address
         if ($BIP) {
-            $IPStatus = Test-ValidIPv4Address $BIP
-            if ($IPStatus.IsValid) {
-                $_bIP = $BIP
-                $QueryParams.Add("BIP", $_bIP)
-            } else {
-                throw [ArgumentException] "BIP [$BIP] must be valid IPv4 Address"
-            }
+            $_bIP = $BIP.IPAddressToString
+            $QueryParams.Add("BIP", $_bIP)
         }
 
         # Filter by End IP Address
         if ($EIP) {
-            $IPStatus = Test-ValidIPv4Address $EIP
-            if ($IPStatus.IsValid) {
-                $_eIP = $EIP
-                $QueryParams.Add("EIP", $_eIP)
-            } else {
-                throw [ArgumentException] "EIP [$EIP] must be valid IPv4 Address"
-            }
+            $_eIP = $EIP.IPAddressToString
+            $QueryParams.Add("EIP", $_eIP)
         }
 
         # RecordStatus
         if ($RecordStatus) {
-            $ValidStatus = "all", "active", "retired"
-            if ($ValidStatus.Contains($($RecordStatus.ToLower()))) {
-                $_recordStatus = $RecordStatus.ToLower()
-                $QueryParams.Add("recordStatus", $_recordStatus)
-            } else {
-                throw [ArgumentException] "RecordStatus [$RecordStatus] must be: all, active, or retired."
-            }
-
+            $_recordStatus = $RecordStatus.ToLower()
+            $QueryParams.Add("recordStatus", $_recordStatus)
         }
 
         # Build QueryString
@@ -201,7 +279,7 @@ Function Get-LrNetworks {
             try {
                 $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
             }
-            catch [System.Net.WebException] {
+            catch {
                 $Err = Get-RestErrorMessage $_
                 $ErrorObject.Error = $true
                 $ErrorObject.Type = "System.Net.WebException"
