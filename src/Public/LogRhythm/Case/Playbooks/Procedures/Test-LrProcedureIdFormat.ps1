@@ -37,19 +37,19 @@ Function Test-LrProcedureIdFormat {
         [object] $Id
     )
 
-    $OutObject = [PSCustomObject]@{
-        IsGuid      =   $false
-        IsInt       =   $false
-        IsValid     =   $false
-        Value       =   $Id
-    }
-
     Begin {
         # https://docs.microsoft.com/en-us/dotnet/api/system.int32.tryparse
         $_int = 1
     }
 
     Process {
+        $OutObject = [PSCustomObject]@{
+            IsGuid      =   $false
+            IsInt       =   $false
+            IsValid     =   $false
+            Value       =   $Id
+        }
+
         # Check if ID value is an integer
         if ([int]::TryParse($Id, [ref]$_int)) {
             Write-Verbose "[$Me]: Id parses as integer."
@@ -65,9 +65,11 @@ Function Test-LrProcedureIdFormat {
             $OutObject.Value = $Id.ToString()
             $OutObject.IsValid = $true
         }
+
+        return $OutObject
     }
 
     End {
-        return $OutObject
+        
     }
 }
