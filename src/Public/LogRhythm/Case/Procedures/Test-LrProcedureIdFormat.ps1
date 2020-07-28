@@ -18,7 +18,7 @@ Function Test-LrProcedureIdFormat {
     .OUTPUTS
         System.Object with IsGuid, IsValid, Value
     .EXAMPLE
-        C:\PS> Test-LrPlaybookIdFormat "5831f290-4798-4148-8165-01317d49afea"
+        C:\PS> Test-LrProcedureIdFormat "5831f290-4798-4148-8165-01317d49afea"
         IsGuid IsValid Value
         ------ ------- -----
          False    True 181
@@ -28,21 +28,14 @@ Function Test-LrProcedureIdFormat {
 
     [CmdletBinding()]
     Param(
-        [Parameter(
-            Mandatory = $true,
-            ValueFromPipeline = $true,
-            Position=0
-        )]
+        [Parameter( Mandatory = $true, ValueFromPipeline = $true, Position=0)]
         [ValidateNotNull()]
         [object] $Id
     )
 
-    Begin {
-        # https://docs.microsoft.com/en-us/dotnet/api/system.int32.tryparse
-        $_int = 1
-    }
 
-    Process {
+    Begin {
+        # Define output object
         $OutObject = [PSCustomObject]@{
             IsGuid      =   $false
             IsInt       =   $false
@@ -50,6 +43,11 @@ Function Test-LrProcedureIdFormat {
             Value       =   $Id
         }
 
+        # https://docs.microsoft.com/en-us/dotnet/api/system.int32.tryparse
+        $_int = 1  
+    }
+
+    Process {
         # Check if ID value is an integer
         if ([int]::TryParse($Id, [ref]$_int)) {
             Write-Verbose "[$Me]: Id parses as integer."
@@ -70,6 +68,5 @@ Function Test-LrProcedureIdFormat {
     }
 
     End {
-        
     }
 }

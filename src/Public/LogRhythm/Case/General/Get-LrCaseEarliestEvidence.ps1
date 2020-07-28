@@ -63,15 +63,15 @@ function Get-LrCaseEarliestEvidence {
     }
     
     Process {
-        # Get Case Id
-        $IdInfo = Test-LrCaseIdFormat $Id
-        if (! $IdInfo.IsValid) {
-            throw [ArgumentException] "Parameter [Id] should be an RFC 4122 formatted string or an integer."
-        }
+        # Test CaseID Format
+        $IdStatus = Test-LrCaseIdFormat $Id
+        if ($IdStatus.IsValid -eq $true) {
+            $CaseNumber = $IdStatus.CaseNumber
+        } else {
+            return $IdStatus
+        }   
 
-        $RequestUrl = $BaseUrl + "/cases/$Id/metrics/"
-            
-        $Response = $null
+        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/metrics/"
 
         # Send Request
         if ($PSEdition -eq 'Core'){

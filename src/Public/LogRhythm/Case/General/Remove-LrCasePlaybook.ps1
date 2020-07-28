@@ -22,11 +22,21 @@ Function Remove-LrCasePlaybook {
     .INPUTS
         [System.Object] "Id" ==> [Id] : The ID of the Case to modify.
     .OUTPUTS
-        PSCustomObject representing the removed playbook.
+        Successful removal of a playbook from a case returns a null.
     .EXAMPLE
-        PS C:\> 
+        PS C:\> Remove-LrCasePlaybook -Id 2 -Playbook "Phishing"
 
-        Add example
+    .EXAMPLE
+        PS C:\> Remove-LrCasePlaybook -Id "Mock case" -Playbook "Phishing"
+
+    .EXAMPLE
+        PS C:\> Remove-LrCasePlaybook -Id "Mock case" -Playbook "Phishing"
+
+        Error       : True
+        Type        : 404
+        Note        : Playbook GUID/Name not found on case: 2.  Review: Get-LrCasePlaybooks -Id 2
+        ResponseUrl :
+        Value       : Phishing
     .NOTES
         LogRhythm-API
     .LINK
@@ -39,10 +49,8 @@ Function Remove-LrCasePlaybook {
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
-
         [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 1)]
         [object] $Id,
-
 
         [Parameter(Mandatory = $true, Position = 2)]
         [ValidateNotNull()]
@@ -68,7 +76,6 @@ Function Remove-LrCasePlaybook {
     Process {
         # Establish General Error object Output
         $ErrorObject = [PSCustomObject]@{
-            Code                  =   $null
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
@@ -76,37 +83,13 @@ Function Remove-LrCasePlaybook {
             Value                 =   $Id
         }
 
-        # Get Case Id
         # Test CaseID Format
-        $IdFormat = Test-LrCaseIdFormat $Id
-        if ($IdFormat.IsGuid -eq $True) {
-            # Lookup case by GUID
-            try {
-                $Case = Get-LrCaseById -Id $Id
-            } catch {
-                $PSCmdlet.ThrowTerminatingError($PSItem)
-            }
-            # Set CaseNum
-            $CaseNumber = $Case.number
-        } elseif(($IdFormat.IsGuid -eq $False) -and ($IdFormat.ISValid -eq $true)) {
-            # Lookup case by Number
-            try {
-                $Case = Get-LrCaseById -Id $Id
-            } catch {
-                $PSCmdlet.ThrowTerminatingError($PSItem)
-            }
-            # Set CaseNum
-            $CaseNumber = $Case.number
+        $IdStatus = Test-LrCaseIdFormat $Id
+        if ($IdStatus.IsValid -eq $true) {
+            $CaseNumber = $IdStatus.CaseNumber
         } else {
-            # Lookup case by Name
-            try {
-                $Case = Get-LrCases -Name $Id -Exact
-            } catch {
-                $PSCmdlet.ThrowTerminatingError($PSItem)
-            }
-            # Set CaseNum
-            $CaseNumber = $Case.number
-        }
+            return $IdStatus
+        }   
 
 
 
@@ -160,7 +143,7 @@ Function Remove-LrCasePlaybook {
             try {
                 $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
             }
-            catch [System.Net.WebException] {
+            catch {
                 $Err = Get-RestErrorMessage $_
                 if ($Err.statusCode -eq "409") {
                     # we know we can use $Pb.name because a 409 wouldn't throw unless the playbook existed.

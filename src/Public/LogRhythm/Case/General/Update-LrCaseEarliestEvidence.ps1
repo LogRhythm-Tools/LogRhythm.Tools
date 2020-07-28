@@ -30,6 +30,19 @@ Function Update-LrCaseEarliestEvidence {
         PS C:\> Update-LrCaseEarliestEvidence -Id 8699 -Timestamp %TIME -Summary
         ---
         Updated Case: 8699 Earliest Evidence to Date: 2019-12-19T08:58:40Z
+    .EXAMPLE
+        PS C:\> Update-LrCaseEarliestEvidence -Id 2 -Timestamp "6/5/2020 13:46:49" -PassThru
+        --- 
+        created          : @{date=2020-06-06T13:46:49.4964154Z; originalDate=2020-06-06T13:46:49.4964154Z; customDate=; note=}
+        completed        : @{date=; originalDate=; customDate=; note=}
+        incident         : @{date=; originalDate=; customDate=; note=}
+        mitigated        : @{date=; originalDate=; customDate=; note=}
+        resolved         : @{date=; originalDate=; customDate=; note=}
+        earliestEvidence : @{date=2020-06-05T17:46:49Z; originalDate=; customDate=2020-06-05T17:46:49Z; note=LogRhythm Tools: Update EarliestEvidence Timestamp}
+    .EXAMPLE
+        PS C:\> Update-LrCaseEarliestEvidence -Id "Case 2" -Timestamp "6/5/2020 13:46:47" -Summary
+        ---
+        Updated Case: Case 2 Earliest Evidence to Date: 2020-06-05T17:46:47Z
     .NOTES
         LogRhythm-API
     .LINK
@@ -70,20 +83,22 @@ Function Update-LrCaseEarliestEvidence {
 
 
     Process {
-        # Get Case Id
-        $IdInfo = Test-LrCaseIdFormat $Id
-        if (! $IdInfo.IsValid) {
-            throw [ArgumentException] "Parameter [Id] should be an RFC 4122 formatted string or an integer."
+        # Test CaseID Format
+        $IdStatus = Test-LrCaseIdFormat $Id
+        if ($IdStatus.IsValid -eq $true) {
+            $CaseNumber = $IdStatus.CaseNumber
+        } else {
+            return $IdStatus
         }
 
 
         # Set Existing EarliestEvidence Date for comparison
-        $EarliestEvidence = Get-LrCaseEarliestEvidence -Id $Id
-        Write-Verbose "[$Me]: Case: $Id EarliestEvidence: $EarliestEvidence"
+        $EarliestEvidence = Get-LrCaseEarliestEvidence -Id $CaseNumber
+        Write-Verbose "[$Me]: Case: $CaseNumber EarliestEvidence: $EarliestEvidence"
 
         # Set Case Creation Date for comparison.  Earliest Evidence !> CaseCreationDate
-        $CaseCreate = (Get-LrCaseById -Id $Id).dateCreated
-        Write-Verbose "[$Me]: Case: $Id CaseCreateDate: $CaseCreate"
+        $CaseCreate = (Get-LrCaseById -Id $CaseNumber).dateCreated
+        Write-Verbose "[$Me]: Case: $CaseNumber CaseCreateDate: $CaseCreate"
 
         # Set provided EarliestEvidence Date
         Try {
@@ -105,6 +120,9 @@ Function Update-LrCaseEarliestEvidence {
             if ($null -eq $EarliestEvidence) {
                 # No Earliest Evidence found in the case
                 $UpdateEvidence = $true
+                # Convert NewEarliestEvidence date to proper format
+                $NewEarliestEvidence = ($RequestedTimestamp.ToString("yyyy-MM-ddTHH:mm:ssZ"))
+                Write-Verbose "[$Me]: NewEarliestEvidence: $NewEarliestEvidence"
             } else {
                 $EarliestEvidenceDate = (Get-Date $EarliestEvidence).ToUniversalTime()
                 Write-Verbose "[$Me]: RequestedTimestamp: $RequestedTimestamp EarliestEvidenceDate $EarliestEvidenceDate"
@@ -122,7 +140,7 @@ Function Update-LrCaseEarliestEvidence {
         }
 
         # Case note for API action
-        $Note = "SmartResponseFramework: Update EarliestEvidence Timestamp"
+        $Note = "LogRhythm Tools: Update EarliestEvidence Timestamp"
 
         # Request Headers
         $Headers = [Dictionary[string,string]]::new()
@@ -132,7 +150,7 @@ Function Update-LrCaseEarliestEvidence {
 
         # Request URI
         $Method = $HttpMethod.Put
-        $RequestUrl = $BaseUrl + "/cases/$Id/metrics/"
+        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/metrics/"
 
 
         # Request Body
@@ -151,7 +169,7 @@ Function Update-LrCaseEarliestEvidence {
                 try {
                     $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
                 }
-                catch [System.Net.WebException] {
+                catch {
                     $Err = Get-RestErrorMessage $_
                     throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
                 }

@@ -703,7 +703,7 @@ Function Update-LrPlaybookProcedure {
             try {
                 $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents -SkipCertificateCheck
             }
-            catch [System.Net.WebException] {
+            catch {
                 $Err = Get-RestErrorMessage $_
                 $ErrorObject.Code = $Err.statusCode
                 $ErrorObject.Type = "WebException"

@@ -22,7 +22,9 @@ Function Get-LrCases {
         the preference variable $LrtConfig.LogRhythm.ApiKey
         with a valid Api Token.
     .PARAMETER Name
-        Filter results that contain a string value.  Exact match available via -exact switch.
+        Filter results that have a case number or name that contains the specified value.  
+        
+        Exact match available via -exact switch.
     .PARAMETER DueBefore
         Filter results that have a due date before the specified date.
     .PARAMETER Priority
@@ -46,8 +48,6 @@ Function Get-LrCases {
     .PARAMETER ExcludeTags
         Filter out cases that include one or more tags, identified by tag number or name.
         Multiple tags should be provided in an array.
-    .PARAMETER Text
-        Filter results that have a case number or name that contains the specified value.
     .PARAMETER EvidenceType
         Filter results that have evidence of the specified type:
 
@@ -76,8 +76,8 @@ Function Get-LrCases {
         'dueDate'
         'age'
         'statusNumber'
-    .PARAMETER Sort
-        Sort the results in ascending (asc) or descending (desc) order.
+    .PARAMETER Direction
+        Direction the results in ascending (asc) or descending (desc) order.
     .PARAMETER Count
         Maximum number of results to be returned (default 500)
     .PARAMETER Exact
@@ -108,9 +108,72 @@ Function Get-LrCases {
         collaborators           : PSCustomObject (LrUser)
         tags                    : PSCustomObject (LrTag)
     .EXAMPLE
-        PS C:\> Get-LrCases -Tags ("Malware","Server Reboot") -Verbose
-        ---
-        Get all cases containing the tags Malware or Server Reboot
+        PS C:\> Get-LrCases -tags alpha
+
+        id                      : 56C2007B-4E8D-41C8-95C8-4F91346EC727
+        number                  : 1
+        externalId              :
+        dateCreated             : 2020-07-16T16:46:48.3522746Z
+        dateUpdated             : 2020-07-16T16:53:46.0262639Z
+        dateClosed              :
+        owner                   : @{number=2; name=LRTools; disabled=False}
+        lastUpdatedBy           : @{number=2; name=LRTools; disabled=False}
+        name                    : Alpha Case
+        status                  : @{name=Created; number=1}
+        priority                : 4
+        dueDate                 : 2020-07-17T16:46:48.3362732Z
+        resolution              :
+        resolutionDateUpdated   :
+        resolutionLastUpdatedBy :
+        summary                 : Alpha case is the first case created through API.
+        entity                  : @{number=-100; name=Global Entity; fullName=Global Entity}
+        collaborators           : {@{number=2; name=LRTools; disabled=False}}
+        tags                    : {@{number=2; text=Alpha}}
+
+        id                      : E66A5D03-412F-43AB-B9B7-0459055827AF
+        number                  : 2
+        externalId              :
+        dateCreated             : 2020-07-16T16:47:46.0395837Z
+        dateUpdated             : 2020-07-16T16:56:27.8545625Z
+        dateClosed              :
+        owner                   : @{number=2; name=LRTools; disabled=False}
+        lastUpdatedBy           : @{number=2; name=LRTools; disabled=False}
+        name                    : Mock case
+        status                  : @{name=Created; number=1}
+        priority                : 5
+        dueDate                 : 2020-10-20T14:22:11Z
+        resolution              :
+        resolutionDateUpdated   :
+        resolutionLastUpdatedBy :
+        summary                 : Mock case summary for automation validation.
+        entity                  : @{number=-100; name=Global Entity; fullName=Global Entity}
+        collaborators           : {@{number=2; name=LRTools; disabled=False}}
+        tags                    : {@{number=2; text=Alpha}}
+    .EXAMPLE
+        PS C:\> Get-LrCases -Name "Mock"
+
+        id                      : E66A5D03-412F-43AB-B9B7-0459055827AF
+        number                  : 2
+        externalId              :
+        dateCreated             : 2020-07-16T16:47:46.0395837Z
+        dateUpdated             : 2020-07-16T16:56:27.8545625Z
+        dateClosed              :
+        owner                   : @{number=2; name=LRTools; disabled=False}
+        lastUpdatedBy           : @{number=2; name=LRTools; disabled=False}
+        name                    : Mock case
+        status                  : @{name=Created; number=1}
+        priority                : 5
+        dueDate                 : 2020-10-20T14:22:11Z
+        resolution              :
+        resolutionDateUpdated   :
+        resolutionLastUpdatedBy :
+        summary                 : Mock case summary for automation validation.
+        entity                  : @{number=-100; name=Global Entity; fullName=Global Entity}
+        collaborators           : {@{number=2; name=LRTools; disabled=False}}
+        tags                    : {@{number=2; text=Alpha}}
+    .EXAMPLE
+        PS C:\> Get-LrCases -Name "Mock" -Exact
+        
     .NOTES
         LogRhythm-API
     .LINK
@@ -123,81 +186,67 @@ Function Get-LrCases {
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
-        [Parameter(Mandatory = $false, Position = 16)]
-        [switch] $Summary,
-
-        [Parameter(Mandatory = $false, Position = 17)]
-        [switch] $Exact,
-
-        [Parameter(Mandatory = $false, Position = 18)]
+        [Parameter(Mandatory = $false, Position = 1)]
         [string] $Name,
 
         #region: Query Parameters ___________________________________________________________
-        [Parameter(Mandatory = $false, Position = 1)]
+        [Parameter(Mandatory = $false, Position = 2)]
         [ValidateNotNull()]
         [datetime] $DueBefore,
 
 
-        [Parameter(Mandatory = $false, Position = 2)]
+        [Parameter(Mandatory = $false, Position = 3)]
         [ValidateRange(1,5)]
         [int[]] $Priority,
 
 
-        [Parameter(Mandatory = $false, Position = 3)]
+        [Parameter(Mandatory = $false, Position = 4)]
         [ValidateNotNull()]
         [string[]] $Status,
 
 
-        [Parameter(Mandatory = $false, Position = 4)]
+        [Parameter(Mandatory = $false, Position = 5)]
         [ValidateNotNull()]
         [string[]] $Owners,
 
 
-        [Parameter(Mandatory = $false, Position = 5)]
+        [Parameter(Mandatory = $false, Position = 6)]
         [ValidateNotNull()]
         [string] $Collaborator,
 
 
-        [Parameter(Mandatory = $false, Position = 6)]
+        [Parameter(Mandatory = $false, Position = 7)]
         [ValidateNotNull()]
         [string[]] $Tags,
 
 
-        [Parameter(Mandatory = $false, Position = 6)]
+        [Parameter(Mandatory = $false, Position = 8)]
         [ValidateNotNull()]
         [string[]] $ExcludeTags,
 
-
-        [Parameter(Mandatory = $false, Position = 7)]
-        [ValidateNotNull()]
-        [string] $Text,
-
-
-        [Parameter(Mandatory = $false, Position = 8)]
+        [Parameter(Mandatory = $false, Position = 9)]
         [ValidateSet("alarm","userEvents","log","note","file")]
         [string[]] $EvidenceType,
         #endregion
 
-
-
         #region: Header Parameters___________________________________________________________
-        [Parameter(Mandatory = $false, Position = 9)]
+        [Parameter(Mandatory = $false, Position = 10)]
         [DateTime] $UpdatedAfter,
 
 
-        [Parameter(Mandatory = $false, Position = 10)]
+        [Parameter(Mandatory = $false, Position = 11)]
         [DateTime] $UpdatedBefore,
 
 
-        [Parameter(Mandatory = $false,Position = 11)]
+        [Parameter(Mandatory = $false,Position = 12)]
         [DateTime] $CreatedAfter,
 
 
-        [Parameter(Mandatory = $false,Position = 12)]
+        [Parameter(Mandatory = $false,Position = 13)]
         [DateTime] $CreatedBefore,
 
 
-        [Parameter(Mandatory = $false,Position = 13)]
+        [Parameter(Mandatory = $false,Position = 14)]
         [ValidateSet(
             "dateCreated",
             "dateClosed",
@@ -212,261 +261,262 @@ Function Get-LrCases {
         [string] $OrderBy = "dateCreated",
 
 
-        [Parameter(Mandatory = $false,Position = 14)]
+        [Parameter(Mandatory = $false,Position = 15)]
         [ValidateSet("asc","desc")]
-        [string] $Sort = "asc",
+        [string] $Direction = "asc",
 
 
-        [Parameter(Mandatory = $false, Position = 15)]
-        [int] $Count = 500
+        [Parameter(Mandatory = $false, Position = 16)]
+        [int] $Count = 500,
 
+        [Parameter(Mandatory = $false, Position = 17)]
+        [switch] $Summary,
+
+        [Parameter(Mandatory = $false, Position = 18)]
+        [switch] $Exact
     )
         #endregion
 
 
-    Begin {
-        #region: Setup_______________________________________________________________________
-        $Me = $MyInvocation.MyCommand.Name
 
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
-        $Token = $Credential.GetNetworkCredential().Password
+    #region: Setup_______________________________________________________________________
+    $Me = $MyInvocation.MyCommand.Name
 
-        # Enable self-signed certificates and Tls1.2
-        Enable-TrustAllCertsPolicy
-        #endregion
+    $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+    $Token = $Credential.GetNetworkCredential().Password
+
+    # Enable self-signed certificates and Tls1.2
+    Enable-TrustAllCertsPolicy
+    #endregion
+
+
+
+    #region: Process Query Parameters____________________________________________________
+    $QueryParams = [Dictionary[string,string]]::new()
+
+    # DueBefore
+    if ($DueBefore) {
+        $_dueBefore = $DueBefore | ConvertTo-Rfc3339
+        $QueryParams.Add("dueBefore", $_dueBefore)
     }
 
 
-    Process {
-        #region: Process Query Parameters____________________________________________________
-        $QueryParams = [Dictionary[string,string]]::new()
-
-        # DueBefore
-        if ($DueBefore) {
-            $_dueBefore = $DueBefore | ConvertTo-Rfc3339
-            $QueryParams.Add("dueBefore", $_dueBefore)
-        }
-
-
-        # Priority
-        if ($Priority) {
-            if ($Priority.Count -gt 1) {
-                $_priority = $Priority -join ','
-            } else {
-                $_priority = $Priority
-            }
-            $QueryParams.Add("priority", $_priority)
-        }
-
-
-        # Status
-        if ($Status) {
-            $_statusNumbers = $Status | ConvertTo-LrCaseStatusId
-            if (! $_statusNumbers) {
-                throw [ArgumentException] "Status in [$Status] not found."
-            }
-            if ($_statusNumbers.count -gt 1) {
-                $_status = $_statusNumbers -join ','
-            } else {
-                $_status = $_statusNumbers
-            }
-            $QueryParams.Add("statusNumber", $_status)
-        }
-
-
-        # Owner
-        if ($Owners) {
-            $_ownerNumbers = $Owners | Get-LrUserNumber
-            if (! $_ownerNumbers) {
-                throw [ArgumentException] "Owner(s) [$Owners] not found."
-            }
-            if ($_ownerNumbers.count -gt 1) {
-                $_owner = $_ownerNumbers -join ','
-            } else {
-                $_owner = $_ownerNumbers
-            }
-            $QueryParams.Add("ownerNumber", $_owner)
-        }
-
-
-        # Collaborator
-        if ($Collaborator) {
-            $_collabNumber = $Collaborator | Get-LrUserNumber
-            if ($_collabNumber) {
-                $QueryParams.Add("collaboratorNumber", $_collabNumber)
-            } else {
-                throw [ArgumentException] "Collaborator [$Collaborator] not found."
-            }
-        }
-
-
-        # Tags  (Exclude Tags are removed from the final result)
-        if ($Tags) {
-            $_tagNumbers = $Tags | Get-LrTagNumber
-            if ($_tagNumbers.count -eq 1) {
-                $_tags = $_tagNumbers
-            } elseif ($_tagNumbers.count -gt 1) {
-                $_tags = $_tagNumbers -join ','
-            }
-            if ($_tags) {
-                $QueryParams.Add("tagNumber", $_tags)
-            }
-        }
-
-
-        # Text
-        if ($Text) {
-            # should we uri-encode this?
-            $QueryParams.Add("text", $Text)
-        }
-
-
-        # EvidenceType
-        if ($EvidenceType) {
-            if ($EvidenceType.Count -gt 1) {
-                $EvidenceType = $EvidenceType -join ','
-            }
-            $QueryParams.Add("evidenceType", $EvidenceType)
-        }
-
-        if ($QueryParams.Count -gt 0) {
-            $QueryString = $QueryParams | ConvertTo-QueryString
-            Write-Verbose "[$Me]: QueryString is [$QueryString]"
-        }
-        #endregion
-
-
-
-        #region: Process Request Headers_____________________________________________________
-        $Headers = [Dictionary[string,string]]::new()
-        $Headers.Add("Authorization", "Bearer $Token")
-        $Headers.Add("count", $Count)
-        $Headers.Add("direction", $Sort)
-
-        # Update / Create DateTimes
-        if ($UpdatedAfter) {
-            $_updatedAfter = $UpdatedAfter | ConvertTo-Rfc3339
-            $Headers.Add("updatedAfter", $_updatedAfter)
-        }
-        if ($UpdatedBefore) {
-            $_updatedBefore = $UpdatedBefore | ConvertTo-Rfc3339
-            $Headers.Add("updatedBefore", $_updatedBefore)
-        }
-        if ($CreatedAfter) {
-            $_createdAfter = $CreatedAfter | ConvertTo-Rfc3339
-            $Headers.Add("createdAfter", $_createdAfter)
-        }
-        if ($CreatedBefore) {
-            $_createdBefore = $CreatedBefore | ConvertTo-Rfc3339
-            $Headers.Add("createdBefore", $_createdBefore)
-        }
-        #endregion
-
-
-
-        #region: Send RequestHeaders_________________________________________________________
-        # Request URI
-        $Method = $HttpMethod.Get
-        $RequestUrl = $BaseUrl + "/cases/" + $QueryString
-
-
-        # REQUEST
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
-            }
+    # Priority
+    if ($Priority) {
+        if ($Priority.Count -gt 1) {
+            $_priority = $Priority -join ','
         } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
-            }
+            $_priority = $Priority
         }
+        $QueryParams.Add("priority", $_priority)
+    }
 
-        # For Summary, return a formatted report
-        if ($Summary) {
-            return Format-LrCaseListSummary -InputObject $Response
+
+    # Status
+    if ($Status) {
+        $_statusNumbers = $Status | ConvertTo-LrCaseStatusId
+        if (! $_statusNumbers) {
+            throw [ArgumentException] "Status in [$Status] not found."
         }
+        if ($_statusNumbers.count -gt 1) {
+            $_status = $_statusNumbers -join ','
+        } else {
+            $_status = $_statusNumbers
+        }
+        $QueryParams.Add("statusNumber", $_status)
+    }
 
 
-        # Exclude Tags
-        if ($ExcludeTags -and $Response) {
-            $FilteredResult = [List[Object]]::new()
+    # Owner
+    if ($Owners) {
+        $_ownerNumbers = $Owners | Get-LrUserNumber
+        if (! $_ownerNumbers) {
+            throw [ArgumentException] "Owner(s) [$Owners] not found."
+        }
+        if ($_ownerNumbers.count -gt 1) {
+            $_owner = $_ownerNumbers -join ','
+        } else {
+            $_owner = $_ownerNumbers
+        }
+        $QueryParams.Add("ownerNumber", $_owner)
+    }
 
-            # Check every case
-            foreach ($case in $Response) {
-                $Exclude = $false
-                # Inspect each case's tags
-                foreach ($tag in $case.tags) {
-                    # Check each case tag against Excluded Tags
-                    foreach ($excludedTag in $ExcludeTags) {
-                        if ($tag.text -eq $excludedTag) {
-                            Write-Verbose "Excluding Case $($case.number) because it contains tag $excludedTag."
-                            $Exclude = $true
-                        }
+    # Collaborator
+    if ($Collaborator) {
+        $_collabNumber = $Collaborator | Get-LrUserNumber
+        if ($_collabNumber) {
+            $QueryParams.Add("collaboratorNumber", $_collabNumber)
+        } else {
+            throw [ArgumentException] "Collaborator [$Collaborator] not found."
+        }
+    }
+
+
+    # Tags  (Exclude Tags are removed from the final result)
+    if ($Tags) {
+        $_tagNumbers = $Tags | Get-LrTagNumber
+        if (! $_tagNumbers) {
+            throw [ArgumentException] "Tag(s) $Tags not found."
+        }
+        if ($_tagNumbers.count -gt 1) {
+            $_tags = $_tagNumbers -join ','
+        } else {
+            $_tags = $_tagNumbers
+        }
+        $QueryParams.Add("tagNumber", $_tags)
+    }
+
+
+    # Name
+    if ($Name) {
+        # should we uri-encode this?
+        $QueryParams.Add("text", $Name)
+    }
+
+
+    # EvidenceType
+    if ($EvidenceType) {
+        if ($EvidenceType.Count -gt 1) {
+            $EvidenceType = $EvidenceType -join ','
+        }
+        $QueryParams.Add("evidenceType", $EvidenceType)
+    }
+
+    if ($QueryParams.Count -gt 0) {
+        $QueryString = $QueryParams | ConvertTo-QueryString
+        Write-Verbose "[$Me]: QueryString is [$QueryString]"
+    }
+    #endregion
+
+
+
+    #region: Process Request Headers_____________________________________________________
+    $Headers = [Dictionary[string,string]]::new()
+    $Headers.Add("Authorization", "Bearer $Token")
+    $Headers.Add("count", $Count)
+    $Headers.Add("direction", $Direction)
+
+    # Update / Create DateTimes
+    if ($UpdatedAfter) {
+        $_updatedAfter = $UpdatedAfter | ConvertTo-Rfc3339
+        $Headers.Add("updatedAfter", $_updatedAfter)
+    }
+    if ($UpdatedBefore) {
+        $_updatedBefore = $UpdatedBefore | ConvertTo-Rfc3339
+        $Headers.Add("updatedBefore", $_updatedBefore)
+    }
+    if ($CreatedAfter) {
+        $_createdAfter = $CreatedAfter | ConvertTo-Rfc3339
+        $Headers.Add("createdAfter", $_createdAfter)
+    }
+    if ($CreatedBefore) {
+        $_createdBefore = $CreatedBefore | ConvertTo-Rfc3339
+        $Headers.Add("createdBefore", $_createdBefore)
+    }
+    #endregion
+
+
+
+    #region: Send RequestHeaders_________________________________________________________
+    # Request URI
+    $Method = $HttpMethod.Get
+    $RequestUrl = $BaseUrl + "/cases/" + $QueryString
+
+
+    # REQUEST
+    if ($PSEdition -eq 'Core'){
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
+        }
+        catch {
+            $Err = Get-RestErrorMessage $_
+            throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+        }
+    } else {
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+        }
+        catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+        }
+    }
+
+    # For Summary, return a formatted report
+    if ($Summary) {
+        return Format-LrCaseListSummary -InputObject $Response
+    }
+
+
+    # Exclude Tags
+    if ($ExcludeTags -and $Response) {
+        $FilteredResult = [List[Object]]::new()
+
+        # Check every case
+        foreach ($case in $Response) {
+            $Exclude = $false
+            # Inspect each case's tags
+            foreach ($tag in $case.tags) {
+                # Check each case tag against Excluded Tags
+                foreach ($excludedTag in $ExcludeTags) {
+                    if ($tag.text -eq $excludedTag) {
+                        Write-Verbose "Excluding Case $($case.number) because it contains tag $excludedTag."
+                        $Exclude = $true
                     }
                 }
-                if (-not $Exclude) {
-                    $FilteredResult.Add($case)
+            }
+            if (-not $Exclude) {
+                $FilteredResult.Add($case)
+            }
+        }
+    }
+    #endregion
+
+    if ($Exact) {
+        if ($FilteredResult) {
+            $Pattern = "^$Name$"
+            $FilteredResult | ForEach-Object {
+                if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
+                    Write-Verbose "[$Me]: Exact list name match found."
+                    $List = $_
+                    return $List
                 }
             }
-            # Return filtered result
+        } else {
+            $Pattern = "^$Name$"
+            $Response | ForEach-Object {
+                if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
+                    Write-Verbose "[$Me]: Exact list name match found."
+                    $List = $_
+                    return $List
+                }
+            }
+        }
+    } elseif ($Name) {
+        if ($FilteredResult) {
+            $Pattern = ".*$Name.*"
+            $FilteredResult | ForEach-Object {
+                if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
+                    Write-Verbose "[$Me]: Exact list name match found."
+                    $List = $_
+                    return $List
+                }
+            }
+        } else {
+            $Pattern = ".*$Name.*"
+            $Response | ForEach-Object {
+                if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
+                    Write-Verbose "[$Me]: Exact list name match found."
+                    $List = $_
+                    return $List
+                }
+            }
+        }
+    } else {
+        if ($FilteredResult) {
             return $FilteredResult
-        }
-        #endregion
-
-        if ($Exact) {
-            if ($FilteredResult) {
-                $Pattern = "^$Name$"
-                $FilteredResult | ForEach-Object {
-                    if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
-                        Write-Verbose "[$Me]: Exact list name match found."
-                        $List = $_
-                        return $List
-                    }
-                }
-            } else {
-                $Pattern = "^$Name$"
-                $Response | ForEach-Object {
-                    if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
-                        Write-Verbose "[$Me]: Exact list name match found."
-                        $List = $_
-                        return $List
-                    }
-                }
-            }
-        } elseif ($Name) {
-            if ($FilteredResult) {
-                $Pattern = ".*$Name.*"
-                $FilteredResult | ForEach-Object {
-                    if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
-                        Write-Verbose "[$Me]: Exact list name match found."
-                        $List = $_
-                        return $List
-                    }
-                }
-            } else {
-                $Pattern = ".*$Name.*"
-                $Response | ForEach-Object {
-                    if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
-                        Write-Verbose "[$Me]: Exact list name match found."
-                        $List = $_
-                        return $List
-                    }
-                }
-            }
         } else {
-            if ($FilteredResult) {
-                return $FilteredResult
-            } else {
-                return $Response
-            }
+            return $Response
         }
     }
 }

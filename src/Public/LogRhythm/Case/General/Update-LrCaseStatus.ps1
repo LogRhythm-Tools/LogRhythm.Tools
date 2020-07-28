@@ -33,27 +33,36 @@ Function Update-LrCaseStatus {
     .OUTPUTS
         PSCustomObject representing the modified LogRhythm Case.
     .EXAMPLE
-        PS C:\> Update-LrCaseStatus -Id "CC06D874-3AC5-4E6F-A8D1-C5F2AF477EEF" -StatusNumber 2
+        PS C:\> Update-LrCaseStatus -id 2 -Status 2 -Summary
         ---
-            id                      : CC06D874-3AC5-4E6F-A8D1-C5F2AF477EEF
-            number                  : 1815
-            externalId              :
-            dateCreated             : 2019-10-04T22:16:37.0980428Z
-            dateUpdated             : 2019-10-05T02:46:22.8836839Z
-            dateClosed              : 2019-10-05T02:46:22.8802919Z
-            owner                   : @{number=52; name=API, LogRhythm; disabled=False}
-            lastUpdatedBy           : @{number=52; name=API, LogRhythm; disabled=False}
-            name                    : Test Case - Pester Automated Test
-            status                  : @{name=Completed; number=2}
-            priority                : 5
-            dueDate                 : 2019-10-15T09:18:22Z
-            resolution              :
-            resolutionDateUpdated   :
-            resolutionLastUpdatedBy :
-            summary                 : Case created by Pester automation
-            entity                  : @{number=-100; name=Global Entity}
-            collaborators           : {@{number=52; name=API, LogRhythm; disabled=False}}
-            tags                    : {}
+        Updated 1 cases to status 2
+    .EXAMPLE
+        PS C:\> Update-LrCaseStatus -id "case 2" -Status 1 -Summary
+        ---
+        Updated 1 cases to status 1
+    .EXAMPLE
+        PS C:\> Update-LrCaseStatus -id "case 2" -Status 1 -PassThru
+        ---
+
+        id                      : 408C2E88-2E5D-4DA5-90FE-9F4D63B5B709
+        number                  : 2
+        externalId              :
+        dateCreated             : 2020-06-06T13:46:49.4964154Z
+        dateUpdated             : 2020-07-17T02:03:20.2314328Z
+        dateClosed              :
+        owner                   : @{number=1; name=lrtools; disabled=False}
+        lastUpdatedBy           : @{number=1; name=lrtools; disabled=False}
+        name                    : Case 2
+        status                  : @{name=Created; number=1}
+        priority                : 5
+        dueDate                 : 2020-06-07T13:46:44Z
+        resolution              : 
+        resolutionDateUpdated   :
+        resolutionLastUpdatedBy :
+        summary                 :
+        entity                  : @{number=-100; name=Global Entity; fullName=Global Entity}
+        collaborators           : {@{number=-100; name=LogRhythm Administrator; disabled=False}, @{number=1; name=lrtools; disabled=False}}
+        tags                    : {}
     .NOTES
         LogRhythm-API
     .LINK
@@ -105,12 +114,13 @@ Function Update-LrCaseStatus {
 
 
     Process {
-        # Get Case Id
-        $IdInfo = Test-LrCaseIdFormat $Id
-        if (! $IdInfo.IsValid) {
-            throw [ArgumentException] "Parameter [Id] should be an RFC 4122 formatted string or an integer."
+        # Test CaseID Format
+        $IdStatus = Test-LrCaseIdFormat $Id
+        if ($IdStatus.IsValid -eq $true) {
+            $CaseNumber = $IdStatus.CaseNumber
+        } else {
+            return $IdStatus
         }
-
 
         # Validate Case Status
         $_status = ConvertTo-LrCaseStatusId -Status $Status
@@ -119,7 +129,7 @@ Function Update-LrCaseStatus {
         }
 
         # Request URI
-        $RequestUrl = $BaseUrl + "/cases/$Id/actions/changeStatus/"
+        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/actions/changeStatus/"
 
 
         # Request Body
@@ -135,7 +145,7 @@ Function Update-LrCaseStatus {
             try {
                 $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
             }
-            catch [System.Net.WebException] {
+            catch {
                 $Err = Get-RestErrorMessage $_
                 throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
             }
