@@ -76,7 +76,7 @@ Function Update-LrCaseStatus {
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
 
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 1)]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true ,ValueFromPipelineByPropertyName = $true, Position = 1)]
         [object] $Id,
 
         [Parameter(Mandatory = $true, Position = 2)]
