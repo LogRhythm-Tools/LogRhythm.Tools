@@ -78,11 +78,7 @@ Function Get-LrCasePlaybooks {
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
 
-        [Parameter(
-            Mandatory = $true,
-            ValueFromPipeline = $true,
-            Position = 1
-        )]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 1)]
         [ValidateNotNullOrEmpty()]
         [object] $Id
     )
