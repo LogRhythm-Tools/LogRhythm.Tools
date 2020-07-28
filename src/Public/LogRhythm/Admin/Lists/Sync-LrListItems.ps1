@@ -159,9 +159,9 @@ Function Sync-LrListItems {
                     $RemovalResults = "$(Get-TimeStamp) - Addition Summary - List: $($ErrorObject.ListName) Quantity: $($AddList.Count)"
                 } else {
                     if ($ItemType) {
-                        $AdditionResults = Add-LrListItem -Name $ErrorObject.ListNAme -Value $AddList -ItemType $ItemType
+                        $AdditionResults = Add-LrListItem -Name $ErrorObject.ListName -Value $AddList -ItemType $ItemType
                     } else {
-                        $AdditionResults = Add-LrListItem -Name $ErrorObject.ListNAme -Value $AddList
+                        $AdditionResults = Add-LrListItem -Name $ErrorObject.ListName -Value $AddList
                     }
                 }
             }
