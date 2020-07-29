@@ -45,7 +45,7 @@
     },
 	
 	"Shodan": {
-        "BaseUrl": "https://api.shodan.io"
+        "BaseUrl": "https://api.shodan.io",
 		"ApiKey": ""
     }
 }
