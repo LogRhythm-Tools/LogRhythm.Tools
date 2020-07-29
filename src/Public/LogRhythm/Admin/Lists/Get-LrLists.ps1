@@ -31,7 +31,25 @@ Function Get-LrLists {
         If parameter ListItemsOnly is specified, a string collection is returned containing the
         list's item values.
     .EXAMPLE
-        PS C:\> Get-LrList -Identity "edea82e3-8d0b-4370-86f0-d96bcd4b6c19" -Credential $MyKey
+        PS C:\> Get-LrList -Name "LR Threat List : URL : Attack"
+        ---
+        listType         : GeneralValue
+        status           : Active
+        name             : LR Threat List : URL : Attack
+        useContext       : {URL, DomainImpacted}
+        autoImportOption : @{enabled=False; usePatterns=False; replaceExisting=False}
+        id               : -2208
+        guid             : 7A5C7812-0BA9-4C9F-B4D3-09DC5FA79ACA
+        dateCreated      : 2014-06-04T20:10:09.3Z
+        dateUpdated      : 2020-07-23T19:47:12.61Z
+        readAccess       : PublicAll
+        writeAccess      : PublicGlobalAdmin
+        restrictedRead   : False
+        entityName       : Global Entity
+        entryCount       : 0
+        needToNotify     : False
+        doesExpire       : False
+        owner            : -1000000
     .NOTES
         LogRhythm-API        
     .LINK
@@ -49,7 +67,7 @@ Function Get-LrLists {
         [string] $Name,
 
         [Parameter(Mandatory=$false, Position=2)]
-        [ValidateNotNull()]
+        [ValidateSet('application', 'classification', 'commonevent', 'host', 'location', 'msgsource', 'msgsourcetype', 'mperule', 'network', 'user', 'generalvalue', 'entity', 'rootentity', 'ip', 'iprange', 'identity', 'none', ignorecase=$true)]
         [string] $ListType,
 
         [Parameter(Mandatory=$false, Position=3)]
