@@ -438,20 +438,22 @@ Function Add-LrListItem {
         $RequestUrl = $BaseUrl + "/lists/$Guid/items/"
 
         if ($Value -is [array]) {
-            $ItemValues = [PSCustomObject]@{        }
-            $Items = @()
+            $Items = [list[object]]::new()
+            $ItemValues = [PSCustomObject]@{}
             ForEach ($Entry in $Value) {
-                $Items += @{
-                    displayValue = 'List'
-                    expirationDate = $ExpDate
-                    isExpired =  $false
-                    isListItem = $false
-                    isPattern = $false
-                    listItemDataType = $ListItemDataType
-                    listItemType = $ListItemType
-                    value = $Entry
+                $ItemValue = [PSCustomObject]@{
+                        displayValue = 'List'
+                        expirationDate = $ExpDate
+                        isExpired =  $false
+                        isListItem = $false
+                        isPattern = $false
+                        listItemDataType = $ListItemDataType
+                        listItemType = $ListItemType
+                        value = $Entry
                 }
+                $Items.add($ItemValue)
             }
+            Write-Verbose "Number of values submitted: $($Items.count)"
             $ItemValues | Add-Member -NotePropertyName items -NotePropertyValue $Items
             # Check length of Items to Add to List
             if ($ItemValues.length -gt 1000) {
