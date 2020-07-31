@@ -1,4 +1,6 @@
 using namespace System
+using namespace System.Management.Automation
+using namespace Microsoft.ActiveDirectory.Management
 
 Function Disable-LrtADUser {
     <#
@@ -15,39 +17,104 @@ Function Disable-LrtADUser {
     
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory=$true,Position=0)]
-        [string] $Identity,
-        [Parameter(Mandatory=$true,Position=1)]
-        [pscredential] $Credential
+        [Parameter(
+            Mandatory = $true,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true,
+            Position = 0
+        )]
+        [ValidateNotNullOrEmpty()]
+        [ADUser] $Identity
     )
-    $ThisFunction = $MyInvocation.MyCommand
 
-    # Get Domain
-    $Domain = Get-ADDomain
-    if (!$Domain) {
-        Write-Verbose "[$ThisFunction]: Could not determine current domain."
-        return $false
+
+
+    Begin {
+        $Me = $MyInvocation.MyCommand.Name
+
+        # Import Module ActiveDirectory
+        if (! (Import-LrtADModule)) {
+            throw [Exception] "LogRhythm.Tools Failed to load ActiveDirectory module."
+        }
+
+
+        # Determine which parameters to pass to AD cmdlets - Server, Credential, both, or neither.
+        $Options = ""
+        if ($LrtConfig.ActiveDirectory.Credential) {
+            if ($LrtConfig.ActiveDirectory.Server) {
+                $Options = "Server+Credential"
+            } else {
+                $Options = "Credential"
+            }
+        } else {
+            if ($LrtConfig.ActiveDirectory.Server) {
+                $Options = "Server"
+            }
+        }
     }
 
-    # Check User Account
-    if (!(Test-LrtADUserExists $Identity)) {
-        Write-Verbose "[$ThisFunction]: Could not find user [$Identity]."
-        return $false
+
+    Process {
+
+        # Validate user account
+        $UserInfo = Get-LrtADUserInfo -Identity $Identity
+        if (! $UserInfo.Exists) {
+            Write-Verbose "Could not find user [$Identity]."
+            throw [ADIdentityNotFoundException] "[$Me]: Cannot find an object with identity '$($UserInfo.Name)'"
+        }
+
+        # If already disabled, return true
+        if (! $UserInfo.Enabled) {
+            Write-Verbose "[$Me]: $($UserInfo.Name) is already disabled."
+            return $true
+        }
+
+        
+        # Disable Account
+        try {
+            switch ($Options) {
+                "Server+Credential" {
+                    Write-Verbose "Get-ADUser Options: +Credential +Server"
+                    $UserInfo.ADUser | Disable-ADAccount `
+                        -Server $LrtConfig.ActiveDirectory.Server `
+                        -Credential $LrtConfig.ActiveDirectory.Credential
+                        
+                }
+                "Credential" {
+                    Write-Verbose "Get-ADUser Options: +Credential"
+                    $UserInfo.ADUser | Disable-ADAccount `
+                        -Credential $LrtConfig.ActiveDirectory.Credential
+                }
+                "Server" {
+                    Write-Verbose "Get-ADUser Options: +Server"
+                    $UserInfo.ADUser | Disable-ADAccount `
+                        -Server $LrtConfig.ActiveDirectory.Server
+                }
+                Default {
+                    Write-Verbose "Get-ADUser Options: None"
+                    $UserInfo.ADUser | Disable-ADAccount
+                }
+            }            
+        }
+        catch {
+            $PSCmdlet.ThrowTerminatingError($PSItem)
+        }
+
+
+        # Check account to ensure it is disabled
+        $UserInfo = Get-LrtADUserInfo -Identity $Identity
+        if (! $UserInfo.Enabled) {
+            Write-Verbose "[$Me]: Successfully disabled '$($UserInfo.Name)'"
+            return $true
+        } else {
+            Write-Verbose "[$Me]: Failed to disable object '$($UserInfo.Name)'"
+            return $false
+        }
     }
 
-    try {
-        Get-ADUser -Identity $Identity | Disable-ADAccount -Credential $Credential -ErrorAction Stop
-    }
-    catch [exception] {
-        Write-Verbose "[$ThisFunction]: Error encoutered while trying to disable [$Identity]"
-        return $false
+    End {
+
     }
 
-    $Detail = Get-ADUser -Identity $Identity -Properties Enabled
-    if (-not ($Detail.Enabled)) {
-        Write-Verbose "Account successfully disabled."
-        return $true
-    } else {
-        return $false
-    }
+
 }
