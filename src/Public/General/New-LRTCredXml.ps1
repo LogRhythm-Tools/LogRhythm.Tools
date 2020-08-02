@@ -54,10 +54,8 @@ Function New-LrtCredXml {
         Path       : c:\tmp
         FileName   : Bob.xml
         Credential : System.Management.Automation.PSCredential
-    .NOTES
-        SmartResponse.Framework
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
     [CmdletBinding()]
