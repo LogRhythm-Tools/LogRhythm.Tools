@@ -117,7 +117,7 @@ Function New-LrSearch {
         [Parameter(Mandatory = $false,  Position = 3)]
         [bool]$QueryRawLog = $true,
 
-        [Parameter(Mandatory = $false,  Position = 3)]
+        [Parameter(Mandatory = $false,  Position = 4)]
         [bool]$QueryEventManager = $true,
 
         [Parameter(Mandatory = $false, Position = 5)]
@@ -146,89 +146,89 @@ Function New-LrSearch {
         [Parameter(Mandatory = $false, Position = 12)]
         [string]$LogSource = "",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+        [Parameter(Mandatory = $false, Position = 13)]
         [ValidateSet('flatlegacy','grouped', ignorecase=$true)]
         [string]$MsgFilterType = "grouped",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+        [Parameter(Mandatory = $false, Position = 14)]
         [ValidateSet('filter','group', 'polylist', ignorecase=$true)]
         [string]$GroupFilterItemType = "group",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+        [Parameter(Mandatory = $false, Position = 15)]
         [ValidateSet('none','and', 'or', 'andprevious', 'orprevious',ignorecase=$true)]
         [string]$GroupFilterOperator = "",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+        [Parameter(Mandatory = $false, Position = 16)]
         [ValidateSet('filterin','filterout', ignorecase=$true)]
         [string]$GroupFilterMode = "",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+        [Parameter(Mandatory = $false, Position = 17)]
         [ValidateSet('and','or', ignorecase=$true)]
         [string]$GroupFilterGroupOperator = "",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+        [Parameter(Mandatory = $false, Position = 18)]
         [ValidateSet('simple','group', ignorecase=$true)]
         [string]$ItemFilterItemType = "simple",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+        [Parameter(Mandatory = $false, Position = 19)]
         [ValidateSet('none','and', 'or', 'andprevious', 'orprevious',ignorecase=$true)]
         [string]$ItemFilterFieldOperator = "none",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+        [Parameter(Mandatory = $false, Position = 20)]
         [ValidateSet('filterin','filterout', ignorecase=$true)]
         [string]$ItemFilterMode = "filterin",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+        [Parameter(Mandatory = $false, Position = 21)]
         [string]$Param1MetaField = "User (Origin or Impacted)",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+        [Parameter(Mandatory = $false, Position = 22)]
         [string]$Param1Value = "administrator",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+        [Parameter(Mandatory = $false, Position = 23)]
         [ValidateSet('none','and', 'or', 'andprevious', 'orprevious',ignorecase=$true)]
         [string]$Param1Operator = "none",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+        [Parameter(Mandatory = $false, Position = 24)]
         [ValidateSet('value' ,'SQLPattern' ,'Regex', ignorecase=$true)]
         [string]$Param1MatchType = "value",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+        [Parameter(Mandatory = $false, Position = 25)]
         [ValidateSet('filterin','filterout', ignorecase=$true)]
         [string]$Param1FilterType = "filterin",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+        [Parameter(Mandatory = $false, Position = 26)]
         [string]$Param2MetaField = "User (Origin or Impacted)",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+        [Parameter(Mandatory = $false, Position = 27)]
         [string]$Param2Value = $null,
 
-        [Parameter(Mandatory = $false, Position = 12)]
+        [Parameter(Mandatory = $false, Position = 28)]
         [ValidateSet('none','and', 'or', 'andprevious', 'orprevious',ignorecase=$true)]
         [string]$Param2Operator = "none",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+        [Parameter(Mandatory = $false, Position = 29)]
         [ValidateSet('value' ,'SQLPattern' ,'Regex', ignorecase=$true)]
         [string]$Param2MatchType = "value",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+        [Parameter(Mandatory = $false, Position = 30)]
         [ValidateSet('filterin','filterout', ignorecase=$true)]
         [string]$Param2FilterType = "filterin",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+        [Parameter(Mandatory = $false, Position = 31)]
         [string]$Param3MetaField = "User (Origin or Impacted)",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+        [Parameter(Mandatory = $false, Position = 32)]
         [string]$Param3Value = $null,
 
-        [Parameter(Mandatory = $false, Position = 12)]
+        [Parameter(Mandatory = $false, Position = 33)]
         [ValidateSet('none','and', 'or', 'andprevious', 'orprevious',ignorecase=$true)]
         [string]$Param3Operator = "none",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+        [Parameter(Mandatory = $false, Position = 34)]
         [ValidateSet('value' ,'SQLPattern' ,'Regex', ignorecase=$true)]
         [string]$Param3MatchType = "value",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+        [Parameter(Mandatory = $false, Position = 35)]
         [ValidateSet('filterin','filterout', ignorecase=$true)]
         [string]$Param3FilterType = "filterin"
     )
