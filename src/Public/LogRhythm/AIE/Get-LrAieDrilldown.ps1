@@ -97,6 +97,11 @@ Function Get-LrAieDrilldown {
         $BaseUrl = $LrtConfig.LogRhythm.AieBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
+        # Request Headers
+        $Headers = [Dictionary[string,string]]::new()
+        $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
+
         # Enable self-signed certificates and Tls1.2
         Enable-TrustAllCertsPolicy
     }
@@ -105,13 +110,7 @@ Function Get-LrAieDrilldown {
 
 
     #region: Process                                                                     
-    Process {
-        # Request Headers
-        $Headers = [Dictionary[string,string]]::new()
-        $Headers.Add("Authorization", "Bearer $Token")
-        $Headers.Add("Content-Type","application/json")
-        
-
+    Process { 
         # Request URI   
         $Method = $HttpMethod.Get
         $RequestUrl = $BaseUrl + "/drilldown/$AlarmId/"
@@ -218,9 +217,6 @@ Function Get-LrAieDrilldown {
             }
         }
         #endregion
-
-
-
 
 
         #region: Prorcess Result                                                         
