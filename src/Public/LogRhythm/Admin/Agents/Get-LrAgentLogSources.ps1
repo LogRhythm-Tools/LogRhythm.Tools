@@ -6,6 +6,8 @@ Function Get-LrAgentLogSources {
     <#
     .SYNOPSIS
         Retrieve the Log Source details from a LogRhythm System Monitor agent.
+        
+        This cmdlet is only available for LogRhythm SIEM's with version 7.5.0 and greater.
     .DESCRIPTION
         Get-LrHostLogSources returns all log sources for an Agent, including retired log sources, unless filtered out.
     .PARAMETER Credential
@@ -208,6 +210,16 @@ Function Get-LrAgentLogSources {
             Note                  =   $null
         }
 
+        # Verify version
+        if ($LrtConfig.LogRhythm.Version -notmatch '7.5.\d') {
+            $ErrorObject.Error = $true
+            $ErrorObject.Code = "404"
+            $ErrorObject.Type = "Cmdlet not supported."
+            $ErrorObject.Note = "This cmdlet is available in LogRhythm version 7.5.0 and greater."
+
+            return $ErrorObject
+        }
+
         # Check if ID value is an integer
         if ([int]::TryParse($Id, [ref]$_int)) {
             Write-Verbose "[$Me]: Id parses as integer."
@@ -313,7 +325,7 @@ Function Get-LrAgentLogSources {
             try {
                 $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
             }
-            catch [System.Net.WebException] {
+            catch {
                 $Err = Get-RestErrorMessage $_
                 $ErrorObject.Error = $true
                 $ErrorObject.Type = "System.Net.WebException"

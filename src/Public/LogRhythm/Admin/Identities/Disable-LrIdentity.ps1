@@ -16,7 +16,7 @@ Function Disable-LrIdentity {
         PSCustomObject representing LogRhythm TrueIdentity Identity and its retirement status.
     .EXAMPLE
         PS C:\> Disable-LrIdentity -IdentityId 11
-        ----
+        ---
         identityID        : 11
         nameFirst         : Marcus
         nameMiddle        :

@@ -73,7 +73,7 @@ Function New-LrHost {
     .OUTPUTS
         PSCustomObject representing the new LogRhythm Host and its contents.
     .EXAMPLE
-        PS C:\> New-LrHost -Entity "Primary Site" -Name "Mynewhost" -ShortDesc "This is the short desc." -LongDesc "This is the killer long description for this host." -Zone "internal" -OS "Windows" -OSVersion "2008r2" -OSType "Server" -Verbose
+        PS C:\> New-LrHost -Entity "Primary Site" -Name "Mynewhost" -ShortDesc "This is the short desc." -LongDesc "This is the killer long description for this host." -Zone "internal" -OS "Windows" -OSVersion "2008r2" -OSType "Server"
         ---
         id                     : 3
         entity                 : @{id=1; name=Primary Site}

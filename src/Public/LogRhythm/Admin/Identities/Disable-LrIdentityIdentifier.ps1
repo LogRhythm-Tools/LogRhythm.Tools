@@ -18,8 +18,9 @@ Function Disable-LrIdentityIdentifier {
         PSCustomObject representing LogRhythm TrueIdentity Identity and its retirement status.
     .EXAMPLE
         Identity and Identifier exists and IdentifierStatus Active prior to cmdlet execution:
-        PS C:\> Retire-LrIdentityIdentifier -IdentityId 1 -IdentifierId 50
 
+        PS C:\> Retire-LrIdentityIdentifier -IdentityId 1 -IdentifierId 50
+        ---
         identifierID identifierType value                      recordStatus
         ------------ -------------- -----                      ------------
         50           Email          marcus.burnett@contaso.com Retired
@@ -27,7 +28,7 @@ Function Disable-LrIdentityIdentifier {
         Identity and Identifier exists and IdentityStatus Retired prior to cmdlet execution:
 
         PS C:\> Retire-LrIdentityIdentifier -IdentityId 1 -IdentifierId 50
-
+        ---
         IsPresent           : True
         IdentifierId        : 50
         Value               : marcus.burnett@contaso.com
@@ -42,7 +43,7 @@ Function Disable-LrIdentityIdentifier {
         Identity does not exist:
         
         PS C:\> Retire-LrIdentityIdentifier -IdentityId 77 -IdentifierId 50
-
+        ---
         IsPresent           : False
         IdentifierId        : 50
         Value               :
@@ -57,7 +58,7 @@ Function Disable-LrIdentityIdentifier {
         Identifier does not exist:
 
         Retire-LrIdentityIdentifier -IdentityId 1 -IdentifierId 77
-
+        ---
         IsPresent           : False
         IdentifierId        : 77
         Value               :

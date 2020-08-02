@@ -25,7 +25,9 @@ Function Get-LrListItems {
     .OUTPUTS
         PSCustomObject representing the specified LogRhythm List contents.
     .EXAMPLE
-        PS C:\> Get-LrListItems -Name "edea82e3-8d0b-4370-86f0-d96bcd4b6c19" -Credential $MyKey
+        PS C:\> Get-LrListItems -Name "edea82e3-8d0b-4370-86f0-d96bcd4b6c19"
+    .EXAMPLE
+        PS C:\> Get-LrListItems -Name "Privileged Users: Local System Administrators" -Exact
     .NOTES
         LogRhythm-API        
     .LINK
