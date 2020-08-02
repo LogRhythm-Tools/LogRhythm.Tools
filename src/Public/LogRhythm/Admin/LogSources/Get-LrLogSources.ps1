@@ -16,8 +16,6 @@ Function Get-LrLogSources {
         String used to search Entity Host records by Name.
     .PARAMETER Exact,
         Switch used to specify Name search for Entity Host record is explicit.
-    .INPUTS
-
     .OUTPUTS
         PSCustomObject representing LogRhythm TrueIdentity Identities and their contents.
     .EXAMPLE
