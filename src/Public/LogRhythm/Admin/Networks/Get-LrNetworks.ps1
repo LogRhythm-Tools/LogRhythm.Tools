@@ -32,6 +32,12 @@ Function Get-LrNetworks {
     .EXAMPLE
         PS C:\> Get-LrNetworks
         ----
+    .EXAMPLE
+        PS C:\> Get-LrNetworks -Name "Network A"
+    .Example
+        PS C:\> Get-LrNetworks -Name "Network Bravo" -Exact
+    .Example
+        PS C:\> Get-LrNetworks -Entity "Primary Site" -EIP 192.168.5.255
     .NOTES
         LogRhythm-API        
     .LINK

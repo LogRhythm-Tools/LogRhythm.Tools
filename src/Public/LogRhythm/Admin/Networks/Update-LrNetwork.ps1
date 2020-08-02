@@ -66,7 +66,7 @@ Function Update-LrNetwork {
     .OUTPUTS
         PSCustomObject representing LogRhythm Network Entity for the updated record.
     .EXAMPLE
-        PS C:\> Update-LrNetwork 
+        PS C:\> Update-LrNetwork  -Entity "Global Entity" -Name "ubernet" -bip 10.7.1.1 -eip 10.7.2.2
         ----
         entity             : @{id=-100; name=Global Entity}
         name               : UberNet

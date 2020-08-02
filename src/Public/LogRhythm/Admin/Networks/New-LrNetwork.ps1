@@ -61,7 +61,7 @@ Function New-LrNetwork {
     .OUTPUTS
         PSCustomObject representing LogRhythm Network and its contents.
     .EXAMPLE
-        PS C:\> New-LrNetwork
+        PS C:\> New-LrNetwork -Entity "Primary Site" -Name "Network Delta" -ShortDesc "My new Network" -LongDesc "This new network is for Delta Squad." -riskLevel "high-high" -threatlevel "high-high" -zone "dmz" -Bip "192.168.5.1" -Eip "192.168.5.255"
         ----
     .NOTES
         LogRhythm-API        
