@@ -354,8 +354,9 @@ Function Get-LrCases {
 
     # Tags  (Exclude Tags are removed from the final result)
     if ($Tags) {
+        $_tagNumbers = [list[string]]::new()
         ForEach ($Tag in $Tags) {
-            $_tagNumbers += $Tag | Get-LrTagNumber
+            $_tagNumbers.add($($Tag | Get-LrTagNumber))
         }
         if ($_tagNumbers.count -gt 1) {
             $_tags = $_tagNumbers -join ','
