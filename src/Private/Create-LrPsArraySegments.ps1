@@ -15,9 +15,9 @@ function Create-LrPsArraySegments {
     .EXAMPLE
 
     .NOTES
-        SmartResponse.Framework
+       
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        
     #> 
     [CmdletBinding()]
     Param(
