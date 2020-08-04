@@ -57,6 +57,8 @@ Function Get-LrtADUserInfo {
             throw [Exception] "LogRhythm.Tools Failed to load ActiveDirectory module."
         }
 
+        $Me = $MyInvocation.MyCommand.Name
+
 
         # Determine which parameters to pass to AD cmdlets - Server, Credential, both, or neither.
         $Options = ""
@@ -71,6 +73,7 @@ Function Get-LrtADUserInfo {
                 $Options = "Server"
             }
         }
+        Write-Verbose "AD Options: $Options"
     }
 
 
@@ -106,54 +109,77 @@ Function Get-LrtADUserInfo {
 
 
         #region: Lookup User Info                                                                         
-        try {
-            switch ($Options) {
-                "Server+Credential" {
-                    Write-Verbose "Get-ADUser Options: +Credential +Server"
+        switch ($Options) {
+            "Server+Credential" {
+                try {
                     $ADUser = Get-ADUser -Identity $Identity -Properties * `
                         -Server $LrtConfig.ActiveDirectory.Server `
-                        -Credential $LrtConfig.ActiveDirectory.Credential
+                        -Credential $LrtConfig.ActiveDirectory.Credential `
+                        -ErrorAction Stop
+                } catch {
+                    Write-Warning "[$Me] User Lookup: $($PSItem.Exception.Message)"
+                    $UserInfo.Exceptions.Add($PSItem.Exception)
                 }
-                "Credential" {
-                    Write-Verbose "Get-ADUser Options: +Credential"
+            }
+
+            "Credential" {
+                try {
                     $ADUser = Get-ADUser -Identity $Identity -Properties * `
-                        -Credential $LrtConfig.ActiveDirectory.Credential
+                        -Credential $LrtConfig.ActiveDirectory.Credential `
+                        -ErrorAction Stop    
+                } catch {
+                    Write-Warning "[$Me] User Lookup: $($PSItem.Exception.Message)"
+                    $UserInfo.Exceptions.Add($PSItem.Exception)
                 }
-                "Server" {
-                    Write-Verbose "Get-ADUser Options: +Server"
+                
+            }
+
+            "Server" {
+                try {
                     $ADUser = Get-ADUser -Identity $Identity -Properties * `
-                         -Server $LrtConfig.ActiveDirectory.Server
+                    -Server $LrtConfig.ActiveDirectory.Server `
+                    -ErrorAction Stop    
                 }
-                Default {
-                    Write-Verbose "Get-ADUser Options: None"
-                    $ADUser = Get-ADUser -Identity $Identity -Properties *
+                catch {
+                    Write-Warning "[$Me] User Lookup: $($PSItem.Exception.Message)"
+                    $UserInfo.Exceptions.Add($PSItem.Exception)
                 }
-            }            
+                
+            }
+
+            Default {
+                try {
+                    $ADUser = Get-ADUser -Identity $Identity -Properties * -ErrorAction Stop    
+                }
+                catch {
+                    Write-Warning "[$Me] User Lookup: $($PSItem.Exception.Message)"
+                    $UserInfo.Exceptions.Add($PSItem.Exception)
+                }
+                
+            }
         }
-        catch {
-            Write-Warning "[$Identity] User Lookup: $($PSItem.Exception.Message)"
-            $UserInfo.Exceptions.Add($PSItem.Exception)
-            return $UserInfo
-        }
+        #endregion
 
 
-        # Basic Properties
-        $UserInfo.Name = $ADUser.Name
-        $UserInfo.SamAccountName = $ADUser.SamAccountName
-        $UserInfo.Title = $ADUser.Title
-        $UserInfo.EmailAddress = $ADUser.EmailAddress
-        $UserInfo.Exists = $true
-        $UserInfo.Enabled = $ADUser.Enabled
-        $UserInfo.LockedOut = $ADUser.LockedOut
-        $UserInfo.PasswordExpired = $ADUser.PasswordExpired
-        $UserInfo.ADUser = $ADUser
-
-
-        # Password Age - sometimes PasswordLastSet is null
-        if ($ADUser.PasswordLastSet -is [datetime]) {
-            $UserInfo.PasswordAge = (New-TimeSpan -Start $ADUser.PasswordLastSet -End (Get-Date)).Days    
-        } else {
-            $UserInfo.PasswordAge = $ADUser.PasswordLastSet
+        #region: Set Basic User Info                                                               
+        if ($ADUser) {
+            # Basic Properties
+            $UserInfo.Name = $ADUser.Name
+            $UserInfo.SamAccountName = $ADUser.SamAccountName
+            $UserInfo.Title = $ADUser.Title
+            $UserInfo.EmailAddress = $ADUser.EmailAddress
+            $UserInfo.Exists = $true
+            $UserInfo.Enabled = $ADUser.Enabled
+            $UserInfo.LockedOut = $ADUser.LockedOut
+            $UserInfo.PasswordExpired = $ADUser.PasswordExpired
+            $UserInfo.ADUser = $ADUser
+    
+            # Password Age - sometimes PasswordLastSet is null
+            if ($ADUser.PasswordLastSet -is [datetime]) {
+                $UserInfo.PasswordAge = (New-TimeSpan -Start $ADUser.PasswordLastSet -End (Get-Date)).Days    
+            } else {
+                $UserInfo.PasswordAge = $ADUser.PasswordLastSet
+            }
         }
         #endregion
 
@@ -166,23 +192,26 @@ Function Get-LrtADUserInfo {
                     "Server+Credential" {
                         $UserInfo.Manager = Get-ADUser -Identity $ADUser.Manager `
                             -Server $LrtConfig.ActiveDirectory.Server `
-                            -Credential $LrtConfig.ActiveDirectory.Credential
+                            -Credential $LrtConfig.ActiveDirectory.Credential `
+                            -ErrorAction Stop
                     }
                     "Credential" {
                         $UserInfo.Manager = Get-ADUser -Identity $ADUser.Manager `
-                            -Credential $LrtConfig.ActiveDirectory.Credential
+                            -Credential $LrtConfig.ActiveDirectory.Credential `
+                            -ErrorAction Stop
                     }
                     "Server" {
                         $UserInfo.Manager = Get-ADUser -Identity $ADUser.Manager `
-                            -Server $LrtConfig.ActiveDirectory.Server
+                            -Server $LrtConfig.ActiveDirectory.Server `
+                            -ErrorAction Stop
                     }
                     Default {
-                        $UserInfo.Manager = Get-ADUser -Identity $ADUser.Manager
+                        $UserInfo.Manager = Get-ADUser -Identity $ADUser.Manager -ErrorAction Stop
                     }
                 }
             }
             catch {
-                Write-Warning "[$Identity] Manager Lookup: $($PSItem.Exception.Message)"
+                Write-Warning "[$Me] Manager Lookup: $($PSItem.Exception.Message)"
                 $UserInfo.Exceptions.Add($PSItem.Exception)
                 # if something goes wrong we will just plug in the default manager field into the result
                 # instead of the manager's name.
@@ -195,29 +224,34 @@ Function Get-LrtADUserInfo {
         
         #region: Lookup Groups                                                                            
         # Run the appropriate version of Get-ADGroup
-        try {
-            switch ($Options) {
-                "Server+Credential" {
-                    $UserInfo.Groups = $ADUser.MemberOf | Get-ADGroup `
-                        -Server $LrtConfig.ActiveDirectory.Server `
-                        -Credential $LrtConfig.ActiveDirectory.Credential
-                }
-                "Credential" {
-                    $UserInfo.Groups = $ADUser.MemberOf | Get-ADGroup `
-                        -Credential $LrtConfig.ActiveDirectory.Credential
-                }
-                "Server" {
-                    $UserInfo.Groups = $ADUser.MemberOf | Get-ADGroup `
-                        -Server $LrtConfig.ActiveDirectory.Server
-                }
-                Default {
-                    $UserInfo.Groups = $ADUser.MemberOf | Get-ADGroup
+        if ($ADUser.MemberOf) {
+            try {
+                switch ($Options) {
+                    "Server+Credential" {
+                        $UserInfo.Groups = $ADUser.MemberOf | Get-ADGroup `
+                            -Server $LrtConfig.ActiveDirectory.Server `
+                            -Credential $LrtConfig.ActiveDirectory.Credential `
+                            -ErrorAction Stop
+                    }
+                    "Credential" {
+                        $UserInfo.Groups = $ADUser.MemberOf | Get-ADGroup `
+                            -Credential $LrtConfig.ActiveDirectory.Credential `
+                            -ErrorAction Stop
+                    }
+                    "Server" {
+                        $UserInfo.Groups = $ADUser.MemberOf | Get-ADGroup `
+                            -Server $LrtConfig.ActiveDirectory.Server `
+                            -ErrorAction Stop
+                    }
+                    Default {
+                        $UserInfo.Groups = $ADUser.MemberOf | Get-ADGroup -ErrorAction Stop
+                    }
                 }
             }
-        }
-        catch {
-            Write-Warning "[$Identity] Group Lookup: $($PSItem.Exception.Message)"
-            $UserInfo.Exceptions.Add($PSItem.Exception)
+            catch {
+                Write-Warning "[$Me] Group Lookup: $($PSItem.Exception.Message)"
+                $UserInfo.Exceptions.Add($PSItem.Exception)
+            }
         }
         #endregion
 

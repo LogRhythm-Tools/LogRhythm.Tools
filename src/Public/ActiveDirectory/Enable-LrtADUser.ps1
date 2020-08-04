@@ -1,53 +1,145 @@
 using namespace System
+using namespace System.Management.Automation
+using namespace Microsoft.ActiveDirectory.Management
 
 Function Enable-LrtADUser {
     <#
     .SYNOPSIS
-        Disable an Active Directory user account.
+        Enable an Active Directory user account.
+    
     .PARAMETER Identity
-        AD User Account to disable
-    .PARAMETER Credential
-        [pscredential] Credentials to use for local auth.
-        Default: Current User
+        AD User Account to enable
     .EXAMPLE
-        Disable-LrtADUser -Identity bobsmith -Credential (Get-Credential)
+        Enable-LrtADUser -Identity testuser -Credential (Get-Credential)
     #>
     
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = "ByADUser")]
     Param(
-        [Parameter(Mandatory=$true,Position=0)]
-        [string] $Identity,
-        [Parameter(Mandatory=$true,Position=1)]
-        [pscredential] $Credential
+        [Parameter(
+            Mandatory = $true,
+            ParameterSetName = "ByADUser",
+            ValueFromPipeline = $true,
+            Position = 0
+        )]
+        [ValidateNotNullOrEmpty()]
+        [ADUser] $Identity,
+
+
+        [Parameter(
+            Mandatory = $true,
+            ParameterSetName = "ByObject",
+            ValueFromPipelineByPropertyName = $true,
+            Position = 1
+        )]
+        [Object] $ADUser,
+
+
+        [Parameter(Mandatory = $false, Position = 1)]
+        [switch] $PassThru
     )
 
 
-    # Get Domain
-    $Domain = Get-ADDomain
-    if (!$Domain) {
-        Write-Verbose "[$ThisFunction]: Could not determine current domain."
-        return $false
+
+    Begin {
+        $Me = $MyInvocation.MyCommand.Name
+
+        # Import Module ActiveDirectory
+        if (! (Import-LrtADModule)) {
+            throw [Exception] "LogRhythm.Tools Failed to load ActiveDirectory module."
+        }
+
+
+        # Determine which parameters to pass to AD cmdlets - Server, Credential, both, or neither.
+        $Options = ""
+        if ($LrtConfig.ActiveDirectory.Credential) {
+            if ($LrtConfig.ActiveDirectory.Server) {
+                $Options = "Server+Credential"
+            } else {
+                $Options = "Credential"
+            }
+        } else {
+            if ($LrtConfig.ActiveDirectory.Server) {
+                $Options = "Server"
+            }
+        }
     }
 
-    # Check User Account
-    if (!(Test-LrtADUserExists $Identity)) {
-        Write-Verbose "[$ThisFunction]: Could not find user [$Identity]"
-        return $false
+
+
+    Process {
+        # If we got a normal ADUser / Name string Get-LrtADUserInfo
+        if ($Identity) {
+            $UserInfo = Get-LrtADUserInfo -Identity $Identity
+            # Validate user exists
+            if (! $UserInfo.Exists) {
+                Write-Verbose "Could not find user [$Identity]."
+                throw [ADIdentityNotFoundException] "[$Me]: Cannot find an object with identity '$($UserInfo.Name)'"
+            }
+            $ADUser = $UserInfo.ADUser
+        }
+
+
+        # If already enabled, return
+        if ($ADUser.Enabled) {
+            Write-Verbose "[$Me]: $($ADUser.Name) is already enabled."
+            if ($PassThru) {
+                # Possibly we should return the userinfo object, but it depends on
+                # how other cmdlets in the module use the output.
+                # for now, returning the [ADUser] object
+                return $ADUser
+            } else {
+                return $null
+            }
+        }
+
+
+        # Enable Account
+        switch ($Options) {
+            "Server+Credential" {
+                Write-Verbose "[$Me] options: Server+Credential"
+                $ADUser | Enable-ADAccount `
+                    -Server $LrtConfig.ActiveDirectory.Server `
+                    -Credential $LrtConfig.ActiveDirectory.Credential `
+                    -ErrorAction Stop
+            }
+            "Credential" {
+                Write-Verbose "[$Me] options: Credential"
+                $ADUser | Enable-ADAccount `
+                    -Credential $LrtConfig.ActiveDirectory.Credential `
+                    -ErrorAction Stop
+            }
+            "Server" {
+                Write-Verbose "[$Me] options: Server"
+                $ADUser | Enable-ADAccount `
+                    -Server $LrtConfig.ActiveDirectory.Server `
+                    -ErrorAction Stop
+            }
+            Default {
+                Write-Verbose "[$Me] options: None"
+                $ADUser | Enable-ADAccount -ErrorAction Stop
+            }
+        }            
+
+
+
+        # Check account to ensure it is enabled
+        $UserInfo = Get-LrtADUserInfo -Identity $ADUser
+        if ($UserInfo.Enabled) {
+            Write-Verbose "[$Me]: Successfully enabled '$($UserInfo.Name)'"
+        } else {
+            throw [Exception] "[$Me]: Failed to enable object '$($UserInfo.Name)'"
+        }
+
+
+        # Implement PassThru
+        if ($PassThru) {
+            return $UserInfo.ADUser
+        }
     }
 
-    try {
-        Get-ADUser -Identity $Identity | Enable-ADAccount -Credential $Credential -ErrorAction Stop
-    }
-    catch [exception] {
-        Write-Verbose "[$ThisFunction]: Error encoutered while trying to enable [$Identity]"
-        return $false
+    End {
+
     }
 
-    $Detail = Get-ADUser -Identity $Identity -Properties Enabled
-    if ($Detail.Enabled) {
-        Write-Verbose "Account successfully enabled"
-        return $true
-    } else {
-        return $false
-    }
+
 }
