@@ -102,6 +102,8 @@ Function Sync-LrListItems {
                 Write-Verbose "$(Get-TimeStamp) - RemoveList Count: $($RemoveList.Count)"
                 $AddList = $ComparisonResults | Where-Object SideIndicator -eq "<=" | Select-Object -ExpandProperty InputObject
                 Write-Verbose "$(Get-TimeStamp) - AddList Count: $($AddList.Count)"
+            } elseif ($Value.Count -eq 0 -And $ListValues.Count -ge 1) {
+                $RemoveList = $ListValues
             } else {
                 $AddList = $Value
             }
