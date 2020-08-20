@@ -14,7 +14,7 @@ Function Get-LrtADUserInfo {
     .PARAMETER Identity
         Specifies an Active Directory user in the form of a valid SamAccountName or ADUser.
     .INPUTS
-        None - does not support pipeline.
+        [ADUser] => Identity
     .OUTPUTS
         An object with the following fields is returned:
         - Name:             [string]    Common Name (CN)
@@ -109,54 +109,11 @@ Function Get-LrtADUserInfo {
 
 
         #region: Lookup User Info                                                                         
-        switch ($Options) {
-            "Server+Credential" {
-                try {
-                    $ADUser = Get-ADUser -Identity $Identity -Properties * `
-                        -Server $LrtConfig.ActiveDirectory.Server `
-                        -Credential $LrtConfig.ActiveDirectory.Credential `
-                        -ErrorAction Stop
-                } catch {
-                    Write-Warning "[$Me] User Lookup: $($PSItem.Exception.Message)"
-                    $UserInfo.Exceptions.Add($PSItem.Exception)
-                }
-            }
-
-            "Credential" {
-                try {
-                    $ADUser = Get-ADUser -Identity $Identity -Properties * `
-                        -Credential $LrtConfig.ActiveDirectory.Credential `
-                        -ErrorAction Stop    
-                } catch {
-                    Write-Warning "[$Me] User Lookup: $($PSItem.Exception.Message)"
-                    $UserInfo.Exceptions.Add($PSItem.Exception)
-                }
-                
-            }
-
-            "Server" {
-                try {
-                    $ADUser = Get-ADUser -Identity $Identity -Properties * `
-                    -Server $LrtConfig.ActiveDirectory.Server `
-                    -ErrorAction Stop    
-                }
-                catch {
-                    Write-Warning "[$Me] User Lookup: $($PSItem.Exception.Message)"
-                    $UserInfo.Exceptions.Add($PSItem.Exception)
-                }
-                
-            }
-
-            Default {
-                try {
-                    $ADUser = Get-ADUser -Identity $Identity -Properties * -ErrorAction Stop    
-                }
-                catch {
-                    Write-Warning "[$Me] User Lookup: $($PSItem.Exception.Message)"
-                    $UserInfo.Exceptions.Add($PSItem.Exception)
-                }
-                
-            }
+        try {
+            $ADUser = Get-LrtADUser -Identity $Identity -Properties *
+        } catch {
+            Write-Warning "[$Me] User Lookup: $($PSItem.Exception.Message)"
+            $UserInfo.Exceptions.Add($PSItem.Exception)
         }
         #endregion
 
@@ -188,67 +145,24 @@ Function Get-LrtADUserInfo {
         #region: Lookup Manager Info                                                                      
         if ($ADUser.Manager) {
             try {
-                switch ($Options) {
-                    "Server+Credential" {
-                        $UserInfo.Manager = Get-ADUser -Identity $ADUser.Manager `
-                            -Server $LrtConfig.ActiveDirectory.Server `
-                            -Credential $LrtConfig.ActiveDirectory.Credential `
-                            -ErrorAction Stop
-                    }
-                    "Credential" {
-                        $UserInfo.Manager = Get-ADUser -Identity $ADUser.Manager `
-                            -Credential $LrtConfig.ActiveDirectory.Credential `
-                            -ErrorAction Stop
-                    }
-                    "Server" {
-                        $UserInfo.Manager = Get-ADUser -Identity $ADUser.Manager `
-                            -Server $LrtConfig.ActiveDirectory.Server `
-                            -ErrorAction Stop
-                    }
-                    Default {
-                        $UserInfo.Manager = Get-ADUser -Identity $ADUser.Manager -ErrorAction Stop
-                    }
-                }
-            }
-            catch {
+                $UserInfo.Manager = Get-LrtADUser -Identity $ADUser.Manager
+            } catch {
                 Write-Warning "[$Me] Manager Lookup: $($PSItem.Exception.Message)"
                 $UserInfo.Exceptions.Add($PSItem.Exception)
                 # if something goes wrong we will just plug in the default manager field into the result
                 # instead of the manager's name.
                 $UserInfo.Manager = $ADUser.Manager
             }
-        }     
+        }
         #endregion
 
 
         
         #region: Lookup Groups                                                                            
-        # Run the appropriate version of Get-ADGroup
         if ($ADUser.MemberOf) {
             try {
-                switch ($Options) {
-                    "Server+Credential" {
-                        $UserInfo.Groups = $ADUser.MemberOf | Get-ADGroup `
-                            -Server $LrtConfig.ActiveDirectory.Server `
-                            -Credential $LrtConfig.ActiveDirectory.Credential `
-                            -ErrorAction Stop
-                    }
-                    "Credential" {
-                        $UserInfo.Groups = $ADUser.MemberOf | Get-ADGroup `
-                            -Credential $LrtConfig.ActiveDirectory.Credential `
-                            -ErrorAction Stop
-                    }
-                    "Server" {
-                        $UserInfo.Groups = $ADUser.MemberOf | Get-ADGroup `
-                            -Server $LrtConfig.ActiveDirectory.Server `
-                            -ErrorAction Stop
-                    }
-                    Default {
-                        $UserInfo.Groups = $ADUser.MemberOf | Get-ADGroup -ErrorAction Stop
-                    }
-                }
-            }
-            catch {
+                $UserInfo.Groups = Get-LrtADGroup -Identity $ADUser.MemberOf
+            } catch {
                 Write-Warning "[$Me] Group Lookup: $($PSItem.Exception.Message)"
                 $UserInfo.Exceptions.Add($PSItem.Exception)
             }
