@@ -56,22 +56,6 @@ Function Get-LrtADUser {
             $Properties = @('DistinguishedName','Enabled','GivenName','Name','ObjectClass',
                 'ObjectGUID','SamAccountName','SID','Surname','UserPrincipalName')
         }
-
-
-        # Determine which parameters to pass to AD cmdlets - Server, Credential, both, or neither.
-        $Options = ""
-        if ($LrtConfig.ActiveDirectory.Credential) {
-            if ($LrtConfig.ActiveDirectory.Server) {
-                $Options = "Server+Credential"
-            } else {
-                $Options = "Credential"
-            }
-        } else {
-            if ($LrtConfig.ActiveDirectory.Server) {
-                $Options = "Server"
-            }
-        }
-        Write-Verbose "AD Options: $Options"
     }
 
 
@@ -85,7 +69,7 @@ Function Get-LrtADUser {
 
 
         #region: Lookup User Info                                                                         
-        switch ($Options) {
+        switch ($LrtConfig.ActiveDirectory.Options) {
             "Server+Credential" {
                 try {
                     $ADUser = Get-ADUser -Identity $Identity -Properties $Properties `

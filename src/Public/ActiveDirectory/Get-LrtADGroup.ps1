@@ -43,23 +43,6 @@ Function Get-LrtADGroup {
         }
 
         $Me = $MyInvocation.MyCommand.Name
-
-
-
-        # Determine which parameters to pass to AD cmdlets - Server, Credential, both, or neither.
-        $Options = ""
-        if ($LrtConfig.ActiveDirectory.Credential) {
-            if ($LrtConfig.ActiveDirectory.Server) {
-                $Options = "Server+Credential"
-            } else {
-                $Options = "Credential"
-            }
-        } else {
-            if ($LrtConfig.ActiveDirectory.Server) {
-                $Options = "Server"
-            }
-        }
-        Write-Verbose "AD Options: $Options"
     }
 
 
@@ -67,7 +50,7 @@ Function Get-LrtADGroup {
     Process {
 
         try {
-            switch ($Options) {
+            switch ($LrtConfig.ActiveDirectory.Options) {
                 "Server+Credential" {
                     $Group = $Identity | Get-ADGroup `
                         -Server $LrtConfig.ActiveDirectory.Server `
