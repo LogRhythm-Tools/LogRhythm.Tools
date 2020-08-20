@@ -20,7 +20,7 @@ Function Get-VTUrlReport {
     .OUTPUTS
         PSCustomObject representing the report results.
     .EXAMPLE
-        PS C:\> Get-VtUrlReport -Credential $token -Url "https://logrhythm.com"
+        PS C:\> Get-VtUrlReport -Url "https://logrhythm.com"
         ---
         scan_id       : 9270b9ee778eac9801b130221dda1eb37e68b676a310922cf2b62e63496da404-1570695201
         resource      : https://logrhythm.com

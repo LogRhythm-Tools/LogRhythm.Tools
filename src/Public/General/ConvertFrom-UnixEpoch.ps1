@@ -21,7 +21,7 @@ Function ConvertFrom-UnixEpoch {
             ValueFromPipeline = $true,
             Position = 0
         )]
-        [int] $UnixTime
+        [int64] $UnixTime
     )
 
 
@@ -29,7 +29,11 @@ Function ConvertFrom-UnixEpoch {
 
 
     Process {
-        (([System.DateTimeOffset]::FromUnixTimeSeconds($UnixTime)).DateTime)
+        if (("$UnixTime").length -gt 10 ) {
+            (Get-Date -Date "01/01/1970").AddMilliseconds($UnixTime)
+        } else {
+            (([System.DateTimeOffset]::FromUnixTimeSeconds($UnixTime)).DateTime)
+        }
     }
 
 

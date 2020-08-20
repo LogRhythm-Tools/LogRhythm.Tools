@@ -20,9 +20,36 @@ Function Get-LrEntityDetails {
     .OUTPUTS
         PSCustomObject representing LogRhythm Entity record and its contents.
     .EXAMPLE
-        PS C:\> Get-LrNetworkDetails -Credential $MyKey -Id "2657"
-        ----
+        PS C:\> Get-LrEntityDetails -Id 1      
+        ---
 
+        id               : 1
+        name             : Primary Site
+        fullName         : Primary Site
+        recordStatusName : Active
+        shortDesc        : This entity was created by the deployment wizard as a default Entity.  The name and properties can be changed.
+        dateUpdated      : 2020-06-18T18:54:59.353Z
+        childEntities    : {}
+    .EXAMPLE
+        Get-LrEntityDetails -Id "primary site"
+        ---
+
+        id               : 1
+        name             : Primary Site
+        fullName         : Primary Site
+        recordStatusName : Active
+        shortDesc        : This entity was created by the deployment wizard as a default Entity.  The name and properties can be changed.
+        dateUpdated      : 2020-06-18T18:54:59.353Z
+        childEntities    : {}
+    .EXAMPLE
+        Get-LrEntityDetails -Id "Primary ite"
+        ---
+
+        Code  : 404
+        Error : True
+        Type  : NoRecordFound
+        Note  : Unable to locate exact Entity: Primary ite
+        Value : Primary ite
     .NOTES
         LogRhythm-API        
     .LINK
@@ -76,7 +103,7 @@ Function Get-LrEntityDetails {
         } else {
             Write-Verbose "[$Me]: Id does not parse as integer.  Performing string lookup."
             $EntityLookup = Get-LrEntities -Name $Id -Exact
-            if ($NetworkLookup.Error -eq $true) {
+            if ($EntityLookup.Error -eq $true) {
                 $ErrorObject.Error = $EntityLookup.Error
                 $ErrorObject.Type = $EntityLookup.Type
                 $ErrorObject.Code = $EntityLookup.Code

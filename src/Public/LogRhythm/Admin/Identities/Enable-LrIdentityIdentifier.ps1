@@ -20,7 +20,7 @@ Function Enable-LrIdentityIdentifier {
         Identity exists and Identitystatus Retired prior to cmdlet execution:
 
         PS C:\> Enable-LrIdentityIdentifier -IdentityId 11 -IdentifierId 50
-        ----
+        ---
         identifierID identifierType value                      recordStatus
         ------------ -------------- -----                      ------------
         50           Email          marcus.burnett@contaso.com Active
@@ -29,7 +29,7 @@ Function Enable-LrIdentityIdentifier {
         Identity exists and IdentityStatus Active prior to cmdlet execution:
 
         PS C:\> Enable-LrIdentityIdentifier -IdentityId 11 -IdentifierId 50
-
+        ---
         IsPresent           : True
         IdentifierId        : 50
         Value               : marcus.burnett@contaso.com
@@ -43,6 +43,7 @@ Function Enable-LrIdentityIdentifier {
         Identity does not exist:
 
         PS C:\> Enable-LrIdentityIdentifier -IdentityId 77 -IdentifierId 50
+        ---
         IsPresent           : False
         IdentifierId        : 50
         Value               :
@@ -57,6 +58,7 @@ Function Enable-LrIdentityIdentifier {
         IdentifierId does not exist:
 
         PS C:\> Enable-LrIdentityIdentifier -IdentityId 1 -IdentifierId 55
+        ---
         IsPresent           : False
         IdentifierId        : 55
         Value               :

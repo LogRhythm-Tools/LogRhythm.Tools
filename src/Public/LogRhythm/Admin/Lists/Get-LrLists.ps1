@@ -31,7 +31,11 @@ Function Get-LrLists {
         If parameter ListItemsOnly is specified, a string collection is returned containing the
         list's item values.
     .EXAMPLE
-        PS C:\> Get-LrList -Identity "edea82e3-8d0b-4370-86f0-d96bcd4b6c19" -Credential $MyKey
+        PS C:\> Get-LrLists -ListType "identity"
+    .EXAMPLE
+        PS C:\> Get-LrLists -Name "Priv"
+    .EXAMPLE
+        PS C:\> Get-LrLists -Name "Priv" -Exact
     .NOTES
         LogRhythm-API        
     .LINK
@@ -49,7 +53,7 @@ Function Get-LrLists {
         [string] $Name,
 
         [Parameter(Mandatory=$false, Position=2)]
-        [ValidateNotNull()]
+        [ValidateSet('application', 'classification', 'commonevent', 'host', 'location', 'msgsource', 'msgsourcetype', 'mperule', 'network', 'user', 'generalvalue', 'entity', 'rootentity', 'ip', 'iprange', 'identity', 'none', ignorecase=$true)]
         [string] $ListType,
 
         [Parameter(Mandatory=$false, Position=3)]
@@ -72,7 +76,7 @@ Function Get-LrLists {
             if ($ListTypeInfo.IsValid -eq $true) {
                 $ListTypeValid = $ListTypeInfo.Value
             } else {
-                throw [ArgumentException] "Parameter [ListType] must be a valid LogRhythm List type."
+                throw [ArgumentException] 'Parameter [ListType] must be a valid LogRhythm List type.'
             }
         }
 

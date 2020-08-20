@@ -5,7 +5,9 @@ using namespace System.Collections.Generic
 Function Run-LrTrueIdentityConflictMerger {
     <#
     .SYNOPSIS
-        Merge a list of Identifier Conflicts for LogRhythm 7.4
+        Merge a list of Identifier Conflicts for LogRhythm 7.4.
+
+        This cmdlet is currently under development.
     .DESCRIPTION
         A TrueIdentity "Conflict" is when two TrueIdentities share the same Identifier
         This is common if multiple Active Directory domains are synced; any user with an account in both Domains will likely create a Conflict
@@ -13,22 +15,10 @@ Function Run-LrTrueIdentityConflictMerger {
         Optional long
         Only search for conflicts within this Root EntityId
         Recommended when IdentityEntitySegregation has been enabled in the Data Processor(s)
-    .PARAMETER Filter
-        Apply custom Identities filter
     .EXAMPLE
-        PS C:\> Merge-LrIdentityConflicts -Entity 1
+        PS C:\> Run-LrTrueIdentityMerger
         ----
-    .EXAMPLE
-        PS C:\> Get-LrIdentityConflicts
-        ----
-        ConflictId : 0
-        Login      : marcus.burnett
-        Type       : Login
-        Count      : 2
-        Status     : Unresolved
-        Identities : {@{IdentityId=1; Identity_FirstName=Marcus; Identity_LastName=Burnett; Identity_Title=IT Helpdesk Admin; Identity_Department=IT; Identity_Manager=Nancy Smith;
-             Identity_LastUpdate=2020-03-10T20:29:34.04Z; IdentifierId=1; Source=Fabrikam}, @{IdentityId=11; Identity_FirstName=Marcus; Identity_LastName=Burnett; Identity_Title=IT Helpdesk Admin;
-             Identity_Department=IT; Identity_Manager=Nancy Smith; Identity_LastUpdate=2020-03-10T21:02:53.943Z; IdentifierId=40; Source=Cont0so}}
+        This cmdlet is currently under development.
     .NOTES
         LogRhythm-API        
     .LINK
@@ -55,22 +45,22 @@ Function Run-LrTrueIdentityConflictMerger {
         $Version = 0.1
         function Show-Menu
         {
-         param (
+        param (
                [string]$Title = "TrueIdentity Conflict Merger - Version: $Version"
-         )
-         Clear-Host
-         Write-Host "================ $Title ================"
-        
-         Write-Host "1: Identity Conflicts via API"
-         Write-Host "2: Load Identity Conflicts from File"
-         Write-Host "3: Begin "
-         Write-Host "Q: Press 'Q' to quit."
+        )
+            Clear-Host
+            Write-Host "================ $Title ================"
+            Write-Host " *** THIS CMDLET IS CURRENTLY UNDER DEVELOPMENT *** "
+            Write-Host "1: Identity Conflicts via API"
+            Write-Host "2: Load Identity Conflicts from File"
+            Write-Host "3: Begin "
+            Write-Host "Q: Press 'Q' to quit."
+            Write-Host " *** THIS CMDLET IS CURRENTLY UNDER DEVELOPMENT *** "
         }
     }
 
 
     Process {
-        
             do {
                 Show-Menu
                 $input = Read-Host "Please make a selection"

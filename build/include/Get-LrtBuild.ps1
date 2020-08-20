@@ -96,7 +96,7 @@ Function Get-LrtBuild {
                 $Build.Name = $ModuleInfo.Name
                 $Build.Path = ([DirectoryInfo]::new($Info.ModuleBase)).Parent
                 $Build.Archive = $null
-                $Build.Psm1Path  = [FileInfo]::new($Info.Path)
+                $Build.Psm1Path  = [System.IO.FileInfo]::new($Info.Path)
                 $Build.Version = $Info.Version
 
                 return $Build
@@ -116,8 +116,8 @@ Function Get-LrtBuild {
                 $Build.Guid = [guid]::Parse($BuildInfo.Guid)
                 $Build.Name = $ModuleInfo.Name
                 $Build.Path = [DirectoryInfo]::new($BuildInfo.Path)
-                $Build.Archive = [FileInfo]::new($(Join-Path $Build.Path "$($Build.Name).zip"))
-                $Build.Psm1Path  = [FileInfo]::new($BuildInfo.Psm1Path)
+                $Build.Archive = [System.IO.FileInfo]::new($(Join-Path $Build.Path "$($Build.Name).zip"))
+                $Build.Psm1Path  = [System.IO.FileInfo]::new($BuildInfo.Psm1Path)
                 $Build.Version = $BuildInfo.Version
 
                 return $Build
@@ -132,7 +132,7 @@ Function Get-LrtBuild {
                 $Build.Guid = $Key
                 $Build.Name = $ModuleInfo.Name
                 $Build.Path = $b
-                $Build.Archive = [FileInfo]::new($(Join-Path $Build.Path.FullName "$($Build.Name).zip"))
+                $Build.Archive = [System.IO.FileInfo]::new($(Join-Path $Build.Path.FullName "$($Build.Name).zip"))
                 $Build.Psm1Path  = $b | Get-ChildItem -Filter *.psm1 -Recurse
                 $Build.Version = $Build.Psm1Path.Directory.BaseName
 

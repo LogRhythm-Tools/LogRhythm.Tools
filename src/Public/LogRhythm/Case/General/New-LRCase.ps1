@@ -27,7 +27,27 @@ Function New-LrCase {
     .OUTPUTS
         PSCustomObject representing the newly created case.
     .EXAMPLE
-        PS C:\> New-LrCase -Name "test" -Priority 5 -Summary "test summary" -DueDate "10-20-2020 14:22:11" -Credential $cred
+        PS C:\>  New-LrCase -Name "Mock case" -Priority 5 -Summary "Mock case summary for automation validation." -DueDate "10-20-2020 14:22:11"
+
+        id                      : E66A5D03-412F-43AB-B9B7-0459055827AF
+        number                  : 2
+        externalId              :
+        dateCreated             : 2020-07-16T16:47:46.0395837Z
+        dateUpdated             : 2020-07-16T16:47:46.0395837Z
+        dateClosed              :
+        owner                   : @{number=2; name=LRTools; disabled=False}
+        lastUpdatedBy           : @{number=2; name=LRTools; disabled=False}
+        name                    : Mock case
+        status                  : @{name=Created; number=1}
+        priority                : 5
+        dueDate                 : 2020-10-20T14:22:11Z
+        resolution              :
+        resolutionDateUpdated   :
+        resolutionLastUpdatedBy :
+        summary                 : Mock case summary for automation validation.
+        entity                  : @{number=-100; name=Global Entity; fullName=Global Entity}
+        collaborators           : {@{number=2; name=LRTools; disabled=False}}
+        tags                    : {}
     .NOTES
         LogRhythm-API
     .LINK
@@ -116,7 +136,7 @@ Function New-LrCase {
                 $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
                 Write-Verbose "[$Me]: Created Case $($Response.id)" 
             }
-            catch [System.Net.WebException] {
+            catch {
                 $Err = Get-RestErrorMessage $_
                 throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
             }

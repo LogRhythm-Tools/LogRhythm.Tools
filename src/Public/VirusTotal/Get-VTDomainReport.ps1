@@ -20,7 +20,7 @@ Function Get-VTDomainReport {
     .OUTPUTS
         PSCustomObject representing the report results.
     .EXAMPLE
-        PS C:\> Get-VtDomainReport -Credential $token -Url "logrhythm.com"
+        PS C:\> Get-VtDomainReport -Url "logrhythm.com"
         ---
         BitDefender category             : computersandsoftware
         https_certificate_date           : 1576852588

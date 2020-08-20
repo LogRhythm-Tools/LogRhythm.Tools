@@ -45,7 +45,7 @@ Function Get-LrAieDrilldown {
     .OUTPUTS
         PSCustomObject representing the Drilldown results.
     .EXAMPLE
-        PS C:\> Get-LrAieDrilldown -Credential $token -AlarmId 2261993
+        PS C:\> Get-LrAieDrilldown -AlarmId 2261993
         ---
         AlarmID           : System.Int32
         AlarmGuid         : System.String (guid)
@@ -75,11 +75,7 @@ Function Get-LrAieDrilldown {
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
 
-        [Parameter(
-            Mandatory = $true,
-            ValueFromPipeline = $true,
-            Position = 1
-        )]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 1)]
         [int] $AlarmId,
 
 
@@ -101,6 +97,11 @@ Function Get-LrAieDrilldown {
         $BaseUrl = $LrtConfig.LogRhythm.AieBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
+        # Request Headers
+        $Headers = [Dictionary[string,string]]::new()
+        $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
+
         # Enable self-signed certificates and Tls1.2
         Enable-TrustAllCertsPolicy
     }
@@ -109,13 +110,7 @@ Function Get-LrAieDrilldown {
 
 
     #region: Process                                                                     
-    Process {
-        # Request Headers
-        $Headers = [Dictionary[string,string]]::new()
-        $Headers.Add("Authorization", "Bearer $Token")
-        $Headers.Add("Content-Type","application/json")
-        
-
+    Process { 
         # Request URI   
         $Method = $HttpMethod.Get
         $RequestUrl = $BaseUrl + "/drilldown/$AlarmId/"
@@ -222,9 +217,6 @@ Function Get-LrAieDrilldown {
             }
         }
         #endregion
-
-
-
 
 
         #region: Prorcess Result                                                         

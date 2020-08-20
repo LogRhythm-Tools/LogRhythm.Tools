@@ -19,16 +19,62 @@ Function Find-LrIdentity {
     .EXAMPLE
         Find-LrIdentity -Id 7
         ---
-        id          : 7
-        nameFirst   : Eric
-        nameMiddle  :
-        nameLast    : Hart
-        login1      : Eric.Hart
-        title       :
-        addressCity : 
-        department  : Customer Success
-        company     : LogRhythm Inc.
-        manager     :
+        identityID        : 7
+        nameFirst         : Eric
+        nameMiddle        :
+        nameLast          : Hart
+        displayIdentifier : Eric.Hart
+        company           : LogRhythm Inc.
+        department        : Customer Success
+        title             :
+        manager           :
+        addressCity       :
+        domainName        :
+        entity            : @{entityId=1; rootEntityId=0; path=Primary Site; name=Primary Site}
+        dateUpdated       : 2020-06-19T13:37:28.86Z
+        recordStatus      : Active
+        identifiers       : {@{identifierID=4; identifierType=Login; value=eric.hart@logrhythm.com; recordStatus=Active; source=}, @{identifierID=5; identifierType=Email;        
+                            value=eric.hart@logrhythm.com; recordStatus=Active; source=}}
+        groups            : {@{name=Domain Admins}}
+    .EXAMPLE
+        Find-LrIdentity -Id @(1, 3, 7, 12)
+        ---
+
+        identityID        : 1
+        nameFirst         : Eric
+        nameMiddle        : W
+        nameLast          : Hart
+        displayIdentifier : Eric.Hart
+        company           : LogRhythm
+        department        : Customer Success
+        title             : 
+        manager           : 
+        addressCity       :
+        domainName        :
+        entity            : @{entityId=1; rootEntityId=0; path=Primary Site; name=Primary Site}
+        dateUpdated       : 2020-06-19T14:25:33.883Z
+        recordStatus      : Retired
+        identifiers       : {@{identifierID=1; identifierType=Login; value=eric.hart@logrhythm.com; recordStatus=Active; source=}, @{identifierID=2; identifierType=Email;        
+                            value=eric.hart@logrhythm.com; recordStatus=Active; source=}}
+        groups            : {@{name=Domain Admins}}
+
+        identityID        : 7
+        nameFirst         : Eric
+        nameMiddle        :
+        nameLast          : Hart
+        displayIdentifier : Eric.Hart
+        company           : LogRhythm Inc.
+        department        : Customer Success
+        title             :
+        manager           :
+        addressCity       :
+        domainName        :
+        entity            : @{entityId=1; rootEntityId=0; path=Primary Site; name=Primary Site}
+        dateUpdated       : 2020-06-19T13:37:28.86Z
+        recordStatus      : Active
+        identifiers       : {@{identifierID=4; identifierType=Login; value=eric.hart@logrhythm.com; recordStatus=Active; source=}, @{identifierID=5; identifierType=Email;        
+                            value=eric.hart@logrhythm.com; recordStatus=Active; source=}}
+        groups            : {@{name=Domain Admins}}
     .NOTES
         LogRhythm-API        
     .LINK

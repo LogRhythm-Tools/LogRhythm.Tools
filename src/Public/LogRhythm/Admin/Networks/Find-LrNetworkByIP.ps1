@@ -21,7 +21,13 @@ Function Find-LrNetworkByIP {
     .OUTPUTS
         PSCustomObject representing LogRhythm Network entity record and their contents.
     .EXAMPLE
-        PS C:\> Get-LrNetworksbyIP -Credential $MyKey
+        PS C:\> Get-LrNetworksbyIP -Ip 192.168.5.3
+        ----
+    .EXAMPLE
+        PS C:\> Get-LrNetworksbyIP -Bip 192.168.5.1
+        ----
+    .EXAMPLE
+        PS C:\> Get-LrNetworksbyIP -Bip 192.168.5.1 -Eip 192.168.5.255
         ----
     .NOTES
         LogRhythm-API        
@@ -63,7 +69,6 @@ Function Find-LrNetworkByIP {
             $IPResults = Get-LrNetworks -EIP $EIP -Exact
         # Check for existence of Beginning IP Address exact match
         } elseif ($BIP) {
-            Write-Verbose "We're over the hill."
             $IPResults = Get-LrNetworks -BIP $BIP -Exact
         }
 

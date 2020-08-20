@@ -20,7 +20,7 @@ Function Get-LrHostDetails {
     .OUTPUTS
         PSCustomObject representing LogRhythm Entity Host record and its contents.
     .EXAMPLE
-        PS C:\> Get-LrHostDetails -Credential $MyKey -Id "2657"
+        PS C:\> Get-LrHostDetails -Id "2657"
         ----
         id                     : 2657
         entity                 : @{id=22; name=Primary Site}
@@ -38,6 +38,27 @@ Function Get-LrHostDetails {
         dateUpdated            : 2018-12-28T20:44:20.77Z
         hostRoles              : {}
         hostIdentifiers        : {@{type=IPAddress; value=10.1.1.5; dateAssigned=2019-12-28T19:59:28.56Z}}
+    .EXAMPLE
+        Get-LrHostDetails -Id "windows-a10pje5dii3.example.local"
+        ---
+
+        id                     : 2
+        entity                 : @{id=1; name=Primary Site}
+        name                   : WINdows-A10PJE5DII3.example.local
+        riskLevel              : None
+        threatLevel            : High-Low
+        threatLevelComments    :
+        recordStatusName       : Active
+        hostZone               : Internal
+        location               : @{id=29929; name=Spartanburg}
+        os                     : Windows
+        osVersion              : Microsoft Windows NT 10.0.14393.0
+        useEventlogCredentials : False
+        osType                 : Server
+        dateUpdated            : 2020-06-18T23:10:55.1Z
+        hostRoles              : {}
+        hostIdentifiers        : {@{type=WindowsName; value=WIN-A10PJE5DII3; dateAssigned=2020-06-02T17:55:37.19Z}, @{type=IPAddress; value=192.168.2.127; 
+                                dateAssigned=2020-06-02T17:55:37.19Z}}
     .NOTES
         LogRhythm-API        
     .LINK

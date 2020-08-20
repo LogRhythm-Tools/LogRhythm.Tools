@@ -28,7 +28,7 @@ Function Get-LrCasePlaybookProcedures {
 
         If no prceodures are found, this cmdlet will return null.
     .EXAMPLE
-        PS C:\> Get-LrCasePlaybookProcedures -Credential $Token -CaseId 8703 -Id "4CAB940D-CFF7-442E-A54A-5D4949FA783D"
+        PS C:\> Get-LrCasePlaybookProcedures -CaseId 8703 -Id "4CAB940D-CFF7-442E-A54A-5D4949FA783D"
         ---
         id            : C8C47BEC-7E77-44C0-AB7A-3DFA2AF6E9FF
         name          : Drill down on the alarm to gain additional insight
@@ -62,18 +62,11 @@ Function Get-LrCasePlaybookProcedures {
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
 
-        [Parameter(
-            Mandatory = $true,
-            Position = 1
-        )]
+        [Parameter(Mandatory = $true, Position = 1)]
         [ValidateNotNullOrEmpty()]
         [object] $CaseId,
 
-        [Parameter(
-            Mandatory = $false,
-            ValueFromPipelineByPropertyName = $true,
-            Position = 2
-        )]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 2)]
         [ValidateNotNullOrEmpty()]
         [Object] $Id
     )
@@ -90,28 +83,22 @@ Function Get-LrCasePlaybookProcedures {
 
 
     Process {
-        # Get Case Id
-        $IdInfo = Test-LrCaseIdFormat $CaseId
-        if (! $IdInfo.IsValid) {
-            throw [ArgumentException] "Parameter [CaseId] should be an RFC 4122 formatted string or an integer."
+        # Test CaseID Format
+        $IdStatus = Test-LrCaseIdFormat $Id
+        if ($IdStatus.IsValid -eq $true) {
+            $CaseNumber = $IdStatus.CaseNumber
         } else {
-            # Convert CaseID Into to Guid
-            if ($IdInfo.IsGuid -eq $false) {
-                # Retrieve Case Guid
-                $CaseGuid = (Get-LrCaseById -Id $CaseId).id
-            } else {
-                $CaseGuid = $CaseId
-            }
-        }
+            return $IdStatus
+        }   
         
 
         # Populate list of Case Playbooks
-        $CasePlaybooks = Get-LrCasePlaybooks -Id $CaseGuid
+        $CasePlaybooks = Get-LrCasePlaybooks -Id $CaseNumber
 
         # Validate or Retrieve Playbook Id
         if ($Id) {
             if ($null -eq $CasePlaybooks) {
-                throw [ArgumentException] "No Playbooks located on case: $CaseId."
+                throw [ArgumentException] "No Playbooks located on case: $CaseNumber."
             } else {
                 # Validate Playbook Id
                 # Step through array of Playbooks assigned to case looking for match
@@ -150,7 +137,7 @@ Function Get-LrCasePlaybookProcedures {
 
         # Request URI
         $Method = $HttpMethod.Get
-        $RequestUrl = $BaseUrl + "/cases/$CaseGuid/playbooks/$PlaybookGuid/procedures/"
+        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/playbooks/$PlaybookGuid/procedures/"
         Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         # REQUEST
@@ -158,13 +145,13 @@ Function Get-LrCasePlaybookProcedures {
             try {
                 $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
             }
-            catch [System.Net.WebException] {
+            catch {
                 $Err = Get-RestErrorMessage $_
 
                 switch ($Err.statusCode) {
                     "404" {
                         throw [KeyNotFoundException] `
-                            "[404]: Case ID $CaseId or Playbook ID $Id not found, or you do not have permission to view it."
+                            "[404]: Case ID $CaseNumber or Playbook ID $Id not found, or you do not have permission to view it."
                      }
                      "401" {
                          throw [UnauthorizedAccessException] `
@@ -185,7 +172,7 @@ Function Get-LrCasePlaybookProcedures {
                 switch ($Err.statusCode) {
                     "404" {
                         throw [KeyNotFoundException] `
-                            "[404]: Case ID $CaseId or Playbook ID $Id not found, or you do not have permission to view it."
+                            "[404]: Case ID $CaseNumber or Playbook ID $Id not found, or you do not have permission to view it."
                      }
                      "401" {
                          throw [UnauthorizedAccessException] `

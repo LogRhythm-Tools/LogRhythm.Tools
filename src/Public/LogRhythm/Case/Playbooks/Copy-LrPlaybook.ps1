@@ -21,6 +21,7 @@ Function Copy-LrPlaybook {
         PSCustomObject representing the deleted playbook.
     .EXAMPLE
         PS C:\> Copy-LrPlaybook -Id E10111E4-DDC7-4D98-A619-5B80CA55BABF -Name "Newer Playbook"
+        ---
 
         id            : 23F49972-166C-4B9E-9232-352FF16ACE0C
         name          : Newer Playbook
@@ -35,6 +36,7 @@ Function Copy-LrPlaybook {
         tags          : {@{number=9; text=abc}}
     .EXAMPLE
         PS C:\> Copy-LrPlaybook -Id "New Playbook" -Name "Newer Playbook"
+        ---
 
         id            : 23F49972-166C-4B9E-9232-352FF16ACE0C
         name          : Newer Playbook
@@ -133,7 +135,7 @@ Function Copy-LrPlaybook {
             try {
                 $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
             }
-            catch [System.Net.WebException] {
+            catch {
                 $Err = Get-RestErrorMessage $_
                 $ErrorObject.Code = $Err.statusCode
                 $ErrorObject.Type = "WebException"

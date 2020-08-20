@@ -19,6 +19,101 @@ Function Get-RfUrlRiskLists {
 
         This object is returned as an array to support passing arrays via pipeline as a parameter.
     .INPUTS
+        Switch -> NamesOnly
+        Switch -> DescriptionsOnly
+    .EXAMPLE
+        PS C:\> Get-RfUrlRiskLists
+        ---
+        name             : maliciousSiteDetected
+        count            : 56880363
+        criticalityLabel : Unusual
+        description      : Historically Detected Malicious Browser Exploits
+        criticality      : 1
+        relatedEntities  : {}
+
+        name             : relatedNote
+        count            : 2870
+        criticalityLabel : Unusual
+        description      : Historically Referenced by Insikt Group
+        criticality      : 1
+        relatedEntities  : {}
+
+        name             : defangedURL
+        count            : 423823
+        criticalityLabel : Unusual
+        description      : Historically Reported as a Defanged URL
+        criticality      : 1
+        relatedEntities  : {}
+
+        name             : recentSpamSiteDetected
+        count            : 3416
+        criticalityLabel : Suspicious
+        description      : Recently Reported Spam or Unwanted Content
+        criticality      : 2
+        relatedEntities  : {}
+
+        name             : recentMaliciousSiteDetected
+        count            : 1864821
+        criticalityLabel : Malicious
+        description      : Recently Detected Malicious Browser Exploits
+        criticality      : 3
+        relatedEntities  : {}
+
+        name             : ransomwareDistribution
+        count            : 9
+        criticalityLabel : Very Malicious
+        description      : Ransomware Distribution URL
+        criticality      : 4
+        relatedEntities  : {}
+
+        name             : recentDhsAis
+        count            : 31
+        criticalityLabel : Malicious
+        description      : Recently Reported by DHS AIS
+        criticality      : 3
+        relatedEntities  : {}
+
+        name             : suspiciousSiteDetected
+        count            : 691710
+        criticalityLabel : Unusual
+        description      : Historically Detected Suspicious Content
+        criticality      : 1
+        relatedEntities  : {}
+
+        name             : miningSiteDetected
+        count            : 366
+        criticalityLabel : Unusual
+        description      : Historically Detected Cryptocurrency Mining Techniques
+        criticality      : 1
+        relatedEntities  : {}
+
+        name             : fraudulentContent
+        count            : 0
+        criticalityLabel : Unusual
+        description      : Historically Reported Fraudulent Content
+        criticality      : 1
+        relatedEntities  : {}
+
+        name             : cncUrl
+        count            : 91
+        criticalityLabel : Very Malicious
+        description      : C&C URL
+        criticality      : 4
+        relatedEntities  : {}
+
+        name             : recentSuspiciousSiteDetected
+        count            : 21475
+        criticalityLabel : Suspicious
+        description      : Recently Detected Suspicious Content
+        criticality      : 2
+        relatedEntities  : {}
+
+        name             : spamSiteDetected
+        count            : 49595
+        criticalityLabel : Unusual
+        description      : Historically Reported Spam or Unwanted Content
+        criticality      : 1
+        relatedEntities  : {}
     .NOTES
         RecordedFuture-API
     .LINK

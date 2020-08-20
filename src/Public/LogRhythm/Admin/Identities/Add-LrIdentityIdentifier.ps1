@@ -20,7 +20,7 @@ Function Add-LrIdentityIdentifier {
         PSCustomObject representing LogRhythm TrueIdentity Identity and its status.
     .EXAMPLE
         PS C:\> Add-LrIdentityIdentifier -IdentityId 8 -IdentifierType "email" -IdentifierValue "mynewid@example.com"
-        ----
+        ---
         identifierID    identifierType value                    recordStatus
         ------------    -------------- -----                    ------------
         8               Email          mynewid@example.com      Active      

@@ -22,7 +22,9 @@ Function Get-LrCases {
         the preference variable $LrtConfig.LogRhythm.ApiKey
         with a valid Api Token.
     .PARAMETER Name
-        Filter results that contain a string value.  Exact match available via -exact switch.
+        Filter results that have a case number or name that contains the specified value.  
+        
+        Exact match available via -exact switch.
     .PARAMETER DueBefore
         Filter results that have a due date before the specified date.
     .PARAMETER Priority
@@ -46,8 +48,6 @@ Function Get-LrCases {
     .PARAMETER ExcludeTags
         Filter out cases that include one or more tags, identified by tag number or name.
         Multiple tags should be provided in an array.
-    .PARAMETER Text
-        Filter results that have a case number or name that contains the specified value.
     .PARAMETER EvidenceType
         Filter results that have evidence of the specified type:
 
@@ -76,8 +76,8 @@ Function Get-LrCases {
         'dueDate'
         'age'
         'statusNumber'
-    .PARAMETER Sort
-        Sort the results in ascending (asc) or descending (desc) order.
+    .PARAMETER Direction
+        Direction the results in ascending (asc) or descending (desc) order.
     .PARAMETER Count
         Maximum number of results to be returned (default 500)
     .PARAMETER Exact
@@ -108,9 +108,72 @@ Function Get-LrCases {
         collaborators           : PSCustomObject (LrUser)
         tags                    : PSCustomObject (LrTag)
     .EXAMPLE
-        PS C:\> Get-LrCases -Tags ("Malware","Server Reboot") -Verbose
-        ---
-        Get all cases containing the tags Malware or Server Reboot
+        PS C:\> Get-LrCases -tags alpha
+
+        id                      : 56C2007B-4E8D-41C8-95C8-4F91346EC727
+        number                  : 1
+        externalId              :
+        dateCreated             : 2020-07-16T16:46:48.3522746Z
+        dateUpdated             : 2020-07-16T16:53:46.0262639Z
+        dateClosed              :
+        owner                   : @{number=2; name=LRTools; disabled=False}
+        lastUpdatedBy           : @{number=2; name=LRTools; disabled=False}
+        name                    : Alpha Case
+        status                  : @{name=Created; number=1}
+        priority                : 4
+        dueDate                 : 2020-07-17T16:46:48.3362732Z
+        resolution              :
+        resolutionDateUpdated   :
+        resolutionLastUpdatedBy :
+        summary                 : Alpha case is the first case created through API.
+        entity                  : @{number=-100; name=Global Entity; fullName=Global Entity}
+        collaborators           : {@{number=2; name=LRTools; disabled=False}}
+        tags                    : {@{number=2; text=Alpha}}
+
+        id                      : E66A5D03-412F-43AB-B9B7-0459055827AF
+        number                  : 2
+        externalId              :
+        dateCreated             : 2020-07-16T16:47:46.0395837Z
+        dateUpdated             : 2020-07-16T16:56:27.8545625Z
+        dateClosed              :
+        owner                   : @{number=2; name=LRTools; disabled=False}
+        lastUpdatedBy           : @{number=2; name=LRTools; disabled=False}
+        name                    : Mock case
+        status                  : @{name=Created; number=1}
+        priority                : 5
+        dueDate                 : 2020-10-20T14:22:11Z
+        resolution              :
+        resolutionDateUpdated   :
+        resolutionLastUpdatedBy :
+        summary                 : Mock case summary for automation validation.
+        entity                  : @{number=-100; name=Global Entity; fullName=Global Entity}
+        collaborators           : {@{number=2; name=LRTools; disabled=False}}
+        tags                    : {@{number=2; text=Alpha}}
+    .EXAMPLE
+        PS C:\> Get-LrCases -Name "Mock"
+
+        id                      : E66A5D03-412F-43AB-B9B7-0459055827AF
+        number                  : 2
+        externalId              :
+        dateCreated             : 2020-07-16T16:47:46.0395837Z
+        dateUpdated             : 2020-07-16T16:56:27.8545625Z
+        dateClosed              :
+        owner                   : @{number=2; name=LRTools; disabled=False}
+        lastUpdatedBy           : @{number=2; name=LRTools; disabled=False}
+        name                    : Mock case
+        status                  : @{name=Created; number=1}
+        priority                : 5
+        dueDate                 : 2020-10-20T14:22:11Z
+        resolution              :
+        resolutionDateUpdated   :
+        resolutionLastUpdatedBy :
+        summary                 : Mock case summary for automation validation.
+        entity                  : @{number=-100; name=Global Entity; fullName=Global Entity}
+        collaborators           : {@{number=2; name=LRTools; disabled=False}}
+        tags                    : {@{number=2; text=Alpha}}
+    .EXAMPLE
+        PS C:\> Get-LrCases -Name "Mock" -Exact
+        
     .NOTES
         LogRhythm-API
     .LINK
@@ -123,81 +186,67 @@ Function Get-LrCases {
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
-        [Parameter(Mandatory = $false, Position = 16)]
-        [switch] $Summary,
-
-        [Parameter(Mandatory = $false, Position = 17)]
-        [switch] $Exact,
-
-        [Parameter(Mandatory = $false, Position = 18)]
+        [Parameter(Mandatory = $false, Position = 1)]
         [string] $Name,
 
         #region: Query Parameters ___________________________________________________________
-        [Parameter(Mandatory = $false, Position = 1)]
+        [Parameter(Mandatory = $false, Position = 2)]
         [ValidateNotNull()]
         [datetime] $DueBefore,
 
 
-        [Parameter(Mandatory = $false, Position = 2)]
+        [Parameter(Mandatory = $false, Position = 3)]
         [ValidateRange(1,5)]
         [int[]] $Priority,
 
 
-        [Parameter(Mandatory = $false, Position = 3)]
+        [Parameter(Mandatory = $false, Position = 4)]
         [ValidateNotNull()]
         [string[]] $Status,
 
 
-        [Parameter(Mandatory = $false, Position = 4)]
+        [Parameter(Mandatory = $false, Position = 5)]
         [ValidateNotNull()]
         [string[]] $Owners,
 
 
-        [Parameter(Mandatory = $false, Position = 5)]
+        [Parameter(Mandatory = $false, Position = 6)]
         [ValidateNotNull()]
         [string] $Collaborator,
 
 
-        [Parameter(Mandatory = $false, Position = 6)]
+        [Parameter(Mandatory = $false, Position = 7)]
         [ValidateNotNull()]
         [string[]] $Tags,
 
 
-        [Parameter(Mandatory = $false, Position = 6)]
+        [Parameter(Mandatory = $false, Position = 8)]
         [ValidateNotNull()]
         [string[]] $ExcludeTags,
 
-
-        [Parameter(Mandatory = $false, Position = 7)]
-        [ValidateNotNull()]
-        [string] $Text,
-
-
-        [Parameter(Mandatory = $false, Position = 8)]
+        [Parameter(Mandatory = $false, Position = 9)]
         [ValidateSet("alarm","userEvents","log","note","file")]
         [string[]] $EvidenceType,
         #endregion
 
-
-
         #region: Header Parameters___________________________________________________________
-        [Parameter(Mandatory = $false, Position = 9)]
+        [Parameter(Mandatory = $false, Position = 10)]
         [DateTime] $UpdatedAfter,
 
 
-        [Parameter(Mandatory = $false, Position = 10)]
+        [Parameter(Mandatory = $false, Position = 11)]
         [DateTime] $UpdatedBefore,
 
 
-        [Parameter(Mandatory = $false,Position = 11)]
+        [Parameter(Mandatory = $false,Position = 12)]
         [DateTime] $CreatedAfter,
 
 
-        [Parameter(Mandatory = $false,Position = 12)]
+        [Parameter(Mandatory = $false,Position = 13)]
         [DateTime] $CreatedBefore,
 
 
-        [Parameter(Mandatory = $false,Position = 13)]
+        [Parameter(Mandatory = $false,Position = 14)]
         [ValidateSet(
             "dateCreated",
             "dateClosed",
@@ -212,14 +261,19 @@ Function Get-LrCases {
         [string] $OrderBy = "dateCreated",
 
 
-        [Parameter(Mandatory = $false,Position = 14)]
+        [Parameter(Mandatory = $false,Position = 15)]
         [ValidateSet("asc","desc")]
-        [string] $Sort = "asc",
+        [string] $Direction = "asc",
 
 
-        [Parameter(Mandatory = $false, Position = 15)]
-        [int] $Count = 500
+        [Parameter(Mandatory = $false, Position = 16)]
+        [int] $Count = 500,
 
+        [Parameter(Mandatory = $false, Position = 17)]
+        [switch] $Summary,
+
+        [Parameter(Mandatory = $false, Position = 18)]
+        [switch] $Exact
     )
         #endregion
 
@@ -287,7 +341,6 @@ Function Get-LrCases {
         $QueryParams.Add("ownerNumber", $_owner)
     }
 
-
     # Collaborator
     if ($Collaborator) {
         $_collabNumber = $Collaborator | Get-LrUserNumber
@@ -314,10 +367,10 @@ Function Get-LrCases {
     }
 
 
-    # Text
-    if ($Text) {
+    # Name
+    if ($Name) {
         # should we uri-encode this?
-        $QueryParams.Add("text", $Text)
+        $QueryParams.Add("text", $Name)
     }
 
 
@@ -341,7 +394,7 @@ Function Get-LrCases {
     $Headers = [Dictionary[string,string]]::new()
     $Headers.Add("Authorization", "Bearer $Token")
     $Headers.Add("count", $Count)
-    $Headers.Add("direction", $Sort)
+    $Headers.Add("direction", $Direction)
 
     # Update / Create DateTimes
     if ($UpdatedAfter) {
@@ -375,7 +428,7 @@ Function Get-LrCases {
         try {
             $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
         }
-        catch [System.Net.WebException] {
+        catch {
             $Err = Get-RestErrorMessage $_
             throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
         }
@@ -416,8 +469,6 @@ Function Get-LrCases {
                 $FilteredResult.Add($case)
             }
         }
-        # Return filtered result
-        return $FilteredResult
     }
     #endregion
 

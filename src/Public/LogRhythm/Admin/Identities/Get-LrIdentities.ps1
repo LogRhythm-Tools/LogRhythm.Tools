@@ -10,6 +10,32 @@ Function Get-LrIdentities {
         Get-LrIdentities returns a full LogRhythm List object, including it's details and list items.
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
+    .PARAMETER Name
+        Filters Identity Display Names. Requires a three character minimum.
+    .PARAMETER DisplayIdentifier
+        Filters Identity Display Ids. Requires a three character minimum.
+    .PARAMETER Entity
+        Filters Identity Entities. Requires a three character minimum.
+    .PARAMETER Identifier
+        Filters Identity Ids. Requires a three character minimum.
+    .PARAMETER RecordStatus
+        Filters values based on current status.  
+        
+        Valid Status: Active, Retired
+    .PARAMETER OrderBy
+        Sorts record by displayName, recordStatus, Entity, or Displayidentifier.
+    .PARAMETER Direction
+        Sorts records by ascending or descending.
+
+        Valid values: "asc" "desc"
+    .PARAMETER DateUpdated
+        Returns results having dateupdated greater or equal to than the one provided in query parameter
+    .PARAMETER ShowRetired
+        Switch used to filter records by retired status.  
+        
+        Defaults to returning only active Identities.
+    .PARAMETER Exact
+        Switch used to specify Name is explicit.
     .OUTPUTS
         PSCustomObject representing LogRhythm TrueIdentity Identities and their contents.
     .EXAMPLE
@@ -58,7 +84,7 @@ Function Get-LrIdentities {
         [string]$DisplayIdentifier,
 
         [Parameter(Mandatory = $false, Position = 5)]
-        [string]$EntityId,
+        [string]$Entity,
 
         [Parameter(Mandatory = $false, Position = 6)]
         [string]$Identifier,
@@ -67,13 +93,15 @@ Function Get-LrIdentities {
         [string]$RecordStatus,
 
         [Parameter(Mandatory = $false, Position = 8)]
+        [ValidateSet('displayname','recordstatus', 'entity', 'displayidentifier', ignorecase=$true)]
         [string]$OrderBy = "Displayidentifier",
 
         [Parameter(Mandatory = $false, Position = 9)]
-        [datetime]$UpdatedBefore,
+        [ValidateSet('asc','desc', ignorecase=$true)]
+        [string]$Direction = "asc",
 
         [Parameter(Mandatory = $false, Position = 10)]
-        [datetime]$UpdatedAfter,
+        [datetime]$DateUpdated,
 
         [Parameter(Mandatory = $false, Position = 11)]
         [switch]$ShowRetired = $false,
@@ -125,13 +153,36 @@ Function Get-LrIdentities {
         }
 
         # Filter by Object Entity Id
-        if ($EntityId) {
-            $QueryParams.Add("entity", $EntityId)
+        if ($Entity) {
+            $QueryParams.Add("entity", $Entity)
         }
 
         # Filter by Object Identifier
         if ($Identifier) {
             $QueryParams.Add("identifier", $Identifier)
+        }
+
+        # Return results direction, ascending or descending
+        if ($Direction) {
+            $ValidStatus = "ASC", "DESC"
+            if ($ValidStatus.Contains($($Direction.ToUpper()))) {
+                if ($LrtConfig.LogRhythm.Version -match '7.5.\d') {
+                    if($Direction.ToUpper() -eq "ASC") {
+                        $_direction = "ascending"
+                    } else {
+                        $_direction = "descending"
+                    }
+                } else {
+                    if($Direction.ToUpper() -eq "ASC") {
+                        $_direction = "asc"
+                    } else {
+                        $_direction = "desc"
+                    }
+                }
+                $QueryParams.Add("dir", $_direction)
+            } else {
+                throw [ArgumentException] "Direction [$Direction] must be: asc or desc."
+            }
         }
 
 
