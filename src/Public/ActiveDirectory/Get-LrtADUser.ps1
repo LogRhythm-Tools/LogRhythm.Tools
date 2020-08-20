@@ -7,10 +7,15 @@ Function Get-LrtADUser {
     .SYNOPSIS 
         Invokes the ActiveDirectory module command Get-ADUser for LrtAD cmdlets.
     .DESCRIPTION
-        The purpose of the Get-LrtADUser command is to serve as a simple wrapper for the 
-        ActiveDirectory module's Get-ADUser command. The purpose of this is to
-        enable the use of $LrtConfig to determine which domain to query and which
-        credential to use, without needing to be joined to the domain.
+        The purpose of the Get-LrtADUser command is to serve as a simple wrapper to manage
+        handling the Server and Credential parameters required by ActiveDirectory module commands.
+        
+        If the local computer is joined to a domain and the caller of this command can be 
+        authenticated, AD commands will be executed without special parameters.
+        
+        To point Lrt to a different domain or use an alternative credential (such as for privileged actions), 
+        provide values for the $LrtConfig.ActiveDirectory.Server and Credential properties.
+        This can also easily configured by running the Lrt Setup.ps1 script again.
     .PARAMETER Identity
         Specifies an Active Directory user in the form of a valid SamAccountName or ADUser.
     .INPUTS
