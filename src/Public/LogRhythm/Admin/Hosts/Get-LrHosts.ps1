@@ -35,8 +35,8 @@ Function Get-LrHosts {
     .OUTPUTS
         PSCustomObject representing LogRhythm TrueIdentity Identities and their contents.
     .EXAMPLE
-        PS C:\> Get-LrHosts -Credential $MyKey
-        ----
+        PS C:\> Get-LrHosts
+        ---
         id                     : 2656
         entity                 : @{id=22; name=Primary Site}
         name                   : 10.5.5.20
@@ -66,6 +66,30 @@ Function Get-LrHosts {
         useEventlogCredentials : False
         osType                 : Other
         dateUpdated            : 2019-12-02T18:25:28.203Z
+    .EXAMPLE
+        Get-LrHosts -name "windows"
+        ---
+
+        id                     : 2
+        entity                 : @{id=1; name=Primary Site}
+        name                   : WINdows-A10PJE5DII3.example.local
+        riskLevel              : None
+        threatLevel            : High-Low
+        threatLevelComments    :
+        recordStatusName       : Active
+        hostZone               : Internal
+        location               : @{id=29929; name=Spartanburg}
+        os                     : Windows
+        osVersion              : Microsoft Windows NT 10.0.14393.0
+        useEventlogCredentials : False
+        osType                 : Server
+        dateUpdated            : 2020-06-18T23:10:55.1Z
+        hostRoles              : {}
+        hostIdentifiers        : {@{type=WindowsName; value=WIN-A10PJE5DII3; dateAssigned=2020-06-02T17:55:37.19Z}, @{type=IPAddress; value=192.168.2.127;
+                                dateAssigned=2020-06-02T17:55:37.19Z}}
+    .EXAMPLE
+        Get-LrHosts -name "windows" -Exact 
+        ---
     .NOTES
         LogRhythm-API        
     .LINK

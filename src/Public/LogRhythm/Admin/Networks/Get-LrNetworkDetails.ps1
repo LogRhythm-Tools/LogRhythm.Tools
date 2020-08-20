@@ -20,9 +20,11 @@ Function Get-LrNetworkDetails {
     .OUTPUTS
         PSCustomObject representing LogRhythm Entity Network record and its contents.
     .EXAMPLE
-        PS C:\> Get-LrNetworkDetails -Credential $MyKey -Id "2657"
+        PS C:\> Get-LrNetworkDetails -Id "2657"
         ----
-
+    .EXAMPLE
+        PS C:\> Get-LrNetworkDetails -Id "Network Alpha"
+        ----
     .NOTES
         LogRhythm-API        
     .LINK
@@ -98,7 +100,7 @@ Function Get-LrNetworkDetails {
                 try {
                     $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
                 }
-                catch [System.Net.WebException] {
+                catch {
                     $Err = Get-RestErrorMessage $_
                     $ErrorObject.Error = $true
                     $ErrorObject.Type = "System.Net.WebException"

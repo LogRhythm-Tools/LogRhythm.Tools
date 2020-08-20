@@ -7,7 +7,7 @@ Function Get-LrLogSourceDetails {
     .SYNOPSIS
         Retrieve the Log Source Details from the LogRhythm.
     .DESCRIPTION
-
+        Get-LrLogSourceDetails returns an object containing the details associated with a specific Log Source.
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
     .PARAMETER Id
@@ -63,7 +63,50 @@ Function Get-LrLogSourceDetails {
         persistentConnection     : False
         autoAcceptanceRuleId     :
         maxLogDate               : 2019-07-18T15:13:26.3Z
-
+    .EXAMPLE 
+        PS C:\> Get-LrLogSourceDetails -Id "XM WinEvtXML - Sys"
+        ----
+        id                       : 2
+        systemMonitorId          : 1
+        name                     : XM WinEvtXML - Sys
+        host                     : @{id=1; name=SupportXM747}
+        entity                   : @{id=1; name=Primary Site}
+        logSourceType            : @{id=1000662; name=MS Windows Event Logging XML - System}
+        mpePolicy                : @{id=-1000662; name=LogRhythm Default}
+        trueSourcePolicy         :
+        recordStatus             : Active
+        status                   : Enabled
+        isVirtual                : False
+        logMartMode              : 13627389
+        isLoadBalanced           : False
+        mpeProcessingMode        : EventForwardingEnabled
+        isArchivingEnabled       : True
+        maxMsgCount              : 0
+        defMsgTTLValue           : 0
+        dateUpdated              : 2019-07-17T22:49:07.62Z
+        isSilentLogSourceEnabled : False
+        filePath                 : SupportXM747:System
+        cryptoMode               : 0
+        signMode                 : 0
+        defMsgTTL                : 0
+        defMsgArchiveMode        : Override_Archive
+        msgPerCycle              : 100
+        collectionDepth          : 0
+        udlaStateFieldType       : Increment
+        parameter1               : 0
+        parameter2               : 0
+        parameter3               : 0
+        parameter4               : 0
+        recursionDepth           : 0
+        isDirectory              : False
+        compressionType          : none
+        udlaConnectionType       : 0
+        collectionThreadTimeout  : 120
+        virtualSourceSortOrder   : 0
+        virtualSourceCatchAllID  : 0
+        persistentConnection     : False
+        autoAcceptanceRuleId     :
+        maxLogDate               : 2019-07-18T15:13:26.3Z
     .NOTES
         LogRhythm-API        
     .LINK
@@ -138,7 +181,7 @@ Function Get-LrLogSourceDetails {
                 try {
                     $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
                 }
-                catch [System.Net.WebException] {
+                catch {
                     $Err = Get-RestErrorMessage $_
                     $ErrorObject.Error = $true
                     $ErrorObject.Type = "System.Net.WebException"

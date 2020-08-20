@@ -60,7 +60,7 @@ Function Format-LrIdentityPsObject {
         identifier4_IAMName      : Cont0so
         group1_Name              : Domain Admins
     .EXAMPLE
-        #Export all Identities to CSV
+        Export all Identities to CSV
         Get-LrIdentities | Format-LrIdentityPsObject | Export-Csv -Path ./TrueIdentity.csv -NoTypeInformation
 
     .NOTES

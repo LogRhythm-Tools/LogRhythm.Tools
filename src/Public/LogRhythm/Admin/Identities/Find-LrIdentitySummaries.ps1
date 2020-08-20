@@ -21,7 +21,7 @@ Function Find-LrIdentitySummaries {
     .OUTPUTS
         PSCustomObject representing LogRhythm TrueIdentity Identities and their contents.
     .EXAMPLE
-        C:\> Find-LrIdentitySummaries -Name eric.hart@logrhythm.com
+        C:\> Find-LrIdentitySummaries -Login eric.hart@logrhythm.com
         ---
         id          : 7
         nameFirst   : Eric

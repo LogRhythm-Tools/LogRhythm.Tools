@@ -95,7 +95,7 @@ foreach ($include in $Includes.GetEnumerator()) {
 foreach($ConfigCategory in $LrtConfig.PSObject.Properties) {
     if($ConfigCategory.Value.PSObject.Properties.Name -eq "ApiKey") {
         $KeyFileName = $ConfigCategory.Name + ".ApiKey.xml"
-        $KeyFile = [FileInfo]::new("$ConfigDirPath\$KeyFileName")
+        $KeyFile = [System.IO.FileInfo]::new("$ConfigDirPath\$KeyFileName")
         if ($KeyFile.Exists) {
             $LrtConfig.($ConfigCategory.Name).ApiKey = Import-Clixml -Path $KeyFile.FullName
             Write-Verbose "[$($ConfigCategory.Name)]: Loaded API Key"

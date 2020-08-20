@@ -57,6 +57,7 @@ Function New-LrList {
         [string] $Guid = $null,
 
         [Parameter(Mandatory=$True, Position=3)]
+        [ValidateSet('application', 'classification', 'commonevent', 'host', 'location', 'msgsource', 'msgsourcetype', 'mperule', 'network', 'user', 'generalvalue', 'entity', 'rootentity', 'ip', 'iprange', 'identity', 'none', ignorecase=$true)]
         [string] $ListType,
 
         [Parameter(Mandatory=$false, Position=4)]
@@ -66,7 +67,8 @@ Function New-LrList {
         [string] $LongDescription,
 
         [Parameter(Mandatory=$false, Position=6)]
-        [string[]] $UseContext = "None",
+        [ValidateSet('None', 'Address', 'DomainImpacted', 'Group', 'HostName', 'Message', 'Object', 'Process', 'Session', 'Subject', 'URL', 'User', 'VendorMsgID', 'DomainOrigin', 'Hash', 'Policy', 'VendorInfo', 'Result', 'ObjectType', 'CVE', 'UserAgent', 'ParentProcessId', 'ParentProcessName', 'ParentProcessPath', 'SerialNumber', 'Reason', 'Status', 'ThreatId', 'ThreatName', 'SessionType', 'Action', 'ResponseCode', ignorecase=$true)]
+        [string[]] $UseContext,
 
         [Parameter(Mandatory=$false, Position=7)]
         [bool] $AutoImport = $false,

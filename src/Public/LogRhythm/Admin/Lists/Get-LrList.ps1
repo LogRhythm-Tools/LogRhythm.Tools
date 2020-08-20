@@ -29,7 +29,9 @@ Function Get-LrList {
         If parameter ListItemsOnly is specified, a string collection is returned containing the
         list's item values.
     .EXAMPLE
-        PS C:\> Get-LrList -Name "edea82e3-8d0b-4370-86f0-d96bcd4b6c19" -Credential $MyKey
+        PS C:\> Get-LrList -Name "edea82e3-8d0b-4370-86f0-d96bcd4b6c19"
+    .EXAMPLE
+        PS C:\> Get-LrList -Name "Privileged Users: Local System Administrators" -Exact
     .NOTES
         LogRhythm-API        
     .LINK

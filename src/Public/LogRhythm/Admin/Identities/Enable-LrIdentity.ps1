@@ -16,7 +16,7 @@ Function Enable-LrIdentity {
         PSCustomObject representing LogRhythm TrueIdentity Identity and its retirement status.
     .EXAMPLE
         PS C:\> Enable-LrIdentity -IdentityId 11
-        ----
+        ---
         identityID        : 11
         nameFirst         : Marcus
         nameMiddle        :
@@ -35,7 +35,6 @@ Function Enable-LrIdentity {
                             recordStatus=Active; source=}, @{identifierID=42; identifierType=Login; value=marcus.burnett_sup; recordStatus=Active; source=}, @{identifierID=43; identifierType=Email;
                             value=marcus.burnett@contoso.com; recordStatus=Active; source=}}
         groups            : {@{name=Domain Admins}}
-
     .NOTES
         LogRhythm-API        
     .LINK
