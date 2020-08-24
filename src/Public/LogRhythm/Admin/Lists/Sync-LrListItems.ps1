@@ -125,7 +125,7 @@ Function Sync-LrListItems {
                             Write-Host "$(Get-TimeStamp) - Failed to submit entries.  Entry Dump:"
                             Write-Host "$RemoveArray"
                         }
-                        start-sleep .5
+                        start-sleep .2
                     }
                     $RemovalResults = "$(Get-TimeStamp) - Removal Summary - List: $($ErrorObject.ListName) Quantity: $($RemoveList.Count)"
                 } else {
@@ -153,8 +153,7 @@ Function Sync-LrListItems {
                             Write-Host "$(Get-TimeStamp) - Failed to submit entries.  Entry Dump:"
                             Write-Host "$AddArray"
                         }
-                        
-                        start-sleep .5
+                        start-sleep .2
                     }
                     $RemovalResults = "$(Get-TimeStamp) - Addition Summary - List: $($ErrorObject.ListName) Quantity: $($AddList.Count)"
                 } else {
