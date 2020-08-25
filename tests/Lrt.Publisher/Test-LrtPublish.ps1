@@ -4,6 +4,13 @@ using namespace System.IO
 <#
 .SYNOPSIS
     End to end testing of the LrtBuilder module, from build to publish.
+.PARAMETER Reset
+    If the Reset switch is provided, then the entire contents of the LogRhythm.Tools configuration directory
+    will be backed up to tests\Lrt.Publisher\backup\ and the configuration directory in %LocalAppData% will
+    be removed so that it can be re-created by the Setup script.
+.PARAMETER RestoreKeys
+    If the RestoreKeys switch is set, all xml files that were backed up from LogRhythm.Tools configuration
+    will be restored once the test has completed.
 .INPUTS
     None
 .OUTPUTS
@@ -19,11 +26,7 @@ Param(
     [switch] $Reset,
 
     [Parameter(Mandatory = $false, Position = 1)]
-    [switch] $BackupConfig,
-
-    [Parameter(Mandatory = $false , Position = 2)]
-    [ValidateNotNull()]
-    [DirectoryInfo] $Destination
+    [switch] $RestoreKeys
 )
 
 
@@ -42,70 +45,70 @@ $RepoInfo = Get-LrtRepoInfo
 # Config Directory
 $ConfigDirPath = Join-Path -Path ([Environment]::GetFolderPath("LocalApplicationData")) -ChildPath $RepoInfo.ModuleInfo.Name
 
+# Backup location
+$T_BKP = Join-Path -Path $PSScriptRoot -ChildPath "backup"
 
-# Will contain result of Publish-LrtBuild
+# Data = Release.zip extracted files
 $T_DATA = Join-Path -Path $PSScriptRoot -ChildPath "data"
-# Everything inside T_DATA
-$T_CONTENTS = Join-Path -Path $T_DATA -ChildPath "*"
+$T_DATA_FILES = Join-Path -Path $T_DATA -ChildPath "*"
 
-# Tetst Data directories aren't tracked, so create one if ! exist
+
+# Test Data directories aren't tracked, so create if not found.
 if (! (Test-Path $T_DATA)) {
     New-Item -Path $T_DATA -Name "data" -ItemType Directory | Out-Null
+}
+# Test Backup directories aren't tracked, so create if not found.
+if (! (Test-Path $T_BKP)) {
+    New-Item -Path $T_BKP -Name "backup" -ItemType Directory | Out-Null
 }
 #endregion
 
 
 
 #region: Backup                                                                                    
-if ($BackupConfig) {
-    $BackupPath = $Destination.FullName
-    if (! $Destination.Exists) {
-        Write-Warning "Destination directory [$BackupPath] not found. Saving to [Desktop]"
-        $BackupPath = [Environment]::GetFolderPath("Desktop")
-    }
+if ($Reset) {
+    # Backup current config
+    $_ts = ([datetime]::now).ToString('yyyy-MM-dd-mm-ss')
+    $BackupPath = New-Item -Path $T_BKP -ItemType Directory -Name $_ts
+    $BackupItems = Get-ChildItem -Path $ConfigDirPath -Recurse
     try {
-        Copy-Item -Path $ConfigDirPath -Destination $BackupPath
-        Write-Host "Existing configuration saved to $BackupPath"
+        Write-Host "Saving existing configuration to: $($BackupPath.FullName)"
+        $BackupItems | Copy-Item -Destination $BackupPath.FullName
     }
     catch {
         $PSCmdlet.ThrowTerminatingError($PSItem)
     }
-}
-#endregion
 
-
-
-#region: Reset                                                                                     
-if ($Reset) {
+    # Remove config
     try {
         Remove-Item -Path $ConfigDirPath -Recurse -Force -ErrorAction SilentlyContinue
-    }
-    catch {
-        Write-Host "Failed to remove existing Lrt configuration from $ConfigDirPath" -ForegroundColor Yellow
-        $PSCmdlet.ThrowTerminatingError($PSItem)
+    } catch {
+        Write-Host "Faileld to remove existing configuration at $ConfigDirPath"
     }
 }
 #endregion
 
+# Clean out old test data
+Remove-Item -Recurse -Path $T_DATA_FILES -Force -ErrorAction SilentlyContinue
 
-
-#region: Clean                                                                                     
-try {
-    Remove-Item -Recurse -Path $T_CONTENTS -Force -ErrorAction SilentlyContinue
-}
-catch {
-    Write-Host "Failed to remove old test data. Resolve error and try again." -ForegroundColor Yellow
-    $PSCmdlet.ThrowTerminatingError($PSItem)
-}
-#endregion
-
-
-#region: Publish and Run Setup.ps1                                                                 
+# New Build
 $TestRelease = New-LrtBuild -Version 1.0.0 -ReleaseTag (New-LrtReleaseTag) | Publish-LrtBuild -Destination $T_DATA -PassThru
 
-# Extract the results
+# Extract results
 Expand-Archive -Path $TestRelease.FullName -DestinationPath "$T_DATA\lrt-install"
 
-# Run Setup!
-Invoke-Expression -Command "$T_DATA\lrt-install\Setup.ps1"
-#endregion
+# Run Setup
+try {
+    Invoke-Expression -Command "$T_DATA\lrt-install\Setup.ps1" -ErrorAction Stop
+}
+catch {
+    Write-Host "Error occured while executing Setup.ps1"
+    $PSCmdlet.ThrowTerminatingError($PSItem)
+}
+
+# Restore Keys
+if ($RestoreKeys -and $Reset) {
+    Write-Host "Restoring API Keys to $ConfigDirPath"
+    Get-ChildItem -Path $BackupPath -Filter *.xml | Copy-Item -Destination $ConfigDirPath
+    
+}

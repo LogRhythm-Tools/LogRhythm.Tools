@@ -9,6 +9,9 @@ PowerShell_transcript*
 [Bb]uild/[Rr]elease/*
 [Bb]uild/BuildInfo.json
 
-# Ignore test data
+# Ignore test data and backups
 [Tt]ests/*/data/*
 [Tt]ests/data/*
+
+[Tt]ests/*/backup/*
+[Tt]ests/backup/*
