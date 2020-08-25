@@ -20,6 +20,7 @@
     "ActiveDirectory": {
         "Server": "",
         "Credential": "",
+        "Options": "",
         "ModuleLoaded": false
     },
 
