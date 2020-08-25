@@ -10,7 +10,7 @@ using namespace System.IO
     be removed so that it can be re-created by the Setup script.
 .PARAMETER RestoreKeys
     If the RestoreKeys switch is set, all xml files that were backed up from LogRhythm.Tools configuration
-    will be replaced once the test has completed.
+    will be restored once the test has completed.
 .INPUTS
     None
 .OUTPUTS
@@ -106,9 +106,9 @@ catch {
     $PSCmdlet.ThrowTerminatingError($PSItem)
 }
 
-# Replace Keys
+# Restore Keys
 if ($RestoreKeys -and $Reset) {
-    Write-Host "Replacing API Keys to $ConfigDirPath"
+    Write-Host "Restoring API Keys to $ConfigDirPath"
     Get-ChildItem -Path $BackupPath -Filter *.xml | Copy-Item -Destination $ConfigDirPath
     
 }
