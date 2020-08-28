@@ -15,3 +15,5 @@ PowerShell_transcript*
 
 [Tt]ests/*/backup/*
 [Tt]ests/backup/*
+
+_build.ps1
