@@ -44,19 +44,22 @@ Function Update-LrHostIdentifier {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName=$true, Position = 0)]
+        [string] $Id,
 
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName=$true, Position = 1)]
-        [string]$Id,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 2)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 1)]
         [ValidateSet('ipaddress','dnsname', 'windowsname', ignorecase=$true)]
-        [string]$Type,
+        [string] $Type,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true,  Position = 3)]
-        [string]$Value
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true,  Position = 2)]
+        [string] $Value,
+
+
+        [Parameter(Mandatory = $false, Position = 3)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {
@@ -79,7 +82,7 @@ Function Update-LrHostIdentifier {
         $LrVersion = $LrtConfig.LRDeployment.Version
         
         # Integer Reference
-        [int32]$_int = 1
+        [int32] $_int = 1
     }
 
     Process {
@@ -98,7 +101,7 @@ Function Update-LrHostIdentifier {
             if ($HostLookup.Error) {
                 return $HostLookup
             } else {
-                [int32]$Guid = $HostLookup.Id
+                [int32] $Guid = $HostLookup.Id
             }
         } else {
             Write-Verbose "[$Me]: Id does not parse as integer.  Performing string lookup."
@@ -106,7 +109,7 @@ Function Update-LrHostIdentifier {
             if (!$HostLookup) {
                 return "[$Me]: Unable to identify host record with exact match to string: $Id."
             } else {
-                [int32]$Guid = $HostLookup | Select-Object -ExpandProperty id 
+                [int32] $Guid = $HostLookup | Select-Object -ExpandProperty id 
             }
         }
 

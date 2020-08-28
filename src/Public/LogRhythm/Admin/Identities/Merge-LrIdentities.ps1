@@ -59,28 +59,34 @@ Function Merge-LrIdentities {
     #>  
     
     [CmdletBinding()]
-    param( 
-        [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
-
-        [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 1)]
-        [long]$EntityId = 1,
-
-        [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 2)]
-        [long] $PrimaryIdentityId,
-
-        [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 3)]
-        [long] $SecondaryIdentityId,
-
-        [Parameter(Mandatory = $false, ValueFromPipeline=$true, Position = 4)]
+    param(
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 0)]
         [object] $IdentityObject,
 
-        [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 5)]
+
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 1)]
+        [long] $EntityId = 1,
+
+
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 2)]
+        [long] $PrimaryIdentityId,
+
+
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 3)]
+        [long] $SecondaryIdentityId,
+
+
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 4)]
         [int] $LeadingWhitespace = 0,
 
-        [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 6)]
-        [bool] $TestMode = $True
+
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 5)]
+        [bool] $TestMode = $True,
+
+
+        [Parameter(Mandatory = $false, Position = 6)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {

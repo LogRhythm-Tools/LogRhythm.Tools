@@ -5,15 +5,15 @@ function Compare-StringArrays {
     Param(
         [Parameter(Mandatory = $true, Position = 0)]
         [ValidateNotNull()]
-        [string[]]$Array1,
+        [string[]] $Array1,
         
         [Parameter(Mandatory = $true, Position = 1)]
         [ValidateNotNull()]
-        [string[]]$Array2,
+        [string[]] $Array2,
         
         [Parameter(Mandatory = $true, Position = 2)]
         [ValidateNotNull()]
-        [switch]$Unsorted
+        [switch] $Unsorted
     ) 
         
     $occurrences = if ($unsorted.IsPresent) { @{} }

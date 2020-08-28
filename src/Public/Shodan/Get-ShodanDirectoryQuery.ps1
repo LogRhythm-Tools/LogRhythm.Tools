@@ -36,7 +36,7 @@ function Get-ShodanDirectoryQuery {
         [pscredential] $Credential = $LrtConfig.Shodan.ApiKey,
 
         [Parameter(Mandatory = $false, Position = 1)]
-        [int]$MaxPages = 10
+        [int] $MaxPages = 10
     )
     Begin {
         # Request Setup

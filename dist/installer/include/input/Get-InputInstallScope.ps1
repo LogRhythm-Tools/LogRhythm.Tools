@@ -17,7 +17,7 @@ Function Get-InputInstallScope {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $true, Position=0)]
+        [Parameter(Mandatory = $true, Position = 0)]
         [ValidateNotNullOrEmpty()]
         [string] $Value,
 

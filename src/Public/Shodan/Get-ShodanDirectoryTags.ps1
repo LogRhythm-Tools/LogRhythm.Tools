@@ -22,7 +22,7 @@ function Get-ShodanDirectoryTags {
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.Shodan.ApiKey,
 
-        [int]$ReturnSize = 100
+        [int] $ReturnSize = 100
     )
     Begin {
         # Request Setup

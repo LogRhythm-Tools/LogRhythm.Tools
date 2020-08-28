@@ -46,24 +46,21 @@ Function Sync-LrListItems {
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
-        [Parameter(Mandatory=$true, Position=1)]
+        [Parameter(Mandatory = $true, Position = 1)]
         [ValidateNotNull()]
         [object] $Name,
 
-        [Parameter(Mandatory=$false, ValueFromPipeline=$true, Position=2)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 2)]
         [string[]] $Value,
 
-        [Parameter(Mandatory=$false, Position=3)]
+        [Parameter(Mandatory = $false, Position = 3)]
         [string] $ItemType,
 
-        [Parameter(Mandatory=$false, Position=4)]
+        [Parameter(Mandatory = $false, Position = 4)]
         [string] $UseContext
     )
                                                                    
     Begin {
-        # Request Setup
-        $Me = $MyInvocation.MyCommand.Name
-
         # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
         Enable-TrustAllCertsPolicy
     }

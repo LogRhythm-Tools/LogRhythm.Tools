@@ -44,18 +44,18 @@ Function Get-LrList {
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
-        [Parameter(Mandatory=$true, ValueFromPipeline=$true, Position=1)]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 1)]
         [ValidateNotNull()]
         [object] $Name,
 
-        [Parameter(Mandatory=$false, Position=2)]
+        [Parameter(Mandatory = $false, Position = 2)]
         [ValidateRange(1,10000000)]
         [int] $MaxItemsThreshold = 10000000,
 
-        [Parameter(Mandatory=$false, Position=3)]
+        [Parameter(Mandatory = $false, Position = 3)]
         [switch] $ValuesOnly,
 
-        [Parameter(Mandatory = $false, Position=4)]
+        [Parameter(Mandatory = $false, Position = 4)]
         [switch] $Exact
     )
 

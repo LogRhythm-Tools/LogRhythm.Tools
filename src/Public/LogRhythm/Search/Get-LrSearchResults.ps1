@@ -46,22 +46,22 @@ Function Get-LrSearchResults {
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
         
         [Parameter(Mandatory = $false, Position = 1)]
-        [string]$TaskId,
+        [string] $TaskId,
 
         [Parameter(Mandatory = $false, Position = 2)]
-        [string]$Sort,
+        [string] $Sort,
 
         [Parameter(Mandatory = $false,  Position = 3)]
-        [string]$GroupBy = "",
+        [string] $GroupBy = "",
 
         [Parameter(Mandatory = $false,  Position = 4)]
-        [string]$Fields,
+        [string] $Fields,
 
         [Parameter(Mandatory = $false,  Position = 5)]
-        [string]$PageOrigin = 1,
+        [string] $PageOrigin = 1,
 
         [Parameter(Mandatory = $false, Position = 6)]
-        [string]$PageSize = 100
+        [string] $PageSize = 100
     )
 
     Begin {

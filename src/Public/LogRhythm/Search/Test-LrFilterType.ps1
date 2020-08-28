@@ -29,13 +29,13 @@ Function Test-LrFilterType {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position=0)]
+        [Parameter(Mandatory = $false, Position = 0)]
         [int32] $Id,
 
-        [Parameter(Mandatory = $false, Position=1)]
+        [Parameter(Mandatory = $false, Position = 1)]
         [string] $DisplayName,
 
-        [Parameter(Mandatory = $false, Position=2)]
+        [Parameter(Mandatory = $false, Position = 2)]
         [string] $EnumName
     )
     Begin {

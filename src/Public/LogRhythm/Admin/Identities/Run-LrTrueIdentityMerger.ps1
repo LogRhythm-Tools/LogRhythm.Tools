@@ -27,18 +27,21 @@ Function Run-LrTrueIdentityConflictMerger {
     
     [CmdletBinding()]
     param( 
-        [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 0)]
+        [long] $EntityId = 1,
 
-        [Parameter(Mandatory = $false, ValueFromPipeline=$true, Position = 1)]
-        [long]$EntityId = 1,
 
-        [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 2)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 1)]
         [bool] $OutputPath,
 
-        [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 3)]
-        [bool] $TestMode = $true
+
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 2)]
+        [bool] $TestMode = $true,
+
+
+        [Parameter(Mandatory = $false, Position = 3)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {
@@ -46,7 +49,7 @@ Function Run-LrTrueIdentityConflictMerger {
         function Show-Menu
         {
         param (
-               [string]$Title = "TrueIdentity Conflict Merger - Version: $Version"
+               [string] $Title = "TrueIdentity Conflict Merger - Version: $Version"
         )
             Clear-Host
             Write-Host "================ $Title ================"

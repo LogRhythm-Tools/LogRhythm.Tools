@@ -58,18 +58,21 @@ Function Get-LrIdentityIdentifierConflicts {
     
     [CmdletBinding()]
     param( 
-        [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 0)]
+        [long] $EntityId,
 
-        [Parameter(Mandatory = $false, ValueFromPipeline=$true, Position = 1)]
-        [long]$EntityId,
 
-        [Parameter(Mandatory = $false, ValueFromPipeline=$true, Position = 2)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 1)]
         [string] $Filter,
 
-        [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 9)]
-        [bool] $ShowRetired = $false
+
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 2)]
+        [bool] $ShowRetired = $false,
+
+
+        [Parameter(Mandatory = $false, Position = 3)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {

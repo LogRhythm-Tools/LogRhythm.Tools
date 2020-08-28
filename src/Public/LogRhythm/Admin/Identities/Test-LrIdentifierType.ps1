@@ -28,11 +28,12 @@ Function Test-LrIdentifierType {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $true, ValueFromPipeline = $false, Position=0)]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $false, Position = 0)]
         [ValidateNotNull()]
         [string] $IdentifierValue,
+        
 
-        [Parameter(Mandatory = $true, ValueFromPipeline = $false, Position=1)]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $false, Position = 1)]
         [string] $IdentifierType
     )
     Begin { }

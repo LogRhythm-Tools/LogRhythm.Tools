@@ -56,12 +56,12 @@ Function New-LrCase {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory=$false, Position=0)]
+        [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
 
-        [Parameter(Mandatory=$true, 
+        [Parameter(Mandatory = $true, 
             ValueFromPipeline = $true, 
             ValueFromPipelineByPropertyName = $true, 
             Position=1
@@ -70,7 +70,7 @@ Function New-LrCase {
         [string] $Name,
 
 
-        [Parameter(Mandatory=$true, 
+        [Parameter(Mandatory = $true, 
             ValueFromPipeline = $true, 
             ValueFromPipelineByPropertyName = $true, 
             Position=2

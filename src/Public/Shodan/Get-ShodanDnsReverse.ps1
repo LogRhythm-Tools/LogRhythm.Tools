@@ -32,11 +32,11 @@ function Get-ShodanDnsReverse {
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.Shodan.ApiKey,
 
-        [Parameter(Mandatory=$true, ValueFromPipeline=$true, Position=1)]
-        [string[]]$IPAddress,
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 1)]
+        [string[]] $IPAddress,
 
-        [Parameter(Mandatory=$false, ValueFromPipeline=$false, Position=2)]
-        [switch]$ValuesOnly
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 2)]
+        [switch] $ValuesOnly
     )
     Begin {
         # Request Setup
@@ -65,7 +65,7 @@ function Get-ShodanDnsReverse {
 
     End {
         if ( $ValuesOnly ) {
-            [string[]]$ShodanResults = $null
+            [string[]] $ShodanResults = $null
             $IPAddress | ForEach-Object { 
                 $ShodanResults += $shodanDNSResults | Select-Object -ExpandProperty $_ 
             }

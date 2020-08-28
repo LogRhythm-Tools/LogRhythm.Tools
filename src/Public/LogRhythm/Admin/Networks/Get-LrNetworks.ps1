@@ -51,37 +51,37 @@ Function Get-LrNetworks {
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
         [Parameter(Mandatory = $false, Position = 1)]
-        [int]$PageValuesCount = 1000,
+        [int] $PageValuesCount = 1000,
 
         [Parameter(Mandatory = $false, Position = 2)]
-        [int]$PageCount = 1,
+        [int] $PageCount = 1,
 
         [Parameter(Mandatory = $false, Position = 3)]
         [ValidateSet('asc','desc', ignorecase=$true)]
-        [string]$Direction,
+        [string] $Direction,
 
         [Parameter(Mandatory = $false, Position = 4)]
-        [string]$Name,
+        [string] $Name,
 
         [Parameter(Mandatory = $false, Position = 5)]
         [ValidateSet('all','active','retired', ignorecase=$true)]
-        [string]$RecordStatus = "active",
+        [string] $RecordStatus = "active",
 
         [Parameter(Mandatory = $false, Position = 6)]
-        [string]$BIP,
+        [string] $BIP,
 
         [Parameter(Mandatory = $false, Position = 7)]
-        [string]$EIP,
+        [string] $EIP,
 
         [Parameter(Mandatory = $false, Position = 8)]
-        [string]$Entity,
+        [string] $Entity,
 
         [Parameter(Mandatory = $false, Position = 9)]
         [ValidateSet('name','bip','eip','entity', ignorecase=$true)]
-        [string]$OrderBy = "Entity",
+        [string] $OrderBy = "Entity",
 
         [Parameter(Mandatory = $false, Position = 10)]
-        [switch]$Exact
+        [switch] $Exact
     )
 
     Begin {

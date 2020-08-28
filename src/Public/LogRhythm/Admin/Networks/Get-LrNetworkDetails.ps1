@@ -37,7 +37,7 @@ Function Get-LrNetworkDetails {
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
-        [Parameter(Mandatory = $true, ValueFromPipeline=$true, Position = 1)]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 1)]
         [ValidateNotNull()]
         [object] $Id
     )

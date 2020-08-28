@@ -39,7 +39,7 @@ function Get-LrCaseEarliestEvidence {
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
 		[Parameter(
-            Mandatory=$true, 
+            Mandatory = $true, 
             Position = 1
         )] 
         [object] $Id

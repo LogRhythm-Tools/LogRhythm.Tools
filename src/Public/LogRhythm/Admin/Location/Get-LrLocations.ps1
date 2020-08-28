@@ -67,20 +67,20 @@ Function Get-LrLocations {
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
         [Parameter(Mandatory = $false, Position = 1)]
-        [string]$Name,
+        [string] $Name,
 
         [Parameter(Mandatory = $false, Position = 2)]
-        [int32]$Id,
+        [int32] $Id,
 
         [Parameter(Mandatory = $false, Position = 3)]
-        [int32]$ParentLocationId,
+        [int32] $ParentLocationId,
 
         [Parameter(Mandatory = $false, Position = 4)]
         [ValidateSet('region','country', ignorecase=$true)]
-        [string]$LocationType,
+        [string] $LocationType,
 
         [Parameter(Mandatory = $false, Position = 5)]
-        [switch]$Exact
+        [switch] $Exact
     )
 
     Begin {

@@ -33,11 +33,11 @@ Function Get-LrListGuidByName {
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
 
-        [Parameter(Mandatory=$true,Position=1, ValueFromPipeline=$true)]
+        [Parameter(Mandatory = $true, Position = 1, ValueFromPipeline = $true)]
         [ValidateNotNullOrEmpty()]
         [string] $Name,
 
-        [Parameter(Mandatory = $false, Position=2)]
+        [Parameter(Mandatory = $false, Position = 2)]
         [switch] $Exact
     )
 

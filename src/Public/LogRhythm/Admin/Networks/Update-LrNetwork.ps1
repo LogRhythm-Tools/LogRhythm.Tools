@@ -94,42 +94,42 @@ Function Update-LrNetwork {
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
         
-        [Parameter(Mandatory = $false, ValueFromPipeline=$true, Position = 1)]
-        [string]$Id,
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 1)]
+        [string] $Id,
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 2)]
-        [string]$Name,
+        [string] $Name,
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 3)]
-        [string]$Entity,
+        [string] $Entity,
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 4)]
-        [string]$ShortDesc,
+        [string] $ShortDesc,
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 5)]
-        [string]$LongDesc,
+        [string] $LongDesc,
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 6)]
         [ValidateSet('none','low-low','low-medium','low-high','medium-low','medium-medium','medium-high','high-low','high-medium','high-high', ignorecase=$true)]
-        [string]$RiskLevel,
+        [string] $RiskLevel,
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 7)]
         [ValidateSet('none','low-low','low-medium','low-high','medium-low','medium-medium','medium-high','high-low','high-medium','high-high', ignorecase=$true)]
-        [string]$ThreatLevel,
+        [string] $ThreatLevel,
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 8)]
-        [string]$ThreatLevelComment,
+        [string] $ThreatLevelComment,
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 9)]
         [ValidateSet('retired','active', ignorecase=$true)]
-        [string]$RecordStatus,
+        [string] $RecordStatus,
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 10)]
         [ValidateSet('unknown','internal','dmz','external', ignorecase=$true)]
-        [string]$Zone="unknown",
+        [string] $Zone="unknown",
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 11)]
-        [string]$Location,
+        [string] $Location,
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 12)]
         [ipaddress]$Bip,
@@ -155,7 +155,7 @@ Function Update-LrNetwork {
         Enable-TrustAllCertsPolicy
         
         # Integer Reference
-        [int32]$_int = 1
+        [int32] $_int = 1
     }
 
     Process {

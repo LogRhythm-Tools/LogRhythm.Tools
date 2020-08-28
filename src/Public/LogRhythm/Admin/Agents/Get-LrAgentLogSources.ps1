@@ -138,45 +138,45 @@ Function Get-LrAgentLogSources {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
-
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true ,Position = 1)]
-        [object]$Id,
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true ,Position = 0)]
+        [object] $Id,
 
         [Parameter(Mandatory = $false, Position = 1)]
-        [int]$PageValuesCount = 1000,
+        [int] $PageValuesCount = 1000,
 
         [Parameter(Mandatory = $false, Position = 2)]
-        [int]$PageCount = 1,
+        [int] $PageCount = 1,
 
         [Parameter(Mandatory = $false, Position = 3)]
         [ValidateSet('asc','desc', ignorecase=$true)]
-        [string]$Direction = "asc",
+        [string] $Direction = "asc",
 
         [Parameter(Mandatory = $false, Position = 4)]
         [ValidateSet('name','id', ignorecase=$true)]
-        [string]$OrderBy = "name",
+        [string] $OrderBy = "name",
 
         [Parameter(Mandatory = $false, Position = 5)]
-        [string]$Name,
+        [string] $Name,
 
         [Parameter(Mandatory = $false, Position = 6)]
         [ValidateSet('all','active','retired', ignorecase=$true)]
-        [string]$RecordStatus = "all",
+        [string] $RecordStatus = "all",
 
         [Parameter(Mandatory = $false, Position = 7)]
-        [int32]$MessageSourceTypeId,
+        [int32] $MessageSourceTypeId,
         
         [Parameter(Mandatory = $false, Position = 8)]
-        [bool]$LoadBalanced,
+        [bool] $LoadBalanced,
 
         [Parameter(Mandatory = $false, Position = 9)]
-        [bool]$Virtual,
+        [bool] $Virtual,
 
         [Parameter(Mandatory = $false, Position = 10)]
-        [switch]$Exact
+        [switch] $Exact,
+
+        [Parameter(Mandatory = $false, Position = 11)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {
@@ -198,7 +198,7 @@ Function Get-LrAgentLogSources {
         Enable-TrustAllCertsPolicy
         
         # Integer reference
-        [int32]$_int = 0
+        [int32] $_int = 0
     }
 
     Process {

@@ -41,15 +41,17 @@ Function Find-LrIdentitySummaries {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 0)]
+        [string[]] $Login,
 
-        [Parameter(Mandatory = $false, ValueFromPipeline=$true, Position = 1)]
-        [string[]]$Login,
+
+        [Parameter(Mandatory = $false, Position = 1)]
+        [int32[]] $Id,
+
 
         [Parameter(Mandatory = $false, Position = 2)]
-        [int32[]]$Id
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {

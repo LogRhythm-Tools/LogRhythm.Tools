@@ -48,19 +48,19 @@ Function Get-LrLists {
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
         
-        [Parameter(Mandatory=$false, ValueFromPipeline=$true, Position=1)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 1)]
         [ValidateNotNull()]
         [string] $Name,
 
-        [Parameter(Mandatory=$false, Position=2)]
+        [Parameter(Mandatory = $false, Position = 2)]
         [ValidateSet('application', 'classification', 'commonevent', 'host', 'location', 'msgsource', 'msgsourcetype', 'mperule', 'network', 'user', 'generalvalue', 'entity', 'rootentity', 'ip', 'iprange', 'identity', 'none', ignorecase=$true)]
         [string] $ListType,
 
-        [Parameter(Mandatory=$false, Position=3)]
+        [Parameter(Mandatory = $false, Position = 3)]
         [ValidateRange(1,1000)]
         [int] $PageSize = 1000,
 
-        [Parameter(Mandatory = $false, Position=4)]
+        [Parameter(Mandatory = $false, Position = 4)]
         [switch] $Exact
     )
                                                                     

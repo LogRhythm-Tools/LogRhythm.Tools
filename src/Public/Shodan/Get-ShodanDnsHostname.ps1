@@ -33,11 +33,11 @@ function Get-ShodanDnsHostname {
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.Shodan.ApiKey,
 
-        [Parameter(Mandatory=$true, ValueFromPipeline=$true, Position=1)]
-        [string[]]$Hostnames,
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 1)]
+        [string[]] $Hostnames,
 
-        [Parameter(Mandatory=$false, ValueFromPipeline=$false, Position=2)]
-        [switch]$ValuesOnly
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 2)]
+        [switch] $ValuesOnly
     )
     Begin {
         # Request Setup
@@ -66,7 +66,7 @@ function Get-ShodanDnsHostname {
 
     End {
         if ( $ValuesOnly ) {
-            [string[]]$ShodanResults = $null
+            [string[]] $ShodanResults = $null
             $Hostnames | ForEach-Object { 
                 $ShodanResults += $shodanDNSResults | Select-Object -ExpandProperty $_ 
             }

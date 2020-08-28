@@ -64,18 +64,21 @@ Function Get-LrIdentityById {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
+        [long] $IdentityId,
 
-        [Parameter(Mandatory = $true, ValueFromPipeline=$true, Position = 1)]
-        [long]$IdentityId,
+
+        [Parameter(Mandatory = $false, Position = 1)]
+        [switch] $IdentifiersOnly,
+
 
         [Parameter(Mandatory = $false, Position = 2)]
-        [switch]$IdentifiersOnly,
+        [switch] $Silent,
+
 
         [Parameter(Mandatory = $false, Position = 3)]
-        [switch]$Silent
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {

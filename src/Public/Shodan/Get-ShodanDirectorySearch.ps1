@@ -39,8 +39,8 @@ function Get-ShodanDirectorySearch {
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.Shodan.ApiKey,
 
-        [Parameter(Mandatory=$true, ValueFromPipeline=$true, Position=1)]
-        [string]$Keyword
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 1)]
+        [string] $Keyword
     )
     Begin {
         # Request Setup

@@ -32,8 +32,8 @@
             [ValidateNotNull()]
             [pscredential] $Credential = $LrtConfig.Shodan.ApiKey,
 
-            [Parameter(Mandatory=$true, ValueFromPipeline=$true, Position=1)]
-            [string]$Domain
+            [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 1)]
+            [string] $Domain
         )
         Begin {
             # Request Setup
