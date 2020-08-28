@@ -183,7 +183,7 @@ Function Get-LrCaseMetrics {
         }
         #endregion
 
-        Start-Sleep -Milliseconds 200
+        Start-Sleep -Milliseconds 50
 
         # End
         return $Response
