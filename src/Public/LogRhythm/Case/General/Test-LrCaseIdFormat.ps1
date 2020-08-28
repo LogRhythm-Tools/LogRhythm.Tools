@@ -59,6 +59,13 @@ Function Test-LrCaseIdFormat {
             Note        =   $null
         }
 
+        
+        # We may have received a full case object.  Check to see if it has a property for ID and Number
+        if ($Id.Id -and $Id.Number) {
+            Write-Verbose "[Test-LrCaseIdFormat]: Detected Id is a Case Object. Using Case.Number for validation."
+            $Id = $Id.Number
+        }
+
         # Check if ID value is an integer
         if ([int]::TryParse($Id, [ref]$_int)) {
             Write-Verbose "[$Me]: Id parses as integer."
