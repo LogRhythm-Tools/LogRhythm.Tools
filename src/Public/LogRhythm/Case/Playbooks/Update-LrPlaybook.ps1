@@ -80,30 +80,38 @@ Function Update-LrPlaybook {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
-
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 1)]
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 0)]
+        [ValidateNotNullOrEmpty()]
         [string] $Id,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 2)]
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 1)]
         [string] $Name,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 3)]
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 2)]
         [string] $Description,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 4)]
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 3)]
         [string] $Permissions,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 5)]
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 4)]
         [string] $Entities,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 6)]
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 5)]
         [object[]] $Tags,
 
+
+        [Parameter(Mandatory = $false, Position = 6)]
+        [switch] $Force,
+
+
         [Parameter(Mandatory = $false, Position = 7)]
-        [switch] $Force
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
 
