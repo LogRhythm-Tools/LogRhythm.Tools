@@ -30,53 +30,67 @@ Function Get-LrLogSources {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
-
-        [Parameter(Mandatory = $false, Position = 1)]
         [int] $PageValuesCount = 1000,
 
-        [Parameter(Mandatory = $false, Position = 2)]
+        
+        [Parameter(Mandatory = $false, Position = 1)]
         [int] $PageCount = 1,
 
-        [Parameter(Mandatory = $false, Position = 3)]
+
+        [Parameter(Mandatory = $false, Position = 2)]
         [ValidateSet('asc','desc', ignorecase=$true)]
         [string] $Direction,
+
 
         [Parameter(Mandatory = $false, Position = 3)]
         [ValidateSet('name','id', ignorecase=$true)]
         [string] $OrderBy = "name",
 
+
         [Parameter(Mandatory = $false, Position = 4)]
         [string] $Name,
+
 
         [Parameter(Mandatory = $false, Position = 5)]
         [ValidateSet('all','active','retired', ignorecase=$true)]
         [string] $RecordStatus = "active",
 
+
         [Parameter(Mandatory = $false, Position = 6)]
         [string] $Description,
+
 
         [Parameter(Mandatory = $false, Position = 7)]
         [int32] $SystemMonitorId,
 
+
         [Parameter(Mandatory = $false, Position = 8)]
         [string] $Entity,
+
 
         [Parameter(Mandatory = $false, Position = 9)]
         [string] $MessageSourceTypeId,
         
+
         [Parameter(Mandatory = $false, Position = 10)]
         [bool] $Virtual = $false,
+
 
         [Parameter(Mandatory = $false, Position = 11)]
         [bool] $LoadBalanced = $false,
 
+
         [Parameter(Mandatory = $false, Position = 12)]
         [int32] $HostId = $false,
 
+
         [Parameter(Mandatory = $false, Position = 13)]
-        [switch] $Exact
+        [switch] $Exact,
+
+
+        [Parameter(Mandatory = $false, Position = 14)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {
