@@ -43,23 +43,32 @@ Function Update-LrCaseEarliestEvidenceFromDrilldown {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
+        [Parameter(
+            Mandatory = $true, 
+            ValueFromPipeline = $true, 
+            ValueFromPipelineByPropertyName = $true, 
+            Position = 0
+        )]
         [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
-
-
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 1)]
         [object] $Id,
 
-        [Parameter(Mandatory = $true, Position = 2)]
+
+        [Parameter(Mandatory = $true, Position = 1)]
         [ValidateNotNullOrEmpty()]
         [string] $AlarmId,
 
-        [Parameter(Mandatory = $false, Position = 3)]
+
+        [Parameter(Mandatory = $false, Position = 2)]
         [switch] $PassThru,
 
+
+        [Parameter(Mandatory = $false, Position = 3)]
+        [switch] $Summary,
+
+
         [Parameter(Mandatory = $false, Position = 4)]
-        [switch] $Summary
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
 

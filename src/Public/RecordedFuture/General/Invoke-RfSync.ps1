@@ -61,7 +61,6 @@ Function Invoke-RfSync {
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateSet('all','vulnerability','ip','url','domain', ignorecase=$true)]
-        [ValidateNotNull()]
         [string[]] $SyncScope = "all"
     )
 

@@ -7,7 +7,7 @@ Function Get-RfIPRiskLists {
         Retrieve the available RecordedFuture IP threat lists.
     .DESCRIPTION
         List IP Risk rules.
-    .PARAMETER Token
+    .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
 
     .PARAMETER NamesOnly
@@ -158,10 +158,16 @@ Function Get-RfIPRiskLists {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.RecordedFuture.ApiKey,
         [switch] $NamesOnly,
-        [switch] $DescriptionsOnly
+
+
+        [Parameter(Mandatory = $false, Position = 1)]
+        [switch] $DescriptionsOnly,
+
+
+        [Parameter(Mandatory = $false, Position = 2)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.RecordedFuture.ApiKey
     )
 
     Begin {

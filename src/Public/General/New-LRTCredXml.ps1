@@ -81,7 +81,7 @@ Function New-LrtCredXml {
 
 
     #[securestring]$password = ConvertTo-SecureString $Password -AsPlainText -Force
-    #[pscredential]$Cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $Username, $Password
+    #[pscredential] $Cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $Username, $Password
     $Response = [PSCustomObject]@{
         Successful = $false
         Username   = $Username

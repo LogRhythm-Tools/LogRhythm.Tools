@@ -33,13 +33,14 @@ Function Get-LrNetworkDetails {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
+        [object] $Id,
 
-        [Parameter(Mandatory = $true, ValueFromPipeline=$true, Position = 1)]
+
+        [Parameter(Mandatory = $false, Position = 1)]
         [ValidateNotNull()]
-        [object] $Id
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {

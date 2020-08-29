@@ -61,20 +61,24 @@ Function Show-LrLocations {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
-        [string]$Name,
+        [string] $Name,
+
 
         [Parameter(Mandatory = $false, Position = 1)]
-        [int32]$Id,
+        [int32] $Id,
+
 
         [Parameter(Mandatory = $false, Position = 2)]
-        [int32]$ParentLocationId,
+        [int32] $ParentLocationId,
+
 
         [Parameter(Mandatory = $false, Position = 3)]
         [ValidateSet('region','country', ignorecase=$true)]
-        [string]$LocationType,
+        [string] $LocationType,
 
+        
         [Parameter(Mandatory = $false, Position = 4)]
-        [switch]$Exact
+        [switch] $Exact
     )
 
     Begin {

@@ -45,18 +45,24 @@ Function Add-LrCasePlaybook {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
+        [Parameter(
+            Mandatory = $true, 
+            ValueFromPipeline = $true, 
+            ValueFromPipelineByPropertyName = $true, 
+            Position = 0
+        )]
         [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
-
-
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 1)]
         [object] $Id,
 
 
-        [Parameter( Mandatory = $true, Position = 2)]
+        [Parameter( Mandatory = $true, Position = 1)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Playbook,
+
+
+        [Parameter(Mandatory = $false, Position = 2)]
         [ValidateNotNull()]
-        [string] $Playbook
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
 

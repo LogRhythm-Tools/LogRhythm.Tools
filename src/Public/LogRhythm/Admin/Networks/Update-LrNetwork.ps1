@@ -90,52 +90,89 @@ Function Update-LrNetwork {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
-        
-        [Parameter(Mandatory = $false, ValueFromPipeline=$true, Position = 1)]
-        [string]$Id,
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 0)]
+        [string] $Id,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 2)]
-        [string]$Name,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 3)]
-        [string]$Entity,
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 1)]
+        [string] $Name,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 4)]
-        [string]$ShortDesc,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 5)]
-        [string]$LongDesc,
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 2)]
+        [string] $Entity,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 6)]
-        [ValidateSet('none','low-low','low-medium','low-high','medium-low','medium-medium','medium-high','high-low','high-medium','high-high', ignorecase=$true)]
-        [string]$RiskLevel,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 7)]
-        [ValidateSet('none','low-low','low-medium','low-high','medium-low','medium-medium','medium-high','high-low','high-medium','high-high', ignorecase=$true)]
-        [string]$ThreatLevel,
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 3)]
+        [string] $ShortDesc,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 8)]
-        [string]$ThreatLevelComment,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 9)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 4)]
+        [string] $LongDesc,
+
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 5)]
+        [ValidateSet(
+            'none',
+            'low-low',
+            'low-medium',
+            'low-high',
+            'medium-low',
+            'medium-medium',
+            'medium-high',
+            'high-low',
+            'high-medium',
+            'high-high', 
+            ignorecase=$true
+        )]
+        [string] $RiskLevel = "none",
+
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 6)]
+        [ValidateSet(
+            'none',
+            'low-low',
+            'low-medium',
+            'low-high',
+            'medium-low',
+            'medium-medium',
+            'medium-high',
+            'high-low',
+            'high-medium',
+            'high-high', 
+            ignorecase=$true
+        )]
+        [string] $ThreatLevel,
+
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 7)]
+        [string] $ThreatLevelComment,
+
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 8)]
         [ValidateSet('retired','active', ignorecase=$true)]
-        [string]$RecordStatus,
+        [string] $RecordStatus,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 10)]
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 9)]
         [ValidateSet('unknown','internal','dmz','external', ignorecase=$true)]
-        [string]$Zone="unknown",
+        [string] $Zone="unknown",
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 11)]
-        [string]$Location,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 12)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 10)]
+        [string] $Location,
+
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 11)]
         [ipaddress]$Bip,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 13)]
-        [ipaddress]$Eip
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 12)]
+        [ipaddress]$Eip,
+
+
+        [Parameter(Mandatory = $false, Position = 13)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {
@@ -155,7 +192,7 @@ Function Update-LrNetwork {
         Enable-TrustAllCertsPolicy
         
         # Integer Reference
-        [int32]$_int = 1
+        [int32] $_int = 1
     }
 
     Process {

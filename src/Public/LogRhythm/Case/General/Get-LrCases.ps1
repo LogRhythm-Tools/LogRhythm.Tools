@@ -185,70 +185,69 @@ Function Get-LrCases {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
-
-        [Parameter(Mandatory = $false, Position = 1)]
         [string] $Name,
 
+
         #region: Query Parameters ___________________________________________________________
-        [Parameter(Mandatory = $false, Position = 2)]
+        [Parameter(Mandatory = $false, Position = 1)]
         [ValidateNotNull()]
         [datetime] $DueBefore,
 
 
-        [Parameter(Mandatory = $false, Position = 3)]
+        [Parameter(Mandatory = $false, Position = 2)]
         [ValidateRange(1,5)]
         [int[]] $Priority,
 
 
-        [Parameter(Mandatory = $false, Position = 4)]
+        [Parameter(Mandatory = $false, Position = 3)]
         [ValidateNotNull()]
         [string[]] $Status,
 
 
-        [Parameter(Mandatory = $false, Position = 5)]
+        [Parameter(Mandatory = $false, Position = 4)]
         [ValidateNotNull()]
         [string[]] $Owners,
 
 
-        [Parameter(Mandatory = $false, Position = 6)]
+        [Parameter(Mandatory = $false, Position = 5)]
         [ValidateNotNull()]
         [string] $Collaborator,
 
 
-        [Parameter(Mandatory = $false, Position = 7)]
+        [Parameter(Mandatory = $false, Position = 6)]
         [ValidateNotNull()]
         [string[]] $Tags,
 
 
-        [Parameter(Mandatory = $false, Position = 8)]
+        [Parameter(Mandatory = $false, Position = 7)]
         [ValidateNotNull()]
         [string[]] $ExcludeTags,
 
-        [Parameter(Mandatory = $false, Position = 9)]
+
+        [Parameter(Mandatory = $false, Position = 8)]
         [ValidateSet("alarm","userEvents","log","note","file")]
         [string[]] $EvidenceType,
         #endregion
 
+        
         #region: Header Parameters___________________________________________________________
-        [Parameter(Mandatory = $false, Position = 10)]
+        [Parameter(Mandatory = $false, Position = 9)]
         [DateTime] $UpdatedAfter,
 
 
-        [Parameter(Mandatory = $false, Position = 11)]
+        [Parameter(Mandatory = $false, Position = 10)]
         [DateTime] $UpdatedBefore,
 
 
-        [Parameter(Mandatory = $false,Position = 12)]
+        [Parameter(Mandatory = $false,Position = 11)]
         [DateTime] $CreatedAfter,
 
 
-        [Parameter(Mandatory = $false,Position = 13)]
+        [Parameter(Mandatory = $false,Position = 12)]
         [DateTime] $CreatedBefore,
 
 
-        [Parameter(Mandatory = $false,Position = 14)]
+        [Parameter(Mandatory = $false,Position = 13)]
         [ValidateSet(
             "dateCreated",
             "dateClosed",
@@ -263,22 +262,30 @@ Function Get-LrCases {
         [string] $OrderBy = "dateCreated",
 
 
-        [Parameter(Mandatory = $false,Position = 15)]
+        [Parameter(Mandatory = $false,Position = 14)]
         [ValidateSet("asc","desc")]
         [string] $Direction = "asc",
 
 
-        [Parameter(Mandatory = $false, Position = 16)]
+        [Parameter(Mandatory = $false, Position = 15)]
         [int] $Count = 500,
 
-        [Parameter(Mandatory = $false, Position = 17)]
+
+        [Parameter(Mandatory = $false, Position = 16)]
         [switch] $Summary,
 
-        [Parameter(Mandatory = $false, Position = 18)]
+
+        [Parameter(Mandatory = $false, Position = 17)]
         [switch] $Exact,
 
+
+        [Parameter(Mandatory = $false, Position = 18)]
+        [switch] $Metrics,
+
+
         [Parameter(Mandatory = $false, Position = 19)]
-        [switch] $Metrics
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
         #endregion
 

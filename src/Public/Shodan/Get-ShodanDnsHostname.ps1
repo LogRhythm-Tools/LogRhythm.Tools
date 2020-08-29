@@ -3,7 +3,7 @@
         Submit a single or array of hostnames for IP address resolution.
     .DESCRIPTION
         Translates hostnames to IP Addresses.
-    .PARAMETER ShodanAPI
+    .PARAMETER Credential
         Shodan API Key
     .PARAMETER Hostnames
         An array of hostnames for DNS lookup through Shodan.io.
@@ -29,15 +29,18 @@
 function Get-ShodanDnsHostname {
     [CmdLetBinding()]
     param( 
-        [Parameter(Mandatory = $false, Position = 0)]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
+        [ValidateNotNullOrEmpty()]
+        [string[]] $Hostnames,
+
+
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 1)]
+        [switch] $ValuesOnly,
+
+
+        [Parameter(Mandatory = $false, Position = 2)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.Shodan.ApiKey,
-
-        [Parameter(Mandatory=$true, ValueFromPipeline=$true, Position=1)]
-        [string[]]$Hostnames,
-
-        [Parameter(Mandatory=$false, ValueFromPipeline=$false, Position=2)]
-        [switch]$ValuesOnly
+        [pscredential] $Credential = $LrtConfig.Shodan.ApiKey
     )
     Begin {
         # Request Setup
@@ -66,7 +69,7 @@ function Get-ShodanDnsHostname {
 
     End {
         if ( $ValuesOnly ) {
-            [string[]]$ShodanResults = $null
+            [string[]] $ShodanResults = $null
             $Hostnames | ForEach-Object { 
                 $ShodanResults += $shodanDNSResults | Select-Object -ExpandProperty $_ 
             }

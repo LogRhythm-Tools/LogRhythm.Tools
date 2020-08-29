@@ -57,15 +57,24 @@ Function Copy-LrPlaybook {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
-
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 1)]
+        [Parameter(
+            Mandatory = $true, 
+            ValueFromPipeline = $true, 
+            ValueFromPipelineByPropertyName = $true, 
+            Position = 0
+        )]
+        [ValidateNotNullOrEmpty()]
         [string] $Id,
 
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 2)]
-        [string] $Name
+
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 1)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Name,
+
+
+        [Parameter(Mandatory = $false, Position = 2)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
 

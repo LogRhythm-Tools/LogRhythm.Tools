@@ -30,7 +30,7 @@ Function Test-IPv4CIDR {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position=0)]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
         [ValidateNotNull()]
         [string] $Network
     )
@@ -51,7 +51,7 @@ Function Test-IPv4CIDR {
 
         
         $NetworkIP = ([System.Net.IPAddress]$($Network.split("/")[0])).GetAddressBytes()
-        [int]$NetworkLength = ($Network.split("/"))[1]
+        [int] $NetworkLength = ($Network.split("/"))[1]
         if ($NetworkLength -gt 32) {
             $OutObject.IsValid = $false
             return $OutObject

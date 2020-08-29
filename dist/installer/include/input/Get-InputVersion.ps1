@@ -16,7 +16,7 @@ Function Get-InputVersion {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory=$true,Position=0)]
+        [Parameter(Mandatory = $true, Position = 0)]
         [ValidateNotNullOrEmpty()]
         [string] $Value,
 

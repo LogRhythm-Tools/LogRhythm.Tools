@@ -23,7 +23,7 @@ Function Get-RestErrorMessage {
     #region: Parameters
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory=$true,Position=0)]
+        [Parameter(Mandatory = $true, Position = 0)]
         [Object] $Err
     )
 

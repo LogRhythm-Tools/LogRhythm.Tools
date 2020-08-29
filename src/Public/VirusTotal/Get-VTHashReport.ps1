@@ -46,16 +46,14 @@ Function Get-VTHashReport {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.VirusTotal.ApiKey,
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Hash,
 
-        [Parameter(
-            Mandatory = $true,
-            ValueFromPipeline = $true,
-            Position = 1
-        )]
-        [string] $Hash
+
+        [Parameter(Mandatory = $false, Position = 1)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.VirusTotal.ApiKey
     )
 
     Begin {

@@ -147,56 +147,56 @@ Function Get-LrAgentsAccepted {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
+        [int] $PageValuesCount = 1000,
 
         [Parameter(Mandatory = $false, Position = 1)]
-        [int]$PageValuesCount = 1000,
+        [int] $PageCount = 1,
 
         [Parameter(Mandatory = $false, Position = 2)]
-        [int]$PageCount = 1,
-
-        [Parameter(Mandatory = $false, Position = 3)]
         [ValidateSet('asc','desc', ignorecase=$true)]
-        [string]$Direction = "asc",
+        [string] $Direction = "asc",
 
         [Parameter(Mandatory = $false, Position = 3)]
         [ValidateSet('name','id', ignorecase=$true)]
-        [string]$OrderBy = "name",
+        [string] $OrderBy = "name",
 
         [Parameter(Mandatory = $false, Position = 4)]
-        [string]$Name,
+        [string] $Name,
 
         [Parameter(Mandatory = $false, Position = 5)]
         [ValidateSet('all','active','retired', ignorecase=$true)]
-        [string]$RecordStatus = "all",
+        [string] $RecordStatus = "all",
 
         [Parameter(Mandatory = $false, Position = 6)]
         [ValidateSet('none','systemmonitorbasic', 'systemmonitor', ignorecase=$true)]
-        [string]$AgentLicenseType,
+        [string] $AgentLicenseType,
 
         [Parameter(Mandatory = $false, Position = 7)]
         [ValidateSet('systemmonitorsearch','parententitysearch', 'globalsearch', ignorecase=$true)]
-        [string]$SearchScope,
+        [string] $SearchScope,
 
         [Parameter(Mandatory = $false, Position = 8)]
-        [string]$Entity,
+        [string] $Entity,
 
         [Parameter(Mandatory = $false, Position = 9)]
-        [string]$Version,
+        [string] $Version,
 
-        [Parameter(Mandatory = $false, Position = 9)]
-        [ValidateSet('none','windows', 'linux', 'solaris', 'aix', 'hpux', 'all', ignorecase=$true)]
-        [string]$AgentType,
-        
         [Parameter(Mandatory = $false, Position = 10)]
-        [bool]$LoadBalanced,
-
+        [ValidateSet('none','windows', 'linux', 'solaris', 'aix', 'hpux', 'all', ignorecase=$true)]
+        [string] $AgentType,
+        
         [Parameter(Mandatory = $false, Position = 11)]
-        [bool]$FetchAIERecords,
+        [bool] $LoadBalanced,
+
+        [Parameter(Mandatory = $false, Position = 12)]
+        [bool] $FetchAIERecords,
 
         [Parameter(Mandatory = $false, Position = 13)]
-        [switch]$Exact
+        [switch] $Exact,
+
+        [Parameter(Mandatory = $false, Position = 14)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {
@@ -218,7 +218,7 @@ Function Get-LrAgentsAccepted {
         Enable-TrustAllCertsPolicy
         
         # Integer reference
-        [int32]$_int = 0
+        [int32] $_int = 0
     }
 
     Process {

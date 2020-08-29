@@ -48,7 +48,7 @@ Function Test-ValidTCPUDPPort {
         Write-Verbose "[$Me]: Id parses as integer."
         $OutObject.Value = $Id.ToString()
         $OutObject.IsInt = $true
-        if ([int]$Id -ge 0 -and [int]$Id -le 65535) {
+        if ([int] $Id -ge 0 -and [int] $Id -le 65535) {
             $OutObject.IsValid = $true
         } else {
             $OutObject.IsValid = $false
