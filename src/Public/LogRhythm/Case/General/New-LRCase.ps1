@@ -56,15 +56,10 @@ Function New-LrCase {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
-
-
         [Parameter(Mandatory = $true, 
             ValueFromPipeline = $true, 
             ValueFromPipelineByPropertyName = $true, 
-            Position=1
+            Position = 0
         )]
         [ValidateLength(1,250)]
         [string] $Name,
@@ -73,7 +68,7 @@ Function New-LrCase {
         [Parameter(Mandatory = $true, 
             ValueFromPipeline = $true, 
             ValueFromPipelineByPropertyName = $true, 
-            Position=2
+            Position = 1
         )]
         [ValidateRange(1,5)]
         [int] $Priority,
@@ -82,7 +77,7 @@ Function New-LrCase {
         [Parameter(Mandatory = $false,
             ValueFromPipeline = $true,
             ValueFromPipelineByPropertyName = $true,
-            Position = 3
+            Position = 2
         )]
         [DateTime] $DueDate = ([DateTime]::now).AddDays(1),
 
@@ -90,14 +85,19 @@ Function New-LrCase {
         [Parameter(Mandatory = $false,
             ValueFromPipeline = $true,
             ValueFromPipelineByPropertyName = $true,
-            Position = 4
+            Position = 3
         )]
         [ValidateLength(1,10000)]
         [string] $Summary,
 
 
+        [Parameter(Mandatory = $false, Position = 4)]
+        [int[]] $AlarmNumbers,
+
+
         [Parameter(Mandatory = $false, Position = 5)]
-        [int[]] $AlarmNumbers
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {

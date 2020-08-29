@@ -34,20 +34,22 @@ function Get-LrCaseEarliestEvidence {
         https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 	param(
-        [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
-
-		[Parameter(
+        [Parameter(
             Mandatory = $true, 
-            Position = 1
-        )] 
-        [object] $Id
+            ValueFromPipeline = $true, 
+            ValueFromPipelineByPropertyName = $true, 
+            Position = 0
+        )]
+        [ValidateNotNull()]
+        [object] $Id,
+
+
+        [Parameter(Mandatory = $false, Position = 1)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
 	)
     
     Begin {
-        $Me = $MyInvocation.MyCommand.Name
-        
         $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 

@@ -28,19 +28,11 @@ Function Get-LrCaseStatusTable {
 
     [CmdletBinding()]
     Param(
-        [Parameter(
-            Mandatory = $false, 
-            ValueFromPipeline = $true, 
-            Position = 0
-        )]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 0)]
         [int] $Number,
 
 
-        [Parameter(
-            Mandatory = $false, 
-            ValueFromPipeline = $true, 
-            Position = 1
-        )]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 1)]
         [string] $Name
     )
 
