@@ -44,16 +44,16 @@ Function Update-LrHostIdentifier {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName=$true, Position = 0)]
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 0)]
         [string] $Id,
 
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 1)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 1)]
         [ValidateSet('ipaddress','dnsname', 'windowsname', ignorecase=$true)]
         [string] $Type,
 
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true,  Position = 2)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true,  Position = 2)]
         [string] $Value,
 
 
