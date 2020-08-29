@@ -42,26 +42,38 @@ Function Get-LrSearchResults {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
-        
-        [Parameter(Mandatory = $false, Position = 1)]
+        [ValidateNotNullOrEmpty()]
         [string] $TaskId,
 
-        [Parameter(Mandatory = $false, Position = 2)]
+
+        [Parameter(Mandatory = $false, Position = 1)]
+        [ValidateNotNullOrEmpty()]
         [string] $Sort,
 
-        [Parameter(Mandatory = $false,  Position = 3)]
+
+        [Parameter(Mandatory = $false,  Position = 2)]
+        [ValidateNotNullOrEmpty()]
         [string] $GroupBy = "",
 
-        [Parameter(Mandatory = $false,  Position = 4)]
+
+        [Parameter(Mandatory = $false,  Position = 3)]
+        [ValidateNotNullOrEmpty()]
         [string] $Fields,
 
-        [Parameter(Mandatory = $false,  Position = 5)]
+
+        [Parameter(Mandatory = $false,  Position = 4)]
+        [ValidateNotNullOrEmpty()]
         [string] $PageOrigin = 1,
 
+
+        [Parameter(Mandatory = $false, Position = 5)]
+        [ValidateNotNullOrEmpty()]
+        [string] $PageSize = 100,
+
+
         [Parameter(Mandatory = $false, Position = 6)]
-        [string] $PageSize = 100
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {
