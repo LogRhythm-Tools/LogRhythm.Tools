@@ -7,7 +7,7 @@ Function Get-RfUrlRiskList {
         Get RecordedFuture URL threat list.
     .DESCRIPTION
         Get RecordedFuture URL cmdlet retrieves the associated threat list results with returned URL values and their associated data.  
-    .PARAMETER Token
+    .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
         
         Note: You can bypass the need to provide a Credential by setting
@@ -49,15 +49,34 @@ Function Get-RfUrlRiskList {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.RecordedFuture.ApiKey,
-
+        [ValidateNotNullOrEmpty()]
         [string] $List,
+
+
+        [Parameter(Mandatory = $false, Position = 1)]
+        [ValidateNotNullOrEmpty()]
         [string] $Format = "csv/splunk",
+
+
+        [Parameter(Mandatory = $false, Position = 2)]
         [bool] $Compressed = $false,
+
+
+        [Parameter(Mandatory = $false, Position = 3)]
         [int] $MinimumRisk,
+
+
+        [Parameter(Mandatory = $false, Position = 4)]
         [int] $MaximumRisk,
-        [switch] $ValuesOnly
+
+
+        [Parameter(Mandatory = $false, Position = 5)]
+        [switch] $ValuesOnly,
+
+
+        [Parameter(Mandatory = $false, Position = 6)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.RecordedFuture.ApiKey
     )
 
     Begin {
