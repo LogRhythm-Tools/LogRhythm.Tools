@@ -44,67 +44,138 @@ Function New-LrList {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
-
-        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 1)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 0)]
         [ValidateNotNull()]
         [string] $Name,
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 2)]
+
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 1)]
         [ValidateNotNull()]
         [string] $Guid = $null,
 
-        [Parameter(Mandatory = $True, Position = 3)]
-        [ValidateSet('application', 'classification', 'commonevent', 'host', 'location', 'msgsource', 'msgsourcetype', 'mperule', 'network', 'user', 'generalvalue', 'entity', 'rootentity', 'ip', 'iprange', 'identity', 'none', ignorecase=$true)]
+
+        [Parameter(Mandatory = $True, Position = 2)]
+        [ValidateSet(
+            'application',
+            'classification', 
+            'commonevent', 
+            'host', 
+            'location', 
+            'msgsource', 
+            'msgsourcetype', 
+            'mperule', 
+            'network', 
+            'user', 
+            'generalvalue', 
+            'entity', 
+            'rootentity', 
+            'ip', 
+            'iprange', 
+            'identity', 
+            'none', 
+            ignorecase=$true
+        )]
         [string] $ListType,
 
-        [Parameter(Mandatory = $false, Position = 4)]
+
+        [Parameter(Mandatory = $false, Position = 3)]
         [string] $ShortDescription,
 
-        [Parameter(Mandatory = $false, Position = 5)]
+
+        [Parameter(Mandatory = $false, Position = 4)]
         [string] $LongDescription,
 
-        [Parameter(Mandatory = $false, Position = 6)]
-        [ValidateSet('None', 'Address', 'DomainImpacted', 'Group', 'HostName', 'Message', 'Object', 'Process', 'Session', 'Subject', 'URL', 'User', 'VendorMsgID', 'DomainOrigin', 'Hash', 'Policy', 'VendorInfo', 'Result', 'ObjectType', 'CVE', 'UserAgent', 'ParentProcessId', 'ParentProcessName', 'ParentProcessPath', 'SerialNumber', 'Reason', 'Status', 'ThreatId', 'ThreatName', 'SessionType', 'Action', 'ResponseCode', ignorecase=$true)]
+
+        [Parameter(Mandatory = $false, Position = 5)]
+        [ValidateSet(
+            'None', 
+            'Address', 
+            'DomainImpacted', 
+            'Group', 
+            'HostName', 
+            'Message', 
+            'Object', 
+            'Process', 
+            'Session', 
+            'Subject', 
+            'URL', 
+            'User', 
+            'VendorMsgID', 
+            'DomainOrigin', 
+            'Hash', 
+            'Policy', 
+            'VendorInfo', 
+            'Result', 
+            'ObjectType', 
+            'CVE', 
+            'UserAgent', 
+            'ParentProcessId', 
+            'ParentProcessName', 
+            'ParentProcessPath', 
+            'SerialNumber', 
+            'Reason', 
+            'Status', 
+            'ThreatId', 
+            'ThreatName', 
+            'SessionType', 
+            'Action', 
+            'ResponseCode', 
+            ignorecase=$true
+        )]
         [string[]] $UseContext,
 
-        [Parameter(Mandatory = $false, Position = 7)]
+
+        [Parameter(Mandatory = $false, Position = 6)]
         [bool] $AutoImport = $false,
 
-        [Parameter(Mandatory = $false, Position = 8)]
+
+        [Parameter(Mandatory = $false, Position = 7)]
         [bool] $AutoImportPatterns = $false,
 
-        [Parameter(Mandatory = $false, Position = 9)]
+
+        [Parameter(Mandatory = $false, Position = 8)]
         [bool] $AutoImportReplaceExisting = $false,
 
-        [Parameter(Mandatory = $false, Position = 10)]
+
+        [Parameter(Mandatory = $false, Position = 9)]
         [string] $AutoImportFileName,
 
-        [Parameter(Mandatory = $false, Position = 11)]
+
+        [Parameter(Mandatory = $false, Position = 10)]
         [string] $ReadAccess = "PublicRestrictedAdmin",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+
+        [Parameter(Mandatory = $false, Position = 11)]
         [string] $WriteAccess = "PublicRestrictedAdmin",
 
-        [Parameter(Mandatory = $false, Position = 13)]
+
+        [Parameter(Mandatory = $false, Position = 12)]
         [bool] $RestrictedRead = $false,
 
-        [Parameter(Mandatory = $false, Position = 14)]
+
+        [Parameter(Mandatory = $false, Position = 13)]
         [string] $EntityName = "Primary Site",
 
-        [Parameter(Mandatory = $false, Position = 15)]
+
+        [Parameter(Mandatory = $false, Position = 14)]
         [int] $TimeToLiveSeconds = $null,
 
-        [Parameter(Mandatory = $false, Position = 16)]
+
+        [Parameter(Mandatory = $false, Position = 15)]
         [bool] $NeedToNotify = $false,
 
-        [Parameter(Mandatory = $false, Position = 17)]
+
+        [Parameter(Mandatory = $false, Position = 16)]
         [bool] $DoesExpire = $false,
 
+
+        [Parameter(Mandatory = $false, Position = 17)]
+        [int64] $Owner = 0,
+
+
         [Parameter(Mandatory = $false, Position = 18)]
-        [int64] $Owner = 0
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
                                                                    
     Begin {
