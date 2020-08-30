@@ -22,7 +22,12 @@ Function Get-InputCredential {
 
         [Parameter(Mandatory = $true, Position = 2)]
         [ValidateNotNullOrEmpty()]
-        [string] $AppName
+        [string] $AppName,
+
+
+        [Parameter(Mandatory = $false, Position = 3)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Username
     )
 
     # LogRhythm.ApiKey.key
@@ -60,7 +65,13 @@ Function Get-InputCredential {
             Write-Host "    Key less than 10 characters." -ForegroundColor Magenta
         }
     }
-
-    $_cred = [PSCredential]::new($AppId, $Key)
+    
+    # Create credential - with username if provided
+    if (! [string]::IsNullOrEmpty($Username)) {
+        $_cred = [PSCredential]::new($Username, $Key)
+    } else {
+        $_cred = [PSCredential]::new($AppId, $Key)
+    }
+    
     Export-Clixml -Path $ConfigDirPath\$KeyFileName -InputObject $_cred
 }

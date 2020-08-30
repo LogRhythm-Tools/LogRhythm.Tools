@@ -98,6 +98,57 @@
         }
     },
 
+
+    "AzureAD": {
+        "Name": "Microsoft Azure Active Directory / Identity Protection",
+        "Optional": true,
+        "Message": "Provides access to AAD SignIn & Identity Protection events via Microsoft Graph.",
+        "HasKey": true,
+        "HasClientId": true,
+
+        "Fields": {
+            "OAuth2Url": {
+                "Prompt": "Tenant ID (GUID)",
+                "Hint": "Example: f8da285a-3816-438e-825a-928a4bed1bd3",
+                "InputCmd": "Get-InputTenantId",
+                "FallThru": false
+            },
+
+            "PageSize": {
+                "Prompt": "Number of events to fetch per request. Default: 500",
+                "Hint": "Number between 1 and 999",
+                "InputCmd": "Get-InputAzPageSize",
+                "FallThru": false
+            }
+        }
+    },
+
+
+    "DefenderATP": {
+        "Name": "Microsoft Defender ATP",
+        "Optional": true,
+        "Message": "Provides access to Defender ATP Alerts. Note: Requires ATP Configuration.\n    Reference: https://docs.microsoft.com/en-us/windows/security/threat-protection/microsoft-defender-atp/enable-siem-integration",
+        "HasKey": true,
+        "HasClientId": true,
+
+        "Fields": {
+            "OAuth2Url": {
+                "Prompt": "Tenant ID (GUID)",
+                "Hint": "Example: f8da285a-3816-438e-825a-928a4bed1bd3",
+                "InputCmd": "Get-InputTenantId",
+                "FallThru": false
+            },
+
+            "PageSize": {
+                "Prompt": "Number of events to fetch per request. Default: 500",
+                "Hint": "Number between 1 and 999",
+                "InputCmd": "Get-InputAzPageSize",
+                "FallThru": false
+            }
+        }
+    },
+
+
     "RecordedFuture": {
         "Name": "Recorded Future",
         "Optional": true,
@@ -106,6 +157,7 @@
         
         "Fields": {}
     },
+
 
     "VirusTotal": {
         "Name": "VirusTotal",
@@ -122,6 +174,7 @@
         }
     },
 
+
     "UrlScan": {
         "Name": "UrlScan",
         "Optional": true,
@@ -136,6 +189,7 @@
             }
         }
     },
+
 
     "SecretServer": {
         "Name": "Secret Server",
@@ -152,7 +206,8 @@
             }
         }
     },
-	
+    
+    
 	"Shodan": {
         "Name": "Shodan",
         "Optional": true,

@@ -24,6 +24,21 @@
         "ModuleLoaded": false
     },
 
+    "AzureAD": {
+        "Resource": "https://graph.microsoft.com",
+        "OAuth2Url": "https://login.microsoftonline.com/00000000-0000-0000-0000-000000000000/oauth2/token",
+        "PageSize": 500,
+        "ApiKey": ""
+    },
+
+
+    "DefenderATP": {
+        "Resource": "https://graph.windows.net",
+        "OAuth2Url": "https://login.microsoftonline.com/00000000-0000-0000-0000-000000000000/oauth2/token",
+        "PageSize": 500,
+        "ApiKey": ""
+    },
+
     "RecordedFuture": {
         "BaseUrl": "https://api.recordedfuture.com/v2/",
         "ApiKey": ""

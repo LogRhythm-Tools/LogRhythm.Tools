@@ -27,29 +27,36 @@ Function Confirm-Input {
 
 
         [Parameter(Mandatory = $false, Position = 3)]
-        [string] $OldValue
+        [string] $OldValue,
+
+
+        [Parameter(Mandatory = $false, Position = 4)]
+        [string[]] $AllowChars
     )
 
     # Setup Result object
     $Result = [PSCustomObject]@{
-        Value = $null
-        Valid = $false
+        Value   = $null
+        Valid   = $false
         Changed = $false
     }
+
 
     while (! $Result.Valid) {
         $Response = Read-Host -Prompt $Message
         $Response = $Response.Trim()
+        $Response = Remove-SpecialChars -Value $Response -Allow $AllowChars
         
+
         if($Response -match $Pattern) {
             $Result.Valid = $true
-            $Result.Value = $Value
+            $Result.Value = $Response
             if ($Response -ne $OldValue) {
                 $Result.Changed = $true
             }
+        } else {
+            Write-Host $Hint -ForegroundColor Magenta
         }
-
-        Write-Host $Hint -ForegroundColor Magenta
     }
 
     return $Result
