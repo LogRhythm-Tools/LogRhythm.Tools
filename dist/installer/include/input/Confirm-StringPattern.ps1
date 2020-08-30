@@ -1,5 +1,5 @@
 using namespace System
-Function Confirm-Input {
+Function Confirm-StringPattern {
     <#
     .SYNOPSIS 
         Prompt the user to make a selection from values within a list.

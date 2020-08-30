@@ -4,6 +4,9 @@ using namespace System.IO
 <#
 .SYNOPSIS
     End to end testing of the LrtBuilder module, from build to publish.
+.PARAMETER NewConfig
+    Removes the existing configuration so that a new one will be generated
+    by Setup.ps1.
 .PARAMETER Reset
     If the Reset switch is provided, then the entire contents of the LogRhythm.Tools configuration directory
     will be backed up to tests\Lrt.Publisher\backup\ and the configuration directory in %LocalAppData% will
@@ -22,6 +25,9 @@ using namespace System.IO
 
 [CmdletBinding()]
 Param(
+    [Parameter(Mandatory = $false, Position = 0)]
+    [switch] $NewConfig,
+
     [Parameter(Mandatory = $false, Position = 0)]
     [switch] $Reset,
 
@@ -68,7 +74,7 @@ if (! (Test-Path $T_BKP)) {
 #region: Backup                                                                                    
 if ($Reset) {
     # Backup current config
-    $_ts = ([datetime]::now).ToString('yyyy-MM-dd-mm-ss')
+    $_ts = ([datetime]::now).ToString('yyyy-MM-dd-hh-mm')
     $BackupPath = New-Item -Path $T_BKP -ItemType Directory -Name $_ts
     $BackupItems = Get-ChildItem -Path $ConfigDirPath -Recurse
     try {
@@ -85,6 +91,13 @@ if ($Reset) {
     } catch {
         Write-Host "Faileld to remove existing configuration at $ConfigDirPath"
     }
+}
+
+
+# Remove config file only - no backup.
+if ($NewConfig) {
+    $ConfigFilePath = $ConfigDirPath | Join-Path -ChildPath "LogRhythm.Tools.json"
+    Remove-Item -Path $ConfigFilePath -Force -ErrorAction SilentlyContinue
 }
 #endregion
 

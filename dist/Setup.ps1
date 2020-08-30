@@ -181,12 +181,25 @@ foreach($ConfigCategory in $LrtConfigInput.PSObject.Properties) {
             # > Process Input
             
             Write-Verbose "LrtConfig.$($ConfigCategory.Name).$($ConfigField.Name)"
-            $cmd = $ConfigField.Value.InputCmd +`
-                " -Value `"" + $Response + "`"" + `
-                " -OldValue `"" + $OldValue + "`""
-            Write-Verbose "Command: $cmd"
 
-            $Result = Invoke-Expression $cmd
+            # If we are using Get-StringPattern, run that. 
+            if ($ConfigField.Value.InputCmd -match "Get-StringPattern") {
+                Write-Verbose "Validation: Get-StringPattern"
+                $Result = Get-StringPattern `
+                    -Value $Response `
+                    -OldValue $OldValue `
+                    -Pattern $ConfigField.Value.InputPattern.Pattern `
+                    -AllowChars $ConfigField.Value.InputPattern.AllowChars
+            } else {
+                # Otherwise invoke the command requested with common parameters.
+                $cmd = $ConfigField.Value.InputCmd +`
+                    " -Value `"" + $Response + "`"" + `
+                    " -OldValue `"" + $OldValue + "`""
+                    Write-Verbose "Validation: $cmd"
+
+                $Result = Invoke-Expression $cmd
+            }
+
 
             # Input OK - Update configuration object
             if ($Result.Valid) {
@@ -216,7 +229,7 @@ foreach($ConfigCategory in $LrtConfigInput.PSObject.Properties) {
         if ($ConfigCategory.Value.HasClientId) {
 
             # Prompt for ClientId if required - no validation other than (length > 2 and < 101)
-            $ClientId = Confirm-Input -Message "  > Please enter your Client/App Id" `
+            $ClientId = Confirm-StringPattern -Message "  > Please enter your Client/App Id" `
                 -Pattern "^.{3,100}$" `
                 -Hint "Client Id is longer than 2 characters" `
                 -AllowChars @("-",".","\")

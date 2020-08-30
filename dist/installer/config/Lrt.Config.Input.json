@@ -127,7 +127,7 @@
     "DefenderATP": {
         "Name": "Microsoft Defender ATP",
         "Optional": true,
-        "Message": "Provides access to Defender ATP Alerts. Note: Requires ATP Configuration.\n    Reference: https://docs.microsoft.com/en-us/windows/security/threat-protection/microsoft-defender-atp/enable-siem-integration",
+        "Message": "Provides access to Defender ATP Alerts. \nNOTE: Requires ATP Configuration: https://docs.microsoft.com/en-us/windows/security/threat-protection/microsoft-defender-atp/enable-siem-integration",
         "HasKey": true,
         "HasClientId": true,
 
@@ -137,6 +137,17 @@
                 "Hint": "Example: f8da285a-3816-438e-825a-928a4bed1bd3",
                 "InputCmd": "Get-InputTenantId",
                 "FallThru": false
+            },
+
+            "Region": {
+                "Prompt": "Enter your region. Default: US",
+                "Hint": "US, EU or UK",
+                "InputCmd": "Get-StringPattern",
+                "FallThru": false,
+                "InputPattern": {
+                    "Pattern": "^[uU][sS]|[uU][kK]|[eE][uU]$",
+                    "AllowChars": ""
+                }
             },
 
             "PageSize": {
