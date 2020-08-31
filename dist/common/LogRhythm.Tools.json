@@ -28,17 +28,19 @@
         "Resource": "https://graph.microsoft.com",
         "OAuth2Url": "https://login.microsoftonline.com/00000000-0000-0000-0000-000000000000/oauth2/token",
         "PageSize": 500,
-        "ApiKey": ""
+        "ApiKey": "",
+        "Token": ""
     },
 
 
     "DefenderATP": {
         "Resource": "https://graph.windows.net",
-        "OAuth2Url": "https://login.microsoftonline.com/00000000-0000-0000-0000-000000000000/oauth2/token",
+        "OAuth2Url": "https://login.windows.net/00000000-0000-0000-0000-000000000000/oauth2/token",
         "Region": "US",
         "PageSize": 500,
         "ApiKey": "",
-        "RequestUri": {
+        "Token": "",
+        "BaseRequestUri": {
             "US": "https://wdatp-alertexporter-us.windows.com/api/alerts",
             "EU": "https://wdatp-alertexporter-eu.windows.com/api/alerts",
             "UK": "https://wdatp-alertexporter-uk.windows.com/api/alerts"
