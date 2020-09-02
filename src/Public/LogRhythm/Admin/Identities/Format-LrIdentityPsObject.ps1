@@ -71,21 +71,23 @@ Function Format-LrIdentityPsObject {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, ValueFromPipeline=$true, Position = 0)]
-        [object]$TrueIdentity,
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 0)]
+        [object] $TrueIdentity,
 
-        [switch]$ActiveOnly,
 
-        [switch]$RetiredOnly
+        [switch] $ActiveOnly,
+
+        
+        [switch] $RetiredOnly
     )
 
     Begin {
         # Count Maximum number of Identifiers
-        [int]$IdentifierMax = 0
+        [int] $IdentifierMax = 0
         # Count Maximum number of Groups
-        [int]$GroupsMax = 0
+        [int] $GroupsMax = 0
         # Count number of Entries
-        [int]$Entry = 0
+        [int] $Entry = 0
 
         $CsvValues = [PSCustomObject]@{}
 
@@ -95,8 +97,8 @@ Function Format-LrIdentityPsObject {
 
     Process {
         # Set dynamic field counters
-        [int]$IdentifierCount = 0
-        [int]$GroupCount = 0
+        [int] $IdentifierCount = 0
+        [int] $GroupCount = 0
 
         # Create new CSV Entry
         $CsvEntry = [list[string]]::new()

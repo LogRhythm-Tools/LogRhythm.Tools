@@ -36,13 +36,13 @@ Function Get-LrtBuild {
     
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory=$false,ValueFromPipeline=$true)]
+        [Parameter(Mandatory = $false,ValueFromPipeline = $true)]
         [string] $BuildId,
 
-        [Parameter(Mandatory=$false,ValueFromPipeline=$true)]
+        [Parameter(Mandatory = $false,ValueFromPipeline = $true)]
         [guid] $Guid,
 
-        [Parameter(Mandatory=$false)]
+        [Parameter(Mandatory = $false)]
         [switch] $Installed
     )
 

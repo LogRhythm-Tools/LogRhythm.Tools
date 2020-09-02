@@ -37,7 +37,6 @@ function Remove-SpecialChars {
 
 
         [Parameter(Mandatory = $false, Position = 1)]
-        [ValidateNotNullOrEmpty()]
         [string[]] $Allow
     )
 

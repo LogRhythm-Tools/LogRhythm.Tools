@@ -7,7 +7,7 @@ Function Get-RfAlertRules {
         Get RecordedFuture Alert Rules.
     .DESCRIPTION
         Get RecordedFuture Alert Rules cmdlet retrieves the available Alert Rule title and id values.  
-    .PARAMETER Token
+    .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
     .PARAMETER Freetext
         Name of the RecordedFuture Alert Rules
@@ -23,11 +23,17 @@ Function Get-RfAlertRules {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.RecordedFuture.ApiKey,
-
+        [ValidateNotNullOrEmpty()]
         [string] $Freetext,
-        [int] $Limit = 100
+
+
+        [Parameter(Mandatory = $false, Position = 1)]
+        [int] $Limit = 100,
+
+
+        [Parameter(Mandatory = $false, Position = 2)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.RecordedFuture.ApiKey
     )
 
     Begin {

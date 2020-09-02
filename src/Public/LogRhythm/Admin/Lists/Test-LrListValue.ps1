@@ -34,21 +34,17 @@ Function Test-LrListValue {
     #>
     [CmdletBinding()]
     Param(
-        [Parameter(
-            Mandatory = $true,
-            ValueFromPipeline = $true,
-            Position=0
-        )]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position=0)]
         [ValidateNotNull()]
         [string] $Value,
 
-        [Parameter(
-            Mandatory = $true,
-            Position=0
-        )]
+
+        [Parameter(Mandatory = $true, Position=0)]
         [ValidateNotNull()]
         [string] $Name
     )
+
+    
     Begin {
         # Establish output object
         $OutObject = [PSCustomObject]@{

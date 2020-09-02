@@ -40,14 +40,14 @@ Function Remove-LrTag {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
+        [string] $Tag,
 
 
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 1)]
+        [Parameter(Mandatory = $false, Position = 1)]
         [ValidateNotNull()]
-        [string] $Tag
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
 

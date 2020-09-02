@@ -50,40 +50,32 @@ Function Get-LrUsers {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
-
-
         [Parameter(
             Mandatory = $false,
             ValueFromPipeline = $true,
             ValueFromPipelineByPropertyName = $true,
-            Position = 1
+            Position = 0
         )]
+        [ValidateNotNullOrEmpty()]
         [string] $Name,
 
 
-        [Parameter(
-            Mandatory = $false,
-            Position = 2
-        )]
+        [Parameter(Mandatory = $false, Position = 1)]
         [switch] $OnlyUsers,
 
 
-        [Parameter(
-            Mandatory = $false,
-            Position = 3
-        )]
+        [Parameter(Mandatory = $false, Position = 2)]
         [ValidateSet('asc','desc')]
         [string] $Sort = "asc",
 
 
-        [Parameter(
-            Mandatory = $false,
-            Position = 4
-        )]
-        [switch] $Exact
+        [Parameter(Mandatory = $false, Position = 3)]
+        [switch] $Exact,
+
+
+        [Parameter(Mandatory = $false, Position = 4)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {

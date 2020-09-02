@@ -28,11 +28,7 @@ Function Test-LrUserIdFormat {
 
     [CmdletBinding()]
     Param(
-        [Parameter(
-            Mandatory = $true,
-            ValueFromPipeline = $true,
-            Position=0
-        )]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position=0)]
         [ValidateNotNull()]
         [object] $Id
     )

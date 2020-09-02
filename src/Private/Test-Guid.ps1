@@ -24,7 +24,7 @@ Function Test-Guid {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory=$false,Position=0, ValueFromPipeline=$true)]
+        [Parameter(Mandatory = $false, Position = 0, ValueFromPipeline = $true)]
         [string] $Guid
     )
 

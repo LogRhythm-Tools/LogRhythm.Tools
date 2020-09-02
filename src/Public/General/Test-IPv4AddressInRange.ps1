@@ -1,12 +1,12 @@
 function Test-IPv4AddressInRange {
 param(
-    [Parameter(Mandatory = $true, ValueFromPipeline=$true, Position = 1)]
+    [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 1)]
     [ValidateNotNull()]
     [string] $IP,
-    [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName=$true, Position = 1)]
+    [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 1)]
     [ValidateNotNull()]
     [string] $BIP,
-    [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName=$true, Position = 1)]
+    [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 1)]
     [ValidateNotNull()]
     [string] $EIP
     )

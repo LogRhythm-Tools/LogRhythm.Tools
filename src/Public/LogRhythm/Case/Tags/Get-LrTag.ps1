@@ -8,12 +8,15 @@ Function Get-LrTag {
         Get a tag by ID Number for LogRhythm case use.
     .DESCRIPTION
         The Get-LrTag cmdlet retrieves a tag that exists by its Tag #.
+
+    .PARAMETER Number
+        Unique, numeric identifier for the tag.
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
         Note: You can bypass the need to provide a Credential by setting
         the preference variable $LrtConfig.LogRhythm.ApiKey with a valid Api Token.
     .INPUTS
-        [String]   -> Number
+        [int]   -> Number
     .OUTPUTS
         PSCustomObject representing the modified LogRhythm Case.
     .EXAMPLE
@@ -31,14 +34,13 @@ Function Get-LrTag {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
+        [int32] $Number,
 
 
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 1)]
+        [Parameter(Mandatory = $false, Position = 1)]
         [ValidateNotNull()]
-        [int32] $Number
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
 

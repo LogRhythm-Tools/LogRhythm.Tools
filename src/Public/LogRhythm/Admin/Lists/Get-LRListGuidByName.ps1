@@ -29,16 +29,18 @@ Function Get-LrListGuidByName {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
-
-        [Parameter(Mandatory=$true,Position=1, ValueFromPipeline=$true)]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
         [ValidateNotNullOrEmpty()]
         [string] $Name,
 
-        [Parameter(Mandatory = $false, Position=2)]
-        [switch] $Exact
+
+        [Parameter(Mandatory = $false, Position = 1)]
+        [switch] $Exact,
+
+
+        [Parameter(Mandatory = $false, Position = 2)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {

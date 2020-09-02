@@ -44,24 +44,47 @@ Function Get-LrLists {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
-        
-        [Parameter(Mandatory=$false, ValueFromPipeline=$true, Position=1)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 0)]
         [ValidateNotNull()]
         [string] $Name,
 
-        [Parameter(Mandatory=$false, Position=2)]
-        [ValidateSet('application', 'classification', 'commonevent', 'host', 'location', 'msgsource', 'msgsourcetype', 'mperule', 'network', 'user', 'generalvalue', 'entity', 'rootentity', 'ip', 'iprange', 'identity', 'none', ignorecase=$true)]
+        
+        [Parameter(Mandatory = $false, Position = 1)]
+        [ValidateSet(
+            'application',
+            'classification', 
+            'commonevent',
+            'host',
+            'location',
+            'msgsource',
+            'msgsourcetype',
+            'mperule',
+            'network',
+            'user',
+            'generalvalue',
+            'entity',
+            'rootentity',
+            'ip',
+            'iprange',
+            'identity',
+            'none',
+            ignorecase=$true
+        )]
         [string] $ListType,
 
-        [Parameter(Mandatory=$false, Position=3)]
+
+        [Parameter(Mandatory = $false, Position = 2)]
         [ValidateRange(1,1000)]
         [int] $PageSize = 1000,
 
-        [Parameter(Mandatory = $false, Position=4)]
-        [switch] $Exact
+
+        [Parameter(Mandatory = $false, Position = 3)]
+        [switch] $Exact,
+
+
+        [Parameter(Mandatory = $false, Position = 4)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
                                                                     
     Begin {

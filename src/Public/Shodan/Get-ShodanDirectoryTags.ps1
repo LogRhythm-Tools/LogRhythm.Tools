@@ -3,7 +3,7 @@
     Retrieve information about a Shodan account associated with API key.
 .DESCRIPTION
     Retrieves membership status, credits, display name, and account creation date.
-.PARAMETER ShodanAPI
+.PARAMETER Credential
     Shodan API Key
 .OUTPUTS
     PSObject representing the object lookup.  
@@ -17,12 +17,14 @@
 #>
 function Get-ShodanDirectoryTags {
     [CmdLetBinding()]
-    param( 
+    param(
         [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.Shodan.ApiKey,
+        [int] $ReturnSize = 100,
 
-        [int]$ReturnSize = 100
+
+        [Parameter(Mandatory = $false, Position = 1)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.Shodan.ApiKey
     )
     Begin {
         # Request Setup

@@ -77,29 +77,28 @@ Function Remove-LrCaseTags {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
-
-
         [Parameter(
-            Mandatory = $true,
-            ValueFromPipelineByPropertyName = $true,
-            Position = 1
+            Mandatory = $true, 
+            ValueFromPipeline = $true, 
+            ValueFromPipelineByPropertyName = $true, 
+            Position = 0
         )]
         [ValidateNotNull()]
         [object] $Id,
 
         
-        [Parameter(Mandatory = $true, Position = 2)]
+        [Parameter(Mandatory = $true, Position = 1)]
+        [ValidateNotNullOrEmpty()]
+        [string[]] $Tags,
+
+
+        [Parameter(Mandatory = $false, Position = 2)]
         [ValidateNotNull()]
-        [string[]] $Tags
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
 
     Begin {
-        $Me = $MyInvocation.MyCommand.Name
-        
         $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
@@ -128,7 +127,7 @@ Function Remove-LrCaseTags {
             Tags                  =   $Tags
             Case                  =   $Id
         }
-        Write-Verbose "[$Me]: Case Id: $Id"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)]: Case Id: $Id"
 
         # Test CaseID Format
         $IdStatus = Test-LrCaseIdFormat $Id
@@ -139,14 +138,14 @@ Function Remove-LrCaseTags {
         }                                                  
 
         $RequestUrl = $BaseUrl + "/cases/$CaseNumber/actions/removeTags/"
-        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)]: RequestUrl: $RequestUrl"
         #endregion
 
 
 
         #region: Process Tags                                                            
         # Request Body - Tags
-        Write-Verbose "[$Me]: Validating Tags"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)]: Validating Tags"
 
         # Convert / Validate Tags to Tag Numbers array
         $_tagNumbers = $Tags | Get-LrTagNumber
@@ -167,7 +166,7 @@ Function Remove-LrCaseTags {
 
 
         #region: Make Request                                                            
-        Write-Verbose "[$Me]: request body is:`n$Body"
+        Write-Verbose "[$($MyInvocation.MyCommand.Name)]: request body is:`n$Body"
 
         # Make Request
         if ($PSEdition -eq 'Core'){

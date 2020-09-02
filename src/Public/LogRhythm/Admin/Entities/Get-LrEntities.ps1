@@ -61,31 +61,38 @@ Function Get-LrEntities {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
+        [int] $PageValuesCount = 1000,
 
+        
         [Parameter(Mandatory = $false, Position = 1)]
-        [int]$PageValuesCount = 1000,
+        [int] $PageCount = 1,
+
 
         [Parameter(Mandatory = $false, Position = 2)]
-        [int]$PageCount = 1,
+        [string] $Name,
+
 
         [Parameter(Mandatory = $false, Position = 3)]
-        [string]$Name,
+        [int32] $ParentEntityId,
+
 
         [Parameter(Mandatory = $false, Position = 4)]
-        [int32]$ParentEntityId,
+        [ValidateSet('name','id', ignorecase=$true)]
+        [string] $OrderBy = "name",
+
 
         [Parameter(Mandatory = $false, Position = 5)]
-        [ValidateSet('name','id', ignorecase=$true)]
-        [string]$OrderBy = "name",
-
-        [Parameter(Mandatory = $false, Position = 11)]
         [ValidateSet('asc','desc', ignorecase=$true)]
-        [string]$Direction = "asc",
+        [string] $Direction = "asc",
 
-        [Parameter(Mandatory = $false, Position = 12)]
-        [switch]$Exact
+
+        [Parameter(Mandatory = $false, Position = 6)]
+        [switch] $Exact,
+
+
+        [Parameter(Mandatory = $false, Position = 7)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {

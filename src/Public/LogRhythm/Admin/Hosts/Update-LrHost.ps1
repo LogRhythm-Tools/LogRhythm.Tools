@@ -135,61 +135,76 @@ Function Update-LrHost {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
-
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName=$true, Position = 1)]
-        [string]$Id,
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 0)]
+        [string] $Id,
         
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 2)]
-        [string]$Entity,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 3)]
-        [string]$Name,
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 1)]
+        [string] $Entity,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true,  Position = 4)]
-        [string]$ShortDesc,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 5)]
-        [string]$LongDesc,
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 2)]
+        [string] $Name,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 6)]
+        
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true,  Position = 3)]
+        [string] $ShortDesc,
+
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 4)]
+        [string] $LongDesc,
+
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 5)]
         [ValidateSet('none','low-low','low-medium','low-high','medium-low','medium-medium','medium-high','high-low','high-medium','high-high', ignorecase=$true)]
-        [string]$RiskLevel = "none",
+        [string] $RiskLevel = "none",
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 7)]
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 6)]
         [ValidateSet('none','low-low','low-medium','low-high','medium-low','medium-medium','medium-high','high-low','high-medium','high-high', ignorecase=$true)]
-        [string]$ThreatLevel = "none",
+        [string] $ThreatLevel = "none",
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 8)]
-        [string]$ThreatLevelComment,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 9)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 7)]
+        [string] $ThreatLevelComment,
+
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 8)]
         [ValidateSet('retired','active', ignorecase=$true)]
-        [string]$RecordStatus = "active",
+        [string] $RecordStatus = "active",
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 10)]
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 9)]
         [ValidateSet('unknown', 'internal','dmz','external', ignorecase=$true)]
-        [string]$Zone="internal",
+        [string] $Zone="internal",
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 11)]
-        [string]$Location,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 12)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 10)]
+        [string] $Location,
+
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 11)]
         [ValidateSet('unknown', 'other', 'windowsNT4', 'windows2000professional', 'windows2000server', 'windows2003standard', 'windows2003enterprise', `
          'windows95' ,'windowsxp' ,'windowsvista', 'linux', 'solaris', 'aix', 'hpux', 'windows', ignorecase=$true)]
-        [string]$OS,
+        [string] $OS,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 13)]
-        [string]$OSVersion,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 14)]
-        [bool]$UseEventlogCredentials = $false,
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 12)]
+        [string] $OSVersion,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 15)]
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 13)]
+        [bool] $UseEventlogCredentials = $false,
+
+        
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 14)]
         [ValidateSet('server','none','desktop', ignorecase=$true)]
-        [string]$OSType = "server"
+        [string] $OSType = "server",
+
+
+        [Parameter(Mandatory = $false, Position = 15)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {
@@ -212,7 +227,7 @@ Function Update-LrHost {
         $LrVersion = $LrtConfig.LRDeployment.Version
         
         # Integer Reference
-        [int32]$_int = 1
+        [int32] $_int = 1
     }
 
     Process {
@@ -231,7 +246,7 @@ Function Update-LrHost {
             if ($OriginHostRecord.Error) {
                 return $OriginHostRecord
             } else {
-                [int32]$Guid = $Id
+                [int32] $Guid = $Id
             }
         } else {
             Write-Verbose "[$Me]: Id does not parse as integer.  Performing string lookup."
@@ -239,7 +254,7 @@ Function Update-LrHost {
             if (!$OriginHostRecord) {
 
             } else {
-                [int32]$Guid = $OriginHostRecord | Select-Object -ExpandProperty id 
+                [int32] $Guid = $OriginHostRecord | Select-Object -ExpandProperty id 
             }
         }
 

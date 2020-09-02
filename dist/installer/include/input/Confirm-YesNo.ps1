@@ -11,7 +11,7 @@ Function Confirm-YesNo {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory=$false,Position=0)]
+        [Parameter(Mandatory = $false, Position = 0)]
         [string] $Message,
 
         [Parameter(Mandatory = $false, Position = 1)]

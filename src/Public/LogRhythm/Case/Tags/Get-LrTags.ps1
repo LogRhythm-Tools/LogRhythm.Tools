@@ -81,28 +81,26 @@ Function Get-LrTags {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
-
-
-        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 1)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 0)]
         [ValidateNotNullOrEmpty()]
         [string] $Name,
 
         
-        [Parameter(Mandatory = $false, Position = 2)]
+        [Parameter(Mandatory = $false, Position = 1)]
         [ValidateSet('asc','desc')]
         [string] $Sort = "asc",
 
         
+        [Parameter(Mandatory = $false, Position = 2)]
+        [switch] $Exact,
+
+
         [Parameter(Mandatory = $false, Position = 3)]
-        [switch] $Exact
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {
-        $Me = $MyInvocation.MyCommand.Name
-        
         $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 

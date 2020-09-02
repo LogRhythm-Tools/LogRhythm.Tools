@@ -8,7 +8,7 @@ Function Get-SrfAzRiskDetections {
         XXXXXXXX
     .DESCRIPTION
         XXXXXXXX
-    .PARAMETER Token
+    .PARAMETER Credential
         An access token issued by the Microsoft identity platform with a valid claim to Microsoft
         Graph. The registered application will require the IdentityRiskyUser.Read.All role.
     .INPUTS

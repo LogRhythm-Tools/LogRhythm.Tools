@@ -38,17 +38,20 @@ Function Find-LrNetworkByIP {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
-
-        [Parameter(Mandatory = $false, Position = 1)]
         [Ipaddress]$Ip,
 
-        [Parameter(Mandatory = $false, Position = 2)]
+        
+        [Parameter(Mandatory = $false, Position = 1)]
         [Ipaddress]$Bip,
 
+
+        [Parameter(Mandatory = $false, Position = 2)]
+        [Ipaddress]$Eip,
+
+
         [Parameter(Mandatory = $false, Position = 3)]
-        [Ipaddress]$Eip
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {

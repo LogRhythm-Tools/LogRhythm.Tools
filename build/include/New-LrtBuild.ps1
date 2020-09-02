@@ -56,14 +56,14 @@ function New-LrtBuild {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory=$false,Position=0)]
+        [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNullOrEmpty()]
         [string] $Version = "0.0.0",
 
-        [Parameter(Mandatory=$false,Position=1)]
+        [Parameter(Mandatory = $false, Position = 1)]
         [string] $ReleaseTag = "",
 
-        [Parameter(Mandatory=$false, Position=2)]
+        [Parameter(Mandatory = $false, Position = 2)]
         [switch] $ReturnPsm1Path
     )
 

@@ -32,14 +32,16 @@ Function Update-LrHostStatus {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
+        [string[]] $HostId,
+        
 
         [Parameter(Mandatory = $false, Position = 1)]
-        [string[]]$HostId,
+        [string] $Status,
+
 
         [Parameter(Mandatory = $false, Position = 2)]
-        [string]$Status
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {
@@ -92,7 +94,7 @@ Function Update-LrHostStatus {
                 if ($_id.Error) {
 
                 } else {
-                    [int32]$Guid = $Id
+                    [int32] $Guid = $Id
                     $HostRecord = [PSCustomObject]@{
                         hostId = $Guid
                         status = $_status
@@ -105,7 +107,7 @@ Function Update-LrHostStatus {
                 if (!$Guid) {
 
                 } else {
-                    [int32]$Guid = $_id | Select-Object -ExpandProperty id 
+                    [int32] $Guid = $_id | Select-Object -ExpandProperty id 
                     $HostRecord = [PSCustomObject]@{
                         hostId = $Guid
                         status = $_status

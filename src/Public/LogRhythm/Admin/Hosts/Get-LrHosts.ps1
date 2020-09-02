@@ -99,26 +99,32 @@ Function Get-LrHosts {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
+        [int] $PageCount,
+
 
         [Parameter(Mandatory = $false, Position = 1)]
-        [int]$PageCount,
+        [string] $Name,
+
 
         [Parameter(Mandatory = $false, Position = 2)]
-        [string]$Name,
+        [string] $Entity,
+
 
         [Parameter(Mandatory = $false, Position = 3)]
-        [string]$Entity,
+        [string] $RecordStatus,
+
 
         [Parameter(Mandatory = $false, Position = 4)]
-        [string]$RecordStatus,
+        [string[]] $HostIdentifier,
+
 
         [Parameter(Mandatory = $false, Position = 5)]
-        [string[]]$HostIdentifier,
+        [switch] $Exact,
+
 
         [Parameter(Mandatory = $false, Position = 6)]
-        [switch]$Exact
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {
@@ -169,7 +175,7 @@ Function Get-LrHosts {
 
         if ($HostIdentifier) {
             ForEach ($Identifier in $HostIdentifier) {
-                [string[]]$_hostIdentifier += $Identifier
+                [string[]] $_hostIdentifier += $Identifier
             }
             if ($_hostIdentifier) {
                 $QueryParams.Add("hostIdentifier", $_hostIdentifier)

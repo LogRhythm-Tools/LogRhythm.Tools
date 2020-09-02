@@ -3,7 +3,7 @@
         Retrieve a list of all search queries that users have saved in Shodan.
     .DESCRIPTION
         Retrieves each queries number of votes, description, tags, timestamp, title, and Shodan query string.
-    .PARAMETER ShodanAPI
+    .PARAMETER Credential
         Shodan API Key
     .OUTPUTS
         PSObject representing the object lookup.  
@@ -32,11 +32,12 @@ function Get-ShodanDirectoryQuery {
     [CmdLetBinding()]
     param( 
         [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.Shodan.ApiKey,
+        [int] $MaxPages = 10,
+
 
         [Parameter(Mandatory = $false, Position = 1)]
-        [int]$MaxPages = 10
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.Shodan.ApiKey
     )
     Begin {
         # Request Setup

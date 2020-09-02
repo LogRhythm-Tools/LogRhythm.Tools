@@ -79,7 +79,7 @@ Function Publish-LrtBuild {
         # Guid     : ec7ff2a7-a329-4ef9-af0b-af39b4ba0e91
         # Name     : LogRhythm.Tools
         # Path     : ec7ff2a7-a329-4ef9-af0b-af39b4ba0e91
-        # Archive  : C:\repos\_community\SmartResponse.Framework\build\...
+        # Archive  : C:\repos\_community\LogRhythm.Tools\build\...
         # Psm1Path : LogRhythm.Tools.psm1
         # Version  : 0.9.8
     # ===================================================================

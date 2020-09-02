@@ -38,7 +38,7 @@ Function Test-LrCaseIdFormat {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $true,ValueFromPipeline = $true,Position=0)]
+        [Parameter(Mandatory = $true,ValueFromPipeline = $true, Position = 0)]
         [ValidateNotNull()]
         [object] $Id
     )
@@ -57,6 +57,13 @@ Function Test-LrCaseIdFormat {
             CaseName    =   $null
             CaseGuid    =   $null
             Note        =   $null
+        }
+
+        
+        # We may have received a full case object.  Check to see if it has a property for ID and Number
+        if ($Id.Id -and $Id.Number) {
+            Write-Verbose "[Test-LrCaseIdFormat]: Detected Id is a Case Object. Using Case.Number for validation."
+            $Id = $Id.Number
         }
 
         # Check if ID value is an integer

@@ -7,7 +7,7 @@ Function Get-RfAlertSearch {
         Get Search results RecordedFuture Alert Rule(s).
     .DESCRIPTION
         Get RecordedFuture Alert Rules cmdlet retrieves the available Alert Rule title and id values.  
-    .PARAMETER Token
+    .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
     .PARAMETER Freetext
         Name of the RecordedFuture Alert Rules
@@ -24,17 +24,50 @@ Function Get-RfAlertSearch {
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.RecordedFuture.ApiKey,
-
         [datetime] $Triggered,
+
+
+        [Parameter(Mandatory = $false, Position = 1)]
+        [ValidateNotNullOrEmpty()]
         [string] $Assignee,
+
+
+        [Parameter(Mandatory = $false, Position = 2)]
+        [ValidateNotNullOrEmpty()]
         [string] $Status,
+
+
+        [Parameter(Mandatory = $false, Position = 3)]
+        [ValidateNotNullOrEmpty()]
         [string] $AlertRule,
+
+
+        [Parameter(Mandatory = $false, Position = 4)]
+        [ValidateNotNullOrEmpty()]
         [string] $FreeText,
+
+
+        [Parameter(Mandatory = $false, Position = 5)]
         [int] $Limit,
+
+
+        [Parameter(Mandatory = $false, Position = 6)]
         [int] $From,
+
+
+        [Parameter(Mandatory = $false, Position = 7)]
+        [ValidateNotNullOrEmpty()]
         [string] $OrderBy,
-        [string] $Direction
+
+
+        [Parameter(Mandatory = $false, Position = 8)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Direction,
+
+
+        [Parameter(Mandatory = $false, Position = 9)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.RecordedFuture.ApiKey
     )
 
     Begin {

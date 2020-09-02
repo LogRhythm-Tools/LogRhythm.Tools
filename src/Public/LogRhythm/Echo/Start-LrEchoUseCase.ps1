@@ -22,11 +22,11 @@ Function Start-LrEchoUseCase {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory=$false, ValueFromPipeline=$true, Position=0)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 0)]
         [ValidateNotNull()]
         [string] $Title,
 
-        [Parameter(Mandatory=$false, ValueFromPipeline=$true, Position=1)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 1)]
         [ValidateNotNull()]
         [int] $Id
     )

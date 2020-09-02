@@ -50,6 +50,22 @@ Function Import-LrtADModule {
                 Write-Warning "ActiveDirectory commands will likely fail."
             }
         }
+
+
+        # Determine which parameters to pass to AD cmdlets - Server, Credential, both, or neither.
+        if ($LrtConfig.ActiveDirectory.Credential) {
+            if ($LrtConfig.ActiveDirectory.Server) {
+                $LrtConfig.ActiveDirectory.Options = "Server+Credential"
+            } else {
+                $LrtConfig.ActiveDirectory.Options = "Credential"
+            }
+        } else {
+            if ($LrtConfig.ActiveDirectory.Server) {
+                $LrtConfig.ActiveDirectory.Options = "Server"
+            }
+        }
+        Write-Verbose "[Import-LrtADModule] AD Options: $Options"
+
     }
     return $true
 }
