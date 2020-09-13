@@ -230,15 +230,19 @@ Function Update-LrNetwork {
         [string] $Location,
 
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 11)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 11)]
+        [int32]$LocationId,
+
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 13)]
         [ipaddress]$Bip,
 
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 12)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 14)]
         [ipaddress]$Eip,
 
 
-        [Parameter(Mandatory = $false, Position = 13)]
+        [Parameter(Mandatory = $false, Position = 15)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
