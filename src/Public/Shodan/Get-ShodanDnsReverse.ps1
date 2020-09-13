@@ -3,7 +3,7 @@
         Submit a single or array of IPv4 addresse for IP address resolution.
     .DESCRIPTION
         Translates IP Addresses to hostnames.
-    .PARAMETER ShodanAPI
+    .PARAMETER Credential
         Shodan API Key
     .PARAMETER IPAddresses
         An array of IPv4 Addresses for reverse DNS lookup through Shodan.io.
@@ -28,15 +28,18 @@
 function Get-ShodanDnsReverse {
     [CmdLetBinding()]
     param( 
-        [Parameter(Mandatory = $false, Position = 0)]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
+        [ValidateNotNullOrEmpty()]
+        [string[]] $IPAddress,
+
+
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 1)]
+        [switch] $ValuesOnly,
+
+
+        [Parameter(Mandatory = $false, Position = 2)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.Shodan.ApiKey,
-
-        [Parameter(Mandatory=$true, ValueFromPipeline=$true, Position=1)]
-        [string[]]$IPAddress,
-
-        [Parameter(Mandatory=$false, ValueFromPipeline=$false, Position=2)]
-        [switch]$ValuesOnly
+        [pscredential] $Credential = $LrtConfig.Shodan.ApiKey
     )
     Begin {
         # Request Setup
@@ -81,7 +84,7 @@ function Get-ShodanDnsReverse {
 
     End {
         if ( $ValuesOnly ) {
-            [string[]]$ShodanResults = $null
+            [string[]] $ShodanResults = $null
             $IPAddress | ForEach-Object { 
                 $ShodanResults += $shodanDNSResults | Select-Object -ExpandProperty $_ 
             }

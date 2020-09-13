@@ -79,76 +79,94 @@ Function Add-LrIdentity {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
+        [Parameter(Mandatory = $true, ValueFromPipeline = $false, Position = 0)]
+        [int] $EntityId,
 
-        [Parameter(Mandatory = $true, ValueFromPipeline=$false, Position = 1)]
-        [int]$EntityId,
 
-        [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 2)]
-        [String]$SyncName,
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 1)]
+        [string] $SyncName,
 
-        [Parameter(Mandatory = $true, ValueFromPipeline=$false, Position = 3)]
-        [String]$NameFirst,
 
-        [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 4)]
-        [String]$NameMiddle,
+        [Parameter(Mandatory = $true, ValueFromPipeline = $false, Position = 2)]
+        [string] $NameFirst,
 
-        [Parameter(Mandatory = $true, ValueFromPipeline=$false, Position = 5)]
-        [String]$NameLast,
 
-        [Parameter(Mandatory = $true, ValueFromPipeline=$false, Position = 6)]
-        [String]$DisplayIdentifier,
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 3)]
+        [string] $NameMiddle,
 
-        [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 7)]
-        [String]$Department,
 
-        [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 8)]
-        [String]$Manager,
+        [Parameter(Mandatory = $true, ValueFromPipeline = $false, Position = 4)]
+        [string] $NameLast,
 
-        [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 9)]
-        [String]$Company,
 
-        [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 10)]
-        [Byte]$PhotoThumbnail,
+        [Parameter(Mandatory = $true, ValueFromPipeline = $false, Position = 5)]
+        [string] $DisplayIdentifier,
 
-        [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 11)]
-        [String]$Identifier1Value,
 
-        [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 12)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 6)]
+        [string] $Department,
+
+
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 7)]
+        [string] $Manager,
+
+
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 8)]
+        [string] $Company,
+
+
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 9)]
+        [Byte] $PhotoThumbnail,
+
+
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 10)]
+        [string] $Identifier1Value,
+
+
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 11)]
         [ValidateSet('both','login', 'email', ignorecase=$true)]
-        [String]$Identifier1Type = "both",
+        [string] $Identifier1Type = "both",
         
-        [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 13)]
-        [String]$Identifier2Value,
 
-        [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 14)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 12)]
+        [string] $Identifier2Value,
+
+
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 13)]
         [ValidateSet('both','login', 'email', ignorecase=$true)]
-        [String]$Identifier2Type = "both",
+        [string] $Identifier2Type = "both",
 
 
-        [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 15)]
-        [String]$Identifier3Value,
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 14)]
+        [string] $Identifier3Value,
 
-        [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 16)]
+
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 15)]
         [ValidateSet('both','login', 'email', ignorecase=$true)]
-        [String]$Identifier3Type = "both",
+        [string] $Identifier3Type = "both",
 
 
-        [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 17)]
-        [String]$Identifier4Value,
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 16)]
+        [string] $Identifier4Value,
 
-        [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 18)]
+
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 17)]
         [ValidateSet('both','login', 'email', ignorecase=$true)]
-        [String]$Identifier4Type = "both",
+        [string] $Identifier4Type = "both",
 
-        [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 19)]
-        [String]$Identifier5Value,
 
-        [Parameter(Mandatory = $false, ValueFromPipeline=$false, Position = 20)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 18)]
+        [string] $Identifier5Value,
+
+
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 19)]
         [ValidateSet('both','login', 'email', ignorecase=$true)]
-        [String]$Identifier5Type = "both"
+        [string] $Identifier5Type = "both",
+
+
+        [Parameter(Mandatory = $false, Position = 20)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {

@@ -24,7 +24,13 @@ Function Find-LrNetworkByIP {
     .OUTPUTS
         PSCustomObject representing LogRhythm Network entity record and their contents.
     .EXAMPLE
-        PS C:\> Get-LrNetworksbyIP -Credential $MyKey
+        PS C:\> Get-LrNetworksbyIP -Ip 192.168.5.3
+        ----
+    .EXAMPLE
+        PS C:\> Get-LrNetworksbyIP -Bip 192.168.5.1
+        ----
+    .EXAMPLE
+        PS C:\> Get-LrNetworksbyIP -Bip 192.168.5.1 -Eip 192.168.5.255
         ----
     .NOTES
         LogRhythm-API        
@@ -35,20 +41,20 @@ Function Find-LrNetworkByIP {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
-
-        [Parameter(Mandatory = $false, Position = 1)]
         [Ipaddress]$Ip,
 
-        [Parameter(Mandatory = $false, Position = 2)]
+        
+        [Parameter(Mandatory = $false, Position = 1)]
         [Ipaddress]$Bip,
 
-        [Parameter(Mandatory = $false, Position = 3)]
+
+        [Parameter(Mandatory = $false, Position = 2)]
         [Ipaddress]$Eip,
 
-        [Parameter(Mandatory = $false, Position = 4)]
-        [string]$Entity
+
+        [Parameter(Mandatory = $false, Position = 3)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {

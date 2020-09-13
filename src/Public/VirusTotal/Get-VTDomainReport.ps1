@@ -109,12 +109,14 @@ Function Get-VTDomainReport {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.VirusTotal.ApiKey,
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
+        [ValidateNotNullOrEmpty()]
+        [string] $Domain,
 
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 1)]
-        [string] $Domain
+
+        [Parameter(Mandatory = $false, Position = 1)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.VirusTotal.ApiKey
     )
 
     Begin {

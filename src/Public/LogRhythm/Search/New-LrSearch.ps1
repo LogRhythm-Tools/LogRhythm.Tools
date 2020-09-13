@@ -86,6 +86,7 @@ Function New-LrSearch {
     .PARAMETER Param3FilterType
         Cmdlet currently under development.
     .INPUTS
+        None
     .OUTPUTS
         PSCustomObject representing the new search task, its status, and the associated TaskId used to retrieve results.
     .EXAMPLE
@@ -105,132 +106,167 @@ Function New-LrSearch {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
-        
+        [int32] $MaxMsgsToQuery = 100,
+
+
         [Parameter(Mandatory = $false, Position = 1)]
-        [int32]$MaxMsgsToQuery = 100,
+        [int32] $QueryTimeout = 300,
 
-        [Parameter(Mandatory = $false, Position = 2)]
-        [int32]$QueryTimeout = 300,
+
+        [Parameter(Mandatory = $false,  Position = 2)]
+        [bool] $QueryRawLog = $true,
+
 
         [Parameter(Mandatory = $false,  Position = 3)]
-        [bool]$QueryRawLog = $true,
+        [bool] $QueryEventManager = $true,
 
-        [Parameter(Mandatory = $false,  Position = 3)]
-        [bool]$QueryEventManager = $true,
 
-        [Parameter(Mandatory = $false, Position = 5)]
+        [Parameter(Mandatory = $false, Position = 4)]
         [ValidateSet('maxn','paged','pagedsorteddateasc','pagedsorteddatedesc', 'pagedsortedriskasc', 'pagedsortedriskdesc', ignorecase=$true)]
-        [string]$SearchMode = "pagedSortedDateAsc",
+        [string] $SearchMode = "pagedSortedDateAsc",
 
-        [Parameter(Mandatory = $false,  Position = 6)]
-        [string]$SearchServerIPAddress = $LrtConfig.LogRhythm.DataIndexerIP,
+
+        [Parameter(Mandatory = $false,  Position = 5)]
+        [string] $SearchServerIPAddress = $LrtConfig.LogRhythm.DataIndexerIP,
+
+
+        [Parameter(Mandatory = $false, Position = 6)]
+        [string] $DateCriteria,
+
 
         [Parameter(Mandatory = $false, Position = 7)]
-        [string]$DateCriteria,
+        [datetime] $DateMin,
+
 
         [Parameter(Mandatory = $false, Position = 8)]
-        [datetime]$DateMin,
+        [datetime] $DateMax,
+
 
         [Parameter(Mandatory = $false, Position = 9)]
-        [datetime]$DateMax,
+        [int32] $LastIntervalValue = 1,
+
 
         [Parameter(Mandatory = $false, Position = 10)]
-        [int32]$LastIntervalValue = 1,
+        [ValidateSet('year','quarter','month','dayofyear', 'day', 'weekofyear', 'weekday', 'hour', 'minute', 'second', ignorecase=$true)]
+        [string] $LastIntervalUnit = "Month",
+        
 
         [Parameter(Mandatory = $false, Position = 11)]
-        [ValidateSet('year','quarter','month','dayofyear', 'day', 'weekofyear', 'weekday', 'hour', 'minute', 'second', ignorecase=$true)]
-        [string]$LastIntervalUnit = "Month",
-        
-        [Parameter(Mandatory = $false, Position = 12)]
-        [string]$LogSource = "",
+        [string] $LogSource = "",
+
 
         [Parameter(Mandatory = $false, Position = 12)]
         [ValidateSet('flatlegacy','grouped', ignorecase=$true)]
-        [string]$MsgFilterType = "grouped",
+        [string] $MsgFilterType = "grouped",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+
+        [Parameter(Mandatory = $false, Position = 13)]
         [ValidateSet('filter','group', 'polylist', ignorecase=$true)]
-        [string]$GroupFilterItemType = "group",
+        [string] $GroupFilterItemType = "group",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+
+        [Parameter(Mandatory = $false, Position = 14)]
         [ValidateSet('none','and', 'or', 'andprevious', 'orprevious',ignorecase=$true)]
-        [string]$GroupFilterOperator = "",
+        [string] $GroupFilterOperator = "",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+
+        [Parameter(Mandatory = $false, Position = 15)]
         [ValidateSet('filterin','filterout', ignorecase=$true)]
-        [string]$GroupFilterMode = "",
+        [string] $GroupFilterMode = "",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+
+        [Parameter(Mandatory = $false, Position = 16)]
         [ValidateSet('and','or', ignorecase=$true)]
-        [string]$GroupFilterGroupOperator = "",
+        [string] $GroupFilterGroupOperator = "",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+
+        [Parameter(Mandatory = $false, Position = 17)]
         [ValidateSet('simple','group', ignorecase=$true)]
-        [string]$ItemFilterItemType = "simple",
+        [string] $ItemFilterItemType = "simple",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+
+        [Parameter(Mandatory = $false, Position = 18)]
         [ValidateSet('none','and', 'or', 'andprevious', 'orprevious',ignorecase=$true)]
-        [string]$ItemFilterFieldOperator = "none",
+        [string] $ItemFilterFieldOperator = "none",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+
+        [Parameter(Mandatory = $false, Position = 19)]
         [ValidateSet('filterin','filterout', ignorecase=$true)]
-        [string]$ItemFilterMode = "filterin",
+        [string] $ItemFilterMode = "filterin",
 
-        [Parameter(Mandatory = $false, Position = 12)]
-        [string]$Param1MetaField = "User (Origin or Impacted)",
 
-        [Parameter(Mandatory = $false, Position = 12)]
-        [string]$Param1Value = "administrator",
+        [Parameter(Mandatory = $false, Position = 20)]
+        [string] $Param1MetaField = "User (Origin or Impacted)",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+
+        [Parameter(Mandatory = $false, Position = 21)]
+        [string] $Param1Value = "administrator",
+
+
+        [Parameter(Mandatory = $false, Position = 22)]
         [ValidateSet('none','and', 'or', 'andprevious', 'orprevious',ignorecase=$true)]
-        [string]$Param1Operator = "none",
+        [string] $Param1Operator = "none",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+
+        [Parameter(Mandatory = $false, Position = 23)]
         [ValidateSet('value' ,'SQLPattern' ,'Regex', ignorecase=$true)]
-        [string]$Param1MatchType = "value",
+        [string] $Param1MatchType = "value",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+
+        [Parameter(Mandatory = $false, Position = 24)]
         [ValidateSet('filterin','filterout', ignorecase=$true)]
-        [string]$Param1FilterType = "filterin",
+        [string] $Param1FilterType = "filterin",
 
-        [Parameter(Mandatory = $false, Position = 12)]
-        [string]$Param2MetaField = "User (Origin or Impacted)",
 
-        [Parameter(Mandatory = $false, Position = 12)]
-        [string]$Param2Value = $null,
+        [Parameter(Mandatory = $false, Position = 25)]
+        [string] $Param2MetaField = "User (Origin or Impacted)",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+
+        [Parameter(Mandatory = $false, Position = 26)]
+        [string] $Param2Value = $null,
+
+
+        [Parameter(Mandatory = $false, Position = 27)]
         [ValidateSet('none','and', 'or', 'andprevious', 'orprevious',ignorecase=$true)]
-        [string]$Param2Operator = "none",
+        [string] $Param2Operator = "none",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+
+        [Parameter(Mandatory = $false, Position = 28)]
         [ValidateSet('value' ,'SQLPattern' ,'Regex', ignorecase=$true)]
-        [string]$Param2MatchType = "value",
+        [string] $Param2MatchType = "value",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+
+        [Parameter(Mandatory = $false, Position = 29)]
         [ValidateSet('filterin','filterout', ignorecase=$true)]
-        [string]$Param2FilterType = "filterin",
+        [string] $Param2FilterType = "filterin",
 
-        [Parameter(Mandatory = $false, Position = 12)]
-        [string]$Param3MetaField = "User (Origin or Impacted)",
 
-        [Parameter(Mandatory = $false, Position = 12)]
-        [string]$Param3Value = $null,
+        [Parameter(Mandatory = $false, Position = 30)]
+        [string] $Param3MetaField = "User (Origin or Impacted)",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+
+        [Parameter(Mandatory = $false, Position = 31)]
+        [string] $Param3Value = $null,
+
+
+        [Parameter(Mandatory = $false, Position = 32)]
         [ValidateSet('none','and', 'or', 'andprevious', 'orprevious',ignorecase=$true)]
-        [string]$Param3Operator = "none",
+        [string] $Param3Operator = "none",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+
+        [Parameter(Mandatory = $false, Position = 33)]
         [ValidateSet('value' ,'SQLPattern' ,'Regex', ignorecase=$true)]
-        [string]$Param3MatchType = "value",
+        [string] $Param3MatchType = "value",
 
-        [Parameter(Mandatory = $false, Position = 12)]
+
+        [Parameter(Mandatory = $false, Position = 34)]
         [ValidateSet('filterin','filterout', ignorecase=$true)]
-        [string]$Param3FilterType = "filterin"
+        [string] $Param3FilterType = "filterin",
+
+
+        [Parameter(Mandatory = $false, Position = 35)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {

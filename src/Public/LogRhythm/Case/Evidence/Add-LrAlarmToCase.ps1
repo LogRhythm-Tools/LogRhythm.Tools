@@ -75,18 +75,19 @@ Function Add-LrAlarmToCase {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
+        [Parameter(Mandatory = $true, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
+        [object] $Id,
 
 
         [Parameter(Mandatory = $true, Position = 1)]
         [ValidateNotNull()]
-        [object] $Id,
+        [int[]] $AlarmNumbers,
 
-        [Parameter(Mandatory = $true, Position = 2)]
+
+        [Parameter(Mandatory = $false, Position = 2)]
         [ValidateNotNull()]
-        [int[]] $AlarmNumbers
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
 

@@ -16,8 +16,6 @@ Function Get-LrLogSources {
         String used to search Entity Host records by Name.
     .PARAMETER Exact,
         Switch used to specify Name search for Entity Host record is explicit.
-    .INPUTS
-
     .OUTPUTS
         PSCustomObject representing LogRhythm TrueIdentity Identities and their contents.
     .EXAMPLE
@@ -32,53 +30,67 @@ Function Get-LrLogSources {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
+        [int] $PageValuesCount = 1000,
 
+        
         [Parameter(Mandatory = $false, Position = 1)]
-        [int]$PageValuesCount = 1000,
+        [int] $PageCount = 1,
+
 
         [Parameter(Mandatory = $false, Position = 2)]
-        [int]$PageCount = 1,
-
-        [Parameter(Mandatory = $false, Position = 3)]
         [ValidateSet('asc','desc', ignorecase=$true)]
-        [string]$Direction,
+        [string] $Direction,
+
 
         [Parameter(Mandatory = $false, Position = 3)]
         [ValidateSet('name','id', ignorecase=$true)]
-        [string]$OrderBy = "name",
+        [string] $OrderBy = "name",
+
 
         [Parameter(Mandatory = $false, Position = 4)]
-        [string]$Name,
+        [string] $Name,
+
 
         [Parameter(Mandatory = $false, Position = 5)]
         [ValidateSet('all','active','retired', ignorecase=$true)]
-        [string]$RecordStatus = "active",
+        [string] $RecordStatus = "active",
+
 
         [Parameter(Mandatory = $false, Position = 6)]
-        [string]$Description,
+        [string] $Description,
+
 
         [Parameter(Mandatory = $false, Position = 7)]
-        [Int32]$SystemMonitorId,
+        [int32] $SystemMonitorId,
+
 
         [Parameter(Mandatory = $false, Position = 8)]
-        [string]$Entity,
+        [string] $Entity,
+
 
         [Parameter(Mandatory = $false, Position = 9)]
-        [string]$MessageSourceTypeId,
+        [string] $MessageSourceTypeId,
         
+
         [Parameter(Mandatory = $false, Position = 10)]
-        [bool]$Virtual = $false,
+        [bool] $Virtual = $false,
+
 
         [Parameter(Mandatory = $false, Position = 11)]
-        [bool]$LoadBalanced = $false,
+        [bool] $LoadBalanced = $false,
+
 
         [Parameter(Mandatory = $false, Position = 12)]
-        [Int32]$HostId = $false,
+        [int32] $HostId = $false,
+
 
         [Parameter(Mandatory = $false, Position = 13)]
-        [switch]$Exact
+        [switch] $Exact,
+
+
+        [Parameter(Mandatory = $false, Position = 14)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {

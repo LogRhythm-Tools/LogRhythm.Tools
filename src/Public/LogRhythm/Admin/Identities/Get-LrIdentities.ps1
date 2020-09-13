@@ -68,46 +68,58 @@ Function Get-LrIdentities {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
+        [int] $PageValuesCount = 1000,
+
 
         [Parameter(Mandatory = $false, Position = 1)]
-        [int]$PageValuesCount = 1000,
+        [int] $PageCount = 1,
+
 
         [Parameter(Mandatory = $false, Position = 2)]
-        [int]$PageCount = 1,
+        [string] $Name,
+
 
         [Parameter(Mandatory = $false, Position = 3)]
-        [string]$Name,
+        [string] $DisplayIdentifier,
+
 
         [Parameter(Mandatory = $false, Position = 4)]
-        [string]$DisplayIdentifier,
+        [string] $Entity,
+
 
         [Parameter(Mandatory = $false, Position = 5)]
-        [string]$Entity,
+        [string] $Identifier,
+
 
         [Parameter(Mandatory = $false, Position = 6)]
-        [string]$Identifier,
+        [string] $RecordStatus,
+
 
         [Parameter(Mandatory = $false, Position = 7)]
-        [string]$RecordStatus,
+        [ValidateSet('displayname','recordstatus', 'entity', 'displayidentifier', ignorecase=$true)]
+        [string] $OrderBy = "Displayidentifier",
+
 
         [Parameter(Mandatory = $false, Position = 8)]
-        [ValidateSet('displayname','recordstatus', 'entity', 'displayidentifier', ignorecase=$true)]
-        [string]$OrderBy = "Displayidentifier",
+        [ValidateSet('asc','desc', ignorecase=$true)]
+        [string] $Direction = "asc",
+
 
         [Parameter(Mandatory = $false, Position = 9)]
-        [ValidateSet('asc','desc', ignorecase=$true)]
-        [string]$Direction = "asc",
+        [datetime] $DateUpdated,
+
 
         [Parameter(Mandatory = $false, Position = 10)]
-        [datetime]$DateUpdated,
+        [switch] $ShowRetired = $false,
+
 
         [Parameter(Mandatory = $false, Position = 11)]
-        [switch]$ShowRetired = $false,
+        [switch] $Exact,
+
 
         [Parameter(Mandatory = $false, Position = 12)]
-        [switch]$Exact
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {

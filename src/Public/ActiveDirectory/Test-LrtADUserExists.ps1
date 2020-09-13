@@ -1,11 +1,23 @@
+using namespace System
+using namespace System.Collections.Generic
+using namespace Microsoft.ActiveDirectory.Management
+
 Function Test-LrtADUserExists {
     <#
     .SYNOPSIS 
-        Return true if user exists in ActiveDirectory, false if not.
+        Determine if the provided ADUser Identity can be found in the default
+        AD Domain, or the domain specified in $LrtConfig, if set.
     .PARAMETER Identity
-        User identity to check
+        User identity to test.
+    .INPUTS
+        [ADUser] => Identity
+    .OUTPUTS
+        True if the user was found in the directory, otherwise false.
     .EXAMPLE
-        if(Test-LrtADUserExists -Identity bjones) { "User Exists." }
+        PS C:\> Test-LrtADUserExists -Identity "bobjonesBAD"
+        
+        ---
+        False
     #>
 
     [CmdletBinding()]
@@ -20,5 +32,21 @@ Function Test-LrtADUserExists {
         [ADUser] $Identity
     )
 
-    return (Get-LrtADUserInfo -Identity $Identity).Exists
+
+    Begin { }
+
+    
+    Process {
+
+        try {
+            Get-LrtADUser -Identity $Identity | Out-Null
+        } catch {
+            return $false
+        }
+
+        return $true
+    }
+
+
+    End { }
 }

@@ -3,7 +3,7 @@
         Submit a single Domain for Domain name lookup.
     .DESCRIPTION
         Retrieves DNS entries, record types, IP Addresses, and Last_Seen for a specific domain.
-    .PARAMETER ShodanAPI
+    .PARAMETER Credential
         Shodan API Key
     .PARAMETER Domain
         An array of IPv4 Addresses for reverse DNS lookup through Shodan.io.
@@ -28,12 +28,14 @@
     function Get-ShodanDnsDomain {
         [CmdLetBinding()]
         param( 
-            [Parameter(Mandatory = $false, Position = 0)]
-            [ValidateNotNull()]
-            [pscredential] $Credential = $LrtConfig.Shodan.ApiKey,
+            [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
+            [ValidateNotNullOrEmpty()]
+            [string] $Domain,
 
-            [Parameter(Mandatory=$true, ValueFromPipeline=$true, Position=1)]
-            [string]$Domain
+
+            [Parameter(Mandatory = $false, Position = 1)]
+            [ValidateNotNull()]
+            [pscredential] $Credential = $LrtConfig.Shodan.ApiKey
         )
         Begin {
             # Request Setup

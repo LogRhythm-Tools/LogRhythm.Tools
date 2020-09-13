@@ -10,7 +10,7 @@ Function Test-IsIpAddress {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory=$True,Position=0)]
+        [Parameter(Mandatory = $True, Position = 0)]
         [ValidateNotNullOrEmpty()]
         [string] $IpAddress
     )

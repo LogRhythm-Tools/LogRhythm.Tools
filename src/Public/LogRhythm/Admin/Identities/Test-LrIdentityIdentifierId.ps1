@@ -32,11 +32,12 @@ Function Test-LrIdentityIdentifierId {
     
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position=0)]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
         [ValidateNotNull()]
         [int] $Id,
 
-        [Parameter(Mandatory = $true,Position=1)]
+        
+        [Parameter(Mandatory = $true, Position = 1)]
         [ValidateNotNull()]
         [int] $IdentityId
     )

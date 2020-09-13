@@ -46,19 +46,22 @@ Function Add-LrIdentityIdentifier {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
+        [Parameter(Mandatory = $true, ValueFromPipeline = $false, Position = 0)]
+        [int] $IdentityId,
 
-        [Parameter(Mandatory = $true, ValueFromPipeline=$false, Position = 1)]
-        [int]$IdentityId,
 
-        [Parameter(Mandatory = $true, ValueFromPipeline=$false, Position = 2)]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $false, Position = 1)]
         [ValidateSet('login', 'email', ignorecase=$true)]
-        [String]$IdentifierType = "Login",
+        [string] $IdentifierType = "Login",
 
-        [Parameter(Mandatory = $true, ValueFromPipeline=$false, Position = 3)]
-        [String]$IdentifierValue
+
+        [Parameter(Mandatory = $true, ValueFromPipeline = $false, Position = 2)]
+        [string] $IdentifierValue,
+
+
+        [Parameter(Mandatory = $false, Position = 3)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {

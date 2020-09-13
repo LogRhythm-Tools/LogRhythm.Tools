@@ -99,64 +99,72 @@ Function New-LrHost {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
-        
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName=$true, Position = 1)]
-        [string]$Entity,
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 0)]
+        [string] $Entity,
 
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName=$true, Position = 2)]
-        [string]$Name,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true,  Position = 3)]
-        [string]$ShortDesc,
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 1)]
+        [string] $Name,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 4)]
-        [string]$LongDesc,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 5)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true,  Position = 2)]
+        [string] $ShortDesc,
+
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 3)]
+        [string] $LongDesc,
+
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 4)]
         [ValidateSet('none','low-low','low-medium','low-high','medium-low','medium-medium','medium-high','high-low','high-medium','high-high', ignorecase=$true)]
-        [string]$RiskLevel = "none",
+        [string] $RiskLevel = "none",
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 6)]
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 5)]
         [ValidateSet('none','low-low','low-medium','low-high','medium-low','medium-medium','medium-high','high-low','high-medium','high-high', ignorecase=$true)]
-        [string]$ThreatLevel = "none",
+        [string] $ThreatLevel = "none",
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 7)]
-        [string]$ThreatLevelComment,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 8)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 6)]
+        [string] $ThreatLevelComment,
+
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 7)]
         [ValidateSet('new', 'retired','active', ignorecase=$true)]
-        [string]$RecordStatus = "new",
+        [string] $RecordStatus = "new",
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 9)]
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 8)]
         [ValidateSet('unknown', 'internal','dmz','external', ignorecase=$true)]
-        [string]$Zone="internal",
+        [string] $Zone="internal",
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 10)]
-        [string]$Location,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 11)]
-        [int32]$LocationId,
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 9)]
+        [string] $Location,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 12)]
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 10)]
         [ValidateSet('unknown', 'other', 'windowsNT4', 'windows2000professional', 'windows2000server', 'windows2003standard', 'windows2003enterprise', `
          'windows95' ,'windowsxp' ,'windowsvista', 'linux', 'solaris', 'aix', 'hpux', 'windows', ignorecase=$true)]
-        [string]$OS,
+        [string] $OS,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 13)]
-        [string]$OSVersion,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 14)]
-        [bool]$UseEventlogCredentials = $false,
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 11)]
+        [string] $OSVersion,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 15)]
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 12)]
+        [bool] $UseEventlogCredentials = $false,
+
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 13)]
         [ValidateSet('server','none','desktop', ignorecase=$true)]
-        [string]$OSType = "server",
+        [string] $OSType = "server",
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 16)]
-        [switch]$LocationLookup
+
+        [Parameter(Mandatory = $false, Position = 14)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {
@@ -179,7 +187,7 @@ Function New-LrHost {
         $LrVersion = $LrtConfig.LRDeployment.Version
         
         # Integer Reference
-        [int32]$_int = 1
+        [int32] $_int = 1
     }
 
     Process {

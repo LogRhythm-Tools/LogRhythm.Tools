@@ -48,18 +48,19 @@ Function Get-LrPlaybookById {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
-
-
         [Parameter(
             Mandatory = $false,
             ValueFromPipeline = $true,
-            Position = 1
+            ValueFromPipelineByPropertyName = $true,
+            Position = 0
         )]
         [ValidateNotNullOrEmpty()]
-        [string] $Id
+        [string] $Id,
+
+
+        [Parameter(Mandatory = $false, Position = 1)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {

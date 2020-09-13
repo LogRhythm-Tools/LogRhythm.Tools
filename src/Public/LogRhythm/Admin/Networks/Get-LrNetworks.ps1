@@ -112,41 +112,51 @@ Function Get-LrNetworks {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
+        [int] $PageValuesCount = 1000,
+
 
         [Parameter(Mandatory = $false, Position = 1)]
-        [int]$PageValuesCount = 1000,
+        [int] $PageCount = 1,
+
 
         [Parameter(Mandatory = $false, Position = 2)]
-        [int]$PageCount = 1,
+        [ValidateSet('asc','desc', ignorecase=$true)]
+        [string] $Direction,
+
 
         [Parameter(Mandatory = $false, Position = 3)]
-        [ValidateSet('asc','desc', ignorecase=$true)]
-        [string]$Direction,
+        [string] $Name,
+
 
         [Parameter(Mandatory = $false, Position = 4)]
-        [string]$Name,
+        [ValidateSet('all','active','retired', ignorecase=$true)]
+        [string] $RecordStatus = "active",
+
 
         [Parameter(Mandatory = $false, Position = 5)]
-        [ValidateSet('all','active','retired', ignorecase=$true)]
-        [string]$RecordStatus = "active",
+        [string] $BIP,
+
 
         [Parameter(Mandatory = $false, Position = 6)]
-        [ipaddress]$BIP,
+        [string] $EIP,
+
 
         [Parameter(Mandatory = $false, Position = 7)]
-        [ipaddress]$EIP,
+        [string] $Entity,
+
 
         [Parameter(Mandatory = $false, Position = 8)]
-        [string]$Entity,
-
-        [Parameter(Mandatory = $false, Position = 9)]
         [ValidateSet('name','bip','eip','entity', ignorecase=$true)]
-        [string]$OrderBy = "Entity",
+        [string] $OrderBy = "Entity",
+
+        
+        [Parameter(Mandatory = $false, Position = 9)]
+        [switch] $Exact,
+
 
         [Parameter(Mandatory = $false, Position = 10)]
-        [switch]$Exact
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {

@@ -14,7 +14,7 @@ Function Get-InputApiUrl {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory=$true,Position=0)]
+        [Parameter(Mandatory = $true, Position = 0)]
         [ValidateNotNullOrEmpty()]
         [string] $Value,
 
@@ -49,7 +49,7 @@ Function Get-InputApiUrl {
         return $Return
     }
 
-    
+
     # Our $Find will either be in group 4 or 6.
     # 4: Hosts with a port definition (https://host.com:8080/blah)
     # 6: Hosts without a port (https://host.com/blah)

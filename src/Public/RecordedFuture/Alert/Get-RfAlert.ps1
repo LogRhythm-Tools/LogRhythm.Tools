@@ -7,7 +7,7 @@ Function Get-RfAlert {
         Get RecordedFuture Alert details.
     .DESCRIPTION
         Get RecordedFuture Alert details based on Alert ID.  
-    .PARAMETER Token
+    .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
     .PARAMETER Id
         Id value for Recorded Future Alert retrieval.
@@ -22,10 +22,13 @@ Function Get-RfAlert {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.RecordedFuture.ApiKey,
+        [ValidateNotNullOrEmpty()]
+        [string] $Id,
 
-        [string] $Id
+
+        [Parameter(Mandatory = $false, Position = 1)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.RecordedFuture.ApiKey
     )
 
     Begin {

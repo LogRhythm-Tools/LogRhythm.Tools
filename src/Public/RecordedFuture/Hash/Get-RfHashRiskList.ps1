@@ -7,7 +7,7 @@ Function Get-RfHashRiskList {
         Get RecordedFuture Hash threat list.
     .DESCRIPTION
         Get RecordedFuture Hash cmdlet retrieves the associated threat list results with returned hash values and their associated data.  
-    .PARAMETER Token
+    .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
         
         Note: You can bypass the need to provide a Credential by setting
@@ -90,18 +90,46 @@ Function Get-RfHashRiskList {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.RecordedFuture.ApiKey,
-
+        [ValidateNotNullOrEmpty()]
         [string] $List = "Large",
+
+
+        [Parameter(Mandatory = $false, Position = 1)]
+        [ValidateNotNullOrEmpty()]
         [string] $Format = "csv/splunk",
+
+
+        [Parameter(Mandatory = $false, Position = 2)]
         [bool] $Compressed = $false,
+
+
+        [Parameter(Mandatory = $false, Position = 3)]
         [int] $MinimumRisk,
+
+
+        [Parameter(Mandatory = $false, Position = 4)]
         [int] $MaximumRisk,
+
+
+        [Parameter(Mandatory = $false, Position = 5)]
         [switch] $ValuesOnly,
+
+
+        [Parameter(Mandatory = $false, Position = 6)]
         [switch] $MD5,
+
+
+        [Parameter(Mandatory = $false, Position = 7)]
         [switch] $SHA256,
-        [switch] $SHA1
+
+
+        [Parameter(Mandatory = $false, Position = 8)]
+        [switch] $SHA1,
+
+
+        [Parameter(Mandatory = $false, Position = 9)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.RecordedFuture.ApiKey
     )
 
     Begin {

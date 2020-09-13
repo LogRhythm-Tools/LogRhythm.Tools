@@ -37,7 +37,7 @@ if ($ConfigFileInfo.Exists) {
 $LrCaseStatus = [PSCustomObject]@{
     Created     = 1
     Completed   = 2
-    Open        = 3
+    Incident    = 3
     Mitigated   = 4
     Resolved    = 5
 }

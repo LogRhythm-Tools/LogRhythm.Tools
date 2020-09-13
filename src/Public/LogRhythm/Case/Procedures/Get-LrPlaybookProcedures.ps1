@@ -74,28 +74,28 @@ Function Get-LrPlaybookProcedures {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
-
-
-        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 1)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 0)]
         [ValidateNotNullOrEmpty()]
         [string] $Name,
 
 
-        [Parameter(Mandatory = $false, Position = 2)]
+        [Parameter(Mandatory = $false, Position = 1)]
         [ValidateSet('dateCreated','dateUpdated','name')]
         [string] $OrderBy = "dateCreated",
 
 
-        [Parameter(Mandatory = $false, Position = 3)]
+        [Parameter(Mandatory = $false, Position = 2)]
         [ValidateSet('asc','desc')]
         [string] $Sort = "asc",
 
 
+        [Parameter(Mandatory = $false, Position = 3)]
+        [switch] $Exact,
+
+
         [Parameter(Mandatory = $false, Position = 4)]
-        [switch] $Exact
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {

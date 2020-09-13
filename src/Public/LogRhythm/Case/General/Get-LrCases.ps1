@@ -82,6 +82,8 @@ Function Get-LrCases {
         Maximum number of results to be returned (default 500)
     .PARAMETER Exact
         Forces the name parameter to be exact matches only for returned results.
+    .PARAMETER Metrics
+        Include case metrics in each case returned by Get-LrCases.
     .INPUTS
         None
     .OUTPUTS
@@ -183,70 +185,69 @@ Function Get-LrCases {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
-
-        [Parameter(Mandatory = $false, Position = 1)]
         [string] $Name,
 
+
         #region: Query Parameters ___________________________________________________________
-        [Parameter(Mandatory = $false, Position = 2)]
+        [Parameter(Mandatory = $false, Position = 1)]
         [ValidateNotNull()]
         [datetime] $DueBefore,
 
 
-        [Parameter(Mandatory = $false, Position = 3)]
+        [Parameter(Mandatory = $false, Position = 2)]
         [ValidateRange(1,5)]
         [int[]] $Priority,
 
 
-        [Parameter(Mandatory = $false, Position = 4)]
+        [Parameter(Mandatory = $false, Position = 3)]
         [ValidateNotNull()]
         [string[]] $Status,
 
 
-        [Parameter(Mandatory = $false, Position = 5)]
+        [Parameter(Mandatory = $false, Position = 4)]
         [ValidateNotNull()]
         [string[]] $Owners,
 
 
-        [Parameter(Mandatory = $false, Position = 6)]
+        [Parameter(Mandatory = $false, Position = 5)]
         [ValidateNotNull()]
         [string] $Collaborator,
 
 
-        [Parameter(Mandatory = $false, Position = 7)]
+        [Parameter(Mandatory = $false, Position = 6)]
         [ValidateNotNull()]
         [string[]] $Tags,
 
 
-        [Parameter(Mandatory = $false, Position = 8)]
+        [Parameter(Mandatory = $false, Position = 7)]
         [ValidateNotNull()]
         [string[]] $ExcludeTags,
 
-        [Parameter(Mandatory = $false, Position = 9)]
+
+        [Parameter(Mandatory = $false, Position = 8)]
         [ValidateSet("alarm","userEvents","log","note","file")]
         [string[]] $EvidenceType,
         #endregion
 
+        
         #region: Header Parameters___________________________________________________________
-        [Parameter(Mandatory = $false, Position = 10)]
+        [Parameter(Mandatory = $false, Position = 9)]
         [DateTime] $UpdatedAfter,
 
 
-        [Parameter(Mandatory = $false, Position = 11)]
+        [Parameter(Mandatory = $false, Position = 10)]
         [DateTime] $UpdatedBefore,
 
 
-        [Parameter(Mandatory = $false,Position = 12)]
+        [Parameter(Mandatory = $false,Position = 11)]
         [DateTime] $CreatedAfter,
 
 
-        [Parameter(Mandatory = $false,Position = 13)]
+        [Parameter(Mandatory = $false,Position = 12)]
         [DateTime] $CreatedBefore,
 
 
-        [Parameter(Mandatory = $false,Position = 14)]
+        [Parameter(Mandatory = $false,Position = 13)]
         [ValidateSet(
             "dateCreated",
             "dateClosed",
@@ -261,19 +262,30 @@ Function Get-LrCases {
         [string] $OrderBy = "dateCreated",
 
 
-        [Parameter(Mandatory = $false,Position = 15)]
+        [Parameter(Mandatory = $false,Position = 14)]
         [ValidateSet("asc","desc")]
         [string] $Direction = "asc",
 
 
-        [Parameter(Mandatory = $false, Position = 16)]
+        [Parameter(Mandatory = $false, Position = 15)]
         [int] $Count = 500,
 
-        [Parameter(Mandatory = $false, Position = 17)]
+
+        [Parameter(Mandatory = $false, Position = 16)]
         [switch] $Summary,
 
+
+        [Parameter(Mandatory = $false, Position = 17)]
+        [switch] $Exact,
+
+
         [Parameter(Mandatory = $false, Position = 18)]
-        [switch] $Exact
+        [switch] $Metrics,
+
+
+        [Parameter(Mandatory = $false, Position = 19)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
         #endregion
 
@@ -472,51 +484,101 @@ Function Get-LrCases {
     }
     #endregion
 
+
+
+    #region: Return Results                                                                        
+    # [Exact Match] - return a single result based on exact name
     if ($Exact) {
+        $Pattern = "^$Name$"
+        # LogRhythm allows multiple cases to share the same exact name - find all the exact
+        # matches, add to collection, and warn if there are more than one.
+        $ExactCaseMatches = [List[object]]::New()
+
+        # [Exact Match] - Filtered Results
         if ($FilteredResult) {
-            $Pattern = "^$Name$"
             $FilteredResult | ForEach-Object {
                 if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
-                    Write-Verbose "[$Me]: Exact list name match found."
-                    $List = $_
-                    return $List
+                    $ExactCaseMatches.Add($_)
                 }
             }
         } else {
-            $Pattern = "^$Name$"
+            # [Exact Match] - All Results
             $Response | ForEach-Object {
                 if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
-                    Write-Verbose "[$Me]: Exact list name match found."
-                    $List = $_
-                    return $List
+                    Write-Verbose "[$Me]: Exact case name match found: $($_.Name)"
+                    $ExactCaseMatches.Add($_)
                 }
             }
         }
+
+        # [Exact Match] - Check Result Count
+        if ($ExactCaseMatches.Count -gt 1) {
+            Write-Warning "More than one case found matching exact name: $Name"
+            Write-Warning "Only the first result will be returned"
+        }
+        
+        # [Exact Match] - Get Metrics if requested
+        if ($Metrics) {
+            if ($ExactCaseMatches[0]) {
+                $_metrics = $ExactCaseMatches[0] | Get-LrCaseMetrics    
+                $ExactCaseMatches[0] | Add-Member -MemberType NoteProperty -Name "Metrics" -Value $_metrics
+            }
+        }
+        return $ExactCaseMatches[0]
+
+    # [Name Match] - return one or more resuls based on partial name match
     } elseif ($Name) {
+        $Pattern = ".*$Name.*"
+        $CaseMatches = [List[object]]::New()
+
+        # [Name Match] - Filtered Results
         if ($FilteredResult) {
-            $Pattern = ".*$Name.*"
             $FilteredResult | ForEach-Object {
                 if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
-                    Write-Verbose "[$Me]: Exact list name match found."
-                    $List = $_
-                    return $List
+                    $CaseMatches.Add($_)
                 }
             }
+
+        # [Name Match] - All Results
         } else {
-            $Pattern = ".*$Name.*"
             $Response | ForEach-Object {
                 if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
-                    Write-Verbose "[$Me]: Exact list name match found."
-                    $List = $_
-                    return $List
+                    $CaseMatches.Add($_)
                 }
             }
         }
+        
+        # [Name Match] - Get Case Metrics
+        if ($Metrics) {
+            foreach ($case in $CaseMatches) {
+                $_metrics = $case | Get-LrCaseMetrics
+                $case | Add-Member -MemberType NoteProperty -Name "Metrics" -Value $_metrics
+            }
+        }
+        return $CaseMatches
+
+    # [Default] - return all results
     } else {
+        # Return FilteredResult if present (excluded tags)
         if ($FilteredResult) {
+            if ($Metrics) {
+                $FilteredResult | ForEach-Object {
+                    $_metrics = $_ | Get-LrCaseMetrics
+                    $_ | Add-Member -MemberType NoteProperty -Name "Metrics" -Value $_metrics
+                } 
+            }
             return $FilteredResult
+        # Return the base results
         } else {
+            if ($Metrics) {
+                $Response | ForEach-Object {
+                    $_metrics = $_ | Get-LrCaseMetrics
+                    $_ | Add-Member -MemberType NoteProperty -Name "Metrics" -Value $_metrics
+                }
+            }
             return $Response
         }
     }
+    #endregion
+
 }

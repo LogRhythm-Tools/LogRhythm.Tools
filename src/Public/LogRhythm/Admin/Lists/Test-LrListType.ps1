@@ -26,15 +26,12 @@ Function Test-LrListType {
 
     [CmdletBinding()]
     Param(
-        [Parameter(
-            Mandatory = $true,
-            ValueFromPipeline = $true,
-            Position=0
-        )]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position=0)]
         [ValidateNotNull()]
         [string] $Id
     )
 
+    
     $OutObject = [PSCustomObject]@{
         IsValid     =   $false
         Value       =   $Id

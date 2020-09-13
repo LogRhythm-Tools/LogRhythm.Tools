@@ -57,13 +57,13 @@ Function Get-LrCaseMetrics {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
+        [object] $Id,
+
+
+        [Parameter(Mandatory = $false, Position = 1)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
-
-
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 1)]
-        [object] $Id
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {
@@ -81,10 +81,14 @@ Function Get-LrCaseMetrics {
 
         # Enable self-signed certificates and Tls1.2
         Enable-TrustAllCertsPolicy
+
+        $_COUNT = 0
     }
 
 
     Process {
+        $_COUNT++
+
         # Test CaseID Format
         $IdStatus = Test-LrCaseIdFormat $Id
         if ($IdStatus.IsValid -eq $true) {
@@ -92,6 +96,7 @@ Function Get-LrCaseMetrics {
         } else {
             return $IdStatus
         }
+     
         
         # Request URI
         $RequestUrl = $BaseUrl + "/cases/$CaseNumber/metrics"
@@ -114,7 +119,7 @@ Function Get-LrCaseMetrics {
                 $Err = Get-RestErrorMessage $_
                 throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
             }
-        }     
+        }
         #endregion
 
 
@@ -127,7 +132,7 @@ Function Get-LrCaseMetrics {
             # Placeholders
             $d = [datetime]::MinValue
             
-            # Step One: For each category of date, and convert any dates into datetime objects
+            # Step One: For each category of date, convert any dates into datetime objects
             foreach ($category in $Response.PSObject.Properties) {
                 foreach ($property in $category.Value.PSObject.Properties) {
                     if ($property.Value) {
@@ -137,11 +142,15 @@ Function Get-LrCaseMetrics {
                     }
                 }
             }
+
+
             # Step Two: TTD/TTR/TTE/TTC
             $TTD = "N/A"
             $TTR = "N/A"
             $TTE = "N/A"
             $TTC = "N/A"
+
+
             # Add to Response
             $Response | Add-Member -MemberType NoteProperty -Name "TTD" -Value $TTD
             $Response | Add-Member -MemberType NoteProperty -Name "TTR" -Value $TTR
@@ -170,12 +179,14 @@ Function Get-LrCaseMetrics {
         }
         #endregion
 
-
+        Start-Sleep -Milliseconds 50
 
         # End
         return $Response
     }
 
 
-    End { }
+    End {
+        Write-Verbose "Processed $_COUNT cases."
+    }
 }

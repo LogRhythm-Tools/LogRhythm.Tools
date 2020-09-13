@@ -76,15 +76,17 @@ Function Enable-LrIdentityIdentifier {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $false, Position = 0)]
+        [long] $IdentityId,
+
+
+        [Parameter(Mandatory = $true, ValueFromPipeline = $false, Position = 1)]
+        [long] $IdentifierId,
+
+
+        [Parameter(Mandatory = $false, Position = 2)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
-
-        [Parameter(Mandatory = $true, ValueFromPipeline=$false, Position = 1)]
-        [long]$IdentityId,
-
-        [Parameter(Mandatory = $true, ValueFromPipeline=$false, Position = 2)]
-        [long]$IdentifierId
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {

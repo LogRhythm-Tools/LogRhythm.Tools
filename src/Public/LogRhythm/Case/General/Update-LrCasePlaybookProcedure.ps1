@@ -86,37 +86,53 @@ Function Update-LrCasePlaybookProcedure {
     #>
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
+        [Parameter(
+            Mandatory = $true, 
+            ValueFromPipeline = $true, 
+            ValueFromPipelineByPropertyName = $true, 
+            Position = 0
+        )]
         [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
-
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 1)]
-        [ValidateNotNullOrEmpty()]
         [object] $CaseId,
 
-        [Parameter(Mandatory = $false, Position = 2)]
-        [ValidateNotNullOrEmpty()]
+
+        [Parameter(Mandatory = $false, Position = 1)]
+        [ValidateNotNull()]
         [object] $PlaybookId,
 
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 3)]
-        [ValidateNotNullOrEmpty()]
+
+        [Parameter(
+            Mandatory = $true, 
+            ValueFromPipelineByPropertyName = $true, 
+            Position = 2
+        )]
+        [ValidateNotNull()]
         [object] $Id,
 
-        [Parameter(Mandatory = $false, Position = 4)]
+
+        [Parameter(Mandatory = $false, Position = 3)]
         [ValidateNotNullOrEmpty()]
         [string] $Assignee,
 
-        [Parameter(Mandatory = $false, Position = 5)]
+
+        [Parameter(Mandatory = $false, Position = 4)]
         [ValidateNotNullOrEmpty()]
         [string] $Notes,
 
-        [Parameter(Mandatory = $false, Position = 6)]
-        [ValidateNotNullOrEmpty()]
+
+        [Parameter(Mandatory = $false, Position = 5)]
+        [ValidateNotNull()]
         [datetime] $DueDate,
 
-        [Parameter( Mandatory = $false, Position = 7)]
+
+        [Parameter( Mandatory = $false, Position = 6)]
         [ValidateNotNullOrEmpty()]
-        [string] $Status
+        [string] $Status,
+
+
+        [Parameter(Mandatory = $false, Position = 7)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {

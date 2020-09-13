@@ -47,7 +47,7 @@ using namespace System.IO
 
 [CmdletBinding()]
 Param(
-    [Parameter(Mandatory=$false, Position=0)]
+    [Parameter(Mandatory = $false, Position = 0)]
     [switch] $RemoveOld,
 
     [Parameter(Mandatory = $false, Position = 2)]

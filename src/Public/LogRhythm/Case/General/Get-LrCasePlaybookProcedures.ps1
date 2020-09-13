@@ -57,18 +57,19 @@ Function Get-LrCasePlaybookProcedures {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
+        [Parameter(Mandatory = $true, Position = 0)]
         [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
-
-
-        [Parameter(Mandatory = $true, Position = 1)]
-        [ValidateNotNullOrEmpty()]
         [object] $CaseId,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 2)]
-        [ValidateNotNullOrEmpty()]
-        [Object] $Id
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 1)]
+        [ValidateNotNull()]
+        [object] $Id,
+
+
+        [Parameter(Mandatory = $false, Position = 2)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {

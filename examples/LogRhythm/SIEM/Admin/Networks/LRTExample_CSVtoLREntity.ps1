@@ -4,7 +4,7 @@
 [regex]$RegexExternal = '^.*(?<tag>[eE][xX][tT][eE][rR][nN][aA][lL]).*$'
 
 # Import CSV with updated Headers, removing the header from the original CSV.  Add a new column for Entity set to Global Entity.
-$Networks = Import-Csv C:\Users\Administrator\Documents\GitHub\SmartResponse.Framework\examples\LogRhythm\SIEM\Admin\Networks\infoblox_logrythm.csv -Header 'Name', 'ShortDesc', 'LongDesc', 'RiskLevel', 'Zone', 'Location', 'BIP', 'EIP' | Select-Object -Skip 1 | Select-Object *,@{Name='Entity';Expression={''}}
+$Networks = Import-Csv C:\Users\Administrator\Documents\GitHub\LogRhythm.Tools\examples\LogRhythm\SIEM\Admin\Networks\infoblox_logrythm.csv -Header 'Name', 'ShortDesc', 'LongDesc', 'RiskLevel', 'Zone', 'Location', 'BIP', 'EIP' | Select-Object -Skip 1 | Select-Object *,@{Name='Entity';Expression={''}}
 
 foreach ($Network in $Networks) {
     Write-Host "----- New Csv Entry -----"

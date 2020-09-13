@@ -7,7 +7,7 @@ Function Get-RfIPRiskList {
         Get RecordedFuture IP threat list.
     .DESCRIPTION
         Get RecordedFuture IP cmdlet retrieves the associated threat list results with returned IP values and their associated data.  
-    .PARAMETER Token
+    .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
         
         Note: You can bypass the need to provide a Credential by setting
@@ -73,17 +73,42 @@ Function Get-RfIPRiskList {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.RecordedFuture.ApiKey,
-
+        [ValidateNotNullOrEmpty()]
         [string] $List,
+
+
+        [Parameter(Mandatory = $false, Position = 1)]
+        [ValidateNotNullOrEmpty()]
         [string] $Format = "csv/splunk",
+
+
+        [Parameter(Mandatory = $false, Position = 2)]
         [bool] $Compressed = $false,
+
+
+        [Parameter(Mandatory = $false, Position = 3)]
         [int] $MinimumRisk,
+
+
+        [Parameter(Mandatory = $false, Position = 4)]
         [int] $MaximumRisk,
+
+
+        [Parameter(Mandatory = $false, Position = 5)]
         [switch] $ValuesOnly,
+
+
+        [Parameter(Mandatory = $false, Position = 6)]
         [switch] $IPv4,
-        [switch] $IPv6
+
+
+        [Parameter(Mandatory = $false, Position = 7)]
+        [switch] $IPv6,
+
+
+        [Parameter(Mandatory = $false, Position = 8)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.RecordedFuture.ApiKey
     )
 
     Begin {

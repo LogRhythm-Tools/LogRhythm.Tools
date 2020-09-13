@@ -87,20 +87,28 @@ Function Add-LrCaseTags {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
-
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 1)]
+        [Parameter(
+            Mandatory = $true, 
+            ValueFromPipeline = $true, 
+            ValueFromPipelineByPropertyName = $true, 
+            Position = 0
+        )]
         [ValidateNotNull()]
         [object] $Id,
         
-        [Parameter(Mandatory = $true, Position = 2)]
-        [ValidateNotNull()]
+
+        [Parameter(Mandatory = $true, Position = 1)]
+        [ValidateNotNullOrEmpty()]
         [string[]] $Tags,
 
+        
+        [Parameter(Mandatory = $false, Position = 2)]
+        [switch] $PassThru,
+
+
         [Parameter(Mandatory = $false, Position = 3)]
-        [switch] $PassThru
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
 

@@ -3,7 +3,7 @@
         Search the Shodan directory of search queries that users have saved in Shodan.
     .DESCRIPTION
         Retrieves number of votes, description, title, timestamp, tags, and query for each matching result.
-    .PARAMETER ShodanAPI
+    .PARAMETER Credential
         Shodan API Key
     .PARAMETER Keyword
         Keyword for conducting Shodan Directory search
@@ -35,12 +35,13 @@
 function Get-ShodanDirectorySearch {
     [CmdLetBinding()]
     param( 
-        [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.Shodan.ApiKey,
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
+        [string] $Keyword,
 
-        [Parameter(Mandatory=$true, ValueFromPipeline=$true, Position=1)]
-        [string]$Keyword
+
+        [Parameter(Mandatory = $false, Position = 1)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.Shodan.ApiKey
     )
     Begin {
         # Request Setup

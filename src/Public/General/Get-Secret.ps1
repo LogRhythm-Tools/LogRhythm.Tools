@@ -46,17 +46,17 @@ Function Get-Secret {
     #region: Parameters                                                                  
     [CmdletBinding()]
     Param(
-        [Parameter( Mandatory = $true, ValueFromPipeline = $true, Position=0)]
+        [Parameter( Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
         [ValidateNotNullOrEmpty()]
         [int] $SecretId,
 
-        [Parameter(Mandatory=$false,Position=1)]
+        [Parameter(Mandatory = $false, Position = 1)]
         [pscredential] $Credential,
 
-        [Parameter(Mandatory=$false, Position=2)]
+        [Parameter(Mandatory = $false, Position = 2)]
         [string] $AuthFilePath,
 
-        [Parameter(Mandatory=$false, Position=3)]
+        [Parameter(Mandatory = $false, Position = 3)]
         [string] $SecretServerUrl = $LrtConfig.SecretServer.BaseUrl
     )
     #endregion

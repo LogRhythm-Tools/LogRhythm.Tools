@@ -15,9 +15,9 @@ function Create-LrPsArraySegments {
     .EXAMPLE
 
     .NOTES
-       
+        LogRhythm.Tools
     .LINK
-        
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #> 
     [CmdletBinding()]
     Param(

@@ -1,7 +1,7 @@
 [CmdletBinding()] 
 Param(  
-    [Parameter(Mandatory=$True)] 
-    [string]$Scope
+    [Parameter(Mandatory = $True)] 
+    [string] $Scope
 )
 Try {
     Start-Job -InitializationScript { Import-Module LogRhythm.Tools } -ScriptBlock {Invoke-RfSync -SyncScope $args} -ArgumentList $Scope

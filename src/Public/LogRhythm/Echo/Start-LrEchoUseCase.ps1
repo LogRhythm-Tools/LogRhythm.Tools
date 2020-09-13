@@ -7,24 +7,26 @@ Function Start-LrEchoUseCase {
     .SYNOPSIS
         Start a LogRhythm Echo use cases.
     .DESCRIPTION
-        Start-EchoUseCase returns 
+        Start-LrEchoUseCase returns a summary of the amount of logs sent and/or PCAPs replayed.
     .OUTPUTS
 
     .EXAMPLE
-        PS C:\> STart-LrEchoUseCase
+        PS C:\> Start-LrEchoUseCase -Id 5
+    .EXAMPLE
+        PS C:\> Start-LrEchoUseCase -Title "Use Case 5"
     .NOTES
         LogRhythm-API
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory=$false, ValueFromPipeline=$true, Position=0)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 0)]
         [ValidateNotNull()]
         [string] $Title,
 
-        [Parameter(Mandatory=$false, ValueFromPipeline=$true, Position=1)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 1)]
         [ValidateNotNull()]
         [int] $Id
     )
@@ -47,7 +49,7 @@ Function Start-LrEchoUseCase {
 
     Process {      
         if ((!$Id) -and ($Title)) {
-            $Id = $(Get-EchoUseCases -Title $Title -Exact | Select-Object -ExpandProperty Id)
+            $Id = $(Get-LrEchoUseCases -Title $Title -Exact | Select-Object -ExpandProperty Id)
         } elseif((!$Id) -and (!$Title)) {
             Return "Please provide Echo Case ID# or Title"
         }

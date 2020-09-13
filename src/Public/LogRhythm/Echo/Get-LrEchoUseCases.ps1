@@ -21,26 +21,26 @@ Function Get-LrEchoUseCases {
     .EXAMPLE
         PS C:\> Get-LrEchoUseCases
     .NOTES
-        LogRhythm-API        
+        LogRhythm-API
     .LINK
-        https://github.com/SmartResponse-Framework/SmartResponse.Framework
+        https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory=$false, ValueFromPipeline=$false, Position=0)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 0)]
         [ValidateNotNull()]
         [string] $Title,
 
-        [Parameter(Mandatory=$false, ValueFromPipeline=$false, Position=1)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 1)]
         [ValidateNotNull()]
         [string] $Description,
 
-        [Parameter(Mandatory=$false, ValueFromPipeline=$true, Position=2)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 2)]
         [ValidateNotNull()]
         [int] $Id,
 
-        [Parameter(Mandatory=$false, ValueFromPipeline=$false, Position=3)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 3)]
         [ValidateNotNull()]
         [switch] $Exact
     )

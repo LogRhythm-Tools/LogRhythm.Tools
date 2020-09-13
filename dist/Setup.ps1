@@ -63,7 +63,6 @@ using namespace System.Security.Principal
 [CmdletBinding()]
 Param( )
 
-#TODO: Need a convenient way to call setup seperately from installing
 
 #region: Import Commands                                                                           
 # Import Lrt.Installer
@@ -114,7 +113,6 @@ Write-Host "                  `"Y88P`"                       `"Y88P`"`n"
 
 
 
-
 #region: Blurb                                                                                     
 Write-Host "`nWelcome to LogRhythm.Tools!" -ForegroundColor Green
 
@@ -124,9 +122,6 @@ Write-Host "`n* Note *`nIf you already have a configuration file from a previous
 Write-Host "for which you'd like to keep the existing value." -ForegroundColor DarkGray
 Write-Host "Configuration Directory: [%LocalAppData%\LogRhythm.Tools\LogRhythm.Tools.json]" -ForegroundColor DarkGray
 #endregion
-
-
-
 
 
 
@@ -186,12 +181,25 @@ foreach($ConfigCategory in $LrtConfigInput.PSObject.Properties) {
             # > Process Input
             
             Write-Verbose "LrtConfig.$($ConfigCategory.Name).$($ConfigField.Name)"
-            $cmd = $ConfigField.Value.InputCmd +`
-                " -Value `"" + $Response + "`"" + `
-                " -OldValue `"" + $OldValue + "`""
-            Write-Verbose "Command: $cmd"
 
-            $Result = Invoke-Expression $cmd
+            # If we are using Get-StringPattern, run that. 
+            if ($ConfigField.Value.InputCmd -match "Get-StringPattern") {
+                Write-Verbose "Validation: Get-StringPattern"
+                $Result = Get-StringPattern `
+                    -Value $Response `
+                    -OldValue $OldValue `
+                    -Pattern $ConfigField.Value.InputPattern.Pattern `
+                    -AllowChars $ConfigField.Value.InputPattern.AllowChars
+            } else {
+                # Otherwise invoke the command requested with common parameters.
+                $cmd = $ConfigField.Value.InputCmd +`
+                    " -Value `"" + $Response + "`"" + `
+                    " -OldValue `"" + $OldValue + "`""
+                    Write-Verbose "Validation: $cmd"
+
+                $Result = Invoke-Expression $cmd
+            }
+
 
             # Input OK - Update configuration object
             if ($Result.Valid) {
@@ -214,10 +222,33 @@ foreach($ConfigCategory in $LrtConfigInput.PSObject.Properties) {
     #endregion
 
 
-    # Credential Prompts
+    #region: ApiKey Creation                                                                       
     if ($ConfigCategory.Value.HasKey) {
-        $Result = Get-InputCredential -AppId $ConfigCategory.Name -AppName $ConfigCategory.Value.Name
+
+        # Some ApiKeys (oAuth2) will require a Client Id (username)
+        if ($ConfigCategory.Value.HasClientId) {
+
+            # Prompt for ClientId if required - no validation other than (length > 2 and < 101)
+            $ClientId = Confirm-StringPattern -Message "  > Please enter your Client/App Id" `
+                -Pattern "^.{3,100}$" `
+                -Hint "Client Id is longer than 2 characters" `
+                -AllowChars @("-",".","\")
+
+            # Create credential + username
+            $Result = Get-InputCredential `
+                -AppId $ConfigCategory.Name `
+                -AppName $ConfigCategory.Value.Name `
+                -Username $ClientId.Value
+
+        } else {
+            # Prompt / create credential without password
+            $Result = Get-InputCredential `
+                -AppId $ConfigCategory.Name `
+                -AppName $ConfigCategory.Value.Name
+        }
     }
+    #endregion
+
 
 
     # Write Config

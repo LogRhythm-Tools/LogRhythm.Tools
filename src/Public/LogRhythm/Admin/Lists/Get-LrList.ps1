@@ -29,7 +29,9 @@ Function Get-LrList {
         If parameter ListItemsOnly is specified, a string collection is returned containing the
         list's item values.
     .EXAMPLE
-        PS C:\> Get-LrList -Name "edea82e3-8d0b-4370-86f0-d96bcd4b6c19" -Credential $MyKey
+        PS C:\> Get-LrList -Name "edea82e3-8d0b-4370-86f0-d96bcd4b6c19"
+    .EXAMPLE
+        PS C:\> Get-LrList -Name "Privileged Users: Local System Administrators" -Exact
     .NOTES
         LogRhythm-API        
     .LINK
@@ -38,23 +40,27 @@ Function Get-LrList {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
-        [ValidateNotNull()]
-        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey,
-
-        [Parameter(Mandatory=$true, ValueFromPipeline=$true, Position=1)]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
         [ValidateNotNull()]
         [object] $Name,
 
-        [Parameter(Mandatory=$false, Position=2)]
+
+        [Parameter(Mandatory = $false, Position = 1)]
         [ValidateRange(1,10000000)]
         [int] $MaxItemsThreshold = 10000000,
 
-        [Parameter(Mandatory=$false, Position=3)]
+
+        [Parameter(Mandatory = $false, Position = 2)]
         [switch] $ValuesOnly,
 
-        [Parameter(Mandatory = $false, Position=4)]
-        [switch] $Exact
+
+        [Parameter(Mandatory = $false, Position = 3)]
+        [switch] $Exact,
+
+
+        [Parameter(Mandatory = $false, Position = 4)]
+        [ValidateNotNull()]
+        [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {
