@@ -215,15 +215,19 @@ Function New-LrNetwork {
         [string] $Location,
 
 
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 10)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 10)]
+        [int32]$LocationId,
+
+        
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 11)]
         [ipaddress]$Bip,
 
 
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 11)]
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 12)]
         [ipaddress]$Eip,
 
 
-        [Parameter(Mandatory = $false, Position = 12)]
+        [Parameter(Mandatory = $false, Position = 13)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
