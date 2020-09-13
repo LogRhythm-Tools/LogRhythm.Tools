@@ -64,23 +64,23 @@ Function Find-LrNetworkByIP {
         if ($EIP -and $BIP) {
             # Submit request
             if ($Entity) {
-                $IPResults = Get-LrNetworks -EIP $EIP -BIP $BIP -Entity $Entity -Exact
+                $IPResults = Get-LrNetworks -EIP $EIP -BIP $BIP -Entity $Entity -Recordstatus "All" -Exact
             } else {
-                $IPResults = Get-LrNetworks -EIP $EIP -BIP $BIP -Exact
+                $IPResults = Get-LrNetworks -EIP $EIP -BIP $BIP -Recordstatus "All" -Exact
             }
         # Check for existence of Ending IP Address exact match
         } elseif ($EIP) {
             if ($Entity) {
-                $IPResults = Get-LrNetworks -EIP $EIP -Entity $Entity -Exact
+                $IPResults = Get-LrNetworks -EIP $EIP -Entity $Entity -Recordstatus "All" -Exact
             } else {
-                $IPResults = Get-LrNetworks -EIP $EIP -Exact
+                $IPResults = Get-LrNetworks -EIP $EIP -Exact -All
             }
         # Check for existence of Beginning IP Address exact match
         } elseif ($BIP) {
             if ($Entity) {
-                $IPResults = Get-LrNetworks -BIP $BIP -Entity $Entity -Exact
+                $IPResults = Get-LrNetworks -BIP $BIP -Entity $Entity -Recordstatus "All" -Exact
             } else {
-                $IPResults = Get-LrNetworks -BIP $BIP -Exact
+                $IPResults = Get-LrNetworks -BIP $BIP -Recordstatus "All" -Exact
             }
         }
 
@@ -88,9 +88,9 @@ Function Find-LrNetworkByIP {
         if ($IP) {
             # Collect all Network Entities
             if ($Entity) {
-                $LrNetworks = Get-LrNetworks -Entity $Entity
+                $LrNetworks = Get-LrNetworks -Entity $Entity -Recordstatus "All"
             } else {
-                $LrNetworks = Get-LrNetworks
+                $LrNetworks = Get-LrNetworks -Recordstatus "All"
             }
             # Inspect each Network Entry for IP Address within Network Range
             ForEach ($Network in $LrNetworks) {
