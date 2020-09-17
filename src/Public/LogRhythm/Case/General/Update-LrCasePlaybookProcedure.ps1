@@ -99,6 +99,7 @@ Function Update-LrCasePlaybookProcedure {
         [Parameter(
             Mandatory = $true, 
             ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true,
             Position = 2
         )]
         [ValidateNotNull()]
