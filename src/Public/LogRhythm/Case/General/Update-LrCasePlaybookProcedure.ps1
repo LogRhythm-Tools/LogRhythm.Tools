@@ -126,7 +126,7 @@ Function Update-LrCasePlaybookProcedure {
 
 
         [Parameter( Mandatory = $false, Position = 6)]
-        [ValidateNotNullOrEmpty()]
+        [ValidateSet('NotCompleted', 'Completed', 'Skipped')]
         [string] $Status,
 
 
@@ -155,7 +155,7 @@ Function Update-LrCasePlaybookProcedure {
 
     Process {
         # Test CaseID Format
-        $IdStatus = Test-LrCaseIdFormat $Id
+        $IdStatus = Test-LrCaseIdFormat $CaseId
         if ($IdStatus.IsValid -eq $true) {
             $CaseNumber = $IdStatus.CaseNumber
         } else {
@@ -263,21 +263,6 @@ Function Update-LrCasePlaybookProcedure {
             }
         }
 
-        # Validate Status is proper
-        if ($Status) {
-            $ValidStatus = @("notcompleted", "completed", "skipped")
-            
-            if ($ValidStatus.Contains($Status.ToLower())) {
-                Switch ($Status.ToLower())
-                {
-                 notcompleted { $Status = "NotCompleted" }
-                 completed { $Status = "Completed" }
-                 skipped { $Status = "Skipped" }
-                }
-            } else {
-                throw [ArgumentException] "Parameter [Status] should be: NotCompleted, Completed, or Skipped."
-            }
-        }
 
         # Validate Assignee is valid
         if ($Assignee) {
