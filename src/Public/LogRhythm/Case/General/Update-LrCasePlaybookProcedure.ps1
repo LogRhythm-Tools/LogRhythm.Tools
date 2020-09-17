@@ -268,7 +268,7 @@ Function Update-LrCasePlaybookProcedure {
         if ($Assignee) {
             $AssigneeType = Test-LrUserIdFormat -Id $Assignee
             if ($AssigneeType.IsInt -eq $false) {
-                $AssigneeResult = Get-LrUsers -Name $Assignee
+                $AssigneeResult = Get-LrUsers -Name $Assignee -Exact
                 Write-Verbose "[$Me]: Assignee String: $Assignee Assignee Result: $($AssigneeResult.Name)"
                 if ($AssigneeResult) {
                     if ($AssigneeResult.disabled -eq $true) {
