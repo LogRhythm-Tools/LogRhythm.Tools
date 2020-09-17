@@ -19,9 +19,12 @@ Function Test-LrProcedureIdFormat {
         System.Object with IsGuid, IsValid, Value
     .EXAMPLE
         C:\PS> Test-LrProcedureIdFormat "5831f290-4798-4148-8165-01317d49afea"
-        IsGuid IsValid Value
-        ------ ------- -----
-         False    True 181
+        ---
+        IsGuid  : True
+        IsInt   : False
+        IsName  : False
+        IsValid : True
+        Value   : 5831f290-4798-4148-8165-01317d49afea
     .LINK
         https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
@@ -39,12 +42,13 @@ Function Test-LrProcedureIdFormat {
         $OutObject = [PSCustomObject]@{
             IsGuid      =   $false
             IsInt       =   $false
+            IsName      =   $false
             IsValid     =   $false
             Value       =   $Id
         }
 
-        # https://docs.microsoft.com/en-us/dotnet/api/system.int32.tryparse
-        $_int = 1  
+        # [ref] for Int.TryParse()
+        $_int = 0
     }
 
 
