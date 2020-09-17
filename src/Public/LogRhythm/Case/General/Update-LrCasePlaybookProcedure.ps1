@@ -86,12 +86,7 @@ Function Update-LrCasePlaybookProcedure {
     #>
     [CmdletBinding()]
     Param(
-        [Parameter(
-            Mandatory = $true, 
-            ValueFromPipeline = $true, 
-            ValueFromPipelineByPropertyName = $true, 
-            Position = 0
-        )]
+        [Parameter(Mandatory = $true, Position = 0)]
         [ValidateNotNull()]
         [object] $CaseId,
 
@@ -103,7 +98,7 @@ Function Update-LrCasePlaybookProcedure {
 
         [Parameter(
             Mandatory = $true, 
-            ValueFromPipelineByPropertyName = $true, 
+            ValueFromPipeline = $true,
             Position = 2
         )]
         [ValidateNotNull()]
