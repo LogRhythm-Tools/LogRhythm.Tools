@@ -9,27 +9,22 @@ Function Get-LrAieDrilldown {
     .DESCRIPTION
         The Get-LrAieDrilldown cmdlet retrieves drilldown results
         (logs) associated with a LogRhythm Alarm.
-
         In some cases it may take several minutes for an alarm to be
         updated with drilldown logs. When executing Get-LrAieDrilldown
         from a SmartResponse action, drilldown data may not be available
         for a short time while the Drilldown Cache Service is in the 
         process of getting logs from data indexers.
-
         To mitigate this, Get-LrAieDrilldown will reattempt the request 
         (18) times, waiting (10 seconds) between each attempt. These
         values can be modified by speciftying the RetryAttempts and
         RetryWaitSeconds parameters. This should be sufficient for the
         majority of alarms unless the platform is under heavy load.
-
         **Note** Legacy Alarm Rule (diagnostic events) are not
         supported by the LogRhythm Drilldown Cache API. These alarms
         will return a 404 if requested.
-
         https://community.logrhythm.com/t5/AI-Engine-Rules/AIE-Drilldown-API/m-p/44276#M1295%C2%A0
     .PARAMETER Credential
         [PSCredential] containing an API Token in the Password field.
-
         **Note**
         The Credential parameter can be omitted if a [PSCredential]
         containing the LogRhythm Bearer Token is set to the preference

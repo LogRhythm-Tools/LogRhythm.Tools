@@ -32,7 +32,7 @@ function Install-Lrt {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
-        [FileInfo] $Path,
+        [System.IO.FileInfo] $Path,
 
         [Parameter(Mandatory = $false, Position = 1)]
         [ValidateSet('User','System')]
@@ -66,7 +66,7 @@ function Install-Lrt {
         $BaseDir = (([DirectoryInfo]::new($PSScriptRoot)).Parent).Parent
         $ArchivePath = Join-Path -Path $BaseDir.FullName -ChildPath "installer\packages" | 
             Join-Path -ChildPath $ModuleInfo.ArchiveFileName
-        $Path = [FileInfo]::new($ArchivePath)
+        $Path = [System.IO.FileInfo]::new($ArchivePath)
     }
 
     if (! $Path.Exists) {

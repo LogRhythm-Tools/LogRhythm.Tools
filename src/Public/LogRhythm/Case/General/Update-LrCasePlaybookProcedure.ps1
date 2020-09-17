@@ -155,7 +155,7 @@ Function Update-LrCasePlaybookProcedure {
 
     Process {
         # Test CaseID Format
-        $IdStatus = Test-LrCaseIdFormat $Id
+        $IdStatus = Test-LrCaseIdFormat $CaseId
         if ($IdStatus.IsValid -eq $true) {
             $CaseNumber = $IdStatus.CaseNumber
         } else {
@@ -310,9 +310,11 @@ Function Update-LrCasePlaybookProcedure {
                 throw [ArgumentException] "Parameter [Assignee] must be valid user name or user id #"
             }
 
-            $CaseCollaborators = Get-LrCaseById -Id $CaseNumber | Select-Object collaborators -ExpandProperty collaborators
-            if (!$CaseCollaborators.number.Contains($AssigneeNumber)) {
-                throw [ArgumentException] "Parameter [Assignee:$Assignee] not a collaborator on case $CaseNumber"
+            $CaseCollaborators = Get-LrCaseById -Id $CaseNumber | Select-Object -ExpandProperty collaborators
+            if ($CaseCollaborators -and $AssigneeNumber) {
+                if (!$CaseCollaborators.number -contains $AssigneeNumber) {
+                    throw [ArgumentException] "Parameter [Assignee:$Assignee] not a collaborator on case $CaseNumber"
+                }
             }
         }
 

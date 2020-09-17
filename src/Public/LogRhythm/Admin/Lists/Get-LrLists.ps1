@@ -31,11 +31,25 @@ Function Get-LrLists {
         If parameter ListItemsOnly is specified, a string collection is returned containing the
         list's item values.
     .EXAMPLE
-        PS C:\> Get-LrLists -ListType "identity"
-    .EXAMPLE
-        PS C:\> Get-LrLists -Name "Priv"
-    .EXAMPLE
-        PS C:\> Get-LrLists -Name "Priv" -Exact
+        PS C:\> Get-LrList -Name "LR Threat List : URL : Attack"
+        ---
+        listType         : GeneralValue
+        status           : Active
+        name             : LR Threat List : URL : Attack
+        useContext       : {URL, DomainImpacted}
+        autoImportOption : @{enabled=False; usePatterns=False; replaceExisting=False}
+        id               : -2208
+        guid             : 7A5C7812-0BA9-4C9F-B4D3-09DC5FA79ACA
+        dateCreated      : 2014-06-04T20:10:09.3Z
+        dateUpdated      : 2020-07-23T19:47:12.61Z
+        readAccess       : PublicAll
+        writeAccess      : PublicGlobalAdmin
+        restrictedRead   : False
+        entityName       : Global Entity
+        entryCount       : 0
+        needToNotify     : False
+        doesExpire       : False
+        owner            : -1000000
     .NOTES
         LogRhythm-API        
     .LINK

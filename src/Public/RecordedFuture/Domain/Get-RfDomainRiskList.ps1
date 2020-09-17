@@ -107,6 +107,15 @@ Function Get-RfDomainRiskList {
     }
 
     Process {
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Error                 =   $false
+            Value                 =   $List
+            Code                  =   $Null
+            Type                  =   $null
+            Note                  =   $null
+        }
+
         # Establish Query Parameters object
         $QueryParams = [Dictionary[string,string]]::new()
 
@@ -135,19 +144,16 @@ Function Get-RfDomainRiskList {
             $Results = Invoke-RestMethod $RequestUrl -Method $Method -Headers $Headers | ConvertFrom-Csv
         }
         catch [System.Net.WebException] {
-            If ($_.Exception.Response.StatusCode.value__) {
-                $HTTPCode = ($_.Exception.Response.StatusCode.value__ ).ToString().Trim()
-                Write-Verbose "HTTP Code: $HTTPCode"
-            }
-            If  ($_.Exception.Message) {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                return $ExceptionMessage
-            }
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "System.Net.WebException"
+            $ErrorObject.Code = $($Err.statusCode)
+            $ErrorObject.Note = $($Err.message)
+            return $Err
         }
 
         # Set ResultsList - Parse CSV to Object Types
-        $ResultsList = $Results | Select-Object @{Name="Name";Expression={[string]$_.Name}},@{Name="Risk";Expression={[int32]$_.Risk}},@{Name="RiskString";Expression={[string]$_.RiskString}},@{Name="EvidenceDetails";Expression={[string]$_.EvidenceDetails}}
+        $ResultsList = @($Results | Select-Object @{Name="Name";Expression={[string]$_.Name}},@{Name="Risk";Expression={[int32]$_.Risk}},@{Name="RiskString";Expression={[string]$_.RiskString}},@{Name="EvidenceDetails";Expression={[string]$_.EvidenceDetails}})
 
         # Filter returned results based on Risk score
         if ($MinimumRisk -and $MaximumRisk) {
