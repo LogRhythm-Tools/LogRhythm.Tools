@@ -33,15 +33,18 @@ Function Test-LrUserIdFormat {
         [object] $Id
     )
 
-    $OutObject = [PSCustomObject]@{
-        IsInt       =   $false
-        IsValid     =   $false
-        Value       =   $Id
-    }
+
 
     Begin {
-        # https://docs.microsoft.com/en-us/dotnet/api/system.int32.tryparse
+        # [Ref] placeholder for TryParse
         $_int = 0
+
+        # Output object
+        $OutObject = [PSCustomObject]@{
+            IsInt       =   $false
+            IsValid     =   $false
+            Value       =   $Id
+        }
     }
 
     Process {
