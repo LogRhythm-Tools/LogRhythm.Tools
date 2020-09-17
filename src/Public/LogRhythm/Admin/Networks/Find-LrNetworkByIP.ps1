@@ -14,10 +14,13 @@ Function Find-LrNetworkByIP {
         IP Address that is a Beginning IP for a Network entity record.
     .PARAMETER Eip
         IP Address that is a Ending IP for a Network entity record.
+    .PARAMETER Entity,
+        String used to search Entity Network by Entity Name as a filter.
     .INPUTS
         [Ipaddress] -> Ip
         [Ipaddress] -> Bip
         [Ipaddress] -> Eip
+        [string]    -> EntityId
     .OUTPUTS
         PSCustomObject representing LogRhythm Network entity record and their contents.
     .EXAMPLE
@@ -66,19 +69,35 @@ Function Find-LrNetworkByIP {
         # Check for existence of Beginning and Ending IP Address exact match
         if ($EIP -and $BIP) {
             # Submit request
-            $IPResults = Get-LrNetworks -EIP $EIP -BIP $BIP -Exact
+            if ($Entity) {
+                $IPResults = Get-LrNetworks -EIP $EIP -BIP $BIP -Entity $Entity -Recordstatus "All" -Exact
+            } else {
+                $IPResults = Get-LrNetworks -EIP $EIP -BIP $BIP -Recordstatus "All" -Exact
+            }
         # Check for existence of Ending IP Address exact match
         } elseif ($EIP) {
-            $IPResults = Get-LrNetworks -EIP $EIP -Exact
+            if ($Entity) {
+                $IPResults = Get-LrNetworks -EIP $EIP -Entity $Entity -Recordstatus "All" -Exact
+            } else {
+                $IPResults = Get-LrNetworks -EIP $EIP -Exact -All
+            }
         # Check for existence of Beginning IP Address exact match
         } elseif ($BIP) {
-            $IPResults = Get-LrNetworks -BIP $BIP -Exact
+            if ($Entity) {
+                $IPResults = Get-LrNetworks -BIP $BIP -Entity $Entity -Recordstatus "All" -Exact
+            } else {
+                $IPResults = Get-LrNetworks -BIP $BIP -Recordstatus "All" -Exact
+            }
         }
 
         # Inspect if client IP is member of specific LogRhythm Entity.
         if ($IP) {
             # Collect all Network Entities
-            $LrNetworks = Get-LrNetworks
+            if ($Entity) {
+                $LrNetworks = Get-LrNetworks -Entity $Entity -Recordstatus "All"
+            } else {
+                $LrNetworks = Get-LrNetworks -Recordstatus "All"
+            }
             # Inspect each Network Entry for IP Address within Network Range
             ForEach ($Network in $LrNetworks) {
                 Write-Verbose "$(Get-TimeStamp) IP: $IP NetworkId: $($Network.Id)  BIP: $($Network.BIP) EIP: $($Network.EIP)"

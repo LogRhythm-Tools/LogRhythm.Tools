@@ -116,12 +116,36 @@ Function New-LrHost {
 
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 4)]
-        [ValidateSet('none','low-low','low-medium','low-high','medium-low','medium-medium','medium-high','high-low','high-medium','high-high', ignorecase=$true)]
+        [ValidateSet(
+            'none',
+            'low-low',
+            'low-medium',
+            'low-high',
+            'medium-low',
+            'medium-medium',
+            'medium-high',
+            'high-low',
+            'high-medium',
+            'high-high',
+            ignorecase=$true
+        )]
         [string] $RiskLevel = "none",
 
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 5)]
-        [ValidateSet('none','low-low','low-medium','low-high','medium-low','medium-medium','medium-high','high-low','high-medium','high-high', ignorecase=$true)]
+        [ValidateSet(
+            'none',
+            'low-low',
+            'low-medium',
+            'low-high',
+            'medium-low',
+            'medium-medium',
+            'medium-high',
+            'high-low',
+            'high-medium',
+            'high-high',
+            ignorecase=$true
+        )]
         [string] $ThreatLevel = "none",
 
 
@@ -142,27 +166,45 @@ Function New-LrHost {
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 9)]
         [string] $Location,
 
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 10)]
+        [int32]$LocationId,
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 10)]
-        [ValidateSet('unknown', 'other', 'windowsNT4', 'windows2000professional', 'windows2000server', 'windows2003standard', 'windows2003enterprise', `
-         'windows95' ,'windowsxp' ,'windowsvista', 'linux', 'solaris', 'aix', 'hpux', 'windows', ignorecase=$true)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 11)]
+        [ValidateSet(
+            'unknown',
+            'other',
+            'windowsNT4',
+            'windows2000professional',
+            'windows2000server',
+            'windows2003standard',
+            'windows2003enterprise', 
+            'windows95',
+            'windowsxp',
+            'windowsvista',
+            'linux',
+            'solaris',
+            'aix',
+            'hpux',
+            'windows',
+            ignorecase=$true
+        )]
         [string] $OS,
 
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 11)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 12)]
         [string] $OSVersion,
 
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 12)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 13)]
         [bool] $UseEventlogCredentials = $false,
 
 
-        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 13)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 14)]
         [ValidateSet('server','none','desktop', ignorecase=$true)]
         [string] $OSType = "server",
 
 
-        [Parameter(Mandatory = $false, Position = 14)]
+        [Parameter(Mandatory = $false, Position = 15)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -227,97 +269,129 @@ Function New-LrHost {
         }
         Write-Verbose "Entity: $_entity"
 
-        # TODO Location Lookup.  7.5 API
+        # Location lookup
+        if ($LocationId -and $Location) {
+            if ($LocationLookup) {
+                if ($LrtConfig.LogRhythm.Version -notmatch '7.5.\d') {
+                    $LocationStatus = Show-LrLocations -Id $LocationId
+                    if ($LocationStatus) {
+                        $_locationName = $LocationStatus.name
+                        $_locationId = $LocationStatus.id
+                    }
+                } else {
+                    $LocationStatus = Get-LrLocations -Id $LocationId
+                    if ($LocationStatus) {
+                        $_locationName = $LocationStatus.name
+                        $_locationId = $LocationStatus.id
+                    }
+                }
+            } else {
+                $_locationName = $Location 
+                $_locationId = $LocationId
+            }
+            $_location = [PSCustomObject][Ordered]@{
+                id = $_locationId
+                name = $_locationName
+            }
+        } elseif ($Location) {
+            if ($LocationLookup) {
+                if ($LrtConfig.LogRhythm.Version -notmatch '7.5.\d') {
+                    $LocationStatus = Show-LrLocations -Name $Location -Exact
+                    if ($LocationStatus) {
+                        $_locationName = $LocationStatus.name
+                        $_locationId = $LocationStatus.id
+                    }
+                } else {
+                    $LocationStatus = Get-LrLocations -Name $Location -Exact
+                    if ($LocationStatus) {
+                        $_locationName = $LocationStatus.name
+                        $_locationId = $LocationStatus.id
+                    }
+                }
+                $_location = [PSCustomObject][Ordered]@{
+                    id = $_locationId
+                    name = $_locationName
+                }
+            } else {
+                $_location = $OriginHostRecord.Location
+            }
+        } else {
+            $_location = $OriginHostRecord.Location
+        }
 
         # Ensure proper syntax
         if ($RecordStatus) {
-            $ValidStatus = "new", "retired", "active"
-            if ($ValidStatus.Contains($($RecordStatus.ToLower()))) {
-                # Update RecordStatus for 7.5 API
-                if ($LrVersion -ge 7.5.0) {
-                    if ($RecordStatus -eq "new") {
-                        $RecordStatus = "active"
-                    }
+            # Update RecordStatus for 7.5 API
+            if ($LrtConfig.LogRhythm.Version -match '7.5.\d') {
+                if ($RecordStatus -eq "new") {
+                    $RecordStatus = "active"
                 }
-                $_recordStatus = (Get-Culture).TextInfo.ToTitleCase($RecordStatus)
-            } else {
-                throw [ArgumentException] "RecordStatus [$RecordStatus] must be: all, active, or retired."
             }
+            $_recordStatus = (Get-Culture).TextInfo.ToTitleCase($RecordStatus)
         }
 
         # Ensure proper syntax
         if ($RiskLevel) {
-            $ValidStatus = @("none", "low-low", "low-medium", "low-high", "medium-low", "medium-medium", "medium-high", "high-low", "high-medium", "high-high")
-            if ($ValidStatus.Contains($($RiskLevel.ToLower()))) {
-                $_riskLevel = (Get-Culture).TextInfo.ToTitleCase($RiskLevel)
-            } else {
-                throw [ArgumentException] "RiskLevel [$RiskLevel] must be: none, low-low, low-medium, low-high, medium-low, medium-medium, medium-high, high-low, high-medium, high-high"
-            }
+            $_riskLevel = (Get-Culture).TextInfo.ToTitleCase($RiskLevel)
+        } else {
+            $_riskLevel = "None"
         }
 
         # Ensure proper syntax
         if ($ThreatLevel) {
-            $ValidStatus = @("none", "low-low", "low-medium", "low-high", "medium-low", "medium-medium", "medium-high", "high-low", "high-medium", "high-high")
-            if ($ValidStatus.Contains($($ThreatLevel.ToLower()))) {
-                $_threatLevel = (Get-Culture).TextInfo.ToTitleCase($ThreatLevel)
-            } else {
-                throw [ArgumentException] "ThreatLevel [$ThreatLevel] must be: none, low-low, low-medium, low-high, medium-low, medium-medium, medium-high, high-low, high-medium, high-high"
-            }
+            $_threatLevel = (Get-Culture).TextInfo.ToTitleCase($ThreatLevel)
+
+        } else {
+            $_threatLevel = "None"
+        }
+
+        # Verify if ThreatLevelComment requires update
+        if (!$ThreatLevelComment) {
+            $_threatLevelComment = ""
+        } else {
+            $_threatLevelComment = $ThreatLevelComment
         }
 
         # Ensure proper syntax
         if ($Zone) {
-            $ValidStatus = @("unknown", "internal", "dmz", "external")
-            if ($ValidStatus.Contains($($Zone.ToLower()))) {
-                # Update RecordStatus for 7.5 API
-                if ($LrVersion -ge 7.5) {
-                    if ($Zone -eq "unknown") {
-                        $Zone = "internal"
-                    }
-                }
-                # Update Dmz for appropriate API Syntax
-                if ($Zone -eq "Dmz") {
-                    $_zone = "DMZ"
-                } else {
-                    $_zone = (Get-Culture).TextInfo.ToTitleCase($Zone)
-                }
+            # Update Dmz for appropriate API Syntax
+            if ($Zone -eq "Dmz") {
+                $_zone = "DMZ"
             } else {
-                throw [ArgumentException] "Zone [$Zone] must be: unknown, dmz, external"
+                $_zone = (Get-Culture).TextInfo.ToTitleCase($Zone)
             }
         }
 
         # OS
         if ($Os) {
-            $ValidStatus = @('unknown', 'other', 'windowsnt4', 'windows2000professional', 'windows2000server', 'windows2003standard', 'windows2003enterprise', `
-            'windows95' ,'windowsxp' ,'windowsvista', 'linux', 'solaris', 'aix', 'hpux', 'windows')
-            if ($ValidStatus.Contains($($Os.ToLower()))) {
-                # Update for appropriate API Syntax
-                switch ($Os) {
-                    unknown { $_os = "Unknown" }
-                    other { $_os  = "Other" }
-                    windowsnt4 { $_os  = "WindowsNT4" }
-                    windows2000professional { $_os = "Windows2000Professional" }
-                    windows2000server { $_os = "Windows2000Server" }
-                    windows2003standard { $_os = "Windows2003Standard" }
-                    windows2003enterprise { $_os = "Windows2003Enterprise" }
-                    windows95 { $_os = "Windows95" }
-                    windowsxp { $_os = "WindowsXP" }
-                    windowsvista { $_os = "WindowsVista" }
-                    linux { $_os = "Linux" }
-                    solaris { $_os = "Solaris" }
-                    aix { $_os = "AIX" }
-                    hpux { $_os = "HPUX" }
-                    windows { $_os = "Windows" }
-                    default { $_os = "Unknown" }
-                }
-            } else {
-                throw [ArgumentException] "OS [$Os] must be: "
-            }
+            # Update for appropriate API Syntax
+            switch ($Os) {
+                unknown { $_os = "Unknown" }
+                other { $_os  = "Other" }
+                windowsnt4 { $_os  = "WindowsNT4" }
+                windows2000professional { $_os = "Windows2000Professional" }
+                windows2000server { $_os = "Windows2000Server" }
+                windows2003standard { $_os = "Windows2003Standard" }
+                windows2003enterprise { $_os = "Windows2003Enterprise" }
+                windows95 { $_os = "Windows95" }
+                windowsxp { $_os = "WindowsXP" }
+                windowsvista { $_os = "WindowsVista" }
+                linux { $_os = "Linux" }
+                solaris { $_os = "Solaris" }
+                aix { $_os = "AIX" }
+                hpux { $_os = "HPUX" }
+                windows { $_os = "Windows" }
+                default { $_os = "Unknown" }
+            } 
+        } else {
+            $_os = "Unknown"
         }
 
         # For future length check
         if ($OSVersion) {
             $_osVersion = $OSVersion
+        } else {
+            $_osVersion = ""
         }
 
         # Ensure proper syntax
@@ -342,12 +416,10 @@ Function New-LrHost {
             longDesc = $longDesc
             riskLevel = $_riskLevel
             threatLevel = $_threatLevel
-            threatLevelComments = $ThreatLevelComment
+            threatLevelComments = $_threatLevelComment
             recordStatusName = $_recordStatus
             hostZone = $_zone
-            location = [PSCustomObject]@{
-                name = $Location
-            }
+            location = $_location
             os = $_os
             osVersion = $_osVersion
             eventlogUsername = ""
@@ -391,22 +463,7 @@ Function New-LrHost {
             }
         }
         
-        #>
-        # [Exact] Parameter
-        # Search "Malware" normally returns both "Malware" and "Malware Options"
-        # This would only return "Malware"
-        if ($Exact) {
-            $Pattern = "^$Name$"
-            $Response | ForEach-Object {
-                if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
-                    Write-Verbose "[$Me]: Exact list name match found."
-                    $List = $_
-                    return $List
-                }
-            }
-        } else {
-            return $Response
-        }
+        return $Response
     }
 
     End { }

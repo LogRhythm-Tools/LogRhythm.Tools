@@ -50,24 +50,33 @@ function Get-ShodanDirectoryQuery {
         $PollingShodan = $True
         $Page = 1
         $Count = 10
+
+        # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
+        Enable-TrustAllCertsPolicy
     }
 
     Process {
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Error                 =   $false
+            Value                 =   $null
+            Code                  =   $Null
+            Type                  =   $null
+            Note                  =   $null
+        }
+
         while ($PollingShodan -eq $True) {
             $RequestUrl = $BaseUrl + "/shodan/query?sort=votes&page=" + $Page +"&key=" + $Token          
             try {
                 $Response = Invoke-RestMethod $RequestUrl
-            }
-            catch [System.Net.WebException] {
+            } catch [System.Net.WebException] {
                 $Err = Get-RestErrorMessage $_
-                Write-Host "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)" -ForegroundColor Yellow
-                $PSCmdlet.ThrowTerminatingError($PSItem)
-                # Fragment Below
-                $Message = "ERROR: Failed to call API to get Identities." + $ApiError
-                write-host $Message
-                $PollingShodan = $False
-                break;
-            } 
+                $ErrorObject.Error = $true
+                $ErrorObject.Type = "System.Net.WebException"
+                $ErrorObject.Code = $($Err.statusCode)
+                $ErrorObject.Note = $($Err.message)
+                return $ErrorObject
+            }
 
             $ShodanResults += $Response.Matches
 
