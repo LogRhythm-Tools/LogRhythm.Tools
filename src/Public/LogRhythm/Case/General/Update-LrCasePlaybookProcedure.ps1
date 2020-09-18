@@ -10,11 +10,6 @@ Function Update-LrCasePlaybookProcedure {
         associated with a procedure within a given playbook assigned to an open case.
 
         For example, update the due date or status of a procedure.
-    .PARAMETER Credential
-        PSCredential containing an API Token in the Password field.
-        Note: You can bypass the need to provide a Credential by setting
-        the preference variable $LrtConfig.LogRhythm.ApiKey
-        with a valid Api Token.
     .PARAMETER CaseId
         Unique identifier for the case, either as an RFC 4122 formatted string, or as a number.
     .PARAMETER PlaybookId
@@ -28,7 +23,16 @@ Function Update-LrCasePlaybookProcedure {
     .PARAMETER DueDate
         When the procedure is due, as an RFC 3339 formatted string.
     .PARAMETER Status
-        Status of the procedure.  Valid Values: "NotCompleted" "Completed" "Skipped" 
+        Status of the procedure.  Valid Values: "NotCompleted" "Completed" "Skipped"
+    .PARAMETER Force
+        If the specified case only has a single playbook, but parameter PlaybookId does not
+        match it, attempt to update that playbook anyway if a corresponding procedure can
+        be found based on Id, Name, or Position.
+    .PARAMETER Credential
+        PSCredential containing an API Token in the Password field.
+        Note: You can bypass the need to provide a Credential by setting
+        the preference variable $LrtConfig.LogRhythm.ApiKey
+        with a valid Api Token.
     .INPUTS
         [System.Object]   ->  CaseId
         [System.Object]   ->  PlaybookId
@@ -112,7 +116,7 @@ Function Update-LrCasePlaybookProcedure {
 
 
         [Parameter(Mandatory = $false, Position = 4)]
-        [ValidateNotNullOrEmpty()]
+        [ValidateLength(0,1000)]
         [string] $Notes,
 
 
@@ -127,6 +131,10 @@ Function Update-LrCasePlaybookProcedure {
 
 
         [Parameter(Mandatory = $false, Position = 7)]
+        [switch] $Force,
+
+
+        [Parameter(Mandatory = $false, Position = 8)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -160,106 +168,101 @@ Function Update-LrCasePlaybookProcedure {
 
 
         
-
+        #region: Identify Case Playbook to Update                                                  
         # Populate list of Case Playbooks
         $CasePlaybooks = Get-LrCasePlaybooks -Id $CaseNumber
 
-        # Validate or Retrieve Playbook Id
-        if ($PlaybookId) {
-            if ($null -eq $CasePlaybooks) {
-                throw [ArgumentException] "No Playbooks located on case: $CaseNumber."
-            } else {
-                # Step through array of Playbooks assigned to case looking for match
-                $CasePlaybooks | ForEach-Object {
-                    Write-Verbose "[$Me]: $($_.Name) compared to $($PlaybookId)"
-                    if (Test-Guid $PlaybookId) {
-                        if($($_.Id).ToLower() -eq $PlaybookId.ToLower()) {
-                            Write-Verbose "[$Me]: Matched Playbook Guid: $PlaybookId To Id: $($_.Id)"
-                            $PlaybookGuid = $_.Id
-                        }
-                    } else {
-                        if($($_.Name).ToLower() -eq $PlaybookId.ToLower()) {
-                            Write-Verbose "[$Me]: Matched Playbook Name: $PlaybookId To Id: $($_.Id)"
-                            $PlaybookGuid = $_.Id
-                        }
-                    }
-                } 
-                if ($null -eq $PlaybookGuid) {
-                    throw [ArgumentException] "Parameter [PlayBookId:$PlaybookId] cannot be matched to playbooks on case: $CaseNumber."
-                }
-            }
-        } else {
-            # No matches.  Only one playbook assigned to case.  Default to single Playbook assigned to case
-            if (($CasePlaybooks).Count -ge 2) {
-                throw [ArgumentException] "No Playbook specified.  More than one playbook assigned to case: $CaseNumber."
-            } elseif ($CasePlaybooks) {
-                $PlaybookGuid = $CasePlaybooks.Id
-                Write-Verbose "[$Me]: No Playbook specified.  One Playbook on case, applying PlaybookId: $PlaybookId"
-            }
+        # Placeholder for targeted playbook to update
+        $UpdatePlaybook = $null
+
+
+        # Scenario: Case has no playbooks
+        if (! $CasePlaybooks) {
+            throw [ArgumentException] "No Playbooks found on case: $CaseNumber."
         }
 
-        # Populate list of Case Procedures
-        $CaseProcedures = Get-LrCasePlaybookProcedures -CaseId $CaseNumber -Id $PlaybookGuid
-
-        # Validate or Retrieve Procedure Id
-        if ($Id) {
-            $ProcedureType = Test-LrProcedureIdFormat -Id $Id
-            $CaseProcedures | ForEach-Object {
-                Write-Verbose "[$Me]: $($_.Name) compared to $($Id)" 
-                if (($ProcedureType.isguid -eq $false) -and ($ProcedureType.isint -eq $false)) {
-                    # Looking for procedure by the procedure name
-                    if($($_.Name).ToLower() -eq $Id.ToLower()) {
-                        Write-Verbose "[$Me]: Matched Procedure Name: $Id To PlaybookId: $($_.Id)"
-                        $ProcedureGuid = $_.Id
-                    }
-                } elseif (($ProcedureType.isguid -eq $true) -and ($ProcedureType.isint -eq $false)) {
-                    #Looking for procedure by procedure guid
-                    if($($_.Id).ToLower() -eq $Id.ToLower()) {
-                        Write-Verbose "[$Me]: Matched Procedure Guid: $Id To PlaybookId: $($_.Id)"
-                        $ProcedureGuid = $_.Id
-                    }
-                }
-            }
-            if (($ProcedureType.isguid -eq $false) -and ($ProcedureType.isint -eq $true)) {
-                # Setting the procedure to the integer position/step count
-                if (($Id -gt $($CaseProcedures.Count)) -Or ($Id -lt 0)) {
-                    throw [ArgumentException] "Parameter [Id:$Id] as integer falls outside of Procedure Count."
+        # Scenario: Only one playbook assigned to case
+        if (($CasePlaybooks -is [array]) -and ($CasePlaybooks.Count -eq 1)) {
+            # Check if PlaybookId param doesn't match
+            if ((! ($PlaybookId -match $UpdatePlaybook.Id)) -and (! ($PlaybookId -match $UpdatePlaybook.Name))) {
+                # Use the playbook if Force is specified, otherwise raise exception
+                if ($Force) {
+                    $UpdatePlaybook = $CasePlaybooks
+                    $_info = "No Playbook match found for case $CaseNumber."
+                    $_info += "(Force) Defaulting to only playbook $($UpdatePlaybook.Name)"
+                    Write-Verbose  $_info
                 } else {
-                    $ProcedureGuid = $CaseProcedures[($Id - 1)].Id
-                    Write-Verbose "[$Me]: Marking procedure step $Id as $ProcedureGuid."
+                    $Err = "Case number $CaseNumber has a single playbook $($CasePlaybooks.Name), yet "
+                    $Err += "$PlaybookId does not match it.  Use -Force to attempt to update it anyway."
+                    throw [ArgumentException] $Err
                 }
             }
-            if ($null -eq $ProcedureGuid) {
-                throw [ArgumentException] "Parameter [Id:$Id] cannot be matched to playbooks on case: $CaseNumber."
-            }
-        } else {
-            throw [ArgumentException] "Parameter [Id] must be provided for applicable Procedure ID."
         }
+
+        # Scenario: One of the playbooks match either guid or name of $PlaybookId
+        $CasePlaybooks | ForEach-Object {
+            if (($_.Id -match $PlaybookId) -or ($_.Name -match $PlaybookId)) {
+                $UpdatePlaybook = $_
+            }
+        }
+
+        # Scenario: No matches found
+        if (! $UpdatePlaybook) {
+            throw [ArgumentException] "Case number $CaseNumber does not have a playbook matching $PlaybookId"
+        }
+        #endregion
         
+
+
+        #region: Identify Case Procedure to Update                                                 
+        # Populate list of Case Procedures
+        $CaseProcedures = Get-LrCasePlaybookProcedures -CaseId $CaseNumber -Id $UpdatePlaybook.Id
+
+        # Placeholder for targeted Procedure to update
+        $UpdateProcedure = $null
+
+        # Test Procedure $Id
+        $ProcedureType = Test-LrProcedureIdFormat -Id $Id
+
+        # Scenario: Procedure $Id is a Name or Guid - enumerate procedure to find match
+        if (($ProcedureType.IsName) -or ($ProcedureType.IsGuid)) {
+            $CaseProcedures | ForEach-Object {
+                Write-Verbose "[$Me]: Comparing Procedure Name: $($ProcedureType.Value) To Playbook Procedure: $($_.Name) / $($_.Id)"
+                if(($_.Name -match $ProcedureType.Value) -or ($_.Id -match $ProcedureType.Value)) {
+                    $UpdateProcedure = $_
+                }
+            }
+        }
+
+        # Scenario: Procedure $Id is a procedure step #
+        if ($ProcedureType.IsInt) {
+            if (($Id -gt $($CaseProcedures.Count)) -Or ($Id -lt 0)) {
+                throw [ArgumentException] "Procedure step number $Id falls outside of Procedure Count."
+            } else {
+                $UpdateProcedure = $CaseProcedures[($Id - 1)]
+                Write-Verbose "Targeted procedure step $Id - $($UpdateProcedure.Name)"
+            }
+        }
+
+        # Scenario: No procedure found
+        if (! $UpdateProcedure) {
+            throw [ArgumentException] "Procedure [Id:$Id] cannot be matched to any procedures for playbook $($UpdatePlaybook.Name)."
+        }
+        #endregion
+        
+
         # Request URI
-        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/playbooks/$PlaybookGuid/procedures/$ProcedureGuid/"
+        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/playbooks/$($UpdatePlaybook.Id)/procedures/$($UpdateProcedure.Id)/"
         Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
-        # Inspect Note for Procedure Limitation
-        if ($Notes) {
-            if ($Notes.Length -gt 1000) {
-                throw [ArgumentException] "Parameter [Notes] exceeded length limit.  1000:$($Notes.Length)"
-            }
-        }
 
         # Inspect Date for proper format
         # Set provided EarliestEvidence Date
         if ($DueDate) {
-            Try {
-                $RequestedTimestamp = (Get-Date $DueDate).ToUniversalTime()
-                $NewDueDate = ($RequestedTimestamp.ToString("yyyy-MM-ddTHH:mm:ssZ"))
-            }
-            Catch {
-                throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) - $($Err.details) - $($Err.validationErrors)"
-            }
+            $DueDate = ($DueDate.ToUniversalTime()).ToString("yyyy-MM-ddTHH:mm:ssZ")
         }
 
-
+        
         # Validate Assignee is valid
         if ($Assignee) {
             $AssigneeType = Test-LrUserIdFormat -Id $Assignee
@@ -298,6 +301,7 @@ Function Update-LrCasePlaybookProcedure {
                 }
             }
         }
+
 
         # Request Body
         $Body = [PSObject]@{}
