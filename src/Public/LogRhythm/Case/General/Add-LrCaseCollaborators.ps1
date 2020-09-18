@@ -40,7 +40,11 @@ Function Add-LrCaseCollaborators {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 0)]
+        [Parameter(
+            Mandatory = $true, 
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true, 
+            Position = 0)]
         [ValidateNotNull()]
         [object] $Id,
         
