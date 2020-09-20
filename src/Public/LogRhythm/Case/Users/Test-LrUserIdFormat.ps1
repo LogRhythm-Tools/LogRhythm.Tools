@@ -36,31 +36,24 @@ Function Test-LrUserIdFormat {
     Begin {
         # [Ref] placeholder for TryParse
         $_int = 0
-
-        # Output object
-        $OutObject = [PSCustomObject]@{
-            IsInt       =   $false
-            IsValid     =   $false
-            Value       =   $Id
-        }
     }
 
     Process {
         $OutObject = [PSCustomObject]@{
             IsInt       =   $false
+            IsName      =   $false
             IsValid     =   $false
             Value       =   $Id
         }
-
+        
         # Check if ID value is an integer
         if ([int]::TryParse($Id, [ref]$_int)) {
             Write-Verbose "[$Me]: Id parses as integer."
-            $OutObject.Value = $Id.ToString()
             $OutObject.IsValid = $true
             $OutObject.IsInt = $true
         # Check if ID value is a String
         } elseif (($Id -Is [String])) {
-            $OutObject.Value = $Id.ToString()
+            $OutObject.IsName = $true
             $OutObject.IsValid = $true
         }
 
