@@ -125,7 +125,7 @@ Function New-LrCase {
             name = $Name
             priority = $Priority
             externalId = $null
-            dueDate = [Xml.XmlConvert]::ToString(($DueDate),[Xml.XmlDateTimeSerializationMode]::Utc)
+            dueDate = ($DueDate.ToUniversalTime()).ToString("yyyy-MM-ddTHH:mm:ssZ")
             summary = $Summary
         }
         $Body = $Body | ConvertTo-Json

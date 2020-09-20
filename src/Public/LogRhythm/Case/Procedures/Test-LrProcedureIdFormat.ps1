@@ -19,9 +19,12 @@ Function Test-LrProcedureIdFormat {
         System.Object with IsGuid, IsValid, Value
     .EXAMPLE
         C:\PS> Test-LrProcedureIdFormat "5831f290-4798-4148-8165-01317d49afea"
-        IsGuid IsValid Value
-        ------ ------- -----
-         False    True 181
+        ---
+        IsGuid  : True
+        IsInt   : False
+        IsName  : False
+        IsValid : True
+        Value   : 5831f290-4798-4148-8165-01317d49afea
     .LINK
         https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
@@ -39,15 +42,24 @@ Function Test-LrProcedureIdFormat {
         $OutObject = [PSCustomObject]@{
             IsGuid      =   $false
             IsInt       =   $false
+            IsName      =   $false
             IsValid     =   $false
             Value       =   $Id
         }
 
-        # https://docs.microsoft.com/en-us/dotnet/api/system.int32.tryparse
-        $_int = 1  
+        # [ref] for Int.TryParse()
+        $_int = 0
     }
 
+
     Process {
+        # We may have received a full procedure object.  
+        # Check to see if it has a property for ID. If it does, use that.
+        if ($Id.Id) {
+            Write-Verbose "[Test-LrProcedureIdFormat]: Detected Id is a Procedure object. Using Procedure.Id for validation."
+            $Id = $Id.Id
+        }
+
         # Check if ID value is an integer
         if ([int]::TryParse($Id, [ref]$_int)) {
             Write-Verbose "[$Me]: Id parses as integer."
@@ -60,13 +72,15 @@ Function Test-LrProcedureIdFormat {
             $OutObject.IsValid = $true
             $OutObject.IsGuid = $true
         } elseif (($Id -Is [String])) {
-            $OutObject.Value = $Id.ToString()
+            # If it isn't either Guid or Int, and we have a string, then it must be a name.
+            $OutObject.IsName = $true
+            $OutObject.Value = $Id
             $OutObject.IsValid = $true
         }
 
         return $OutObject
     }
 
-    End {
-    }
+    
+    End { }
 }
