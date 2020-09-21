@@ -140,13 +140,15 @@ Function New-LrList {
         [Parameter(Mandatory = $false, Position = 9)]
         [string] $AutoImportFileName,
 
+        [Parameter(Mandatory=$false, Position=11)]
+        [ValidateSet('private','publicall', 'publicglobaladmin', 'publicglobalanalyst', 'publicrestrictedadmin', `
+        'publicrestrictedanalyst', ignorecase=$true)]
+        [string] $ReadAccess = "PublicGlobalAnalyst",
 
-        [Parameter(Mandatory = $false, Position = 10)]
-        [string] $ReadAccess = "PublicRestrictedAdmin",
-
-
-        [Parameter(Mandatory = $false, Position = 11)]
-        [string] $WriteAccess = "PublicRestrictedAdmin",
+        [Parameter(Mandatory=$false, Position=12)]
+        [ValidateSet('private','publicall', 'publicglobaladmin', 'publicglobalanalyst', 'publicrestrictedadmin', `
+        'publicrestrictedanalyst', ignorecase=$true)]
+        [string] $WriteAccess = "PublicGlobalAdmin",
 
 
         [Parameter(Mandatory = $false, Position = 12)]
@@ -281,14 +283,13 @@ Function New-LrList {
         # Establish General Error object Output
         $ErrorObject = [PSCustomObject]@{
             Error                 =   $false
-            Value                 =   $Value
-            Duplicate             =   $false
-            TypeMismatch          =   $false
-            QuantityMismatch      =   $null
+            Value                 =   $Name
+            Code                  =   $null
+            Type                  =   $null
             Note                  =   $null
             ListGuid              =   $null
-            ListName              =   $null
-            FieldType             =   $null
+            ListName              =   $Name
+            FieldType             =   $ListType
         }
       
         #$ExpDate = (Get-Date).AddDays(7).ToString("yyyy-MM-dd")
@@ -338,9 +339,12 @@ Function New-LrList {
                 $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
             }
             catch [System.Net.WebException] {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                return $ExceptionMessage
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Error = $true
+                $ErrorObject.Type = "System.Net.WebException"
+                $ErrorObject.Code = $($Err.statusCode)
+                $ErrorObject.Note = $($Err.message)
+                return $ErrorObject
             }
         }
         

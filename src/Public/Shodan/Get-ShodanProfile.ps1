@@ -27,17 +27,33 @@ function Get-ShodanProfile {
         # Request Setup
         $BaseUrl = $LrtConfig.Shodan.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
+
+        # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
+        Enable-TrustAllCertsPolicy
         
         $RequestUrl = $BaseUrl + "/account/profile?key=" + $Token
     }
 
 
     Process {
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Error                 =   $false
+            Value                 =   $null
+            Code                  =   $Null
+            Type                  =   $null
+            Note                  =   $null
+        }
+
         try {
             $Results = Invoke-RestMethod $RequestUrl
-        } catch {
-            Write-Host "Status Code: $($_.Exception.Response.StatusCode.value__)"
-            Write-Host "Status Description: $($_.Exception.Response.StatusDescription)"
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "System.Net.WebException"
+            $ErrorObject.Code = $($Err.statusCode)
+            $ErrorObject.Note = $($Err.message)
+            return $ErrorObject
         }
     }
 

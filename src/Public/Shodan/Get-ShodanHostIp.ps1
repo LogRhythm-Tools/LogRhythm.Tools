@@ -12,7 +12,7 @@
     .OUTPUTS
         PSObject representing the object lookup.  
     .EXAMPLE
-        PS C:\> Get-ShodanIPRes -IPAddresses 104.198.228.124
+        PS C:\> Get-ShodanHostIp -IPAddress 104.198.228.124
         ----
         region_code   : VA
         tags          : {cloud, database}
@@ -123,21 +123,38 @@ function Get-ShodanHostIp {
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.Shodan.ApiKey
     )
+    
     Begin {
         # Request Setup
         $BaseUrl = $LrtConfig.Shodan.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
+        # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
+        Enable-TrustAllCertsPolicy
+
         $RequestUrl = $BaseUrl + "/shodan/host/"+$IPAddress+"?key="+$Token
     }
 
     Process {
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Error                 =   $false
+            Value                 =   $null
+            Code                  =   $Null
+            Type                  =   $null
+            Note                  =   $null
+        }
+
         # Query DNS and obtain domain IP address
         try {
             $shodanDNSResults = Invoke-RestMethod $RequestUrl
-        } catch {
-            Write-Host "Status Code: $($_.Exception.Response.StatusCode.value__)"
-            Write-Host "Status Description: $($_.Exception.Response.StatusDescription)"
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "System.Net.WebException"
+            $ErrorObject.Code = $($Err.statusCode)
+            $ErrorObject.Note = $($Err.message)
+            return $ErrorObject
         }
     }
 
