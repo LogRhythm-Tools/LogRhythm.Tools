@@ -1,5 +1,6 @@
 <!-- markdownlint-disable MD026 -->
-# :hammer: LogRhythm.Tools :hammer:
+
+![Logo](../assets/logos/logo.v1.png?raw=true)
 
 LogRhythm.Tools is a PowerShell module for interacting with LogRhythm APIs. The module is a powerful addition to a LogRhythm analyst's toolbox, and can be used interactively within PowerShell or as a framework for developing SmartResponse plugins - without requiring an understanding of LogRhythm's API layer.
 
