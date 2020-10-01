@@ -90,12 +90,15 @@ Function Get-LrCaseMetrics {
         $_COUNT++
         $RunAgain = $false
 
+
+
+
         # Test CaseID Format
-        $IdStatus = Test-LrCaseIdFormat $Id
-        if ($IdStatus.IsValid -eq $true) {
-            $CaseNumber = $IdStatus.CaseNumber
+        $Case = Test-LrCaseIdFormat $Id
+        if ($Case.IsValid) {
+            $CaseNumber = $Case.CaseNumber
         } else {
-            return $IdStatus
+            return $Case
         }
      
         # Request URI
@@ -148,7 +151,7 @@ Function Get-LrCaseMetrics {
                     $Err = Get-RestErrorMessage $_
                     throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
                 }
-            }    
+            }
         }
         #endregion
 
