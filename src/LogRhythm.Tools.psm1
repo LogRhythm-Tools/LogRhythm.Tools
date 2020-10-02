@@ -91,7 +91,7 @@ foreach ($include in $Includes.GetEnumerator()) {
 
 
 
-#region: Import API Keys and Proxy Password
+#region: Import API Keys and Credential (Username + Password)
 foreach($ConfigCategory in $LrtConfig.PSObject.Properties) {
     # Import API Keys
     if($ConfigCategory.Value.PSObject.Properties.Name -eq "ApiKey") {
@@ -105,37 +105,37 @@ foreach($ConfigCategory in $LrtConfig.PSObject.Properties) {
         }
     }
 
-    # Proxy Password
-    if($ConfigCategory.Value.PSObject.Properties.Name -eq "ProxyCredential") {
-        $KeyFileName = $ConfigCategory.Name + ".ProxyCredential.xml"
+    # Credential
+    if($ConfigCategory.Value.PSObject.Properties.Name -eq "Credential") {
+        $KeyFileName = $ConfigCategory.Name + ".Credential.xml"
         $KeyFile = [System.IO.FileInfo]::new("$ConfigDirPath\$KeyFileName")
         if ($KeyFile.Exists) {
-            $LrtConfig.($ConfigCategory.Name).ProxyCredential = Import-Clixml -Path $KeyFile.FullName
-            Write-Verbose "[$($ConfigCategory.Name)]: Loaded Proxy Password"
+            $LrtConfig.($ConfigCategory.Name).Credential = Import-Clixml -Path $KeyFile.FullName
+            Write-Verbose "[$($ConfigCategory.Name)]: Loaded Credential"
         } else {
-            Write-Verbose "[$($ConfigCategory.Name)]: Proxy password not found"
+            Write-Verbose "[$($ConfigCategory.Name)]: Credential not found"
         }
     }
 }
 #endregion
 
 #region: Bring Proxy settings to global:PSDefaultParameterValues 
-if ($LrtConfig.General.ProxyRequired -And ($LrtConfig.General.ProxyURL.Length -gt 0)) {
+if ($LrtConfig.Proxy.Required -And ($LrtConfig.Proxy.Url.Length -gt 0)) {
     # Proxy URL
     if (-Not $PSDefaultParameterValues.ContainsKey('Invoke-RestMethod:Proxy')) {
-        $PSDefaultParameterValues.Add('Invoke-RestMethod:Proxy',$LrtConfig.General.ProxyURL)
+        $PSDefaultParameterValues.Add('Invoke-RestMethod:Proxy',$LrtConfig.Proxy.Url)
     }
     if (-Not $PSDefaultParameterValues.ContainsKey('Invoke-WebRequest:Proxy')) {
-        $PSDefaultParameterValues.Add('Invoke-WebRequest:Proxy',$LrtConfig.General.ProxyURL)
+        $PSDefaultParameterValues.Add('Invoke-WebRequest:Proxy',$LrtConfig.Proxy.Url)
     }
 
     # Credential
-    if ($LrtConfig.General.ProxyRequiresCredential -And ($LrtConfig.General.ProxyCredential.GetType().Name -eq 'PSCredential')) {
+    if ($LrtConfig.Proxy.RequiresCredential -And ($LrtConfig.Proxy.Credential.GetType().Name -eq 'PSCredential')) {
         if (-Not $PSDefaultParameterValues.ContainsKey('Invoke-RestMethod:ProxyCredential')) {
-            $PSDefaultParameterValues.Add('Invoke-RestMethod:ProxyCredential',$LrtConfig.General.ProxyCredential)
+            $PSDefaultParameterValues.Add('Invoke-RestMethod:ProxyCredential',$LrtConfig.Proxy.Credential)
         }
         if (-Not $PSDefaultParameterValues.ContainsKey('Invoke-WebRequest:ProxyCredential')) {
-            $PSDefaultParameterValues.Add('Invoke-WebRequest:ProxyCredential',$LrtConfig.General.ProxyCredential)
+            $PSDefaultParameterValues.Add('Invoke-WebRequest:ProxyCredential',$LrtConfig.Proxy.Credential)
         }
     }
 }
