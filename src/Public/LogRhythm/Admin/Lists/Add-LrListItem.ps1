@@ -24,6 +24,8 @@ Function Add-LrListItem {
     .PARAMETER LoadListItems
         LoadListItems adds the Items property to the return of the PSCustomObject representing the 
         specified LogRhythm List when an item is successfully added.
+    .PARAMETER PassThru
+        Switch paramater that will enable the return of the output object from the cmdlet.
     .INPUTS
         [System.Object] -> Name
         [System.String[array]] -> Value     The Value parameter can be provided via the PowerShell pipeline.  This value can be an array of values.
@@ -35,7 +37,7 @@ Function Add-LrListItem {
         If a Value parameter error is identified, a PSCustomObject is returned providing details
         associated to the error.
     .EXAMPLE
-        PS C:\> Add-LrListItem -Name srfIP -Value 192.168.5.20
+        PS C:\> Add-LrListItem -Name srfIP -Value 192.168.5.20 -PassThru
         ----
         listType         : IP
         status           : Active
@@ -56,7 +58,7 @@ Function Add-LrListItem {
         doesExpire       : False
         owner            : 206
         listItemsCount   : 0
-
+    .EXAMPLE
         PS C:\> Add-LrListItem -Name srfIP -Value 192.168.5.1
         ----
         Error            : True
@@ -68,6 +70,9 @@ Function Add-LrListItem {
         ListGuid         : 81059751-823E-4F5B-87BE-FEFFF1708E5E
         ListName         : srfIP
         FieldType        : IP
+    .EXAMPLE
+        PS C:\> Add-LrListItem -Name srfIP -Value 192.168.5.16
+        
     .NOTES
         LogRhythm-API        
     .LINK
@@ -92,8 +97,12 @@ Function Add-LrListItem {
         [Parameter(Mandatory = $false, Position = 3)]
         [switch] $LoadListItems,
 
-
+                        
         [Parameter(Mandatory = $false, Position = 4)]
+        [switch] $PassThru,
+
+
+        [Parameter(Mandatory = $false, Position = 5)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -564,7 +573,15 @@ Function Add-LrListItem {
                 return $ErrorObject
             }
         }  
-        return $Response
+
+
+        # Return output object
+        if ($ErrorObject.Error -eq $true) {
+            return $ErrorObject
+        }
+        if ($PassThru) {
+            return $Response
+        }
     }
     
     End { }

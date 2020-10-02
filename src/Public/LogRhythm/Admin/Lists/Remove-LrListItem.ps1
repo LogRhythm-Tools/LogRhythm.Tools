@@ -24,6 +24,8 @@ Function Remove-LrListItem {
     .PARAMETER LoadListItems
         LoadListItems adds the Items property to the return of the PSCustomObject representing the 
         specified LogRhythm List when an item is successfully removed.
+    .PARAMETER PassThru
+        Switch paramater that will enable the return of the output object from the cmdlet.
     .INPUTS
         [System.Object] -> Name
         [System.String[array]] -> Value     The Value parameter can be provided via the PowerShell pipeline as single value or array of values.
@@ -34,7 +36,7 @@ Function Remove-LrListItem {
         If a Value parameter error is identified, a PSCustomObject is returned providing details
         associated to the error.
     .EXAMPLE
-        PS C:\> Remove-LrListItem -Name srfIP -Value 192.168.5.20
+        PS C:\> Remove-LrListItem -Name srfIP -Value 192.168.5.20 -PassThru
         ----
         listType         : IP
         status           : Active
@@ -71,6 +73,9 @@ Function Remove-LrListItem {
         ListGuid         : 81059751-823E-4F5B-87BE-FEFFF1708E5E
         ListName         : srfIP
         FieldType        : IP
+    .EXAMPLE
+        PS C:\> Remove-LrListItem -Name srfIP -Value 192.168.5.20
+
     .NOTES
         LogRhythm-API        
     .LINK
@@ -95,8 +100,12 @@ Function Remove-LrListItem {
         [Parameter(Mandatory = $false, Position = 3)]
         [switch] $LoadListItems,
 
-
+                                        
         [Parameter(Mandatory = $false, Position = 4)]
+        [switch] $PassThru,
+
+
+        [Parameter(Mandatory = $false, Position = 5)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -475,7 +484,8 @@ Function Remove-LrListItem {
             if ($ItemValues.length -gt 1000) {
                 #Split Items into multiple body contents
                 # TO DO
-                Write-Host "Over 1000 items submitted.  Currently not supported."
+                $ErrorObject.Error = $true
+                $ErrorObject.Note = "Over 1000 items submitted.  Currently not supported."
             } else {
                 # Establish Body Contents
                 $BodyContents = $ItemValues
@@ -564,7 +574,14 @@ Function Remove-LrListItem {
                 return $ErrorObject
             }
         }  
-        return $Response
+
+        # Return output object
+        if ($ErrorObject.Error -eq $true) {
+            return $ErrorObject
+        }
+        if ($PassThru) {
+            return $Response
+        }
     }
     
     End { }
