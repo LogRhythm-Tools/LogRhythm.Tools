@@ -119,6 +119,27 @@ foreach($ConfigCategory in $LrtConfig.PSObject.Properties) {
 }
 #endregion
 
+#region: Bring Proxy settings to global:PSDefaultParameterValues 
+if ($LrtConfig.General.ProxyRequired -And ($LrtConfig.General.ProxyURL.Length -gt 0)) {
+    # Proxy URL
+    if (-Not $global:PSDefaultParameterValues.ContainsKey('Invoke-RestMethod:Proxy')) {
+        $global:PSDefaultParameterValues.Add('Invoke-RestMethod:Proxy',$LrtConfig.General.ProxyURL)
+    }
+    if (-Not $global:PSDefaultParameterValues.ContainsKey('Invoke-WebRequest:Proxy')) {
+        $global:PSDefaultParameterValues.Add('Invoke-WebRequest:Proxy',$LrtConfig.General.ProxyURL)
+    }
+
+    # Credential
+    if ($LrtConfig.General.ProxyRequiresCredential -And ($LrtConfig.General.ProxyCredential.GetType().Name -eq 'PSCredential')) {
+        if (-Not $global:PSDefaultParameterValues.ContainsKey('Invoke-RestMethod:ProxyCredential')) {
+            $global:PSDefaultParameterValues.Add('Invoke-RestMethod:ProxyCredential',$LrtConfig.General.ProxyCredential)
+        }
+        if (-Not $global:PSDefaultParameterValues.ContainsKey('Invoke-WebRequest:ProxyCredential')) {
+            $global:PSDefaultParameterValues.Add('Invoke-WebRequest:ProxyCredential',$LrtConfig.General.ProxyCredential)
+        }
+    }
+}
+#endregion
 
 
 #region: Export Module Members                                                           
