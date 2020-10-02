@@ -91,9 +91,8 @@ foreach ($include in $Includes.GetEnumerator()) {
 
 
 
-#region: Import API Keys and Proxy Password
+#region: Import API Keys                                                                 
 foreach($ConfigCategory in $LrtConfig.PSObject.Properties) {
-    # Import API Keys
     if($ConfigCategory.Value.PSObject.Properties.Name -eq "ApiKey") {
         $KeyFileName = $ConfigCategory.Name + ".ApiKey.xml"
         $KeyFile = [System.IO.FileInfo]::new("$ConfigDirPath\$KeyFileName")
@@ -102,18 +101,6 @@ foreach($ConfigCategory in $LrtConfig.PSObject.Properties) {
             Write-Verbose "[$($ConfigCategory.Name)]: Loaded API Key"
         } else {
             Write-Verbose "[$($ConfigCategory.Name)]: API key not found"
-        }
-    }
-
-    # Proxy Password
-    if($ConfigCategory.Value.PSObject.Properties.Name -eq "ProxyCredentials") {
-        $KeyFileName = $ConfigCategory.Name + ".ProxyCredentials.xml"
-        $KeyFile = [System.IO.FileInfo]::new("$ConfigDirPath\$KeyFileName")
-        if ($KeyFile.Exists) {
-            $LrtConfig.($ConfigCategory.Name).ProxyCredentials = Import-Clixml -Path $KeyFile.FullName
-            Write-Verbose "[$($ConfigCategory.Name)]: Loaded Proxy Password"
-        } else {
-            Write-Verbose "[$($ConfigCategory.Name)]: Proxy password not found"
         }
     }
 }
