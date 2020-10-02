@@ -70,10 +70,12 @@ Function New-LrHost {
         String description for OS Type.
 
         Valid entries: "Server" "Desktop" "None"
+    .PARAMETER PassThru
+        Switch paramater that will enable the return of the output object from the cmdlet.
     .OUTPUTS
         PSCustomObject representing the new LogRhythm Host and its contents.
     .EXAMPLE
-        PS C:\> New-LrHost -Entity "Primary Site" -Name "Mynewhost" -ShortDesc "This is the short desc." -LongDesc "This is the killer long description for this host." -Zone "internal" -OS "Windows" -OSVersion "2008r2" -OSType "Server"
+        PS C:\> New-LrHost -Entity "Primary Site" -Name "Mynewhost" -ShortDesc "This is the short desc." -LongDesc "This is the killer long description for this host." -Zone "internal" -OS "Windows" -OSVersion "2008r2" -OSType "Server" -PassThru
         ---
         id                     : 3
         entity                 : @{id=1; name=Primary Site}
@@ -203,8 +205,11 @@ Function New-LrHost {
         [ValidateSet('server','none','desktop', ignorecase=$true)]
         [string] $OSType = "server",
 
-
+        
         [Parameter(Mandatory = $false, Position = 15)]
+        [switch] $PassThru,
+
+        [Parameter(Mandatory = $false, Position = 16)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -463,7 +468,13 @@ Function New-LrHost {
             }
         }
         
-        return $Response
+        # Return output object
+        if ($ErrorObject.Error -eq $true) {
+            return $ErrorObject
+        }
+        if ($PassThru) {
+            return $Response
+        }
     }
 
     End { }
