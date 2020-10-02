@@ -135,22 +135,41 @@ Function Add-LrListItem {
             FieldType             =   $null
         }
 
-        # Process Identity Object
+        # Process Name
         if (($Name.GetType() -eq [System.Guid]) -Or (Test-Guid $Name)) {
-            $Guid = $Name.ToString()
-            $ErrorObject.ListName = (Get-LrList -Name $Guid | Select-Object -ExpandProperty Name)
-            $ErrorObject.ListGuid = $Guid
+            $TargetList = Get-LrList -name $Name.ToString()
+            if ($TargetList.Error -eq $true) {
+                $ErrorObject.Error = $true
+                $ErrorObject.ListName = $TargetList.Name
+                $ErrorObject.ListGuid = $TargetList.Guid
+                $ErrorObject.Note = $TargetList.Note
+                return $ErrorObject
+            }
         } else {
-            $Guid = Get-LRListGuidByName -Name $Name.ToString() -Exact
-            if ($Guid -is [array]) {
-                throw [Exception] "Get-LrListGuidbyName returned an array of GUID.  Provide specific List Name."
-            } else {
-                $LrListDetails = Get-LrList -Name $Guid
-                $LrListType = $LrListDetails.ListType
+            $TargetList = Get-LrList -Name $Name.ToString() -Exact
+            if ($TargetList -is [array]) {
+                $ErrorObject.Error = $true
                 $ErrorObject.ListName = $Name.ToString()
                 $ErrorObject.ListGuid = $Guid
+                $ErrorObject.Note = "List lookup returned an array of values.  Ensure the list referenced is unique."
+                return $ErrorObject
+            } elseif ($TargetList.Error -eq $true) {
+                $ErrorObject.Error = $true
+                $ErrorObject.ListName = $TargetList.Name
+                $ErrorObject.ListGuid = $TargetList.Guid
+                $ErrorObject.Note = $TargetList.Note
+                return $ErrorObject
             }
         }
+
+        # Set List Type
+        $LrListType = $TargetList.listType
+
+        # List Guid
+        $ListGuid = $TargetList.Guid
+
+        # Set HTTP Request URL
+        $RequestUrl = $BaseUrl + "/lists/$ListGuid/items/"
 
         # Map listItemDataType
         switch ($LrListType) {
@@ -437,10 +456,7 @@ Function Add-LrListItem {
 
         #$ExpDate = (Get-Date).AddDays(7).ToString("yyyy-MM-dd")
 
-        # Request Setup
-        $Method = $HttpMethod.Post
-        $RequestUrl = $BaseUrl + "/lists/$Guid/items/"
-
+        # Stage Post Body for Array
         if ($Value -is [array]) {
             $Items = [list[object]]::new()
             $ItemValues = [PSCustomObject]@{}
