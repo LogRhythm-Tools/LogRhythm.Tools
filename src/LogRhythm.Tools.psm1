@@ -120,13 +120,17 @@ foreach($ConfigCategory in $LrtConfig.PSObject.Properties) {
 #endregion
 
 #region: Bring Proxy settings to global:PSDefaultParameterValues 
-if ($LrtConfig.Proxy.Required -And ($LrtConfig.Proxy.Url.Length -gt 0)) {
+if ($LrtConfig.Proxy.Required -And ($LrtConfig.Proxy.Host.Length -gt 0)) {
     # Proxy URL
+    $ProxyUrl = "http://{0}" -f $LrtConfig.Proxy.Host
+    if ($LrtConfig.Proxy.Port.Length -gt 0) {
+        $ProxyUrl += ":{0}" -f $LrtConfig.Proxy.Port
+    }
     if (-Not $PSDefaultParameterValues.ContainsKey('Invoke-RestMethod:Proxy')) {
-        $PSDefaultParameterValues.Add('Invoke-RestMethod:Proxy',$LrtConfig.Proxy.Url)
+        $PSDefaultParameterValues.Add('Invoke-RestMethod:Proxy', $ProxyUrl)
     }
     if (-Not $PSDefaultParameterValues.ContainsKey('Invoke-WebRequest:Proxy')) {
-        $PSDefaultParameterValues.Add('Invoke-WebRequest:Proxy',$LrtConfig.Proxy.Url)
+        $PSDefaultParameterValues.Add('Invoke-WebRequest:Proxy', $ProxyUrl)
     }
 
     # Credential
@@ -138,6 +142,7 @@ if ($LrtConfig.Proxy.Required -And ($LrtConfig.Proxy.Url.Length -gt 0)) {
             $PSDefaultParameterValues.Add('Invoke-WebRequest:ProxyCredential',$LrtConfig.Proxy.Credential)
         }
     }
+
 }
 #endregion
 
