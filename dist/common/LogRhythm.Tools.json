@@ -3,6 +3,14 @@
         "CertPolicyRequired": false
     },
 
+    "Proxy": {
+        "Required":  false,
+        "Host":  "",
+        "Port":  "",
+        "RequiresCredential":  false,
+        "Credential": ""
+    },
+
     "LogRhythm": {
         "Version":"7.5.0",
         "DataIndexerIP": "127.0.0.1",
