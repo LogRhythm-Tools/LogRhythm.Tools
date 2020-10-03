@@ -79,24 +79,13 @@ Function Disable-LrIdentity {
         $RequestUrl = $BaseUrl + "/identities/" + $IdentityId + "/status"
 
         # Send Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents -SkipCertificateCheck
-            }
-            catch {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                return $false
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
-            }
-            catch [System.Net.WebException] {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                return $false
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
+        }
+        catch [System.Net.WebException] {
+            $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+            Write-Verbose "Exception Message: $ExceptionMessage"
+            return $false
         }
 
         return $Response

@@ -103,24 +103,13 @@ Function Add-LrIdentityIdentifier {
         # Send Request if Identifier is Not Present
         if ($IdentifierStatus.IsPresent -eq $False) {
             # Send Request
-            if ($PSEdition -eq 'Core'){
-                try {
-                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents -SkipCertificateCheck
-                }
-                catch {
-                    $Err = Get-RestErrorMessage $_
-                    Write-Verbose "Exception Message: $Err"
-                    return $Err
-                }
-            } else {
-                try {
-                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
-                }
-                catch {
-                    $Err = Get-RestErrorMessage $_
-                    Write-Verbose "Exception Message: $Err"
-                    return $Err
-                }
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
+            }
+            catch {
+                $Err = Get-RestErrorMessage $_
+                Write-Verbose "Exception Message: $Err"
+                return $Err
             }
         } else {
             $Response = $IdentifierStatus

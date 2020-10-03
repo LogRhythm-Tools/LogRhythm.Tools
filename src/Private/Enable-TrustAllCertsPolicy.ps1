@@ -38,7 +38,9 @@ Function Enable-TrustAllCertsPolicy {
                     "[Enable-TrustAllCertsPolicy]: Failed to update System.Net.ServicePointManager::CertificatePolicy to new TrustAllCertsPolicy"
             }
         } else {
-            Write-Verbose "[Enable-TrustAllCertsPolicy]: No centralized mechanism for certificate verification bypass for PSCore.  Utilizing local -SkipCertificateCheck"
+            # Set session default for Invoke-RestMethod and Invoke-WebRequest to SkipCertificateCheck
+            $PSDefaultParameterValues.Add("Invoke-RestMethod:SkipCertificateCheck",$true)
+            $PSDefaultParameterValues.Add("Invoke-WebRequest:SkipCertificateCheck",$true)
         }
     } else {
         Write-Verbose "[Enable-TrustAllCertsPolicy]: Cert Policy set as Not Required."

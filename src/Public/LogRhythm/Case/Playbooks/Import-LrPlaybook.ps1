@@ -81,18 +81,14 @@ Function Import-LrPlaybook {
         Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
 
-        if (-not $ContentType)
-        {
+        if (-not $ContentType) {
             Add-Type -AssemblyName System.Web
 
             $mimeType = [System.Web.MimeMapping]::GetMimeMapping($File)
             
-            if ($mimeType)
-            {
+            if ($mimeType) {
                 $ContentType = $mimeType
-            }
-            else
-            {
+            } else {
                 $ContentType = "application/octet-stream"
             }
         }
@@ -113,8 +109,7 @@ Function Import-LrPlaybook {
         $content.Add($streamContent)
 
 
-        try
-        {
+        try {
 			$response = $httpClient.PostAsync($RequestUrl, $content).Result
 
 			if (!$response.IsSuccessStatusCode)
@@ -127,19 +122,14 @@ Function Import-LrPlaybook {
 
 			return $response.Content.ReadAsStringAsync().Result
         }
-        catch [Exception]
-        {
+        catch [Exception] {
 			$PSCmdlet.ThrowTerminatingError($_)
-        }
-        finally
-        {
-            if($null -ne $httpClient)
-            {
+        } finally {
+            if($null -ne $httpClient) {
                 $httpClient.Dispose()
             }
 
-            if($null -ne $response)
-            {
+            if($null -ne $response) {
                 $response.Dispose()
             }
         }

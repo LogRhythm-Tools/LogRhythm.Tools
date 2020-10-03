@@ -106,30 +106,21 @@ Function Get-LrCaseMetrics {
 
 
         #region: Send Request - First Attempt                                                      
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
-            } catch {
-                $Err = Get-RestErrorMessage $_
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            
+            # Rate limit error
+            if ($Err.statusCode -eq "429") {
+                Write-Verbose "Rate limit exceeded at case $CaseNumber, throttling requests."
+                $RunAgain = $true
+                Start-Sleep -Milliseconds 100
+            } else {
+                # other error
                 throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
             }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-            } catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                
-                # Rate limit error
-                if ($Err.statusCode -eq "429") {
-                    Write-Verbose "Rate limit exceeded at case $CaseNumber, throttling requests."
-                    $RunAgain = $true
-                    Start-Sleep -Milliseconds 100
-                } else {
-                    # other error
-                    throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
-                }
-            }
-        }        
+        }      
         #endregion
 
 
@@ -137,20 +128,11 @@ Function Get-LrCaseMetrics {
         #region: Send Request - Second Attempt                                                     
         if ($RunAgain) {
             Write-Verbose "Running Second Attempt at $CaseNumber"
-            if ($PSEdition -eq 'Core') {
-                try {
-                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
-                } catch {
-                    $Err = Get-RestErrorMessage $_
-                    throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
-                }
-            } else {
-                try {
-                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-                } catch [System.Net.WebException] {
-                    $Err = Get-RestErrorMessage $_
-                    throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
-                }
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+            } catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+                throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
             }
         }
         #endregion
