@@ -14,12 +14,14 @@ Function Enable-LrIdentityIdentifier {
         Unique Identifier ID # for a TrueID record.
     .PARAMETER IdentifierId
         Unique Identifier ID # for an Identifier record.
+    .PARAMETER PassThru
+        Switch paramater that will enable the return of the output object from the cmdlet.
     .OUTPUTS
         PSCustomObject representing LogRhythm TrueIdentity Identity and its status.
     .EXAMPLE
         Identity exists and Identitystatus Retired prior to cmdlet execution:
 
-        PS C:\> Enable-LrIdentityIdentifier -IdentityId 11 -IdentifierId 50
+        PS C:\> Enable-LrIdentityIdentifier -IdentityId 11 -IdentifierId 50 -PassThru
         ---
         identifierID identifierType value                      recordStatus
         ------------ -------------- -----                      ------------
@@ -28,7 +30,7 @@ Function Enable-LrIdentityIdentifier {
     .EXAMPLE
         Identity exists and IdentityStatus Active prior to cmdlet execution:
 
-        PS C:\> Enable-LrIdentityIdentifier -IdentityId 11 -IdentifierId 50
+        PS C:\> Enable-LrIdentityIdentifier -IdentityId 11 -IdentifierId 50 -PassThru
         ---
         IsPresent           : True
         IdentifierId        : 50
@@ -42,7 +44,7 @@ Function Enable-LrIdentityIdentifier {
     .EXAMPLE
         Identity does not exist:
 
-        PS C:\> Enable-LrIdentityIdentifier -IdentityId 77 -IdentifierId 50
+        PS C:\> Enable-LrIdentityIdentifier -IdentityId 77 -IdentifierId 50 -PassThru
         ---
         IsPresent           : False
         IdentifierId        : 50
@@ -57,7 +59,7 @@ Function Enable-LrIdentityIdentifier {
     .EXAMPLE
         IdentifierId does not exist:
 
-        PS C:\> Enable-LrIdentityIdentifier -IdentityId 1 -IdentifierId 55
+        PS C:\> Enable-LrIdentityIdentifier -IdentityId 1 -IdentifierId 55 -PassThru
         ---
         IsPresent           : False
         IdentifierId        : 55
@@ -68,6 +70,9 @@ Function Enable-LrIdentityIdentifier {
         IdentityValid       : True
         IdentityStatus      : Active
         IdentityDisplayName : marcus.burnett@fabrikam.com
+    .EXAMPLE
+        PS C:\> Enable-LrIdentityIdentifier -IdentityId 1 -IdentifierId 55
+
     .NOTES
         LogRhythm-API        
     .LINK
@@ -83,8 +88,12 @@ Function Enable-LrIdentityIdentifier {
         [Parameter(Mandatory = $true, ValueFromPipeline = $false, Position = 1)]
         [long] $IdentifierId,
 
-
+                                
         [Parameter(Mandatory = $false, Position = 2)]
+        [switch] $PassThru,
+
+
+        [Parameter(Mandatory = $false, Position = 3)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -143,7 +152,13 @@ Function Enable-LrIdentityIdentifier {
             return $IdentifierStatus
         }
 
-        return $Response
+        # Return output object
+        if ($ErrorObject.Error -eq $true) {
+            return $ErrorObject
+        }
+        if ($PassThru) {
+            return $Response
+        }
     }
 
     End { }

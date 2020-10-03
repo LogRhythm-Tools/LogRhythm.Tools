@@ -5,7 +5,7 @@ using namespace System.Collections.Generic
 Function Merge-LrIdentities {
     <#
     .SYNOPSIS
-        Merge two TrueIdentities in LR 7.4 
+        Merge two TrueIdentity records into one.  Requires LogRhythm 7.4 or greater.
     .DESCRIPTION
         This cmdlet moves all Identifiers from the Secondard TrueIdentity into the specified Primary TrueIdentity record
         The Secondary Identity will be retired.
@@ -83,8 +83,12 @@ Function Merge-LrIdentities {
         [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 5)]
         [bool] $TestMode = $True,
 
-
+                                
         [Parameter(Mandatory = $false, Position = 6)]
+        [switch] $PassThru,
+
+
+        [Parameter(Mandatory = $false, Position = 7)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -99,44 +103,101 @@ Function Merge-LrIdentities {
 
 
     Process {
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Error                 =   $false
+            Note                  =   $null
+            IdentityId            =   $null
+            IdentifierId          =   $null
+            RecordStatus          =   $null
+            $IdentifierStatus     =   $null
+            NameFirst             =   $null
+            NameLast              =   $null
+        }
+
+        # Establish General Output object
+        $OutObject = [PSCustomObject]@{
+            PrimaryIdentityId       = $PrimaryIdentityId
+            PrimaryIdentity         = [PSCustomObject]@{
+                Id                  = $null
+                RecordStatus        = $null
+                NameFirst           = $null
+                NameLast            = $null
+                DisplayIdentifier   = $null
+                AddedIdentifiers    = $null
+                AddedCount          = 0
+            }
+            SecondaryIdentityId     = $SecondaryIdentityId
+            SecondaryIdentity       = [PSCustomObject]@{
+                Id                  = $null
+                RecordStatus        = $null
+                NameFirst           = $null
+                NameLast            = $null
+                DisplayIdentifier   = $null
+                RetiredIdentifiers  = $null
+                RetiredCount        = 0
+            }
+            MigrationStatus         = $false
+        }
+
         if ($IdentityObject) {
             #check int
             $PrimaryIdentityId = $IdentityObject[0]
+            $OutObject.PrimaryIdentityId = $IdentityObject[0]
             $SecondaryIdentityId = $IdentityObject[1]
+            $OutObject.SecondaryIdentityId = $IdentityObject[1]
+        } else {
+            $OutObject.PrimaryIdentityId = $PrimaryIdentityId
+            $OutObject.SecondaryIdentityId = $SecondaryIdentityId
         }
         # Check record status
         $Primary = Get-LrIdentityById  -IdentityId $PrimaryIdentityId
         if (-not $Primary -or $Primary.recordStatus -eq "Retired") {
-            write-host ($LeadingWhitespaceString + "The Primary Identity (ID '$PrimaryIdentityId') was not found or the record status was Retired")
-            Exit 1
+            $ErrorObject.Error = $true
+            $ErrorObject.IdentityId = $($Primary.id)
+            $ErrorObject.NameFirst = $($Primary.nameFirst)
+            $ErrorObject.NameLast = $($Primary.nameLast)
+            $ErrorObject.RecordStatus = $($Primary.recordStatus)
+            $ErrorObject.Note = "The Primary Identity (ID '$PrimaryIdentityId') was not found or the record status is Retired"
+            return $ErrorObject
         } else {
-            $PrimaryDisplay = "'$($Primary.nameFirst) $($Primary.nameLast) ($($Primary.displayIdentifier))'"
+            Write-Verbose "$(Get-Timestamp) - PrimaryID: $($Primary.nameFirst) $($Primary.nameLast) ($($Primary.displayIdentifier))"
+            $OutObject.PrimaryIdentity.NameFirst = $($Primary.nameFirst)
+            $OutObject.PrimaryIdentity.NameLast = $($Primary.nameLast)
+            $OutObject.PrimaryIdentity.Id = $($Primary.id)
+            $OutObject.PrimaryIdentity.RecordStatus = $($Primary.recordStatus)
+            $OutObject.PrimaryIdentity.DisplayIdentifier = $($Primary.displayIdentifier)
         }
     
         $Secondary = Get-LrIdentityById -IdentityId $SecondaryIdentityId
         if (-not $Secondary) {
-            write-host ($LeadingWhitespaceString + "The Secondary Identity (ID '$SecondaryIdentityId') was not found")
-            Exit 1
+            $ErrorObject.Error = $true
+            $ErrorObject.IdentityId = $($Secondary.id)
+            $ErrorObject.NameFirst = $($Secondary.nameFirst)
+            $ErrorObject.NameLast = $($Secondary.nameLast)
+            $ErrorObject.RecordStatus = $($Secondary.recordStatus)
+            $ErrorObject.Note = "The Secondary Identity (ID '$SecondaryIdentityId') was not found"
+            return $ErrorObject
         } else {
-            $SecondaryDisplay = "'$($Secondary.nameFirst) $($Secondary.nameLast) ($($Secondary.displayIdentifier))'"
+            Write-Verbose "$(Get-Timestamp) - SecondaryID: $($Secondary.nameFirst) $($Secondary.nameLast) ($($Secondary.displayIdentifier))"
+            $OutObject.SecondaryIdentity.NameFirst = $($Secondary.nameFirst)
+            $OutObject.SecondaryIdentity.NameLast = $($Secondary.nameLast)
+            $OutObject.SecondaryIdentity.Id = $($Secondary.id)
+            $OutObject.SecondaryIdentity.RecordStatus = $($Secondary.recordStatus)
+            $OutObject.SecondaryIdentity.DisplayIdentifier = $($Secondary.displayIdentifier)
         }
-
-        write-host ($LeadingWhitespaceString + "Primary Identity: $PrimaryDisplay")
-        write-host ($LeadingWhitespaceString + "Secondary Identity: $SecondaryDisplay")
-        write-host ($LeadingWhitespaceString + "Moving Identifiers:")
     
         $Identifiers = $Secondary.identifiers 
-        foreach ($Identifier in $Identifiers)
-        {
+        foreach ($Identifier in $Identifiers) {
             if ($Identifier.recordStatus -eq "Retired") {
-                write-host ($LeadingWhitespaceString + "`tIdentifier '$($Identifier.value)' type '$($Identifier.identifierType)' is disabled and will not be moved")
+                Write-Verbose "$(Get-Timestamp) - Identifier: $($Identifier.value)' type '$($Identifier.identifierType)' is disabled and will not be moved"
                 continue
             }
             
             # Check to see if this Identifier already exists in the Primary Identity
             $PrimaryHasIdentifier = (@($Primary.identifiers | Where-Object { $_.value -eq $Identifier.value -and $_.identifierType -eq $Identifier.identifierType }).Count -gt 0)
             if ($PrimaryHasIdentifier) {
-                write-host ($LeadingWhitespaceString + "`tIdentifier '$($Identifier.value)' type '$($Identifier.identifierType)' already exists in the Primary Identity")
+                Write-Verbose "$(Get-Timestamp) - Identifier '$($Identifier.value)' type '$($Identifier.identifierType)' already exists in the Primary Identity"
                 continue
             }
             
@@ -144,23 +205,50 @@ Function Merge-LrIdentities {
                 $MoveStatus = $True
             } else {
                 $MoveStatus = Add-LrIdentityIdentifier  -IdentityId $PrimaryIdentityId -IdentifierType $Identifier.identifierType -IdentifierValue $Identifier.value
+                if ($MoveStatus.Error -eq $true ) {
+
+                } else {
+                    $OutObject.PrimaryIdentity.AddedCount += 1
+                    $OutObject | Add-Member -MemberType NoteProperty -Name PrimaryIdentity.AddedIdentifiers -Value $Identifier
+                }
             }
             
-            if ($MoveStatus -eq $True -or $MoveStatus) {
-                write-host ($LeadingWhitespaceString + "`tSuccessfully moved Identifier '$($Identifier.value)' type '$($Identifier.identifierType)'")
+            if ($MoveStatus -eq $True -or !$MoveStatus) {
+                Write-Verbose "$(Get-Timestamp) - Successfully moved Identifier '$($Identifier.value)' type '$($Identifier.identifierType)'"
             } else {
-                write-host ($LeadingWhitespaceString + "`tFailed to move Identifier '$($Identifier.value)' type '$($Identifier.identifierType)'")
+                Write-Verbose "$(Get-Timestamp) - Failed moved Identifier '$($Identifier.value)' type '$($Identifier.identifierType)'"
             }
         }
     
         if ($TestMode) {
-            Write-Host "Test Mode: Retire-LrIdentity -IdentityId $SecondaryIdentityId "
+            Write-Verbose "Test Mode: Retire-LrIdentity -IdentityId $SecondaryIdentityId "
             $RetireResults = "identityID        : $SecondaryIdentityId`r`nstatus            : Retired"
         } else {
-            $RetireResults = Disable-LrIdentity -IdentityId $SecondaryIdentityId
+            $RetireResults = Disable-LrIdentity -IdentityId $SecondaryIdentityId -PassThru
+            if ($RetireResults.Error -eq $true ) {
+
+            } else {
+                $OutObject.SecondaryIdentity.RecordStatus = $RetireResults.recordStatus
+                $OutObject.SecondaryIdentity.RetiredIdentifiers = $RetireResults.identifiers
+                $OutObject.SecondaryIdentity.RetiredCount = $RetireResults.identifiers.count
+            }
+
+            if ($OutObject.SecondaryIdentity.RetiredCount -eq $OutObject.PrimaryIdentity.AddedCount) {
+                $OutObject.MigrationStatus = $true
+            } else {
+                $ErrorObject.Error = $true
+                $ErrorObject.Note = "Identifier Migration count mismatch. PrimaryIdentity: $($OutObject.PrimaryIdentity.Id) AddedCount $($OutObject.PrimaryIdentity.AddedCount) does not match SecondaryId: $($OutObject.SecondaryIdentity.Id) RetiredCount $($OutObject.SecondaryIdentity.RetiredCount)."
+            }
+
         }
 
-        Write-Host $RetireResults
+        # Return output object
+        if ($ErrorObject.Error -eq $true) {
+            return $ErrorObject
+        }
+        if ($PassThru) {
+            return $OutObject
+        }
     }
 
     End { }

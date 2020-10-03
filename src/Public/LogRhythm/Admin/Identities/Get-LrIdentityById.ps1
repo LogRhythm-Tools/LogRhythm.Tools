@@ -36,7 +36,7 @@ Function Get-LrIdentityById {
                             identifierType=Email; value=bobby.j@exampele.com; recordStatus=Active; source=}...}
         groups            : {@{name=Users}}
 
-
+    .EXAMPLE
         PS C:\> Get-LrIdentityById -IdentityId 1 -IdentifiersOnly
         ----
         identifierID   : 1
@@ -98,6 +98,15 @@ Function Get-LrIdentityById {
     }
 
     Process {
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Error                 =   $false
+            Note                  =   $null
+            Code                  =   $null
+            Type                  =   $null
+            IdentityId            =   $IdentityId
+        }
+
         # Define Query URL
         $RequestUrl = $BaseUrl + "/identities/" + $IdentityId
 
@@ -108,14 +117,24 @@ Function Get-LrIdentityById {
                     $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck -ErrorAction 'silentlycontinue'
                 }
                 catch {
-                    $_.Exception.Response.StatusCode.Value__
+                    $Err = Get-RestErrorMessage $_
+                    $ErrorObject.Error = $true
+                    $ErrorObject.Type = "System.Net.WebException"
+                    $ErrorObject.Code = $($Err.statusCode)
+                    $ErrorObject.Note = $($Err.message)
+                    return $ErrorObject
                 }
             } else {
                 try {
                     $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -ErrorAction 'silentlycontinue'
                 }
                 catch [System.Net.WebException] {
-                    $_.Exception.Response.StatusCode.Value__
+                    $Err = Get-RestErrorMessage $_
+                    $ErrorObject.Error = $true
+                    $ErrorObject.Type = "System.Net.WebException"
+                    $ErrorObject.Code = $($Err.statusCode)
+                    $ErrorObject.Note = $($Err.message)
+                    return $ErrorObject
                 }
             }            
         } else {
@@ -123,19 +142,25 @@ Function Get-LrIdentityById {
                 try {
                     $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
                 }
-                catch [System.Net.WebException] {
-                    $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                    Write-Verbose "Exception Message: $ExceptionMessage"
-                    return $ExceptionMessage
+                catch {
+                    $Err = Get-RestErrorMessage $_
+                    $ErrorObject.Error = $true
+                    $ErrorObject.Type = "System.Net.WebException"
+                    $ErrorObject.Code = $($Err.statusCode)
+                    $ErrorObject.Note = $($Err.message)
+                    return $ErrorObject
                 }
             } else {
                 try {
                     $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
                 }
                 catch [System.Net.WebException] {
-                    $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                    Write-Verbose "Exception Message: $ExceptionMessage"
-                    return $ExceptionMessage
+                    $Err = Get-RestErrorMessage $_
+                    $ErrorObject.Error = $true
+                    $ErrorObject.Type = "System.Net.WebException"
+                    $ErrorObject.Code = $($Err.statusCode)
+                    $ErrorObject.Note = $($Err.message)
+                    return $ErrorObject
                 }
             }
         }

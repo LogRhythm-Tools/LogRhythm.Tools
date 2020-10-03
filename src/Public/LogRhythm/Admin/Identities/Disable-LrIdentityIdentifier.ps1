@@ -14,12 +14,14 @@ Function Disable-LrIdentityIdentifier {
         Unique Identifier ID # for a TrueID record.
     .PARAMETER IdentifierId
         Unique Identifier ID # for an Identifier record.
+    .PARAMETER PassThru
+        Switch paramater that will enable the return of the output object from the cmdlet.
     .OUTPUTS
         PSCustomObject representing LogRhythm TrueIdentity Identity and its retirement status.
     .EXAMPLE
         Identity and Identifier exists and IdentifierStatus Active prior to cmdlet execution:
 
-        PS C:\> Retire-LrIdentityIdentifier -IdentityId 1 -IdentifierId 50
+        PS C:\> Retire-LrIdentityIdentifier -IdentityId 1 -IdentifierId 50 -PassThru
         ---
         identifierID identifierType value                      recordStatus
         ------------ -------------- -----                      ------------
@@ -27,7 +29,7 @@ Function Disable-LrIdentityIdentifier {
     .EXAMPLE
         Identity and Identifier exists and IdentityStatus Retired prior to cmdlet execution:
 
-        PS C:\> Retire-LrIdentityIdentifier -IdentityId 1 -IdentifierId 50
+        PS C:\> Retire-LrIdentityIdentifier -IdentityId 1 -IdentifierId 50 -PassThru
         ---
         IsPresent           : True
         IdentifierId        : 50
@@ -42,7 +44,7 @@ Function Disable-LrIdentityIdentifier {
     .EXAMPLE
         Identity does not exist:
         
-        PS C:\> Retire-LrIdentityIdentifier -IdentityId 77 -IdentifierId 50
+        PS C:\> Retire-LrIdentityIdentifier -IdentityId 77 -IdentifierId 50 -PassThru
         ---
         IsPresent           : False
         IdentifierId        : 50
@@ -57,7 +59,7 @@ Function Disable-LrIdentityIdentifier {
     .EXAMPLE
         Identifier does not exist:
 
-        Retire-LrIdentityIdentifier -IdentityId 1 -IdentifierId 77
+        Retire-LrIdentityIdentifier -IdentityId 1 -IdentifierId 77 -PassThru
         ---
         IsPresent           : False
         IdentifierId        : 77
@@ -68,6 +70,9 @@ Function Disable-LrIdentityIdentifier {
         IdentityValid       : True
         IdentityStatus      : Active
         IdentityDisplayName : marcus.burnett@fabrikam.com
+    .EXAMPLE
+        Retire-LrIdentityIdentifier -IdentityId 1 -IdentifierId 77
+
     .NOTES
         LogRhythm-API        
     .LINK
@@ -83,8 +88,12 @@ Function Disable-LrIdentityIdentifier {
         [Parameter(Mandatory = $true, ValueFromPipeline = $false, Position = 1)]
         [long] $IdentifierId,
 
-
+                        
         [Parameter(Mandatory = $false, Position = 2)]
+        [switch] $PassThru,
+
+
+        [Parameter(Mandatory = $false, Position = 3)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -153,7 +162,13 @@ Function Disable-LrIdentityIdentifier {
             $Response = $IdentifierStatus
         }
 
-        return $Response
+        # Return output object
+        if ($ErrorObject.Error -eq $true) {
+            return $ErrorObject
+        }
+        if ($PassThru) {
+            return $Response
+        }
     }
 
     End { }
