@@ -21,7 +21,7 @@ jobs:
     - name: LogRhythm.Tools - Create Build
       shell: pwsh
       run: |
-        New-LrtBuild -Version 1.0.1 -ReleaseTag $(New-LrtReleaseTag) | Publish-LrtBuild -Destination .
+        New-LrtBuild -Version 1.0.1 -ReleaseTag "Serious Testing" | Publish-LrtBuild -Destination .
 
     - name: LogRhythm.Tools - Expand Installer
       shell: pwsh
