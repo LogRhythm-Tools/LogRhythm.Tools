@@ -64,39 +64,73 @@ Function Get-LrtInstallerInfo {
         }
     }
 
+    switch ($true) {
+        $IsWindows { Write-Output "Windows"}
+        $IsMacOs { Write-Output "Mac" }
+        $IsLinux { 
+            $BaseDir = (([DirectoryInfo]::new($PSScriptRoot)).Parent).Parent
+            $Info.BaseDir = $BaseDir
+            $Info.CommonFiles = @(Get-ChildItem -Path (Join-Path $BaseDir.FullName "common"))
 
-    # Get BaseDir
-    $BaseDir = (([DirectoryInfo]::new($PSScriptRoot)).Parent).Parent
-    $Info.BaseDir = $BaseDir
-    $Info.CommonFiles = @(Get-ChildItem -Path (Join-Path $BaseDir.FullName "common"))
+            # Get ModuleInfo
+            $_modInfoPath = Join-Path -Path $BaseDir.FullName -ChildPath "ModuleInfo.json"
+            $ModuleInfo   = Get-Content -Path $_modInfoPath | ConvertFrom-Json
+            $Info.ModuleInfo  = $ModuleInfo
+            $Info.ModuleInfoPath = $_modInfoPath
+            $Info.ConfigTemplatePath = Join-Path -Path $BaseDir.FullName -ChildPath "common/"
 
-    # Get ModuleInfo
-    $_modInfoPath = Join-Path -Path $BaseDir.FullName -ChildPath "ModuleInfo.json"
-    $ModuleInfo   = Get-Content -Path $_modInfoPath | ConvertFrom-Json
-    $Info.ModuleInfo  = $ModuleInfo
-    $Info.ModuleInfoPath = $_modInfoPath
-    $Info.ConfigTemplatePath = Join-Path -Path $BaseDir.FullName -ChildPath "common\"
-
-    # System: Path / InstallPath
-    $SystemScope = $Info.InstallScopes.System
-    $SystemScope.Path = Join-Path `
-        -Path $Env:ProgramFiles `
-        -ChildPath "WindowsPowerShell\Modules"
-    $SystemScope.InstallPath = Join-Path `
-        -Path $SystemScope.Path `
-        -ChildPath $Info.ModuleInfo.Name
+            # System: Path / InstallPath
+            $SystemScope = $Info.InstallScopes.System
+            $SystemScope.Path = Join-Path `
+                -Path "/usr/local/share" `
+                -ChildPath "powershell/Modules"
+            $SystemScope.InstallPath = Join-Path `
+                -Path $SystemScope.Path `
+                -ChildPath $Info.ModuleInfo.Name
 
 
-    # User: Path / InstallPath
-    $UserScope = $Info.InstallScopes.User
-    $UserScope.Path = Join-Path `
-        -Path $HOME `
-        -ChildPath "Documents\WindowsPowerShell\Modules"
-        $UserScope.InstallPath = Join-Path `
-        -Path $UserScope.Path `
-        -ChildPath $Info.ModuleInfo.Name
-        
+            # User: Path / InstallPath
+            $UserScope = $Info.InstallScopes.User
+            $UserScope.Path = Join-Path `
+                -Path $HOME `
+                -ChildPath ".local/share/powershell/Modules"
+                $UserScope.InstallPath = Join-Path `
+                -Path $UserScope.Path `
+                -ChildPath $Info.ModuleInfo.Name
+         }
+        Default { 
+            # Get BaseDir
+            $BaseDir = (([DirectoryInfo]::new($PSScriptRoot)).Parent).Parent
+            $Info.BaseDir = $BaseDir
+            $Info.CommonFiles = @(Get-ChildItem -Path (Join-Path $BaseDir.FullName "common"))
 
+            # Get ModuleInfo
+            $_modInfoPath = Join-Path -Path $BaseDir.FullName -ChildPath "ModuleInfo.json"
+            $ModuleInfo   = Get-Content -Path $_modInfoPath | ConvertFrom-Json
+            $Info.ModuleInfo  = $ModuleInfo
+            $Info.ModuleInfoPath = $_modInfoPath
+            $Info.ConfigTemplatePath = Join-Path -Path $BaseDir.FullName -ChildPath "common\"
+
+            # System: Path / InstallPath
+            $SystemScope = $Info.InstallScopes.System
+            $SystemScope.Path = Join-Path `
+                -Path $Env:ProgramFiles `
+                -ChildPath "WindowsPowerShell\Modules"
+            $SystemScope.InstallPath = Join-Path `
+                -Path $SystemScope.Path `
+                -ChildPath $Info.ModuleInfo.Name
+
+
+            # User: Path / InstallPath
+            $UserScope = $Info.InstallScopes.User
+            $UserScope.Path = Join-Path `
+                -Path $HOME `
+                -ChildPath "Documents\WindowsPowerShell\Modules"
+                $UserScope.InstallPath = Join-Path `
+                -Path $UserScope.Path `
+                -ChildPath $Info.ModuleInfo.Name
+         }
+    }
 
 
     # User: Check if module is installed & create version list

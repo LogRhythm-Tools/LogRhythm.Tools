@@ -61,7 +61,68 @@ using namespace System.Security.Principal
 #>
 
 [CmdletBinding()]
-Param( )
+Param(
+    [Parameter(Mandatory = $false, Position = 0)]
+    [switch] $SilentInstall,
+
+
+    [Parameter(Mandatory = $false, Position = 1)]
+    [ValidateSet('user','system', ignorecase=$true)]
+    [String] $InstallScope = "user",
+
+
+    [Parameter(Mandatory = $false, Position = 1)]
+    [ValidateSet('yes','no', ignorecase=$true)]
+    [String] $TrustSSL = "yes",
+
+
+    [Parameter(Mandatory = $false, Position = 2)]
+    [String] $LRVersion,
+
+
+    [Parameter(Mandatory = $false, Position = 2)]
+    [string] $LRAPIKey,
+
+
+    [Parameter(Mandatory = $false, Position = 2)]
+    [String] $DXIP,
+
+
+    [Parameter(Mandatory = $false, Position = 2)]
+    [String] $LRPMUrl,
+
+
+    [Parameter(Mandatory = $false, Position = 2)]
+    [String] $LRCaseUrl,
+
+
+    [Parameter(Mandatory = $false, Position = 2)]
+    [String] $LRAieUrl,
+
+
+    [Parameter(Mandatory = $false, Position = 2)]
+    [String] $LRSearchUrl,
+
+
+    [Parameter(Mandatory = $false, Position = 2)]
+    [String] $LREchoUrl,
+
+
+    [Parameter(Mandatory = $false, Position = 2)]
+    [string] $RecordedFutureAPIKey,
+
+
+    [Parameter(Mandatory = $false, Position = 2)]
+    [string] $VirusTotalAPIKey,
+
+
+    [Parameter(Mandatory = $false, Position = 2)]
+    [string] $UrlScanAPIKey,
+
+
+    [Parameter(Mandatory = $false, Position = 2)]
+    [string] $ShodanAPIKey
+)
 
 
 #region: Import Commands                                                                           
@@ -132,173 +193,275 @@ $FallThruValue = ""
 
 
 # $ConfigCategory -> Process each top-level config category (General, LogRhythm, etc.)
-foreach($ConfigCategory in $LrtConfigInput.PSObject.Properties) {
-    Write-Host "`n[ $($ConfigCategory.Value.Name) ]`n=========================================" -ForegroundColor Green
+if ((! ($PSCmdlet.MyInvocation.BoundParameters["SilentInstall"].IsPresent))) {
+    foreach($ConfigCategory in $LrtConfigInput.PSObject.Properties) {
+        Write-Host "`n[ $($ConfigCategory.Value.Name) ]`n=========================================" -ForegroundColor Green
 
-    # Display category message to user
-    if ($ConfigCategory.Value.Message) {
-        Write-Host $ConfigCategory.Value.Message -ForegroundColor DarkGray
-    }
-    $ConfigOpt = $true
-
-    #region: Category::Skip Category If Optional                                                               
-    # If category is optional, ask user if they want to set it up.
-    if ($ConfigCategory.Value.Optional) {
-        $ConfigOpt = Confirm-YesNo -Message "Would you like to setup $($ConfigCategory.Value.Name)?"
-    }
-    # Skip if user chose to skip category
-    if (! $ConfigOpt) {
-        continue
-    }
-    #endregion
-
-
-    #region: Category:: Process Fields Input                                                                
-    foreach($ConfigField in $ConfigCategory.Value.Fields.PSObject.Properties) {
-
-        # Input Loop ------------------------------------------------------------------------------
-        while (! $ResponseOk) {
-
-            # Exiting Value for this field
-            $OldValue = $LrtConfig.($ConfigCategory.Name).($ConfigField.Name)
-
-            # Use previous field's response if this field is marked as FallThru
-            if ($ConfigField.Value.FallThru) {
-                $Response = $FallThruValue
-            # Get / Clean User Input
-            } else {
-                # $Response = Read-Host -Prompt "  > $($ConfigField.Value.Prompt) [$OldValue]"   #<-- Old value displayed.  Holding off on this.
-                $Response = Read-Host -Prompt "  > $($ConfigField.Value.Prompt)"
-                $Response = $Response.Trim()
-                $Response = Remove-SpecialChars -Value $Response -Allow @("-",".")
+        # Display category message to user
+        if ($ConfigCategory.Value.Message) {
+            Write-Host $ConfigCategory.Value.Message -ForegroundColor DarkGray
+        }
+        $ConfigOpt = $true
+    
+        #region: Category::Skip Category If Optional                                                               
+        # If category is optional, ask user if they want to set it up.
+        if ($ConfigCategory.Value.Optional) {
+            $ConfigOpt = Confirm-YesNo -Message "Would you like to setup $($ConfigCategory.Value.Name)?"
+        }
+        # Skip if user chose to skip category
+        if (! $ConfigOpt) {
+            continue
+        }
+        #endregion
+    
+    
+        #region: Category:: Process Fields Input                                                                
+        foreach($ConfigField in $ConfigCategory.Value.Fields.PSObject.Properties) {
+    
+            # Input Loop ------------------------------------------------------------------------------
+            while (! $ResponseOk) {
+    
+                # Exiting Value for this field
+                $OldValue = $LrtConfig.($ConfigCategory.Name).($ConfigField.Name)
+    
+                # Use previous field's response if this field is marked as FallThru
+                if ($ConfigField.Value.FallThru) {
+                    $Response = $FallThruValue
+                # Get / Clean User Input
+                } else {
+                    # $Response = Read-Host -Prompt "  > $($ConfigField.Value.Prompt) [$OldValue]"   #<-- Old value displayed.  Holding off on this.
+                    $Response = Read-Host -Prompt "  > $($ConfigField.Value.Prompt)"
+                    $Response = $Response.Trim()
+                    $Response = Remove-SpecialChars -Value $Response -Allow @("-",".")
+                }
+    
+                # Break the loop on this field if no input (keep the same value)
+                if ([string]::IsNullOrEmpty($Response)) {
+                    break
+                }
+    
+                # > Process Input
+                
+                Write-Verbose "LrtConfig.$($ConfigCategory.Name).$($ConfigField.Name)"
+    
+                # If we are using Get-StringPattern, run that. 
+                if ($ConfigField.Value.InputCmd -match "Get-StringPattern") {
+                    Write-Verbose "Validation: Get-StringPattern"
+                    $Result = Get-StringPattern `
+                        -Value $Response `
+                        -OldValue $OldValue `
+                        -Pattern $ConfigField.Value.InputPattern.Pattern `
+                        -AllowChars $ConfigField.Value.InputPattern.AllowChars
+                } else {
+                    # Otherwise invoke the command requested with common parameters.
+                    $cmd = $ConfigField.Value.InputCmd +`
+                        " -Value `"" + $Response + "`"" + `
+                        " -OldValue `"" + $OldValue + "`""
+                        Write-Verbose "Validation: $cmd"
+    
+                    $Result = Invoke-Expression $cmd
+                }
+    
+    
+                # Input OK - Update configuration object
+                if ($Result.Valid) {
+                    Write-Verbose "Previous Value: $($LrtConfig.($ConfigCategory.Name).($ConfigField.Name))"
+                    Write-Verbose "New Value: $($Result.Value)"
+                    $ResponseOk = $true
+                    $LrtConfig.($ConfigCategory.Name).($ConfigField.Name) = $Result.Value
+                # Input BAD - provide hint
+                } else {
+                    Write-Host "    hint: [$($ConfigField.Value.Hint)]" -ForegroundColor Magenta
+                }
             }
-
-            # Break the loop on this field if no input (keep the same value)
-            if ([string]::IsNullOrEmpty($Response)) {
-                break
-            }
-
-            # > Process Input
-            
-            Write-Verbose "LrtConfig.$($ConfigCategory.Name).$($ConfigField.Name)"
-
-            # If we are using Get-StringPattern, run that. 
-            if ($ConfigField.Value.InputCmd -match "Get-StringPattern") {
-                Write-Verbose "Validation: Get-StringPattern"
-                $Result = Get-StringPattern `
-                    -Value $Response `
-                    -OldValue $OldValue `
-                    -Pattern $ConfigField.Value.InputPattern.Pattern `
-                    -AllowChars $ConfigField.Value.InputPattern.AllowChars
+            # End Input Loop --------------------------------------------------------------------------
+    
+    
+            # Reset response for next field prompt, set FallThruValue
+            $ResponseOk = $false
+            $FallThruValue = $Response
+        }
+        #endregion
+    
+    
+        #region: ApiKey Creation                                                                       
+        if ($ConfigCategory.Value.HasKey) {
+    
+            # Some ApiKeys (oAuth2) will require a Client Id (username)
+            if ($ConfigCategory.Value.HasClientId) {
+    
+                # Prompt for ClientId if required - no validation other than (length > 2 and < 101)
+                $ClientId = Confirm-StringPattern -Message "  > Please enter your Client/App Id" `
+                    -Pattern "^.{3,100}$" `
+                    -Hint "Client Id is longer than 2 characters" `
+                    -AllowChars @("-",".","\")
+    
+                # Create credential + username
+                $Result = Get-InputCredential `
+                    -AppId $ConfigCategory.Name `
+                    -AppName $ConfigCategory.Value.Name `
+                    -Username $ClientId.Value
+    
             } else {
-                # Otherwise invoke the command requested with common parameters.
-                $cmd = $ConfigField.Value.InputCmd +`
-                    " -Value `"" + $Response + "`"" + `
-                    " -OldValue `"" + $OldValue + "`""
-                    Write-Verbose "Validation: $cmd"
-
-                $Result = Invoke-Expression $cmd
-            }
-
-
-            # Input OK - Update configuration object
-            if ($Result.Valid) {
-                Write-Verbose "Previous Value: $($LrtConfig.($ConfigCategory.Name).($ConfigField.Name))"
-                Write-Verbose "New Value: $($Result.Value)"
-                $ResponseOk = $true
-                $LrtConfig.($ConfigCategory.Name).($ConfigField.Name) = $Result.Value
-            # Input BAD - provide hint
-            } else {
-                Write-Host "    hint: [$($ConfigField.Value.Hint)]" -ForegroundColor Magenta
+                # Prompt / create credential without password
+                $Result = Get-InputCredential `
+                    -AppId $ConfigCategory.Name `
+                    -AppName $ConfigCategory.Value.Name
             }
         }
-        # End Input Loop --------------------------------------------------------------------------
+        #endregion
+    }
+    # Write Config
+    Write-Verbose "Writing Config to $($ConfigInfo.ConfigFilePath)"
+    $LrtConfig | ConvertTo-Json | Set-Content -Path $ConfigInfo.ConfigFilePath
+
+    #region: Install Options                                                                           
+    # Find Install Archive
+    $ArchiveFileName = $ModuleInfo.Name + ".zip"
+    $ArchivePath = "$PSScriptRoot\installer\packages\$ArchiveFileName"
+    if (! (Test-Path $ArchivePath)) {
+        $Err = "Could not locate install archive $ArchivePath. Replace the archive or re-download this release. "
+        $Err += "Alternatively, you can install manually using: Install-Lrt -Path <path to archive>"
+        throw [FileNotFoundException] $Err
+    }
 
 
-        # Reset response for next field prompt, set FallThruValue
-        $ResponseOk = $false
-        $FallThruValue = $Response
+    # Start Install Options
+    Write-Host "`n[ Install Options ]`n=========================================" -ForegroundColor Cyan
+    $ConfirmInstall = Confirm-YesNo -Message "Would you like to install the module now?"
+    if (! $ConfirmInstall) {
+        Write-Host "Not installing. Finished."
+        return
+    }
+
+
+    # Install Scope
+    $Scopes = @("User","System")
+    Write-Host "  > You can install this module for the current user (profile) or system-wide (program files)."
+    $InstallScope = Confirm-Selection -Message "  > Install for user or system?" -Values $Scopes
+
+
+    try {
+        Install-Lrt -Path $ArchivePath -Scope $InstallScope.Value
+        $Installed = $true
+    } catch {
+        $Installed = $false
+        $Err = $PSItem.Exception.Message
+        Write-Host "`n  ** Error occurred during installation **" -ForegroundColor Yellow
+        Write-Host "  Message: $Err" -ForegroundColor Red
+    }
+
+    if ($Installed) {
+        Write-Host "`n<LogRhythm.Tools module successfully installed for scope $($InstallScope.Value).>" -ForegroundColor Green
+        Write-Host "`n-----------------------`nTo get started: `n> Import-Module LogRhythm.Tools"
+    } else {
+        Write-Host "  <Setup failed to install LogRhythm.Tools>" -ForegroundColor Yellow
     }
     #endregion
 
 
-    #region: ApiKey Creation                                                                       
-    if ($ConfigCategory.Value.HasKey) {
-
-        # Some ApiKeys (oAuth2) will require a Client Id (username)
-        if ($ConfigCategory.Value.HasClientId) {
-
-            # Prompt for ClientId if required - no validation other than (length > 2 and < 101)
-            $ClientId = Confirm-StringPattern -Message "  > Please enter your Client/App Id" `
-                -Pattern "^.{3,100}$" `
-                -Hint "Client Id is longer than 2 characters" `
-                -AllowChars @("-",".","\")
-
-            # Create credential + username
-            $Result = Get-InputCredential `
-                -AppId $ConfigCategory.Name `
-                -AppName $ConfigCategory.Value.Name `
-                -Username $ClientId.Value
-
-        } else {
-            # Prompt / create credential without password
-            $Result = Get-InputCredential `
-                -AppId $ConfigCategory.Name `
-                -AppName $ConfigCategory.Value.Name
-        }
+} else {
+    # Trust SSL
+    if ($TrustSSL -like "Yes") {
+        $LrtConfig.General.CertPolicyRequired = $true
+    } else {
+        $LrtConfig.General.CertPolicyRequired = $false
     }
-    #endregion
+    
+    # LogRhythm
+    $LrtConfig.LogRhythm.Version = $LRVersion
+    $LrtConfig.LogRhythm.DataIndexerIP = $DXIP
+    $LrtConfig.LogRhythm.AdminBaseUrl = $LRPMUrl
+    $LrtConfig.LogRhythm.CaseBaseUrl = $LRCaseUrl
+    $LrtConfig.LogRhythm.AieBaseUrl = $LRAieUrl
+    $LrtConfig.LogRhythm.SearchBaseUrl = $LRSearchUrl
+
+    if ($LRAPIKey) {
+        Get-InputCredential `
+        -AppId "LogRhythm" `
+        -AppName "LogRhythm" `
+        -Secret $LRAPIKey `
+        -SilentInstall
+    }
 
 
+    # LogRhythm Echo
+    if ($LREchoUrl) {
+        $LrtConfig.LogRhythmEcho.BaseUrl = $LrEchoUrl
+    }
+
+    # Recorded Future
+    if ($RecordedFutureAPIKey) {
+        Get-InputCredential `
+        -AppId "RecordedFuture" `
+        -AppName "RecordedFuture" `
+        -Secret $RecordedFutureAPIKey `
+        -SilentInstall
+    }
+
+    # UrlScan
+    if ($UrlScanAPIKey) {
+        Get-InputCredential `
+        -AppId "UrlScan" `
+        -AppName "UrlScan" `
+        -Secret $UrlScanAPIKey `
+        -SilentInstall
+
+        $LrtConfig.UrlScan.PublicScans = $true
+    }
+
+    # Virus Total
+    if ($VirusTotalAPIKey) {
+        Get-InputCredential `
+        -AppId "VirusTotal" `
+        -AppName "VirusTotal" `
+        -Secret $VirusTotalAPIKey `
+        -SilentInstall
+
+        $LrtConfig.VirusTotal.Commercial = $false
+    }
+
+    # Shodan
+    if ($ShodanAPIKey) {
+        Get-InputCredential `
+        -AppId "Shodan" `
+        -AppName "Shodan" `
+        -Secret $ShodanAPIKey `
+        -SilentInstall
+    }
 
     # Write Config
     Write-Verbose "Writing Config to $($ConfigInfo.ConfigFilePath)"
     $LrtConfig | ConvertTo-Json | Set-Content -Path $ConfigInfo.ConfigFilePath
+
+    #region: Install Options                                                                           
+    # Find Install Archive
+    $ArchiveFileName = $ModuleInfo.Name + ".zip"
+    $ArchivePath = "$PSScriptRoot/installer/packages/$ArchiveFileName"
+    if (! (Test-Path $ArchivePath)) {
+        $Err = "Could not locate install archive $ArchivePath. Replace the archive or re-download this release. "
+        $Err += "Alternatively, you can install manually using: Install-Lrt -Path <path to archive>"
+        throw [FileNotFoundException] $Err
+    }
+
+
+
+    try {
+        Install-Lrt -Path $ArchivePath -Scope $InstallScope -SilentInstall -Verbose
+        $Installed = $true
+    } catch {
+        $Installed = $false
+        $Err = $PSItem.Exception.Message
+        Write-Host "`n  ** Error occurred during installation **" -ForegroundColor Yellow
+        Write-Host "  Message: $Err" -ForegroundColor Red
+    }
+
+    if ($Installed) {
+        Write-Host "`n<LogRhythm.Tools module successfully installed for scope $InstallScope.>" -ForegroundColor Green
+        Write-Host "`n-----------------------`nTo get started: `n> Import-Module LogRhythm.Tools"
+    } else {
+        Write-Host "  <Setup failed to install LogRhythm.Tools>" -ForegroundColor Yellow
+    }
+    #endregion
+
 }
-#endregion
-
-
-
-#region: Install Options                                                                           
-# Find Install Archive
-$ArchiveFileName = $ModuleInfo.Name + ".zip"
-$ArchivePath = "$PSScriptRoot\installer\packages\$ArchiveFileName"
-if (! (Test-Path $ArchivePath)) {
-    $Err = "Could not locate install archive $ArchivePath. Replace the archive or re-download this release. "
-    $Err += "Alternatively, you can install manually using: Install-Lrt -Path <path to archive>"
-    throw [FileNotFoundException] $Err
-}
-
-
-# Start Install Options
-Write-Host "`n[ Install Options ]`n=========================================" -ForegroundColor Cyan
-$ConfirmInstall = Confirm-YesNo -Message "Would you like to install the module now?"
-if (! $ConfirmInstall) {
-    Write-Host "Not installing. Finished."
-    return
-}
-
-
-# Install Scope
-$Scopes = @("User","System")
-Write-Host "  > You can install this module for the current user (profile) or system-wide (program files)."
-$InstallScope = Confirm-Selection -Message "  > Install for user or system?" -Values $Scopes
-
-
-try {
-  Install-Lrt -Path $ArchivePath -Scope $InstallScope.Value
-  $Installed = $true
-} catch {
-    $Installed = $false
-    $Err = $PSItem.Exception.Message
-    Write-Host "`n  ** Error occurred during installation **" -ForegroundColor Yellow
-    Write-Host "  Message: $Err" -ForegroundColor Red
-}
-
-if ($Installed) {
-    Write-Host "`n<LogRhythm.Tools module successfully installed for scope $($InstallScope.Value).>" -ForegroundColor Green
-    Write-Host "`n-----------------------`nTo get started: `n> Import-Module LogRhythm.Tools"
-} else {
-    Write-Host "  <Setup failed to install LogRhythm.Tools>" -ForegroundColor Yellow
-}
-#endregion
