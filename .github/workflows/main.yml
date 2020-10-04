@@ -1,10 +1,6 @@
-name: .NET Core
+name: Test LR.Tools Setup
 
-on:
-  push:
-    branches: [ dev-1.0.1-PSCoreSupport ]
-  pull_request:
-    branches: [ development-1.0.1, development ]
+on: push
 
 jobs:
   run-tests:
