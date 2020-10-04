@@ -24,6 +24,7 @@ Function Get-DistanceApi {
         distances distance stops
         --------- -------- -----
         {1854}        1854 {@{travelGuides_timestamp=2013-02-17T19:06:12+00:00; locatedBy_version=7; locatedBy_timestamp=2012-10-29T12:09:56+00:00; city=Monroe; travelGuides=System.Object[]; nearByCiti...
+            
     .NOTES
         Distance24-API
     .LINK
