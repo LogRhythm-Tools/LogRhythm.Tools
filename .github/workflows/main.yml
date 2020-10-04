@@ -8,12 +8,30 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: View available resources
+      shell: bash
+      run: |
+        ls -lha
+
     # Install LR.Tools
-    - name: Install LogRhythm.Tools
+    - name: LogRhythm.Tools - Import Builder
       shell: pwsh
       run: |
-        ./Setup.ps1 -SilentInstall -InstallScope user -TrustSSL yes -LRVersion "7.5.0" -LRAPIKey "55555555555555555555555555" -DXIP "127.0.0.1" -LRPMUrl "myhost.com" -LRCaseUrl "myhost.com" -LRAieUrl "myhost.com" -LRSearchUrl "myhost.com" -RecordedFutureAPIKey "55555555555555555555555555" -VirusTotalAPIKey "55555555555555555555555555"
-    
+        Import-Module ./Build/Lrt.Builder.psm1
+    - name: LogRhythm.Tools - Create Build
+      shell: pwsh
+      run: |
+        New-LrtBuild -Version 1.0.1 -ReleaseTag $(New-LrtReleaseTag) | Publish-LrtBuild -Destination .
+
+    - name: LogRhythm.Tools - Expand Installer
+      shell: pwsh
+      run: |
+        expand-archive ./LogRhythm.Tools-1.0.1.zip
+  
+    - name: LogRhythm.Tools - Run Installer
+        shell: pwsh
+        run: |
+          ./LogRhythm.Tools-1.0.1/Setup.ps1 -SilentInstall -InstallScope user -TrustSSL yes -LRVersion "7.5.0" -LRAPIKey "55555555555555555555555 "127.0.0.1" -LRPMUrl "myhost.com" -LRCaseUrl "myhost.com" -LRAieUrl "myhost.com" -LRSearchUrl "myhost.com" -RecordedFutureAPIKey "55555555555555555555555555555" -UrlScanAPIKey "555555555555555555555555" -ShodanAPIKey "555555555555555555555" -Verbose
     # Import Module
     - name: Import Module - LogRhythm.Tools
       shell: pwsh
