@@ -39,8 +39,13 @@ Function Enable-TrustAllCertsPolicy {
             }
         } else {
             # Set session default for Invoke-RestMethod and Invoke-WebRequest to SkipCertificateCheck
-            $PSDefaultParameterValues.Add("Invoke-RestMethod:SkipCertificateCheck",$true)
-            $PSDefaultParameterValues.Add("Invoke-WebRequest:SkipCertificateCheck",$true)
+            if (-Not $PSDefaultParameterValues.ContainsKey('Invoke-RestMethod:SkipCertificateCheck')) {
+                $PSDefaultParameterValues.Add("Invoke-RestMethod:SkipCertificateCheck",$true)
+            }
+
+            if (-Not $PSDefaultParameterValues.ContainsKey('Invoke-RestMethod:SkipCertificateCheck')) {
+                $PSDefaultParameterValues.Add("Invoke-RestMethod:SkipCertificateCheck",$true)
+            }            
         }
     } else {
         Write-Verbose "[Enable-TrustAllCertsPolicy]: Cert Policy set as Not Required."
