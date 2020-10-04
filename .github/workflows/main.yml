@@ -18,9 +18,6 @@ jobs:
       shell: pwsh
       run: |
         Import-Module ./build/Lrt.Builder.psm1
-    - name: LogRhythm.Tools - Create Build
-      shell: pwsh
-      run: |
         New-LrtBuild -Version 1.0.1 -ReleaseTag "Serious Testing" | Publish-LrtBuild -Destination .
 
     - name: LogRhythm.Tools - Expand Installer
