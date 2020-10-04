@@ -1,0 +1,34 @@
+name: .NET Core
+
+on: [push, pull_requests]
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    # Setup .NET Core 3.1.301
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.301
+    - name: Install dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+    # Test .Net install
+    - name: Test
+      run: dotnet test --no-restore --verbosity normal
+
+    # Install LR.Tools
+    - name: Install LogRhythm.Tools
+      shell: pwsh
+      run: |
+        ./Setup.ps1 -SilentInstall -InstallScope user -TrustSSL yes -LRVersion "7.5.0" -LRAPIKey "55555555555555555555555555" -DXIP "127.0.0.1" -LRPMUrl "myhost.com" -LRCaseUrl "myhost.com" -LRAieUrl "myhost.com" -LRSearchUrl "myhost.com" -RecordedFutureAPIKey "55555555555555555555555555" -VirusTotalAPIKey "55555555555555555555555555"
+    
+    # Import Module
+    - name: Import Module - LogRhythm.Tools
+      shell: pwsh
+      run: |
+        Import-Module LogRhythm.Tools
