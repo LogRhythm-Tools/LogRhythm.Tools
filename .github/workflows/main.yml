@@ -8,17 +8,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    # Setup .NET Core 3.1.301
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 3.1.301
-    - name: Build
-      run: dotnet build --configuration Release --no-restore --nologo
-    # Test .Net install
-    - name: Test
-      run: dotnet test --no-restore --configuration Release --verbosity normal --nologo
-
     # Install LR.Tools
     - name: Install LogRhythm.Tools
       shell: pwsh
