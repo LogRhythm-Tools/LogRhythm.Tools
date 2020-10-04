@@ -17,7 +17,7 @@ jobs:
     - name: LogRhythm.Tools - Import Builder
       shell: pwsh
       run: |
-        Import-Module ./Build/Lrt.Builder.psm1
+        Import-Module ./build/Lrt.Builder.psm1
     - name: LogRhythm.Tools - Create Build
       shell: pwsh
       run: |
