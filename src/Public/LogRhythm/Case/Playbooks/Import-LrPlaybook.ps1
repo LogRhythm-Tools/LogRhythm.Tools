@@ -1,4 +1,3 @@
-using assembly System.Net.Http
 using namespace System
 using namespace System.IO
 using namespace System.Text
