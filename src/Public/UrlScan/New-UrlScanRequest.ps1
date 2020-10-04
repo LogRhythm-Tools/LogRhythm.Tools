@@ -1,7 +1,7 @@
 using namespace System
 using namespace System.Collections.Generic
 
-Function Add-UrlScanRequest {
+Function New-UrlScanRequest {
     <#
     .SYNOPSIS
         Submit a URL to the UrlScan.io
