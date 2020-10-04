@@ -90,21 +90,45 @@ foreach ($include in $Includes.GetEnumerator()) {
 #endregion
 
 
-
-#region: Import API Keys                                                                 
-foreach($ConfigCategory in $LrtConfig.PSObject.Properties) {
-    if($ConfigCategory.Value.PSObject.Properties.Name -eq "ApiKey") {
-        $KeyFileName = $ConfigCategory.Name + ".ApiKey.xml"
-        $KeyFile = [System.IO.FileInfo]::new("$ConfigDirPath\$KeyFileName")
-        if ($KeyFile.Exists) {
-            $LrtConfig.($ConfigCategory.Name).ApiKey = Import-Clixml -Path $KeyFile.FullName
-            Write-Verbose "[$($ConfigCategory.Name)]: Loaded API Key"
-        } else {
-            Write-Verbose "[$($ConfigCategory.Name)]: API key not found"
+switch ($true) {
+    $IsWindows { Write-Output "Windows"}
+    $IsMacOs { Write-Output "Mac" }
+    $IsLinux { 
+        #region: Import API Keys                                                                 
+        foreach($ConfigCategory in $LrtConfig.PSObject.Properties) {
+            if($ConfigCategory.Value.PSObject.Properties.Name -like "ApiKey") {
+                $KeyFileName = $ConfigCategory.Name + ".ApiKey.xml"
+                $KeyFile = [System.IO.FileInfo]::new("$ConfigDirPath/$KeyFileName")
+                if ($KeyFile.Exists) {
+                    $LrtConfig.$($ConfigCategory.Name).ApiKey = Import-Clixml -Path $KeyFile.FullName
+                    Write-Verbose "[$($ConfigCategory.Name)]: Loaded API Key"
+                } else {
+                    Write-Verbose "[$($ConfigCategory.Name)]: API key not found"
+                }
+            }
         }
+        #endregion
+    }
+    Default { 
+        #region: Import API Keys                                                                 
+        foreach($ConfigCategory in $LrtConfig.PSObject.Properties) {
+            if($ConfigCategory.Value.PSObject.Properties.Name -eq "ApiKey") {
+                $KeyFileName = $ConfigCategory.Name + ".ApiKey.xml"
+                $KeyFile = [System.IO.FileInfo]::new("$ConfigDirPath\$KeyFileName")
+                if ($KeyFile.Exists) {
+                    $LrtConfig.($ConfigCategory.Name).ApiKey = Import-Clixml -Path $KeyFile.FullName
+                    Write-Verbose "[$($ConfigCategory.Name)]: Loaded API Key"
+                } else {
+                    Write-Verbose "[$($ConfigCategory.Name)]: API key not found"
+                }
+            }
+        }
+        #endregion
     }
 }
-#endregion
+
+
+
 
 
 
