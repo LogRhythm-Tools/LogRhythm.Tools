@@ -196,7 +196,7 @@ Function Add-LrIdentity {
 
         # Create vendorUniqueKey based on SyncName
         $StringBuilder = New-Object System.Text.StringBuilder
-        [System.Security.Cryptography.HashAlgorithm]::Create("SHA1").ComputeHash([System.Text.Encoding]::UTF8.GetBytes($SyncName)) | ForEach-Object {
+        [System.Security.Cryptography.HashAlgorithm]::Create("SHA1").ComputeHash([System.Text.Encoding]::UTF8.GetBytes($SyncName + "-" + (-join (((65..90)+(97..122)) | Get-Random -Count 10 | ForEach-Object {[char]$_})) )) | ForEach-Object {
             [Void]$StringBuilder.Append($_.ToString("x2"))
         }
         $VendorUniqueKey = $StringBuilder.ToString()
