@@ -84,8 +84,10 @@ Function Add-LrAlarmToCase {
         [ValidateNotNull()]
         [int[]] $AlarmNumbers,
 
-
         [Parameter(Mandatory = $false, Position = 2)]
+        [switch] $PassThru,
+
+        [Parameter(Mandatory = $false, Position = 3)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -165,19 +167,20 @@ Function Add-LrAlarmToCase {
         #endregion
 
 
-
-        #region: Get Updated Case                                                        
-        Write-Verbose "[$Me] Getting Updated Case"
-        try {
-            $UpdatedCase = Get-LrCaseById -Credential $Credential -Id $CaseNumber    
-        }
-        catch {
-            Write-Verbose "Encountered error while retrieving updated case $CaseNumber."
-            $PSCmdlet.ThrowTerminatingError($PSItem)
-        }
-
         # Done!
-        return $UpdatedCase
+        if ($PassThru) {
+            #region: Get Updated Case                                                        
+            Write-Verbose "[$Me] Getting Updated Case"
+            try {
+                $UpdatedCase = Get-LrCaseById -Id $CaseNumber    
+            }
+            catch {
+                Write-Verbose "Encountered error while retrieving updated case $CaseNumber."
+                $PSCmdlet.ThrowTerminatingError($PSItem)
+            }
+
+            return $UpdatedCase
+        }
     }
         #endregion
 
