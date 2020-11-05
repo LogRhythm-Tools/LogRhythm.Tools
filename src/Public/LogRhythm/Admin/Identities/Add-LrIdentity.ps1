@@ -173,10 +173,6 @@ Function Add-LrIdentity {
 
 
         [Parameter(Mandatory = $false, Position = 21)]
-        [switch] $PassThru,
-
-
-        [Parameter(Mandatory = $false, Position = 22)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
