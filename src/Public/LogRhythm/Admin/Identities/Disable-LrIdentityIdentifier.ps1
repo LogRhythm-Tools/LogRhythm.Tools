@@ -92,7 +92,7 @@ Function Disable-LrIdentityIdentifier {
         [Parameter(Mandatory = $false, Position = 2)]
         [switch] $PassThru,
 
-
+        
         [Parameter(Mandatory = $false, Position = 3)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
@@ -162,10 +162,6 @@ Function Disable-LrIdentityIdentifier {
             $Response = $IdentifierStatus
         }
 
-        # Return output object
-        if ($ErrorObject.Error -eq $true) {
-            return $ErrorObject
-        }
         if ($PassThru) {
             return $Response
         }

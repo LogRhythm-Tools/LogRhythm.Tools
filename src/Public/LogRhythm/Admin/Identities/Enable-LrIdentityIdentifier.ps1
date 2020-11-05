@@ -88,7 +88,7 @@ Function Enable-LrIdentityIdentifier {
         [Parameter(Mandatory = $true, ValueFromPipeline = $false, Position = 1)]
         [long] $IdentifierId,
 
-                                
+
         [Parameter(Mandatory = $false, Position = 2)]
         [switch] $PassThru,
 
@@ -152,10 +152,6 @@ Function Enable-LrIdentityIdentifier {
             return $IdentifierStatus
         }
 
-        # Return output object
-        if ($ErrorObject.Error -eq $true) {
-            return $ErrorObject
-        }
         if ($PassThru) {
             return $Response
         }

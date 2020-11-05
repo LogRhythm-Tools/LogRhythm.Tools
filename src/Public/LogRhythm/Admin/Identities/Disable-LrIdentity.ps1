@@ -107,10 +107,6 @@ Function Disable-LrIdentity {
             }
         }
 
-        # Return output object
-        if ($ErrorObject.Error -eq $true) {
-            return $ErrorObject
-        }
         if ($PassThru) {
             return $Response
         }

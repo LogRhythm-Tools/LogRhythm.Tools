@@ -8,8 +8,6 @@ Function Add-LrIdentity {
         Add an Identity to TrueIdentity.
     .DESCRIPTION
         Add-LrIdentity returns an object containing the detailed results of the added Identity.
-    .PARAMETER Credential
-        PSCredential containing an API Token in the Password field.
     .PARAMETER EntityId
         Entity ID # for associating new TrueIdentity Identity record.
     .PARAMETER SyncName
@@ -64,6 +62,8 @@ Function Add-LrIdentity {
         Valid types: email, login, both
     .PARAMETER PassThru
         Switch paramater that will enable the return of the output object from the cmdlet.
+    .PARAMETER Credential
+        PSCredential containing an API Token in the Password field.
     .OUTPUTS
         PSCustomObject representing LogRhythm TrueIdentity Identity and its status.
     .EXAMPLE
@@ -173,6 +173,10 @@ Function Add-LrIdentity {
 
 
         [Parameter(Mandatory = $false, Position = 21)]
+        [switch] $PassThru,
+
+
+        [Parameter(Mandatory = $false, Position = 22)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -387,10 +391,6 @@ Function Add-LrIdentity {
             }
         }
 
-        # Return output object
-        if ($ErrorObject.Error -eq $true) {
-            return $ErrorObject
-        }
         if ($PassThru) {
             return $Response
         }
