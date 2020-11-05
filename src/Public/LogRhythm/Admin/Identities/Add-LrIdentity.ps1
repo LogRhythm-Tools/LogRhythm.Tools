@@ -28,6 +28,8 @@ Function Add-LrIdentity {
         Manager string value for the TrueIdentity record.
     .PARAMETER Company
         Company string value for the TrueIdentity record.
+    .PARAMETER Title
+        Title string value for the TrueIdentity record.
     .PARAMETER PhotoThumbnail
         Currently not supported.
     .PARAMETER Identifier1Value
@@ -120,59 +122,63 @@ Function Add-LrIdentity {
 
 
         [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 9)]
-        [Byte] $PhotoThumbnail,
+        [string] $Title,
 
 
         [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 10)]
-        [string] $Identifier1Value,
+        [Byte] $PhotoThumbnail,
 
 
         [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 11)]
+        [string] $Identifier1Value,
+
+
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 12)]
         [ValidateSet('both','login', 'email', ignorecase=$true)]
         [string] $Identifier1Type = "both",
         
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 12)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 13)]
         [string] $Identifier2Value,
 
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 13)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 14)]
         [ValidateSet('both','login', 'email', ignorecase=$true)]
         [string] $Identifier2Type = "both",
 
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 14)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 15)]
         [string] $Identifier3Value,
 
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 15)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 16)]
         [ValidateSet('both','login', 'email', ignorecase=$true)]
         [string] $Identifier3Type = "both",
 
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 16)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 17)]
         [string] $Identifier4Value,
 
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 17)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 18)]
         [ValidateSet('both','login', 'email', ignorecase=$true)]
         [string] $Identifier4Type = "both",
 
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 18)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 19)]
         [string] $Identifier5Value,
 
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 19)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 20)]
         [ValidateSet('both','login', 'email', ignorecase=$true)]
         [string] $Identifier5Type = "both",
 
                 
-        [Parameter(Mandatory = $false, Position = 20)]
+        [Parameter(Mandatory = $false, Position = 21)]
         [switch] $PassThru,
 
 
-        [Parameter(Mandatory = $false, Position = 21)]
+        [Parameter(Mandatory = $false, Position = 22)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )

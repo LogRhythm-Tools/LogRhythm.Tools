@@ -17,3 +17,4 @@ PowerShell_transcript*
 [Tt]ests/backup/*
 
 _build.ps1
+dist/ModuleInfo.json

@@ -1,7 +1,7 @@
 using namespace System
 using namespace System.Collections.Generic
 
-Function Get-UrlScanResults {
+Function Get-UrlScanReport {
     <#
     .SYNOPSIS
         Get a URL Report from a UrlScan.io scan
