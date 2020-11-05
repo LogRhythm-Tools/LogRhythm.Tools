@@ -16,10 +16,12 @@ Function Add-LrIdentityIdentifier {
         Valid options: Email, Login
     .PARAMETER IdentifierValue
         Value for the new Identifier
+    .PARAMETER PassThru
+        Switch paramater that will enable the return of the output object from the cmdlet.
     .OUTPUTS
         PSCustomObject representing LogRhythm TrueIdentity Identity and its status.
     .EXAMPLE
-        PS C:\> Add-LrIdentityIdentifier -IdentityId 8 -IdentifierType "email" -IdentifierValue "mynewid@example.com"
+        PS C:\> Add-LrIdentityIdentifier -IdentityId 8 -IdentifierType "email" -IdentifierValue "mynewid@example.com" -PassThru
         ---
         identifierID    identifierType value                    recordStatus
         ------------    -------------- -----                    ------------
@@ -27,7 +29,7 @@ Function Add-LrIdentityIdentifier {
     .EXAMPLE
         Attempting to add an identifier to a TrueIdentity where the identifier exists
 
-        PS C:\> Add-LrIdentityIdentifier -IdentityId 8 -IdentifierType "email" -IdentifierValue "mynewid@example.com"
+        PS C:\> Add-LrIdentityIdentifier -IdentityId 8 -IdentifierType "email" -IdentifierValue "mynewid@example.com" -PassThru
         ---
         IsPresent           : True
         IdentifierId        : 8
@@ -38,6 +40,8 @@ Function Add-LrIdentityIdentifier {
         IdentityValid       : True
         IdentityStatus      : Active
         IdentityDisplayName : Eric.Hart
+    .EXAMPLE
+        PS C:\> Add-LrIdentityIdentifier -IdentityId 8 -IdentifierType "email" -IdentifierValue "myverynewid@example.com"
     .NOTES
         LogRhythm-API        
     .LINK
@@ -58,8 +62,12 @@ Function Add-LrIdentityIdentifier {
         [Parameter(Mandatory = $true, ValueFromPipeline = $false, Position = 2)]
         [string] $IdentifierValue,
 
-
+                
         [Parameter(Mandatory = $false, Position = 3)]
+        [switch] $PassThru,
+
+
+        [Parameter(Mandatory = $false, Position = 4)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -82,6 +90,18 @@ Function Add-LrIdentityIdentifier {
     }
 
     Process {
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Error                 =   $false
+            Note                  =   $null
+            Code                  =   $null
+            Type                  =   $IdentifierType
+            IdentityId            =   $IdentityId
+            NameFirst             =   $null
+            NameLast              =   $null
+        }
+
+
         $ValidStatus = @("login", "email")
         if ($ValidStatus.Contains($($IdentifierType.ToLower()))) {
             $_identifierType = (Get-Culture).TextInfo.ToTitleCase($IdentifierType)
@@ -109,24 +129,36 @@ Function Add-LrIdentityIdentifier {
                 }
                 catch {
                     $Err = Get-RestErrorMessage $_
-                    Write-Verbose "Exception Message: $Err"
-                    return $Err
+                    $ErrorObject.Error = $true
+                    $ErrorObject.Type = "System.Net.WebException"
+                    $ErrorObject.Code = $($Err.statusCode)
+                    $ErrorObject.Note = $($Err.message)
+                    $ErrorObject.NameFirst = $IdentifierStatus.NameFirst
+                    $ErrorObject.NameLast = $IdentifierStatus.NameLast
+                    return $ErrorObject
                 }
             } else {
                 try {
                     $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
                 }
-                catch {
+                catch [System.Net.WebException] {
                     $Err = Get-RestErrorMessage $_
-                    Write-Verbose "Exception Message: $Err"
-                    return $Err
+                    $ErrorObject.Error = $true
+                    $ErrorObject.Type = "System.Net.WebException"
+                    $ErrorObject.Code = $($Err.statusCode)
+                    $ErrorObject.Note = $($Err.message)
+                    $ErrorObject.NameFirst = $IdentifierStatus.NameFirst
+                    $ErrorObject.NameLast = $IdentifierStatus.NameLast
+                    return $ErrorObject
                 }
             }
         } else {
             $Response = $IdentifierStatus
         }
         
-        return $Response
+        if ($PassThru) {
+            return $Response
+        }
     }
 
     End { }

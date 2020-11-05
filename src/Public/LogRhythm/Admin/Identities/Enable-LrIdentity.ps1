@@ -8,14 +8,16 @@ Function Enable-LrIdentity {
         Enable an existing, retired, Identity from TrueIdentity based on TrueID #.
     .DESCRIPTION
         Enable-LrIdentity returns an object containing the detailed results of the enabled Identity.
-    .PARAMETER Credential
-        PSCredential containing an API Token in the Password field.
     .PARAMETER IdentityId
         Unique Identifier ID # for a TrueID record.
+    .PARAMETER PassThru
+        Switch paramater that will enable the return of the output object from the cmdlet.
+    .PARAMETER Credential
+        PSCredential containing an API Token in the Password field.
     .OUTPUTS
         PSCustomObject representing LogRhythm TrueIdentity Identity and its retirement status.
     .EXAMPLE
-        PS C:\> Enable-LrIdentity -IdentityId 11
+        PS C:\> Enable-LrIdentity -IdentityId 11 -PassThru
         ---
         identityID        : 11
         nameFirst         : Marcus
@@ -35,6 +37,8 @@ Function Enable-LrIdentity {
                             recordStatus=Active; source=}, @{identifierID=42; identifierType=Login; value=marcus.burnett_sup; recordStatus=Active; source=}, @{identifierID=43; identifierType=Email;
                             value=marcus.burnett@contoso.com; recordStatus=Active; source=}}
         groups            : {@{name=Domain Admins}}
+    .EXAMPLE
+        PS C:\> Enable-LrIdentity -IdentityId 11
     .NOTES
         LogRhythm-API        
     .LINK
@@ -46,8 +50,12 @@ Function Enable-LrIdentity {
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
         [long] $IdentityId,
 
-
+                        
         [Parameter(Mandatory = $false, Position = 1)]
+        [switch] $PassThru,
+
+
+        [Parameter(Mandatory = $false, Position = 2)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -98,7 +106,9 @@ Function Enable-LrIdentity {
             }
         }
 
-        return $Response
+        if ($PassThru) {
+            return $Response
+        }
     }
 
     End { }

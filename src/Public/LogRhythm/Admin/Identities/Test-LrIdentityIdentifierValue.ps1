@@ -67,16 +67,23 @@ Function Test-LrIdentityIdentifierValue {
         }
 
         # Process IdentityId
-        $IdentityResponse = Get-LrIdentityById -IdentityId $IdentityId -Silent
+        $IdentityResponse = Get-LrIdentityById -IdentityId $IdentityId
 
-        # Verify target Identity exists and add basic information
-        if ($IdentityResponse -ne "404") {
-            $OutObject.IdentityValid = $true
-            $OutObject.IdentityStatus = $IdentityResponse.recordStatus
-            $OutObject.IdentityDisplayName = $IdentityResponse.displayIdentifier
+        # Identify if lookup resulted in error, if not, proceeed.
+        if ($IdentityResponse.Error -eq $true) {
+            return $IdentityResponse
         } else {
-            $OutObject.IdentityValid = $false
+            # Verify target Identity exists and add basic information
+            if ($IdentityResponse -ne "404") {
+                $OutObject.IdentityValid = $true
+                $OutObject.IdentityStatus = $IdentityResponse.recordStatus
+                $OutObject.IdentityDisplayName = $IdentityResponse.displayIdentifier
+            } else {
+                $OutObject.IdentityValid = $false
+            }
         }
+
+
 
         # Process IdentifierType
         $IdentityTypeResponse = Test-LrIdentifierType -IdentifierValue $Value -IdentifierType $IdentifierType
