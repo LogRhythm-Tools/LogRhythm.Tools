@@ -67,7 +67,7 @@ Function Test-LrIdentityIdentifierValue {
         }
 
         # Process IdentityId
-        $IdentityResponse = Get-LrIdentityById -IdentityId $IdentityId -Silent
+        $IdentityResponse = Get-LrIdentityById -IdentityId $IdentityId
 
         # Identify if lookup resulted in error, if not, proceeed.
         if ($IdentityResponse.Error -eq $true) {
