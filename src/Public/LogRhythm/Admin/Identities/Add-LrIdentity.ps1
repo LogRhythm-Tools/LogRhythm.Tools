@@ -348,18 +348,6 @@ Function Add-LrIdentity {
         # Define Query URL
         $RequestUrl = $BaseUrl + "/identities/bulk/?entityID=" + $EntityId
 
-
-        $ErrorObject = [PSCustomObject]@{
-            Error                 =   $false
-            Note                  =   $null
-            IdentityId            =   $null
-            IdentifierId          =   $null
-            RecordStatus          =   $null
-            $IdentifierStatus     =   $null
-            NameFirst             =   $null
-            NameLast              =   $null
-        }
-
         # Send Request
         if ($PSEdition -eq 'Core'){
             try {
