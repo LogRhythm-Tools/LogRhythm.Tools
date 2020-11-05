@@ -95,12 +95,8 @@ Function Merge-LrIdentities {
         [Parameter(Mandatory = $false, Position = 5)]
         [switch] $PassThru,
 
-                                
+
         [Parameter(Mandatory = $false, Position = 6)]
-        [switch] $PassThru,
-
-
-        [Parameter(Mandatory = $false, Position = 7)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
