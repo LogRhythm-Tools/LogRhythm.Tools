@@ -111,57 +111,39 @@ Function Get-LrIdentityById {
         $RequestUrl = $BaseUrl + "/identities/" + $IdentityId
 
         # Send Request
-        if($Silent) {
-            if ($PSEdition -eq 'Core'){
-                try {
-                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck -ErrorAction 'silentlycontinue'
+        if ($PSEdition -eq 'Core'){
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
+            }
+            catch {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Error = $true
+                $ErrorObject.Type = "System.Net.WebException"
+                $ErrorObject.Code = $($Err.statusCode)
+                $ErrorObject.Note = $($Err.message)
+                if ($Silent) {
+                    if ($ErrorObject.Code -eq 404) {
+                        return $null
+                    }
                 }
-                catch {
-                    $Err = Get-RestErrorMessage $_
-                    $ErrorObject.Error = $true
-                    $ErrorObject.Type = "System.Net.WebException"
-                    $ErrorObject.Code = $($Err.statusCode)
-                    $ErrorObject.Note = $($Err.message)
-                    return $ErrorObject
-                }
-            } else {
-                try {
-                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -ErrorAction 'silentlycontinue'
-                }
-                catch [System.Net.WebException] {
-                    $Err = Get-RestErrorMessage $_
-                    $ErrorObject.Error = $true
-                    $ErrorObject.Type = "System.Net.WebException"
-                    $ErrorObject.Code = $($Err.statusCode)
-                    $ErrorObject.Note = $($Err.message)
-                    return $ErrorObject
-                }
-            }            
+                return $ErrorObject
+            }
         } else {
-            if ($PSEdition -eq 'Core'){
-                try {
-                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+            }
+            catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Error = $true
+                $ErrorObject.Type = "System.Net.WebException"
+                $ErrorObject.Code = $($Err.statusCode)
+                $ErrorObject.Note = $($Err.message)
+                if ($Silent) {
+                    if ($ErrorObject.Code -eq 404) {
+                        return $null
+                    }
                 }
-                catch {
-                    $Err = Get-RestErrorMessage $_
-                    $ErrorObject.Error = $true
-                    $ErrorObject.Type = "System.Net.WebException"
-                    $ErrorObject.Code = $($Err.statusCode)
-                    $ErrorObject.Note = $($Err.message)
-                    return $ErrorObject
-                }
-            } else {
-                try {
-                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-                }
-                catch [System.Net.WebException] {
-                    $Err = Get-RestErrorMessage $_
-                    $ErrorObject.Error = $true
-                    $ErrorObject.Type = "System.Net.WebException"
-                    $ErrorObject.Code = $($Err.statusCode)
-                    $ErrorObject.Note = $($Err.message)
-                    return $ErrorObject
-                }
+                return $ErrorObject
             }
         }
 
