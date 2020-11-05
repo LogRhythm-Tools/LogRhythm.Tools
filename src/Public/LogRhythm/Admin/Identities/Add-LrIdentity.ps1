@@ -215,7 +215,7 @@ Function Add-LrIdentity {
             Code                  =   $null
             Type                  =   $null
             NameFirst             =   $NameFirst
-            NameLast              =   $NameFirst
+            NameLast              =   $NameLast
         }
 
          # Section - Build JSON Body - Begin
