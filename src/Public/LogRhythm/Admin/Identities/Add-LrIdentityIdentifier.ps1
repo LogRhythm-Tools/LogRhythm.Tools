@@ -147,6 +147,8 @@ Function Add-LrIdentityIdentifier {
                     $ErrorObject.Type = "System.Net.WebException"
                     $ErrorObject.Code = $($Err.statusCode)
                     $ErrorObject.Note = $($Err.message)
+                    $ErrorObject.NameFirst = $IdentifierStatus.NameFirst
+                    $ErrorObject.NameLast = $IdentifierStatus.NameLast
                     return $ErrorObject
                 }
             }
