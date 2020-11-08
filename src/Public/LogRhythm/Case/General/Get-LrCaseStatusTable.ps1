@@ -33,6 +33,7 @@ Function Get-LrCaseStatusTable {
 
 
         [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 1)]
+        [ValidateSet('Created', 'Completed', 'Incident', 'Mitigated', 'Resolved', ignorecase=$true)]
         [string] $Name
     )
 
