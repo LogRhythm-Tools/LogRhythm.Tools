@@ -21,35 +21,21 @@ Function New-LrCaseHelper {
     .OUTPUTS
         PSCustomObject representing the (new|modified) LogRhythm object.
     .EXAMPLE
-        PS C:\> Add-LrNoteToCase -Id 1780 -Text "Review of alarm 21202 indicated manual action from System Administrator." -PassThru
+        PS C:\> New-LrCaseHelper -AlarmID 1 -CaseSummary "Someone broke in.. who could it have been?" -DefaultCaseTag "Tech_PhysicalSecurity" -TagOriginUsers -BindAlarmToExistingCase "userorigin" -Playbook "Unauthorized Access" -TagImpactedHosts -PassThru
         ---
-
-        number        : 4
-        dateCreated   : 2020-07-17T01:49:47.0452267Z
-        dateUpdated   : 2020-07-17T01:49:47.0452267Z
-        createdBy     : @{number=1; name=lrtools; disabled=False}
-        lastUpdatedBy : @{number=1; name=lrtools; disabled=False}
-        type          : note
-        status        : completed
-        statusMessage :
-        text          : Review of alarm 21202 indicated manual action from System Administrator.
-        pinned        : False
-        datePinned    :
-    .EXAMPLE
-        PS C:\> Add-LrNoteToCase -Id 2 -Text "This is my note for case 2!" -PassThru       
-        ---
-
-        number        : 5
-        dateCreated   : 2020-07-17T01:51:45.7467156Z
-        dateUpdated   : 2020-07-17T01:51:45.7467156Z
-        createdBy     : @{number=1; name=lrtools; disabled=False}
-        lastUpdatedBy : @{number=1; name=lrtools; disabled=False}
-        type          : note
-        status        : completed
-        statusMessage :
-        text          : This is my note for case 2!
-        pinned        : False
-        datePinned    :
+        AlarmID         : 1
+        DrilldownStatus : True
+        Drilldown       : @{AlarmID=1; AlarmGuid=b65a202b-60f1-415b-aef1-85ab185e2f96; Priority=39; AIERuleName=Physical Access - Attempted to Forced Entry; Status=4;
+                        Logs=System.Collections.Generic.List`1[System.Object]; SummaryFields=System.Collections.Generic.List`1[System.Collections.Generic.Dictionary`2[System.String,System.String]];
+                        NotificationSent=True; EventID=2993; NormalMessageDate=2020-11-09T18:54:56.743; AIEMsgXml=<aie v="1"><_0 FactCount="1" Login="beth.nickels" MsgSourceID="29" NormalMsgDate="2020-11-09  
+                        18:54:00" NormalMsgDateLower="2020-11-09 18:54:00" NormalMsgDateUpper="2020-11-09 18:55:00" RuleBlockType="1" /><_1 FactCount="1" MsgSourceID="29" NormalMsgDate="2020-11-09 18:54:00"  
+                        NormalMsgDateLower="2020-11-09 18:54:00" NormalMsgDateUpper="2020-11-09 18:58:00" RuleBlockType="1" VendorMsg="forced door" /><_ AIERuleID="1000000001" DateEdited="2020-11-09
+                        18:53:29" /></aie>}
+        CaseNumber      : 5
+        Case            : {CasePlaybook, CaseObject, CaseTags, Note}
+        Playbook        : @{id=6D980445-F31D-4FF6-AC67-2F0D992C8D4E; name=Unauthorized Access; description=Use this Playbook when successful unauthorized access occurs accessing either systems or data.;        
+                        permissions=; owner=; retired=False; entities=System.Object[]; dateCreated=2020-11-09T19:52:31.9261409Z; dateUpdated=2020-11-09T19:57:52.3675841Z; lastUpdatedBy=;
+                        tags=System.Object[]}
     .NOTES
         LogRhythm-API
     .LINK
@@ -86,8 +72,10 @@ Function New-LrCaseHelper {
         [Parameter(Mandatory = $false, Position = 6)]
         [switch]$TagOriginHosts,
 
+
         [Parameter(Mandatory = $false, Position = 7)]
         [switch]$TagImpactedHosts,
+
 
         [Parameter(Mandatory = $false, Position = 8)]
         [ValidateSet('userorigin', 'userimpacted', 'impactedhost','originhost', ignorecase=$true)]
@@ -95,7 +83,11 @@ Function New-LrCaseHelper {
 
 
         [Parameter(Mandatory = $false, Position = 9)]
-        [String]$Playbook
+        [String]$Playbook,
+
+
+        [Parameter(Mandatory = $false, Position = 10)]
+        [switch]$PassThru,
     )
 
     Begin {
@@ -1639,6 +1631,8 @@ Function New-LrCaseHelper {
         }
 
         Write-Verbose "$(Get-Timestamp) - End New-LrCaseHelper"
-        Return $OutObject
+        if ($PassThru) {
+            Return $OutObject
+        }
     }
 }
