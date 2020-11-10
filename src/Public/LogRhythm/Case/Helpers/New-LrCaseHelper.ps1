@@ -87,7 +87,7 @@ Function New-LrCaseHelper {
 
 
         [Parameter(Mandatory = $false, Position = 10)]
-        [switch]$PassThru,
+        [switch]$PassThru
     )
 
     Begin {
