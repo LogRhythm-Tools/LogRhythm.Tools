@@ -96,6 +96,10 @@ Function New-LrCase {
 
 
         [Parameter(Mandatory = $false, Position = 5)]
+        [switch] $PassThru,
+
+
+        [Parameter(Mandatory = $false, Position = 6)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -154,7 +158,7 @@ Function New-LrCase {
         # Attach Alarm to Case
         if ($AlarmNumbers) {
             try {
-                $UpdatedCase = Add-LrAlarmToCase -Id $Response.id -AlarmNumbers $AlarmNumbers
+                $UpdatedCase = Add-LrAlarmToCase -Id $Response.id -AlarmNumbers $AlarmNumbers -PassThru
                 $Response = $UpdatedCase
             }
             catch {
@@ -164,7 +168,9 @@ Function New-LrCase {
         }
 
         # Done!
-        return $Response
+        if ($PassThru) {
+            return $Response
+        }
     }
 
 

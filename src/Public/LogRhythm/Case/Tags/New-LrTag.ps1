@@ -38,6 +38,10 @@ Function New-LrTag {
 
 
         [Parameter(Mandatory = $false, Position = 1)]
+        [switch] $PassThru,
+        
+
+        [Parameter(Mandatory = $false, Position = 2)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -131,7 +135,9 @@ Function New-LrTag {
             }
         }
         
-        return $Response
+        if ($PassThru) {
+            return $Response
+        }
         #endregion
     }
 
