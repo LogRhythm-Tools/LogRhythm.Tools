@@ -247,11 +247,11 @@ Function New-LrCaseHelper {
         if ($AlarmDetails) {
             Write-Verbose "$(Get-Timestamp) - Begin - CasePriority by AlarmRisk"
             Switch ($AlarmDetails.Priority) {
-                {0..24 -contains $_} {$CasePriority = 5}
-                {25..49 -contains $_} {$CasePriority = 4}
-                {50..69 -contains $_} {$CasePriority = 3}
-                {70..84 -contains $_}  {$CasePriority = 2}
-                {85..100 -contains $_} {$CasePriority = 1}
+                {0..59 -contains $_} {$CasePriority = 5}
+                {60..69 -contains $_} {$CasePriority = 4}
+                {70..79 -contains $_} {$CasePriority = 3}
+                {80..89 -contains $_}  {$CasePriority = 2}
+                {90..100 -contains $_} {$CasePriority = 1}
                 default {$CasePriority = $CaseDefaultPriority}
             }
             Write-Verbose "$(Get-Timestamp) - Info - AlarmRisk: $($AlarmDetails.Priority) CasePriority: $($CasePriority)"
@@ -588,26 +588,32 @@ Function New-LrCaseHelper {
 
                 # 
                 if ($OrigHostname) {
-                    $Tag = New-LrTagTaxObject -Primary "HOST" -Secondary "Int" -Value $OrigHostname -Note "Origin"
-                    if ($CaseTags -notcontains $Tag) {
-                        Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
-                        $CaseTags.add($Tag)
+                    foreach ($OHostname in $OrigHostname) {
+                        $Tag = New-LrTagTaxObject -Primary "HOST" -Secondary "Int" -Value $OHostname -Note "Origin"
+                        if ($CaseTags -notcontains $Tag) {
+                            Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
+                            $CaseTags.add($Tag)
+                        }	
                     }
                 }
 
                 if ($OrigIPAddress) {
-                    $Tag = New-LrTagTaxObject -Primary "IP" -Secondary "Int" -Value $OrigIPAddress -Note "Origin"
-                    if ($CaseTags -notcontains $Tag) {
-                        Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
-                        $CaseTags.add($Tag)
+                    foreach ($OIPAddress in $OrigIPAddress) {
+                        $Tag = New-LrTagTaxObject -Primary "IP" -Secondary "Int" -Value $OIPAddress -Note "Origin"
+                        if ($CaseTags -notcontains $Tag) {
+                            Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
+                            $CaseTags.add($Tag)
+                        }
                     }
                 }
 
                 if ($OrigDNSName) {
-                    $Tag = New-LrTagTaxObject -Primary "DNS" -Secondary "Int" -Value $OrigDNSName -Note "Origin"
-                    if ($CaseTags -notcontains $Tag) {
-                        Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
-                        $CaseTags.add($Tag)
+                    Foreach ($ODNSName in $OrigDNSName) {
+                        $Tag = New-LrTagTaxObject -Primary "DNS" -Secondary "Int" -Value $ODNSName -Note "Origin"
+                        if ($CaseTags -notcontains $Tag) {
+                            Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
+                            $CaseTags.add($Tag)
+                        }
                     }
                 }
             }
@@ -626,26 +632,32 @@ Function New-LrCaseHelper {
 
                 # 
                 if ($OrigHostname) {
-                    $Tag = New-LrTagTaxObject -Primary "HOST" -Secondary "Ext" -Value $OrigHostname -Note "Origin"
-                    if ($CaseTags -notcontains $Tag) {
-                        Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
-                        $CaseTags.add($Tag)
+                    foreach ($OHostname in $OrigHostname) {
+                        $Tag = New-LrTagTaxObject -Primary "HOST" -Secondary "Ext" -Value $OHostname -Note "Origin"
+                        if ($CaseTags -notcontains $Tag) {
+                            Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
+                            $CaseTags.add($Tag)
+                        }
                     }
                 }
 
                 if ($OrigIPAddress) {
-                    $Tag = New-LrTagTaxObject -Primary "IP" -Secondary "Ext" -Value $OrigIPAddress -Note "Origin"
-                    if ($CaseTags -notcontains $Tag) {
-                        Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
-                        $CaseTags.add($Tag)
+                    foreach ($OIPAddress in $OrigIPAddress) {
+                        $Tag = New-LrTagTaxObject -Primary "IP" -Secondary "Ext" -Value $OIPAddress -Note "Origin"
+                        if ($CaseTags -notcontains $Tag) {
+                            Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
+                            $CaseTags.add($Tag)
+                        }
                     }
                 }
 
                 if ($OrigDNSName) {
-                    $Tag = New-LrTagTaxObject -Primary "DNS" -Secondary "Ext" -Value $OrigDNSName -Note "Origin"
-                    if ($CaseTags -notcontains $Tag) {
-                        Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
-                        $CaseTags.add($Tag)
+                    ForEach ($ODNSName in $OrigDNSName) {
+                        $Tag = New-LrTagTaxObject -Primary "DNS" -Secondary "Ext" -Value $ODNSName -Note "Origin"
+                        if ($CaseTags -notcontains $Tag) {
+                            Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
+                            $CaseTags.add($Tag)
+                        }
                     }
                 }
             }
@@ -663,26 +675,32 @@ Function New-LrCaseHelper {
                 $OrigDNSName = $HostDetails.hostidentifiers | Where-Object -Property type -eq "DNSName" | Select-Object -ExpandProperty Value
 
                 if ($OrigHostname) {
-                    $Tag = New-LrTagTaxObject -Primary "HOST" -Secondary "Unk" -Value $OrigHostname -Note "Origin"
-                    if ($CaseTags -notcontains $Tag) {
-                        Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
-                        $CaseTags.add($Tag)
+                    foreach ($OHostname in $OrigHostname) {
+                        $Tag = New-LrTagTaxObject -Primary "HOST" -Secondary "Unk" -Value $OHostname -Note "Origin"
+                        if ($CaseTags -notcontains $Tag) {
+                            Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
+                            $CaseTags.add($Tag)
+                        }
                     }
                 }
 
                 if ($OrigIPAddress) {
-                    $Tag = New-LrTagTaxObject -Primary "IP" -Secondary "Unk" -Value $OrigIPAddress -Note "Origin"
-                    if ($CaseTags -notcontains $Tag) {
-                        Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
-                        $CaseTags.add($Tag)
+                    foreach ($OIPAddress in $OrigIPAddress) {
+                        $Tag = New-LrTagTaxObject -Primary "IP" -Secondary "Unk" -Value $OIPAddress -Note "Origin"
+                        if ($CaseTags -notcontains $Tag) {
+                            Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
+                            $CaseTags.add($Tag)
+                        }
                     }
                 }
 
                 if ($OrigDNSName) {
-                    $Tag = New-LrTagTaxObject -Primary "DNS" -Secondary "Unk" -Value $OrigDNSName -Note "Origin"
-                    if ($CaseTags -notcontains $Tag) {
-                        Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
-                        $CaseTags.add($Tag)
+                    ForEach ($ODNSName in $OrigDNSName) {
+                        $Tag = New-LrTagTaxObject -Primary "DNS" -Secondary "Unk" -Value $ODNSName -Note "Origin"
+                        if ($CaseTags -notcontains $Tag) {
+                            Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
+                            $CaseTags.add($Tag)
+                        }
                     }
                 }
             }
@@ -769,28 +787,34 @@ Function New-LrCaseHelper {
                 $ImpactedIPAddress = $HostDetails.hostidentifiers | Where-Object -Property type -eq "IPAddress" | Select-Object -ExpandProperty Value
                 $ImpactedDNSName = $HostDetails.hostidentifiers | Where-Object -Property type -eq "DNSName" | Select-Object -ExpandProperty Value
 
-                # 
+
                 if ($ImpactedHostname) {
-                    $Tag = New-LrTagTaxObject -Primary "HOST" -Secondary "Int" -Value $ImpactedHostname -Note "Impacted"
-                    if ($CaseTags -notcontains $Tag) {
-                        Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
-                        $CaseTags.add($Tag)
+                    foreach ($IHostname in $ImpactedHostname) {
+                        $Tag = New-LrTagTaxObject -Primary "HOST" -Secondary "Int" -Value $IHostname -Note "Impacted"
+                        if ($CaseTags -notcontains $Tag) {
+                            Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
+                            $CaseTags.add($Tag)
+                        }
                     }
                 }
 
                 if ($ImpactedIPAddress) {
-                    $Tag = New-LrTagTaxObject -Primary "IP" -Secondary "Int" -Value $ImpactedIPAddress -Note "Impacted"
-                    if ($CaseTags -notcontains $Tag) {
-                        Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
-                        $CaseTags.add($Tag)
+                    foreach ($IIPAddress in $ImpactedIPAddress) {
+                        $Tag = New-LrTagTaxObject -Primary "IP" -Secondary "Int" -Value $IIPAddress -Note "Impacted"
+                        if ($CaseTags -notcontains $Tag) {
+                            Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
+                            $CaseTags.add($Tag)
+                        }
                     }
                 }
 
                 if ($ImpactedDNSName) {
-                    $Tag = New-LrTagTaxObject -Primary "DNS" -Secondary "Int" -Value $ImpactedDNSName -Note "Impacted"
-                    if ($CaseTags -notcontains $Tag) {
-                        Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
-                        $CaseTags.add($Tag)
+                    foreach ($IDNSName in $ImpactedDNSName) {
+                        $Tag = New-LrTagTaxObject -Primary "DNS" -Secondary "Int" -Value $IDNSName -Note "Impacted"
+                        if ($CaseTags -notcontains $Tag) {
+                            Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
+                            $CaseTags.add($Tag)
+                        }
                     }
                 }
             }
@@ -809,26 +833,32 @@ Function New-LrCaseHelper {
 
                 # 
                 if ($ImpactedHostname) {
-                    $Tag = New-LrTagTaxObject -Primary "HOST" -Secondary "Ext" -Value $ImpactedHostname -Note "Impacted"
-                    if ($CaseTags -notcontains $Tag) {
-                        Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
-                        $CaseTags.add($Tag)
+                    foreach ($IHostname in $ImpactedHostname) {
+                        $Tag = New-LrTagTaxObject -Primary "HOST" -Secondary "Ext" -Value $IHostname -Note "Impacted"
+                        if ($CaseTags -notcontains $Tag) {
+                            Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
+                            $CaseTags.add($Tag)
+                        }
                     }
                 }
 
                 if ($ImpactedIPAddress) {
-                    $Tag = New-LrTagTaxObject -Primary "IP" -Secondary "Ext" -Value $ImpactedIPAddress -Note "Impacted"
-                    if ($CaseTags -notcontains $Tag) {
-                        Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
-                        $CaseTags.add($Tag)
+                    foreach ($IIPAddress in $ImpactedIPAddress) {
+                        $Tag = New-LrTagTaxObject -Primary "IP" -Secondary "Ext" -Value $IIPAddress -Note "Impacted"
+                        if ($CaseTags -notcontains $Tag) {
+                            Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
+                            $CaseTags.add($Tag)
+                        }
                     }
                 }
 
                 if ($ImpactedDNSName) {
-                    $Tag = New-LrTagTaxObject -Primary "DNS" -Secondary "Ext" -Value $ImpactedDNSName -Note "Impacted"
-                    if ($CaseTags -notcontains $Tag) {
-                        Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
-                        $CaseTags.add($Tag)
+                    foreach ($IDNSName in $ImpactedDNSName) {
+                        $Tag = New-LrTagTaxObject -Primary "DNS" -Secondary "Ext" -Value $IDNSName -Note "Impacted"
+                        if ($CaseTags -notcontains $Tag) {
+                            Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
+                            $CaseTags.add($Tag)
+                        }
                     }
                 }
             }
@@ -843,30 +873,37 @@ Function New-LrCaseHelper {
 
                 # Pull Origin Host Windows Hostname, IP Address, DNS Names
                 $ImpactedHostname = $HostDetails.hostidentifiers | Where-Object -Property type -eq "WindowsName" | Select-Object -ExpandProperty Value
-                $ImpactedAddress = $HostDetails.hostidentifiers | Where-Object -Property type -eq "IPAddress" | Select-Object -ExpandProperty Value
+                $ImpactedIPAddress = $HostDetails.hostidentifiers | Where-Object -Property type -eq "IPAddress" | Select-Object -ExpandProperty Value
                 $ImpactedDNSName = $HostDetails.hostidentifiers | Where-Object -Property type -eq "DNSName" | Select-Object -ExpandProperty Value
 
+
                 if ($ImpactedHostname) {
-                    $Tag = New-LrTagTaxObject -Primary "HOST" -Secondary "Unk" -Value $ImpactedHostname -Note "Impacted"
-                    if ($CaseTags -notcontains $Tag) {
-                        Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
-                        $CaseTags.add($Tag)
+                    foreach ($IHostname in $ImpactedHostname) {
+                        $Tag = New-LrTagTaxObject -Primary "HOST" -Secondary "Unk" -Value $IHostname -Note "Impacted"
+                        if ($CaseTags -notcontains $Tag) {
+                            Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
+                            $CaseTags.add($Tag)
+                        }
                     }
                 }
 
-                if ($ImpactedAddress) {
-                    $Tag = New-LrTagTaxObject -Primary "IP" -Secondary "Unk" -Value $ImpactedAddress -Note "Impacted"
-                    if ($CaseTags -notcontains $Tag) {
-                        Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
-                        $CaseTags.add($Tag)
+                if ($ImpactedIPAddress) {
+                    foreach ($IIPAddress in $ImpactedIPAddress) {
+                        $Tag = New-LrTagTaxObject -Primary "IP" -Secondary "Unk" -Value $IIPAddress -Note "Impacted"
+                        if ($CaseTags -notcontains $Tag) {
+                            Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
+                            $CaseTags.add($Tag)
+                        }
                     }
                 }
 
                 if ($ImpactedDNSName) {
-                    $Tag = New-LrTagTaxObject -Primary "DNS" -Secondary "Unk" -Value $ImpactedDNSName -Note "Impacted"
-                    if ($CaseTags -notcontains $Tag) {
-                        Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
-                        $CaseTags.add($Tag)
+                    foreach ($IDNSName in $ImpactedDNSName) {
+                        $Tag = New-LrTagTaxObject -Primary "DNS" -Secondary "Unk" -Value $IDNSName -Note "Impacted"
+                        if ($CaseTags -notcontains $Tag) {
+                            Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
+                            $CaseTags.add($Tag)
+                        }
                     }
                 }
             }
@@ -942,7 +979,7 @@ Function New-LrCaseHelper {
 
         Write-Verbose "$(Get-Timestamp) - Begin - Generate Case Tags - Users"
         # Establish tags for Logins
-        Write-Verbose "$(Get-Timestamp) - Begin - Login Tags - Origin Logins"
+        Write-Verbose "$(Get-Timestamp) - Begin - User Tags - Origin Logins"
         ForEach ($OrgLogin in $OriginLogins) {
             Write-Verbose "$(Get-Timestamp) - New - User Origin - Login: $OrgLogin"
             $Tag = $null
@@ -955,10 +992,10 @@ Function New-LrCaseHelper {
                 $CaseTags.add($Tag)
             }
         }
-        Write-Verbose "$(Get-Timestamp) - End - Login Tags - Origin Logins"
+        Write-Verbose "$(Get-Timestamp) - End - User Tags - Origin Logins"
 
         # Establish tags and detail summaries for TrueIDs
-        Write-Verbose "$(Get-Timestamp) - Begin - TrueIdentity Tags - Origin Identities"
+        Write-Verbose "$(Get-Timestamp) - Begin - User Tags - Origin Identities"
         ForEach ($OrgTrueID in $OriginIdentities) {
             Write-Verbose "$(Get-Timestamp) - New - User Origin - Identity: $OrgTrueID"
             $Tag = $null
@@ -971,13 +1008,12 @@ Function New-LrCaseHelper {
                 Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
                 $CaseTags.add($Tag)
             }
-            Write-Verbose "$(Get-Timestamp) - End - New TrueID Tag"
         }
-        Write-Verbose "$(Get-Timestamp) - End - TrueIdentity Tags - Origin Identities"
+        Write-Verbose "$(Get-Timestamp) - End - User Tags - Origin Identities"
 
-        Write-Verbose "$(Get-Timestamp) - Begin - Generate Case Tags - Impacted Users"
+
         # Establish tags for Logins
-        Write-Verbose "$(Get-Timestamp) - Begin - Login Tags - Impacted Logins"
+        Write-Verbose "$(Get-Timestamp) - Begin - User Tags - Impacted Logins"
         ForEach ($ImpLogin in $ImpactedLogins) {
             Write-Verbose "$(Get-Timestamp) - New - User Impacted - Login: $ImpLogin"
             $Tag = $null
@@ -990,10 +1026,44 @@ Function New-LrCaseHelper {
                 $CaseTags.add($Tag)
             }
         }
-        Write-Verbose "$(Get-Timestamp) - End - Login Tags - Impacted Logins"
+        Write-Verbose "$(Get-Timestamp) - End - User Tags - Impacted Logins"
+
+
+
+        # Establish tags for Senders
+        Write-Verbose "$(Get-Timestamp) - Begin - User Tags - Sender"
+        ForEach ($Sender in $Senders) {
+            Write-Verbose "$(Get-Timestamp) - New - Sender - Value: $Sender"
+            $Tag = $null
+            # Add tags for Users
+            $Tag = New-LrTagTaxObject -Primary "USER" -Secondary "Email" -Value $Sender  -Note "Sender"
+
+            # Add Tag to CaseTag variable
+            if ($CaseTags -notcontains $Tag) {
+                Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
+                $CaseTags.add($Tag)
+            }
+        }
+        Write-Verbose "$(Get-Timestamp) - End - User Tags - Sender"
+
+        # Establish tags for Senders
+        Write-Verbose "$(Get-Timestamp) - Begin - User Tags - Recipient"
+        ForEach ($Recipient in $Recipients) {
+            Write-Verbose "$(Get-Timestamp) - New - Recipient - Value: $Recipient"
+            $Tag = $null
+            # Add tags for Users
+            $Tag = New-LrTagTaxObject -Primary "USER" -Secondary "Email" -Value $Recipient  -Note "Recipient"
+
+            # Add Tag to CaseTag variable
+            if ($CaseTags -notcontains $Tag) {
+                Write-Verbose "$(Get-Timestamp) - Info - Adding: $($Tag.Value) to list CaseTags"
+                $CaseTags.add($Tag)
+            }
+        }
+        Write-Verbose "$(Get-Timestamp) - End - User Tags - Recipient"
 
         # Establish tags and detail summaries for TrueIDs
-        Write-Verbose "$(Get-Timestamp) - Begin - TrueIdentity Tags - Impacted Identities"
+        Write-Verbose "$(Get-Timestamp) - Begin - User Tags - Impacted Identities"
         ForEach ($ImpTrueID in $ImpactedIdentities) {
             Write-Verbose "$(Get-Timestamp) - New - User Impacted - Identity: $ImpTrueID"
             $Tag = $null
@@ -1006,8 +1076,9 @@ Function New-LrCaseHelper {
                 $CaseTags.add($Tag)
             }
         }
-        Write-Verbose "$(Get-Timestamp) - End - TrueIdentity Tags - Impacted Identities"
-        Write-Verbose "$(Get-Timestamp) - End - Generate Case Tags - Impacted Users"
+        Write-Verbose "$(Get-Timestamp) - End - User Tags - Impacted Identities"
+        Write-Verbose "$(Get-Timestamp) - End - Generate Case Tags - Users"
+
 
         # Check if BindAlarmToExistingCase is enabled for User Case association
         Write-Verbose "$(Get-Timestamp) - Begin - Bind Alarm to Existing Case - User"
@@ -1050,7 +1121,7 @@ Function New-LrCaseHelper {
                     # Generate User Origin Tags
                     if ($TagOriginUsers) {
                         Write-Verbose "$(Get-Timestamp) - Begin - Add User Origin Tags to Case"
-                        $OriginUserTags = $CaseTags | Where-Object -Property Primary -in "User" | Where-Object -Property Note -eq "Origin"
+                        $OriginUserTags = $CaseTags | Where-Object -Property Primary -in "User" | Where-Object -Property Note -in "Origin", "Sender"
 
                         # Iterate through Origin Host tags
                         ForEach ($OriginUserTag in $OriginUserTags) {
@@ -1074,7 +1145,7 @@ Function New-LrCaseHelper {
                     # General User Impacted Tags
                     if ($TagImpactedUsers) {
                         Write-Verbose "$(Get-Timestamp) - Begin - Add User Impacted Tags to Case"
-                        $ImpactUserTags = $CaseTags | Where-Object -Property Primary -in "User" | Where-Object -Property Note -eq "Impacted"
+                        $ImpactUserTags = $CaseTags | Where-Object -Property Primary -in "User" | Where-Object -Property Note -in "Impacted", "Recipient"
 
                         # Iterate through Impacted User tags
                         ForEach ($ImpactUserTag in $ImpactUserTags) {
@@ -1204,7 +1275,7 @@ Function New-LrCaseHelper {
                         # Generate User Origin Tags
                         if ($TagOriginUsers) {
                             Write-Verbose "$(Get-Timestamp) - Begin - Add User Origin Tags to Case"
-                            $OriginUserTags = $CaseTags | Where-Object -Property Primary -in "User" | Where-Object -Property Note -eq "Origin"
+                            $OriginUserTags = $CaseTags | Where-Object -Property Primary -in "User" | Where-Object -Property Note -in "Origin", "Sender"
 
                             # Iterate through Origin Host tags
                             ForEach ($OriginUserTag in $OriginUserTags) {
@@ -1228,7 +1299,7 @@ Function New-LrCaseHelper {
                         # General User Impacted Tags
                         if ($TagImpactedUsers) {
                             Write-Verbose "$(Get-Timestamp) - Begin - Add User Impacted Tags to Case"
-                            $ImpactUserTags = $CaseTags | Where-Object -Property Primary -in "User" | Where-Object -Property Note -eq "Impacted"
+                            $ImpactUserTags = $CaseTags | Where-Object -Property Primary -in "User" | Where-Object -Property Note -in "Impacted", "Recipient"
 
                             # Iterate through Impacted User tags
                             ForEach ($ImpactUserTag in $ImpactUserTags) {
@@ -1356,7 +1427,7 @@ Function New-LrCaseHelper {
                         # Generate User Origin Tags
                         if ($TagOriginUsers) {
                             Write-Verbose "$(Get-Timestamp) - Begin - Add User Origin Tags to Case"
-                            $OriginUserTags = $CaseTags | Where-Object -Property Primary -in "User" | Where-Object -Property Note -eq "Origin"
+                            $OriginUserTags = $CaseTags | Where-Object -Property Primary -in "User" | Where-Object -Property Note -in "Origin", "Sender"
 
                             # Iterate through Origin Host tags
                             ForEach ($OriginUserTag in $OriginUserTags) {
@@ -1380,7 +1451,7 @@ Function New-LrCaseHelper {
                         # General User Impacted Tags
                         if ($TagImpactedUsers) {
                             Write-Verbose "$(Get-Timestamp) - Begin - Add User Impacted Tags to Case"
-                            $ImpactUserTags = $CaseTags | Where-Object -Property Primary -in "User" | Where-Object -Property Note -eq "Impacted"
+                            $ImpactUserTags = $CaseTags | Where-Object -Property Primary -in "User" | Where-Object -Property Note -in "Impacted", "Recipient"
 
                             # Iterate through Impacted User tags
                             ForEach ($ImpactUserTag in $ImpactUserTags) {
@@ -1554,7 +1625,7 @@ Function New-LrCaseHelper {
         # Generate User Origin Tags
         if ($TagOriginUsers) {
             Write-Verbose "$(Get-Timestamp) - Begin - Add User Origin Tags to Case"
-            $OriginUserTags = $CaseTags | Where-Object -Property Primary -in "User" | Where-Object -Property Note -eq "Origin"
+            $OriginUserTags = $CaseTags | Where-Object -Property Primary -in "User" | Where-Object -Property Note -in "Origin", "Sender"
 
             # Iterate through Origin Host tags
             ForEach ($OriginUserTag in $OriginUserTags) {
@@ -1578,7 +1649,7 @@ Function New-LrCaseHelper {
         # General User Impacted Tags
         if ($TagImpactedUsers) {
             Write-Verbose "$(Get-Timestamp) - Begin - Add User Impacted Tags to Case"
-            $ImpactUserTags = $CaseTags | Where-Object -Property Primary -eq "User" | Where-Object -Property Note -eq "Impacted"
+            $ImpactUserTags = $CaseTags | Where-Object -Property Primary -eq "User" | Where-Object -Property Note -in "Impacted", "Recipient"
             ForEach ($ImpactUserTag in $ImpactUserTags) {
                 # If the Curent Case User Tags does not include the Impacted User Tag, add it
                 if ($CurUserTags -notcontains $ImpactUserTag.Tag) {
@@ -1608,6 +1679,7 @@ Function New-LrCaseHelper {
         $TaxonomySummary += "_Int_ - Internal - A resource that has been identified as Internal to the organization.`r`n"
         $TaxonomySummary += "_Ext_ - External - A resource that has been identified as External to the organization.`r`n"
         $TaxonomySummary += "_Login_ - A user identifier used for identification and authentication..`r`n"
+        $TaxonomySummary += "_Email_ - A user identifier used for e-mail correspondence..`r`n"
         $TaxonomySummary += "_TrueId_ - TrueIdentity - An integer ID value representing an individual.`r`n"
         $TaxonomySummary += "`r`n-- Case Taxonomy Tags --`r`n"
         $CurrentCaseTags = Get-LrCaseById -Id $OutObject.CaseNumber | Select-Object -ExpandProperty tags | Select-Object -ExpandProperty text
