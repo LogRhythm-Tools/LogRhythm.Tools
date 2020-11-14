@@ -53,6 +53,10 @@ Function Find-LrNetworkByIP {
 
 
         [Parameter(Mandatory = $false, Position = 3)]
+        [String]$Entity,
+
+
+        [Parameter(Mandatory = $false, Position = 4)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
