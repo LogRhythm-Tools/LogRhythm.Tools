@@ -209,6 +209,9 @@ Function New-LrCaseHelper {
         # Define list for new tags identified
         $ScreenNewTags = [list[object]]::new()
 
+        # Set standard API Relief to prevent API rate limit
+        $APISleep = 0.3
+
         Write-Verbose "$(Get-Timestamp) - Initilization complete for cmdlet list variables"
     }
 
@@ -579,7 +582,7 @@ Function New-LrCaseHelper {
         if ($OriginInternalIDs) {
             ForEach ($OriginInternalID in $OriginInternalIDs) {
                 $HostDetails = Get-LrHostDetails -Id $OriginInternalID
-                Start-Sleep 1
+                Start-Sleep $APISleep
 
                 # Pull Origin Host Windows Hostname, IP Address, DNS Names
                 $OrigHostname = $HostDetails.hostidentifiers | Where-Object -Property type -eq "WindowsName" | Select-Object -ExpandProperty Value
@@ -623,7 +626,7 @@ Function New-LrCaseHelper {
         if ($OriginExternalIDs) {
             ForEach ($OriginExternalID in $OriginExternalIDs) {
                 $HostDetails = Get-LrHostDetails -Id $OriginExternalID
-                Start-Sleep 1
+                Start-Sleep $APISleep
 
                 # Pull Origin Host Windows Hostname, IP Address, DNS Names
                 $OrigHostname = $HostDetails.hostidentifiers | Where-Object -Property type -eq "WindowsName" | Select-Object -ExpandProperty Value
@@ -667,7 +670,7 @@ Function New-LrCaseHelper {
         if ($OriginHostIds) {
             ForEach ($OriginHostId in $OriginHostIds) {
                 $HostDetails = Get-LrHostDetails -Id $OriginHostId
-                Start-Sleep 1
+                Start-Sleep $APISleep
 
                 # Pull Origin Host Windows Hostname, IP Address, DNS Names
                 $OrigHostname = $HostDetails.hostidentifiers | Where-Object -Property type -eq "WindowsName" | Select-Object -ExpandProperty Value
@@ -780,7 +783,7 @@ Function New-LrCaseHelper {
         if ($ImpactedInternalIDs) {
             ForEach ($ImpactedInternalID in $ImpactedInternalIDs) {
                 $HostDetails = Get-LrHostDetails -Id $ImpactedInternalID
-                Start-Sleep 1
+                Start-Sleep $APISleep
 
                 # Pull Impacted Host Windows Hostname, IP Address, DNS Names
                 $ImpactedHostname = $HostDetails.hostidentifiers | Where-Object -Property type -eq "WindowsName" | Select-Object -ExpandProperty Value
@@ -824,7 +827,7 @@ Function New-LrCaseHelper {
         if ($ImpactedExternalIDs) {
             ForEach ($ImpactedExternalID in $ImpactedExternalIDs) {
                 $HostDetails = Get-LrHostDetails -Id $ImpactedExternalID
-                Start-Sleep 1
+                Start-Sleep $APISleep
 
                 # Pull Impacted Host Windows Hostname, IP Address, DNS Names
                 $ImpactedHostname = $HostDetails.hostidentifiers | Where-Object -Property type -eq "WindowsName" | Select-Object -ExpandProperty Value
@@ -869,7 +872,7 @@ Function New-LrCaseHelper {
         if ($ImpactedHostIds) {
             ForEach ($ImpactedHostId in $ImpactedHostIds) {
                 $HostDetails = Get-LrHostDetails -Id $ImpactedHostId
-                Start-Sleep 1
+                Start-Sleep $APISleep
 
                 # Pull Origin Host Windows Hostname, IP Address, DNS Names
                 $ImpactedHostname = $HostDetails.hostidentifiers | Where-Object -Property type -eq "WindowsName" | Select-Object -ExpandProperty Value
@@ -1100,7 +1103,7 @@ Function New-LrCaseHelper {
                 Write-Verbose "$(Get-Timestamp) - Info - UserTag: $($UserTag)"
                 # Identify if an open case exists involving same AIE Alarm and User exists.  Valid case status:  Created, Incident, Mitigated
                 $ScreenCases = Get-LrCases -Name $AlarmDetails.AIERuleName -Exact -Tags $UserTag -Status @("1", "3", "4")
-                Start-Sleep 2
+                Start-Sleep $APISleep
                 if ($ScreenCases) {
                     if ($ScreenCases.count -gt 1) {
                         # Update most recent case
@@ -1108,7 +1111,7 @@ Function New-LrCaseHelper {
                     }
                     # Add alarm to case
                     Add-LrAlarmToCase -Id $ScreenCases.number -AlarmNumbers $AlarmDetails.AlarmId
-                    Start-Sleep 2
+                    Start-Sleep $APISleep
 
                     # Update output Object
                     $OutObject.CaseNumber = $ScreenCases.number
@@ -1131,12 +1134,12 @@ Function New-LrCaseHelper {
                                 if ($null -eq $TagStatus) {
                                     Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($OriginUserTag.tag)"
                                     New-LrTag -Tag $OriginUserTag.Tag
-                                    Start-Sleep .5
+                                    Start-Sleep $APISleep
                                 }
                                 Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($OriginUserTag.tag) to Case: $($OutObject.CaseNumber)"
                                 Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $OriginUserTag.Tag
                                 $ScreenNewTags.add($OriginUserTag)
-                                Start-Sleep 1
+                                Start-Sleep $APISleep
                             }
                         }
                         Write-Verbose "$(Get-Timestamp) - End - Add User Origin Tags to Case"
@@ -1155,12 +1158,12 @@ Function New-LrCaseHelper {
                                 if ($null -eq $TagStatus) {
                                     Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($ImpactUserTag.tag)"
                                     New-LrTag -Tag $ImpactUserTag.Tag
-                                    Start-Sleep .5
+                                    Start-Sleep $APISleep
                                 }
                                 Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($ImpactUserTag.tag) to Case: $($OutObject.CaseNumber)"
                                 Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $ImpactUserTag.Tag
                                 $ScreenNewTags.add($ImpactUserTag)
-                                Start-Sleep 1
+                                Start-Sleep $APISleep
                             }
                         }
                         Write-Verbose "$(Get-Timestamp) - End - Add User Impacted Tags to Case"
@@ -1183,12 +1186,12 @@ Function New-LrCaseHelper {
                                 if ($null -eq $TagStatus) {
                                     Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($OriginHostTag.tag)"
                                     New-LrTag -Tag $OriginHostTag.Tag
-                                    Start-Sleep .5
+                                    Start-Sleep $APISleep
                                 }
                                 Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($OriginHostTag.tag) to Case: $($OutObject.CaseNumber)"
                                 Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $OriginHostTag.Tag
                                 $ScreenNewTags.add($OriginHostTag)
-                                Start-Sleep 1
+                                Start-Sleep $APISleep
                             }
                         }
                         Write-Verbose "$(Get-Timestamp) - End - Add Host Origin Tags to Case"
@@ -1206,12 +1209,12 @@ Function New-LrCaseHelper {
                                 if ($null -eq $TagStatus) {
                                     Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($ImpactedHostTag.Tag)"
                                     New-LrTag -Tag $ImpactedHostTag.Tag
-                                    Start-Sleep .5
+                                    Start-Sleep $APISleep
                                 }
                                 Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($ImpactedHostTag.tag) to Case: $($OutObject.CaseNumber)"
                                 Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $ImpactedHostTag.Tag
                                 $ScreenNewTags.add($ImpactedHostTag)
-                                Start-Sleep 1
+                                Start-Sleep $APISleep
                             }
                         }
                         Write-Verbose "$(Get-Timestamp) - End - Add Host Origin Tags to Case"
@@ -1230,7 +1233,7 @@ Function New-LrCaseHelper {
                             }
                         }
                         Add-LrNoteToCase -Id $OutObject.CaseNumber -Text $ScreenTagNote
-
+                        Start-Sleep $APISleep
                         $OutObject.Case.CaseTags = $ScreenNewTags
                     }
 
@@ -1254,7 +1257,7 @@ Function New-LrCaseHelper {
                 ForEach ($HostTag in $HostTags) {
                     # Identify if an open case exists involving same AIE Alarm and Host exists.  Valid case status:  Created, Incident, Mitigated
                     $ScreenCases = Get-LrCases -Name $AlarmDetails.AIERuleName -Exact -Tags $HostTag -Status @("1", "3", "4")
-                    Start-Sleep 2
+                    Start-Sleep $APISleep
                     if ($ScreenCases) {
                         if ($ScreenCases.count -gt 1) {
                             # Update most recent case
@@ -1262,7 +1265,7 @@ Function New-LrCaseHelper {
                         }
                         # Add alarm to case
                         Add-LrAlarmToCase -Id $ScreenCases.number -AlarmNumbers $AlarmDetails.AlarmId
-                        Start-Sleep 2
+                        Start-Sleep $APISleep
 
                         $OutObject.CaseNumber = $ScreenCases.number
                         $OutObject.Case.CaseObject = $ScreenCases
@@ -1285,12 +1288,12 @@ Function New-LrCaseHelper {
                                     if ($null -eq $TagStatus) {
                                         Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($OriginUserTag.tag)"
                                         New-LrTag -Tag $OriginUserTag.Tag
-                                        Start-Sleep .5
+                                        Start-Sleep $APISleep
                                     }
                                     Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($OriginUserTag.tag) to Case: $($OutObject.CaseNumber)"
                                     Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $OriginUserTag.Tag
                                     $ScreenNewTags.add($OriginUserTag)
-                                    Start-Sleep 1
+                                    Start-Sleep $APISleep
                                 }
                             }
                             Write-Verbose "$(Get-Timestamp) - End - Add User Origin Tags to Case"
@@ -1309,12 +1312,12 @@ Function New-LrCaseHelper {
                                     if ($null -eq $TagStatus) {
                                         Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($ImpactUserTag.tag)"
                                         New-LrTag -Tag $ImpactUserTag.Tag
-                                        Start-Sleep .5
+                                        Start-Sleep $APISleep
                                     }
                                     Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($ImpactUserTag.tag) to Case: $($OutObject.CaseNumber)"
                                     Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $ImpactUserTag.Tag
                                     $ScreenNewTags.add($ImpactUserTag)
-                                    Start-Sleep 1
+                                    Start-Sleep $APISleep
                                 }
                             }
                             Write-Verbose "$(Get-Timestamp) - End - Add User Impacted Tags to Case"
@@ -1337,12 +1340,12 @@ Function New-LrCaseHelper {
                                     if ($null -eq $TagStatus) {
                                         Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($OriginHostTag.tag)"
                                         New-LrTag -Tag $OriginHostTag.Tag
-                                        Start-Sleep .5
+                                        Start-Sleep $APISleep
                                     }
                                     Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($OriginHostTag.tag) to Case: $($OutObject.CaseNumber)"
                                     Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $OriginHostTag.Tag
                                     $ScreenNewTags.add($OriginHostTag)
-                                    Start-Sleep 1
+                                    Start-Sleep $APISleep
                                 }
                             }
                             Write-Verbose "$(Get-Timestamp) - End - Add Host Origin Tags to Case"
@@ -1360,12 +1363,12 @@ Function New-LrCaseHelper {
                                     if ($null -eq $TagStatus) {
                                         Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($ImpactedHostTag.Tag)"
                                         New-LrTag -Tag $ImpactedHostTag.Tag
-                                        Start-Sleep .5
+                                        Start-Sleep $APISleep
                                     }
                                     Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($ImpactedHostTag.tag) to Case: $($OutObject.CaseNumber)"
                                     Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $ImpactedHostTag.Tag
                                     $ScreenNewTags.add($ImpactedHostTag)
-                                    Start-Sleep 1
+                                    Start-Sleep $APISleep
                                 }
                             }
                             Write-Verbose "$(Get-Timestamp) - End - Add Host Origin Tags to Case"
@@ -1383,7 +1386,8 @@ Function New-LrCaseHelper {
                                     'dns_*' {$ScreenTagNote +="$($ScreenTag.tag)`r`n"}
                                 }
                             }
-                            Add-LrNoteToCase -Id $ScreenCases.Number -Text $ScreenTagNote | Out-Null
+                            Add-LrNoteToCase -Id $ScreenCases.Number -Text $ScreenTagNote
+                            Start-Sleep $APISleep
                         }
 
                         return $OutObject
@@ -1406,7 +1410,7 @@ Function New-LrCaseHelper {
                 ForEach ($HostTag in $HostTags) {
                     # Identify if an open case exists involving same AIE Alarm and Host exists.  Valid case status:  Created, Incident, Mitigated
                     $ScreenCases = Get-LrCases -Name $AlarmDetails.AIERuleName -Exact -Tags $HostTag -Status @("1", "3", "4")
-                    Start-Sleep 2
+                    Start-Sleep $APISleep
                     if ($ScreenCases) {
                         if ($ScreenCases.count -gt 1) {
                             # Update most recent case
@@ -1414,7 +1418,7 @@ Function New-LrCaseHelper {
                         }
                         # Add alarm to case
                         Add-LrAlarmToCase -Id $ScreenCases.number -AlarmNumbers $AlarmDetails.AlarmId
-                        Start-Sleep 2
+                        Start-Sleep $APISleep
 
                         $OutObject.CaseNumber = $ScreenCases.number
                         $OutObject.Case.CaseObject = $ScreenCases
@@ -1437,12 +1441,12 @@ Function New-LrCaseHelper {
                                     if ($null -eq $TagStatus) {
                                         Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($OriginUserTag.tag)"
                                         New-LrTag -Tag $OriginUserTag.Tag
-                                        Start-Sleep .5
+                                        Start-Sleep $APISleep
                                     }
                                     Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($OriginUserTag.tag) to Case: $($OutObject.CaseNumber)"
                                     Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $OriginUserTag.Tag
                                     $ScreenNewTags.add($OriginUserTag)
-                                    Start-Sleep 1
+                                    Start-Sleep $APISleep
                                 }
                             }
                             Write-Verbose "$(Get-Timestamp) - End - Add User Origin Tags to Case"
@@ -1461,12 +1465,12 @@ Function New-LrCaseHelper {
                                     if ($null -eq $TagStatus) {
                                         Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($ImpactUserTag.tag)"
                                         New-LrTag -Tag $ImpactUserTag.Tag
-                                        Start-Sleep .5
+                                        Start-Sleep $APISleep
                                     }
                                     Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($ImpactUserTag.tag) to Case: $($OutObject.CaseNumber)"
                                     Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $ImpactUserTag.Tag
                                     $ScreenNewTags.add($ImpactUserTag)
-                                    Start-Sleep 1
+                                    Start-Sleep $APISleep
                                 }
                             }
                             Write-Verbose "$(Get-Timestamp) - End - Add User Impacted Tags to Case"
@@ -1488,12 +1492,12 @@ Function New-LrCaseHelper {
                                     if ($null -eq $TagStatus) {
                                         Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($OriginHostTag.tag)"
                                         New-LrTag -Tag $OriginHostTag.Tag
-                                        Start-Sleep .5
+                                        Start-Sleep $APISleep
                                     }
                                     Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($OriginHostTag.tag) to Case: $($OutObject.CaseNumber)"
                                     Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $OriginHostTag.Tag
                                     $ScreenNewTags.add($OriginHostTag)
-                                    Start-Sleep 1
+                                    Start-Sleep $APISleep
                                 }
                             }
                             Write-Verbose "$(Get-Timestamp) - End - Add Host Origin Tags to Case"
@@ -1511,12 +1515,12 @@ Function New-LrCaseHelper {
                                     if ($null -eq $TagStatus) {
                                         Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($ImpactedHostTag.Tag)"
                                         New-LrTag -Tag $ImpactedHostTag.Tag
-                                        Start-Sleep .5
+                                        Start-Sleep $APISleep
                                     }
                                     Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($ImpactedHostTag.tag) to Case: $($OutObject.CaseNumber)"
                                     Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $ImpactedHostTag.Tag
                                     $ScreenNewTags.add($ImpactedHostTag)
-                                    Start-Sleep 1
+                                    Start-Sleep $APISleep
                                 }
                             }
                             Write-Verbose "$(Get-Timestamp) - End - Add Host Origin Tags to Case"
@@ -1536,6 +1540,7 @@ Function New-LrCaseHelper {
                                 }
                             }
                             Add-LrNoteToCase -Id $ScreenCases.Number -Text $ScreenTagNote
+                            Start-Sleep $APISleep
                             Write-Verbose "$(Get-Timestamp) - End - Add Updated Case Taxonomy to Case"
                         }
 
@@ -1554,12 +1559,13 @@ Function New-LrCaseHelper {
         $OutObject.CaseNumber = $OutObject.Case.CaseObject.number
         $OutObject.Case.Note = "Created new case with Drilldown enrichment."
         Write-Verbose "$(Get-Timestamp) - End - Create New Case - Drilldown Enrichment"
-        Start-Sleep 2
+        Start-Sleep $APISleep
 
         # Add CasePlaybook if Defined and lookup was successful
         if ($OutObject.Playbook.Id) {
             Write-Verbose "$(Get-Timestamp) - Begin - Adding playbook: $($OutObject.Playbook.Name) to Case: $($OutObject.CaseNumber)"
             $OutObject.Case.CasePlaybook = Add-LrCasePlaybook -Id $OutObject.CaseNumber -Playbook $($OutObject.Playbook.Id) -PassThru
+            Start-Sleep $APISleep
         }
 
         # Set Output Object CaseTags
@@ -1570,14 +1576,14 @@ Function New-LrCaseHelper {
         if ($DefaultCaseTag) {
             Write-Verbose "$(Get-Timestamp) - Begin - Add Default Tag to Case"
             $TechniqueTagStatus = Get-LrTags -Name $DefaultCaseTag -Exact
-            Start-sleep .5
+            Start-Sleep $APISleep
 
             if ($null -eq $TechniqueTagStatus) {
                 New-LrTag -Tag $DefaultCaseTag
-                Start-Sleep 1
+                Start-Sleep $APISleep
             }
             Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $DefaultCaseTag
-            Start-Sleep 2
+            Start-Sleep $APISleep
             Write-Verbose "$(Get-Timestamp) - End - Add Default Tag to Case"
         }
 
@@ -1594,11 +1600,11 @@ Function New-LrCaseHelper {
                 if ($null -eq $TagStatus) {
                     Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($HostTag)"
                     New-LrTag -Tag $HostTag.Tag
-                    Start-Sleep .5
+                    Start-Sleep $APISleep
                 }
                 Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($HostTag) to Case: $($OutObject.CaseNumber)"
                 Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $HostTag.Tag
-                Start-sleep 1
+                Start-Sleep $APISleep
             }
             Write-Verbose "$(Get-Timestamp) - End - Add Host Origin Tags to Case"
         }
@@ -1613,11 +1619,11 @@ Function New-LrCaseHelper {
                 if ($null -eq $TagStatus) {
                     Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($HostTag)"
                     New-LrTag -Tag $HostTag.Tag
-                    Start-Sleep .5
+                    Start-Sleep $APISleep
                 }
                 Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($HostTag) to Case: $($OutObject.CaseNumber)"
                 Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $HostTag.Tag
-                Start-sleep 1
+                Start-Sleep $APISleep
             }
             Write-Verbose "$(Get-Timestamp) - End - Add Host Impacted Tags to Case"
         }
@@ -1635,12 +1641,12 @@ Function New-LrCaseHelper {
                     if ($null -eq $TagStatus) {
                         Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($OriginUserTag.tag)"
                         New-LrTag -Tag $OriginUserTag.Tag
-                        Start-Sleep .5
+                        Start-Sleep $APISleep
                     }
                     Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($OriginUserTag.tag) to Case: $($OutObject.CaseNumber)"
                     Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $OriginUserTag.Tag
                     $ScreenNewTags.add($OriginUserTag)
-                    Start-Sleep 1
+                    Start-Sleep $APISleep
                 }
             }
             Write-Verbose "$(Get-Timestamp) - End - Add User Origin Tags to Case"
@@ -1657,12 +1663,12 @@ Function New-LrCaseHelper {
                     if ($null -eq $TagStatus) {
                         Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($ImpactUserTag.tag)"
                         New-LrTag -Tag $ImpactUserTag.Tag
-                        Start-Sleep .5
+                        Start-Sleep $APISleep
                     }
                     Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($ImpactUserTag.tag) to Case: $($OutObject.CaseNumber)"
                     Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $ImpactUserTag.Tag
                     $ScreenNewTags.add($ImpactUserTag)
-                    Start-Sleep 1
+                    Start-Sleep $APISleep
                 }
             }
             Write-Verbose "$(Get-Timestamp) - End - Add User Impacted Tags to Case"
@@ -1683,7 +1689,7 @@ Function New-LrCaseHelper {
         $TaxonomySummary += "_TrueId_ - TrueIdentity - An integer ID value representing an individual.`r`n"
         $TaxonomySummary += "`r`n-- Case Taxonomy Tags --`r`n"
         $CurrentCaseTags = Get-LrCaseById -Id $OutObject.CaseNumber | Select-Object -ExpandProperty tags | Select-Object -ExpandProperty text
-        Start-Sleep 1
+        Start-Sleep $APISleep
         if ($CurrentCaseTags) {
             Write-Verbose "$(Get-Timestamp) - Begin - Add CaseTagTaxonomy"
             ForEach ($CurrentCaseTag in $CurrentCaseTags) {
@@ -1698,7 +1704,7 @@ Function New-LrCaseHelper {
             }
             #Add Case tag Taxonomy
             Add-LrNoteToCase -Id $OutObject.CaseNumber -Text $TaxonomySummary
-            Start-Sleep .2
+            Start-Sleep $APISleep
             Write-Verbose "$(Get-Timestamp) - End - Add CaseTagTaxonomy"
         }
 
