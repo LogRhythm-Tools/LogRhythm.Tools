@@ -51,7 +51,7 @@ Function New-UrlScanRequest {
         $Me = $MyInvocation.MyCommand.Name
 
         $BaseUrl = $LrtConfig.UrlScan.BaseUrl
-        $UsPublic = $($LrtConfig.UrlScan.PublicScans).ToLower()
+        $UsPublic = $($LrtConfig.UrlScan.PublicScans).ToString().ToLower()
         $Token = $Credential.GetNetworkCredential().Password
     }
 
