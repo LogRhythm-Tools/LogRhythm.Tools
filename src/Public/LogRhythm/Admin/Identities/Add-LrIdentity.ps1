@@ -8,8 +8,6 @@ Function Add-LrIdentity {
         Add an Identity to TrueIdentity.
     .DESCRIPTION
         Add-LrIdentity returns an object containing the detailed results of the added Identity.
-    .PARAMETER Credential
-        PSCredential containing an API Token in the Password field.
     .PARAMETER EntityId
         Entity ID # for associating new TrueIdentity Identity record.
     .PARAMETER SyncName
@@ -30,6 +28,8 @@ Function Add-LrIdentity {
         Manager string value for the TrueIdentity record.
     .PARAMETER Company
         Company string value for the TrueIdentity record.
+    .PARAMETER Title
+        Title string value for the TrueIdentity record.
     .PARAMETER PhotoThumbnail
         Currently not supported.
     .PARAMETER Identifier1Value
@@ -62,14 +62,20 @@ Function Add-LrIdentity {
         Identifier 5's type.  
 
         Valid types: email, login, both
+    .PARAMETER PassThru
+        Switch paramater that will enable the return of the output object from the cmdlet.
+    .PARAMETER Credential
+        PSCredential containing an API Token in the Password field.
     .OUTPUTS
         PSCustomObject representing LogRhythm TrueIdentity Identity and its status.
     .EXAMPLE
-        PS C:\> Add-LrIdentity -EntityId 1 -NameFirst Eric -NameLast Hart -DisplayIdentifier Eric.Hart -Department "Customer Success" -Company "LogRhythm Inc." -Identifier1Value "eric.hart@logrhythm.com" -Identifier1Type "both"
+        PS C:\> Add-LrIdentity -EntityId 1 -NameFirst Eric -NameLast Hart -DisplayIdentifier Eric.Hart -Department "Customer Success" -Company "LogRhythm Inc." -Identifier1Value "eric.hart@logrhythm.com" -Identifier1Type "both" -PassThru
         ---
         vendorUniqueKey                          identityID identifierSourceAccountID
         ---------------                          ---------- -------------------------
         24638670afc7cd4e75fb8e107b223cd0680f6bae          7                         0
+    .EXAMPLE
+        PS C:\> Add-LrIdentity -EntityId 1 -NameFirst Jody -NameLast Hart -DisplayIdentifier Jody.Hart -Department "Success Customer" -Company "LogRhythm Inc." -Identifier1Value "jody.hart@mhtyhrgol.com" -Identifier1Type "both"
 
     .NOTES
         LogRhythm-API        
@@ -116,55 +122,63 @@ Function Add-LrIdentity {
 
 
         [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 9)]
-        [Byte] $PhotoThumbnail,
+        [string] $Title,
 
 
         [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 10)]
-        [string] $Identifier1Value,
+        [Byte] $PhotoThumbnail,
 
 
         [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 11)]
+        [string] $Identifier1Value,
+
+
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 12)]
         [ValidateSet('both','login', 'email', ignorecase=$true)]
         [string] $Identifier1Type = "both",
         
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 12)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 13)]
         [string] $Identifier2Value,
 
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 13)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 14)]
         [ValidateSet('both','login', 'email', ignorecase=$true)]
         [string] $Identifier2Type = "both",
 
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 14)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 15)]
         [string] $Identifier3Value,
 
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 15)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 16)]
         [ValidateSet('both','login', 'email', ignorecase=$true)]
         [string] $Identifier3Type = "both",
 
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 16)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 17)]
         [string] $Identifier4Value,
 
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 17)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 18)]
         [ValidateSet('both','login', 'email', ignorecase=$true)]
         [string] $Identifier4Type = "both",
 
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 18)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 19)]
         [string] $Identifier5Value,
 
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 19)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 20)]
         [ValidateSet('both','login', 'email', ignorecase=$true)]
         [string] $Identifier5Type = "both",
 
+                
+        [Parameter(Mandatory = $false, Position = 21)]
+        [switch] $PassThru,
 
-        [Parameter(Mandatory = $false, Position = 20)]
+
+        [Parameter(Mandatory = $false, Position = 22)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -200,6 +214,16 @@ Function Add-LrIdentity {
     }
 
     Process {
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Error                 =   $false
+            Note                  =   $null
+            Code                  =   $null
+            Type                  =   $null
+            NameFirst             =   $NameFirst
+            NameLast              =   $NameLast
+        }
+
          # Section - Build JSON Body - Begin
         $Accounts = [PSCustomObject]@{}
         # Photo Thumbnail - Optional - Add in ContentType validation
@@ -330,30 +354,36 @@ Function Add-LrIdentity {
         # Define Query URL
         $RequestUrl = $BaseUrl + "/identities/bulk/?entityID=" + $EntityId
 
-
-
         # Send Request
         if ($PSEdition -eq 'Core'){
             try {
                 $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents -SkipCertificateCheck
             }
             catch {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                return $ExceptionMessage
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Error = $true
+                $ErrorObject.Type = "System.Net.WebException"
+                $ErrorObject.Code = $($Err.statusCode)
+                $ErrorObject.Note = $($Err.message)
+                return $ErrorObject
             }
         } else {
             try {
                 $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
             }
             catch [System.Net.WebException] {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                return $ExceptionMessage
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Error = $true
+                $ErrorObject.Type = "System.Net.WebException"
+                $ErrorObject.Code = $($Err.statusCode)
+                $ErrorObject.Note = $($Err.message)
+                return $ErrorObject
             }
         }
 
-        return $Response
+        if ($PassThru) {
+            return $Response
+        }
     }
 
     End { }

@@ -24,6 +24,8 @@ Function New-LrList {
     .PARAMETER LoadListItems
         LoadListItems adds the Items property to the return of the PSCustomObject representing the 
         specified LogRhythm List when an item is successfully added.
+    .PARAMETER PassThru
+        Switch paramater that will enable the return of the output object from the cmdlet.
     .INPUTS
         [System.Object] -> Name
         [System.String] -> Value     The Value parameter can be provided via the PowerShell pipeline.
@@ -156,6 +158,7 @@ Function New-LrList {
 
 
         [Parameter(Mandatory = $false, Position = 13)]
+        [ValidateLength(3,200)]
         [string] $EntityName = "Primary Site",
 
 
@@ -174,8 +177,12 @@ Function New-LrList {
         [Parameter(Mandatory = $false, Position = 17)]
         [int64] $Owner = 0,
 
-
+                                
         [Parameter(Mandatory = $false, Position = 18)]
+        [switch] $PassThru,
+
+
+        [Parameter(Mandatory = $false, Position = 19)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -222,8 +229,6 @@ Function New-LrList {
                     $ListType = $Type
                 }
             }
-        } else {
-            Write-Host "List type must contian:`r`n$ListTypes"
         }
 
         $UseContexts = @("None", "Address", "DomainImpacted", "Group", "HostName", "Message", "Object", "Process", "Session", "Subject", "URL", "User", "VendorMsgID", "DomainOrigin", "Hash", "Policy", "VendorInfo", "Result", "ObjectType", "CVE", "UserAgent", "ParentProcessId", "ParentProcessName", "ParentProcessPath", "SerialNumber", "Reason", "Status", "ThreatId", "ThreatName", "SessionType", "Action", "ResponseCode")
@@ -246,8 +251,6 @@ Function New-LrList {
                     }
                 }
             }
-        } else {
-            Write-Host "List type must contian:`r`n$UseContexts"
         }
 
         $ReadAccessLevels = @("Private", "PublicAll", "PublicGlobalAdmin", "PublicGlobalAnalyst", "PublicRestrictedAnalyst", "PublicRestrictedAdmin")
@@ -258,8 +261,6 @@ Function New-LrList {
                     $ReadAccess = $AccessLevel
                 }
             }
-        } else {
-            Write-Host "ReadAccessLevel must contain one of:`r`n$ReadAccessLevels"
         }
 
         $WriteAccessLevels = @("Private", "PublicAll", "PublicGlobalAdmin", "PublicGlobalAnalyst", "PublicRestrictedAnalyst", "PublicRestrictedAdmin")
@@ -270,12 +271,6 @@ Function New-LrList {
                     $WriteAccess = $AccessLevel
                 }
             }
-        } else {
-            Write-Host "ReadAccessLevel must contain one of:`r`n$ReadAccessLevels"
-        }
-
-        if ($EntityName.length -gt 200) {
-            Write-Host "Entity name must be <= 200 characters."
         }
     }
 
@@ -348,7 +343,13 @@ Function New-LrList {
             }
         }
         
-        return $Response
+        # Return output object
+        if ($ErrorObject.Error -eq $true) {
+            return $ErrorObject
+        }
+        if ($PassThru) {
+            return $Response
+        }
     }
     
     End { }

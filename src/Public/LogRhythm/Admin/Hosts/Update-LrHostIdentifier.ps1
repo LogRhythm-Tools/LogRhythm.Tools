@@ -21,6 +21,8 @@ Function Update-LrHostIdentifier {
         [System.String] Parameter for specifying a new identifier value.
         
         Max length: 50 characters
+    .PARAMETER PassThru
+        Switch paramater that will enable the return of the output object from the cmdlet.
     .OUTPUTS
         Confirmation string returned as result.
         "Identifiers added"
@@ -29,13 +31,12 @@ Function Update-LrHostIdentifier {
         ---
         Identifiers added
     .EXAMPLE
-        PS C:\> Update-LrHostIdentifier -Id 3 -Type ipaddress -Value 192.168.2.4
+        PS C:\> Update-LrHostIdentifier -Id 3 -Type ipaddress -Value 192.168.2.4 -PassThru
         ---
         Identifiers added
     .EXAMPLE
         PS C:\> Update-LrHostIdentifier -Id "Myexistinghost" -Type dnsname -Value mycoolhost.mydomain.com
-        ---
-        Identifiers added
+
     .NOTES
         LogRhythm-API        
     .LINK
@@ -56,8 +57,12 @@ Function Update-LrHostIdentifier {
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true,  Position = 2)]
         [string] $Value,
 
-
+                
         [Parameter(Mandatory = $false, Position = 3)]
+        [switch] $PassThru,
+
+
+        [Parameter(Mandatory = $false, Position = 4)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -107,7 +112,9 @@ Function Update-LrHostIdentifier {
             Write-Verbose "[$Me]: Id does not parse as integer.  Performing string lookup."
             $HostLookup = Get-LrHosts -Name $Id -Exact
             if (!$HostLookup) {
-                return "[$Me]: Unable to identify host record with exact match to string: $Id."
+                $ErrorObject.Error = $true
+                $ErrorObject.Code = 404
+                $ErrorObject.Note = "Unable to identify host record with exact match to string: $Id."
             } else {
                 [int32] $Guid = $HostLookup | Select-Object -ExpandProperty id 
             }
@@ -133,7 +140,9 @@ Function Update-LrHostIdentifier {
                     $_type = "WindowsName"
                 }
             } else {
-                throw [ArgumentException] "RecordStatus [$Type] must be: ipaddress, dnsname, or windowsname"
+                $ErrorObject.Error = $true
+                $ErrorObject.Note = "RecordStatus [$Type] must be: ipaddress, dnsname, or windowsname"
+                return $ErrorObject
             }
         }
 
@@ -181,20 +190,11 @@ Function Update-LrHostIdentifier {
             }
         }
         
-        #>
-        # [Exact] Parameter
-        # Search "Malware" normally returns both "Malware" and "Malware Options"
-        # This would only return "Malware"
-        if ($Exact) {
-            $Pattern = "^$Name$"
-            $Response | ForEach-Object {
-                if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
-                    Write-Verbose "[$Me]: Exact list name match found."
-                    $List = $_
-                    return $List
-                }
-            }
-        } else {
+        # Return output object
+        if ($ErrorObject.Error -eq $true) {
+            return $ErrorObject
+        }
+        if ($PassThru) {
             return $Response
         }
     }

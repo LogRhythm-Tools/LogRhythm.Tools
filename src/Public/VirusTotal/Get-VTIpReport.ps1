@@ -136,8 +136,7 @@ Function Get-VTIPReport {
             $vtResponse = Invoke-RestMethod $RequestUrl -Method $Method 
         }
         catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+            return $_
         }
     }
  

@@ -1,7 +1,7 @@
 using namespace System
 using namespace System.Collections.Generic
 
-Function Add-UrlScanRequest {
+Function New-UrlScanRequest {
     <#
     .SYNOPSIS
         Submit a URL to the UrlScan.io
@@ -51,7 +51,7 @@ Function Add-UrlScanRequest {
         $Me = $MyInvocation.MyCommand.Name
 
         $BaseUrl = $LrtConfig.UrlScan.BaseUrl
-        $UsPublic = $($LrtConfig.UrlScan.PublicScans).ToLower()
+        $UsPublic = $($LrtConfig.UrlScan.PublicScans).ToString().ToLower()
         $Token = $Credential.GetNetworkCredential().Password
     }
 

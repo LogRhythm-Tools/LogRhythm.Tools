@@ -24,6 +24,8 @@ Function Add-LrListItem {
     .PARAMETER LoadListItems
         LoadListItems adds the Items property to the return of the PSCustomObject representing the 
         specified LogRhythm List when an item is successfully added.
+    .PARAMETER PassThru
+        Switch paramater that will enable the return of the output object from the cmdlet.
     .INPUTS
         [System.Object] -> Name
         [System.String[array]] -> Value     The Value parameter can be provided via the PowerShell pipeline.  This value can be an array of values.
@@ -35,7 +37,7 @@ Function Add-LrListItem {
         If a Value parameter error is identified, a PSCustomObject is returned providing details
         associated to the error.
     .EXAMPLE
-        PS C:\> Add-LrListItem -Name srfIP -Value 192.168.5.20
+        PS C:\> Add-LrListItem -Name srfIP -Value 192.168.5.20 -PassThru
         ----
         listType         : IP
         status           : Active
@@ -56,7 +58,7 @@ Function Add-LrListItem {
         doesExpire       : False
         owner            : 206
         listItemsCount   : 0
-
+    .EXAMPLE
         PS C:\> Add-LrListItem -Name srfIP -Value 192.168.5.1
         ----
         Error            : True
@@ -68,6 +70,9 @@ Function Add-LrListItem {
         ListGuid         : 81059751-823E-4F5B-87BE-FEFFF1708E5E
         ListName         : srfIP
         FieldType        : IP
+    .EXAMPLE
+        PS C:\> Add-LrListItem -Name srfIP -Value 192.168.5.16
+        
     .NOTES
         LogRhythm-API        
     .LINK
@@ -92,8 +97,12 @@ Function Add-LrListItem {
         [Parameter(Mandatory = $false, Position = 3)]
         [switch] $LoadListItems,
 
-
+                        
         [Parameter(Mandatory = $false, Position = 4)]
+        [switch] $PassThru,
+
+
+        [Parameter(Mandatory = $false, Position = 5)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -135,22 +144,41 @@ Function Add-LrListItem {
             FieldType             =   $null
         }
 
-        # Process Identity Object
+        # Process Name
         if (($Name.GetType() -eq [System.Guid]) -Or (Test-Guid $Name)) {
-            $Guid = $Name.ToString()
-            $ErrorObject.ListName = (Get-LrList -Name $Guid | Select-Object -ExpandProperty Name)
-            $ErrorObject.ListGuid = $Guid
+            $TargetList = Get-LrList -name $Name.ToString()
+            if ($TargetList.Error -eq $true) {
+                $ErrorObject.Error = $true
+                $ErrorObject.ListName = $TargetList.Name
+                $ErrorObject.ListGuid = $TargetList.Guid
+                $ErrorObject.Note = $TargetList.Note
+                return $ErrorObject
+            }
         } else {
-            $Guid = Get-LRListGuidByName -Name $Name.ToString() -Exact
-            if ($Guid -is [array]) {
-                throw [Exception] "Get-LrListGuidbyName returned an array of GUID.  Provide specific List Name."
-            } else {
-                $LrListDetails = Get-LrList -Name $Guid
-                $LrListType = $LrListDetails.ListType
+            $TargetList = Get-LrList -Name $Name.ToString() -Exact
+            if ($TargetList -is [array]) {
+                $ErrorObject.Error = $true
                 $ErrorObject.ListName = $Name.ToString()
                 $ErrorObject.ListGuid = $Guid
+                $ErrorObject.Note = "List lookup returned an array of values.  Ensure the list referenced is unique."
+                return $ErrorObject
+            } elseif ($TargetList.Error -eq $true) {
+                $ErrorObject.Error = $true
+                $ErrorObject.ListName = $TargetList.Name
+                $ErrorObject.ListGuid = $TargetList.Guid
+                $ErrorObject.Note = $TargetList.Note
+                return $ErrorObject
             }
         }
+
+        # Set List Type
+        $LrListType = $TargetList.listType
+
+        # List Guid
+        $ListGuid = $TargetList.Guid
+
+        # Set HTTP Request URL
+        $RequestUrl = $BaseUrl + "/lists/$ListGuid/items/"
 
         # Map listItemDataType
         switch ($LrListType) {
@@ -437,10 +465,7 @@ Function Add-LrListItem {
 
         #$ExpDate = (Get-Date).AddDays(7).ToString("yyyy-MM-dd")
 
-        # Request Setup
-        $Method = $HttpMethod.Post
-        $RequestUrl = $BaseUrl + "/lists/$Guid/items/"
-
+        # Stage Post Body for Array
         if ($Value -is [array]) {
             $Items = [list[object]]::new()
             $ItemValues = [PSCustomObject]@{}
@@ -548,7 +573,15 @@ Function Add-LrListItem {
                 return $ErrorObject
             }
         }  
-        return $Response
+
+
+        # Return output object
+        if ($ErrorObject.Error -eq $true) {
+            return $ErrorObject
+        }
+        if ($PassThru) {
+            return $Response
+        }
     }
     
     End { }

@@ -72,10 +72,12 @@ Function Update-LrHost {
         String description for OS Type.
 
         Valid entries: "Server" "Desktop" "None"
+    .PARAMETER PassThru
+        Switch paramater that will enable the return of the output object from the cmdlet.
     .OUTPUTS
         PSCustomObject representing LogRhythm Host and its contents.
     .EXAMPLE
-        PS C:\> Update-LrHost -Id 2 -Name "WINdows-A10PJE5DII3.brew.bad" -RiskLevel "high-high"
+        PS C:\> Update-LrHost -Id 2 -Name "WINdows-A10PJE5DII3.brew.bad" -RiskLevel "high-high" -PassThru
 
         id                     : 2
         entity                 : @{id=1; name=Primary Site}
@@ -92,7 +94,7 @@ Function Update-LrHost {
         osType                 : Server
         dateUpdated            : 2020-06-18T22:52:26.283Z
     .EXAMPLE
-        PS C:\> Update-LrHost -Id "Mynewhost" -Entity "Primary Site" -Name "Mynewerhost" -ShortDesc "This is the short desc." -LongDesc "This is the killer long description for this host." -Zone "internal" -OS "Windows" -OSVersion "2008r2" -OSType "Server" -Verbose
+        PS C:\> Update-LrHost -Id "Mynewhost" -Entity "Primary Site" -Name "Mynewerhost" -ShortDesc "This is the short desc." -LongDesc "This is the killer long description for this host." -Zone "internal" -OS "Windows" -OSVersion "2008r2" -OSType "Server" -PassThru
         ---
         id                     : 3
         entity                 : @{id=1; name=Primary Site}
@@ -112,21 +114,7 @@ Function Update-LrHost {
         dateUpdated            : 6/18/2020 9:00:35 PM
     .EXAMPLE
         PS C:\> Update-LrHost -Id "WIN-A10PJE5DII3" -Name "WIN-A10PJE5DII3.brew.bad" -RiskLevel "high-high"
-        ---
-        id                     : 2
-        entity                 : @{id=1; name=Primary Site}
-        name                   : WIN-A10PJE5DII3.brew.bad
-        riskLevel              : High-High
-        threatLevel            : None
-        threatLevelComments    :
-        recordStatusName       : Active
-        hostZone               : Internal
-        location               : @{id=-1}
-        os                     : Windows
-        osVersion              : Microsoft Windows NT 10.0.14393.0
-        useEventlogCredentials : False
-        osType                 : Server
-        dateUpdated            : 2020-06-18T22:50:54.367Z
+        
     .NOTES
         LogRhythm-API        
     .LINK
@@ -242,8 +230,12 @@ Function Update-LrHost {
         [ValidateSet('server','none','desktop', ignorecase=$true)]
         [string] $OSType = "server",
 
-
+        
         [Parameter(Mandatory = $false, Position = 16)]
+        [switch] $PassThru,
+
+
+        [Parameter(Mandatory = $false, Position = 17)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -293,7 +285,10 @@ Function Update-LrHost {
             Write-Verbose "[$Me]: Id does not parse as integer.  Performing string lookup."
             $OriginHostRecord = Get-LrHosts -Name $Id -Exact
             if (!$OriginHostRecord) {
-
+                $ErrorObject.Error = $true
+                $ErrorObject.Code = 404
+                $ErrorObject.Note = "Unable to identify host record with exact match to string: $Id."
+                return $ErrorObject
             } else {
                 [int32] $Guid = $OriginHostRecord | Select-Object -ExpandProperty id 
             }
@@ -418,7 +413,9 @@ Function Update-LrHost {
             if ($ValidStatus.Contains($($RecordStatus.ToLower()))) {
                 $_recordStatus = (Get-Culture).TextInfo.ToTitleCase($RecordStatus)
             } else {
-                throw [ArgumentException] "RecordStatus [$RecordStatus] must be: all, active, or retired."
+                $ErrorObject.Error = $true
+                $ErrorObject.Note = "RecordStatus [$RecordStatus] must be: all, active, or retired."
+                return $ErrorObject
             }
         } else {
             $Recordstatus = $OriginHostRecord.recordStatusName
@@ -430,7 +427,9 @@ Function Update-LrHost {
             if ($ValidStatus.Contains($($RiskLevel.ToLower()))) {
                 $_riskLevel = (Get-Culture).TextInfo.ToTitleCase($RiskLevel)
             } else {
-                throw [ArgumentException] "RiskLevel [$RiskLevel] must be: none, low-low, low-medium, low-high, medium-low, medium-medium, medium-high, high-low, high-medium, high-high"
+                $ErrorObject.Error = $true
+                $ErrorObject.Note = "RiskLevel [$RiskLevel] must be: none, low-low, low-medium, low-high, medium-low, medium-medium, medium-high, high-low, high-medium, high-high"
+                return $ErrorObject
             }
         } else {
             $_riskLevel = $OriginHostRecord.riskLevel
@@ -442,7 +441,9 @@ Function Update-LrHost {
             if ($ValidStatus.Contains($($ThreatLevel.ToLower()))) {
                 $_threatLevel = (Get-Culture).TextInfo.ToTitleCase($ThreatLevel)
             } else {
-                throw [ArgumentException] "ThreatLevel [$ThreatLevel] must be: none, low-low, low-medium, low-high, medium-low, medium-medium, medium-high, high-low, high-medium, high-high"
+                $ErrorObject.Error = $true
+                $ErrorObject.Note = "ThreatLevel [$ThreatLevel] must be: none, low-low, low-medium, low-high, medium-low, medium-medium, medium-high, high-low, high-medium, high-high"
+                return $ErrorObject
             }
         } else {
             $_threatLevel = $OriginHostRecord.threatLevel
@@ -465,7 +466,9 @@ Function Update-LrHost {
                     $_zone = (Get-Culture).TextInfo.ToTitleCase($Zone)
                 }
             } else {
-                throw [ArgumentException] "Zone [$Zone] must be: unknown, dmz, external"
+                $ErrorObject.Error = $true
+                $ErrorObject.Note = "Zone [$Zone] must be: unknown, dmz, external"
+                return $ErrorObject
             }
         } else {
             $_zone = $OriginHostRecord.hostZone
@@ -496,7 +499,9 @@ Function Update-LrHost {
                     default { $_os = "Unknown" }
                 }
             } else {
-                throw [ArgumentException] "OS [$Os] must be: "
+                $ErrorObject.Error = $true
+                $ErrorObject.Note = "OS Type [$Os] must be: unknown, other, windowsnt4, windows2000professional, windows2000server, windows2003standard, windows2003enterprise, windows95, windowsxp, windowsvista, linux, solaris, aix, hpux, windows"
+                return $ErrorObject
             }
         } else {
             $_os = $OriginHostRecord.os
@@ -515,7 +520,9 @@ Function Update-LrHost {
             if ($ValidStatus.Contains($($OSType.ToLower()))) {
                 $_osType = (Get-Culture).TextInfo.ToTitleCase($OSType)
             } else {
-                throw [ArgumentException] "OS Type [$OSType] must be: server, none, or desktop"
+                $ErrorObject.Error = $true
+                $ErrorObject.Note = "OS Type [$OSType] must be: server, none, or desktop"
+                return $ErrorObject
             }
         } else {
             $_osType = $OriginHostRecord.osType
@@ -586,20 +593,11 @@ Function Update-LrHost {
             }
         }
         
-        #>
-        # [Exact] Parameter
-        # Search "Malware" normally returns both "Malware" and "Malware Options"
-        # This would only return "Malware"
-        if ($Exact) {
-            $Pattern = "^$Name$"
-            $Response | ForEach-Object {
-                if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
-                    Write-Verbose "[$Me]: Exact list name match found."
-                    $List = $_
-                    return $List
-                }
-            }
-        } else {
+        # Return output object
+        if ($ErrorObject.Error -eq $true) {
+            return $ErrorObject
+        }
+        if ($PassThru) {
             return $Response
         }
     }

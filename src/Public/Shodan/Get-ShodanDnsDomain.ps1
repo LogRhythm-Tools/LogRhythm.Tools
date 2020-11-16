@@ -60,7 +60,6 @@
 
             # Query DNS and obtain domain IP address
             try {
-                Write-Host $RequestUrl
                 $shodanDNSResults = Invoke-RestMethod $RequestUrl
             } catch [System.Net.WebException] {
                 $Err = Get-RestErrorMessage $_

@@ -8,8 +8,6 @@ Function New-LrNetwork {
         Create a new Network entry for the LogRhythm Entity structure.
     .DESCRIPTION
         New-LrNetwork returns a full LogRhythm Host object, including details and list items.
-    .PARAMETER Credential
-        PSCredential containing an API Token in the Password field.
     .PARAMETER Entity
         Parameter for specifying the existing LogRhythm Entity for the new Network record to be set to.  
         This parameter can be provided either Entity Name or Entity Id but not both.
@@ -65,6 +63,10 @@ Function New-LrNetwork {
 
         For LogRhythm Versions 7.5.X and greater the lookup is performed via API.
         For LogRhythm Versions 7.4.X the lookup is performed via a local locations csv contained within LogRhyhtm.Tools.
+    .PARAMETER PassThru
+        Switch paramater that will enable the return of the output object from the cmdlet.
+    .PARAMETER Credential
+        PSCredential containing an API Token in the Password field.
     .INPUTS
         [System.String]    -> Name
         [System.String]    -> Entity
@@ -84,7 +86,7 @@ Function New-LrNetwork {
     .OUTPUTS
         PSCustomObject representing the new LogRhythm Network and its contents.
     .EXAMPLE
-        PS C:\> New-LrNetwork -name "DMZ Alpha" -Zone "dmz" -ShortDesc "Mature development applications for external testing." -RiskLevel "medium-medium" -ThreatLevel "medium-high" -ThreatLevelComment "Due to the development nature of the services in this zone the level has been elevated from our default DMZ value." -Bip 10.54.54.0 -Eip 10.54.54.255 -Entity "Secondary Site"
+        PS C:\> New-LrNetwork -name "DMZ Alpha" -Zone "dmz" -ShortDesc "Mature development applications for external testing." -RiskLevel "medium-medium" -ThreatLevel "medium-high" -ThreatLevelComment "Due to the development nature of the services in this zone the level has been elevated from our default DMZ value." -Bip 10.54.54.0 -Eip 10.54.54.255 -Entity "Secondary Site" -PassThru
         ---
         entity             : @{id=5; name=Secondary Site}
         name               : DMZ Alpha
@@ -100,7 +102,7 @@ Function New-LrNetwork {
         dateUpdated        : 2020-07-23T12:56:32.087Z
         id                 : 6
     .EXAMPLE
-        New-LrNetwork -name "DMZ Bravo" -Zone "dmz" -ShortDesc "Mature development applications for external testing." -RiskLevel "medium-medium" -ThreatLevel "medium-high" -ThreatLevelComment "Due to the development nature of the services in this zone the level has been elevated from our default DMZ value." -Bip 10.55.55.0 -Eip 10.55.55.255 -Entity "Secondary Site" -Location "Spartanburg" -LocationLookup
+        New-LrNetwork -name "DMZ Bravo" -Zone "dmz" -ShortDesc "Mature development applications for external testing." -RiskLevel "medium-medium" -ThreatLevel "medium-high" -ThreatLevelComment "Due to the development nature of the services in this zone the level has been elevated from our default DMZ value." -Bip 10.55.55.0 -Eip 10.55.55.255 -Entity "Secondary Site" -Location "Spartanburg" -LocationLookup -PassThru
         ---
         entity             : @{id=5; name=Secondary Site}
         name               : DMZ Bravo
@@ -116,7 +118,7 @@ Function New-LrNetwork {
         dateUpdated        : 2020-07-23T12:58:34.487Z
         id                 : 7
     .EXAMPLE
-        PS C:\> New-LrNetwork -name "DMZ Alpha" -Zone "dmz" -ShortDesc "Mature development applications for external testing." -RiskLevel "medium-medium" -ThreatLevel "medium-high" -ThreatLevelComment "Due to the development nature of the services in this zone the level has been elevated from our default DMZ value." -Bip 10.54.54.0 -Eip 10.54.54.255
+        PS C:\> New-LrNetwork -name "DMZ Alpha" -Zone "dmz" -ShortDesc "Mature development applications for external testing." -RiskLevel "medium-medium" -ThreatLevel "medium-high" -ThreatLevelComment "Due to the development nature of the services in this zone the level has been elevated from our default DMZ value." -Bip 10.54.54.0 -Eip 10.54.54.255 -PassThru
         ---
         Code  : 400
         Error : True
@@ -132,7 +134,7 @@ Function New-LrNetwork {
         Note  : Unable to locate exact Entity: Secondary
         Value : DMZ Alpha
     .EXAMPLE
-        New-LrNetwork -name "DMZ Bravo" -Zone "dmz" -ShortDesc "Mature development applications for external testing." -RiskLevel "medium-medium" -ThreatLevel "medium-high" -ThreatLevelComment "Due to the development nature of the services in this zone the level has been elevated from our default DMZ value." -Bip 10.54.54.0 -Eip 10.54.54.255 -Entity "Secondary Site"
+        New-LrNetwork -name "DMZ Bravo" -Zone "dmz" -ShortDesc "Mature development applications for external testing." -RiskLevel "medium-medium" -ThreatLevel "medium-high" -ThreatLevelComment "Due to the development nature of the services in this zone the level has been elevated from our default DMZ value." -Bip 10.54.54.0 -Eip 10.54.54.255 -Entity "Secondary Site" -PassThru
         ---
         Code  : 400
         Error : True
@@ -226,8 +228,12 @@ Function New-LrNetwork {
         [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 12)]
         [ipaddress]$Eip,
 
-
+                        
         [Parameter(Mandatory = $false, Position = 13)]
+        [switch] $PassThru,
+
+
+        [Parameter(Mandatory = $false, Position = 14)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -465,20 +471,11 @@ Function New-LrNetwork {
             }
         }
         
-        #>
-        # [Exact] Parameter
-        # Search "Malware" normally returns both "Malware" and "Malware Options"
-        # This would only return "Malware"
-        if ($Exact) {
-            $Pattern = "^$Name$"
-            $Response | ForEach-Object {
-                if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
-                    Write-Verbose "[$Me]: Exact list name match found."
-                    $List = $_
-                    return $List
-                }
-            }
-        } else {
+        # Return output object
+        if ($ErrorObject.Error -eq $true) {
+            return $ErrorObject
+        }
+        if ($PassThru) {
             return $Response
         }
     }

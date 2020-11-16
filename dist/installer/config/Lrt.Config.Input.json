@@ -68,9 +68,9 @@
             },
     
             "DataIndexerIP": {
-                "Prompt": "Data Indexer IP Address",
+                "Prompt": "LogRhythm Data Indexer",
                 "Hint": "Hostname or IP (x.x.x.x)",
-                "InputCmd": "Get-InputIpAddress",
+                "InputCmd": "Get-InputApiUrl",
                 "FallThru": false
             },
     

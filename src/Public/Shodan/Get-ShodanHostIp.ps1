@@ -114,12 +114,8 @@ function Get-ShodanHostIp {
         [ValidateNotNullOrEmpty()]
         [string] $IPAddress,
 
-
-        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 1)]
-        [switch] $ValuesOnly,
-
-
-        [Parameter(Mandatory = $false, Position = 2)]
+        
+        [Parameter(Mandatory = $false, Position = 1)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.Shodan.ApiKey
     )

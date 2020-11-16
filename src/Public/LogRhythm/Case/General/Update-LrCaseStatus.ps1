@@ -82,7 +82,7 @@ Function Update-LrCaseStatus {
 
 
         [Parameter(Mandatory = $true, Position = 1)]
-        [ValidateNotNullOrEmpty()]
+        [ValidateSet('Created', 'Completed', 'Incident', 'Mitigated', 'Resolved', ignorecase=$true)]
         [string] $Status,
 
 

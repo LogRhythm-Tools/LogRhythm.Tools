@@ -24,6 +24,8 @@ Function Remove-LrListItem {
     .PARAMETER LoadListItems
         LoadListItems adds the Items property to the return of the PSCustomObject representing the 
         specified LogRhythm List when an item is successfully removed.
+    .PARAMETER PassThru
+        Switch paramater that will enable the return of the output object from the cmdlet.
     .INPUTS
         [System.Object] -> Name
         [System.String[array]] -> Value     The Value parameter can be provided via the PowerShell pipeline as single value or array of values.
@@ -34,7 +36,7 @@ Function Remove-LrListItem {
         If a Value parameter error is identified, a PSCustomObject is returned providing details
         associated to the error.
     .EXAMPLE
-        PS C:\> Remove-LrListItem -Name srfIP -Value 192.168.5.20
+        PS C:\> Remove-LrListItem -Name srfIP -Value 192.168.5.20 -PassThru
         ----
         listType         : IP
         status           : Active
@@ -71,6 +73,9 @@ Function Remove-LrListItem {
         ListGuid         : 81059751-823E-4F5B-87BE-FEFFF1708E5E
         ListName         : srfIP
         FieldType        : IP
+    .EXAMPLE
+        PS C:\> Remove-LrListItem -Name srfIP -Value 192.168.5.20
+
     .NOTES
         LogRhythm-API        
     .LINK
@@ -95,8 +100,12 @@ Function Remove-LrListItem {
         [Parameter(Mandatory = $false, Position = 3)]
         [switch] $LoadListItems,
 
-
+                                        
         [Parameter(Mandatory = $false, Position = 4)]
+        [switch] $PassThru,
+
+
+        [Parameter(Mandatory = $false, Position = 5)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -138,25 +147,38 @@ Function Remove-LrListItem {
             FieldType             =   $null
         }
 
-        # Process Identity Object
+        # Process Name
         if (($Name.GetType() -eq [System.Guid]) -Or (Test-Guid $Name)) {
-            $Guid = $Name.ToString()
-            $ErrorObject.ListName = (Get-LrList -Name $Guid | Select-Object -ExpandProperty Name)
-            $ErrorObject.ListGuid = $Guid
+            $TargetList = Get-LrList -name $Name.ToString()
+            if ($TargetList.Error -eq $true) {
+                $ErrorObject.Error = $true
+                $ErrorObject.ListName = $TargetList.Name
+                $ErrorObject.ListGuid = $TargetList.Guid
+                $ErrorObject.Note = $TargetList.Note
+                return $ErrorObject
+            }
         } else {
-            $Guid = Get-LRListGuidByName -Name $Name.ToString() -Exact
-            if ($Guid -is [array]) {
-                throw [Exception] "Get-LrListGuidbyName returned an array of GUID.  Provide specific List Name."
-            } else {
-                $LrListDetails = Get-LrList -Name $Guid
-                $LrListType = $LrListDetails.ListType
+            $TargetList = Get-LrList -Name $Name.ToString() -Exact
+            if ($TargetList -is [array]) {
+                $ErrorObject.Error = $true
                 $ErrorObject.ListName = $Name.ToString()
-                $ErrorObject.ListGuid = $Guid
+                $ErrorObject.ListGuid = $TargetList.Guid
+                $ErrorObject.Note = "List lookup returned an array of values.  Ensure the list referenced is unique."
+                return $ErrorObject
+            } elseif ($TargetList.Error -eq $true) {
+                $ErrorObject.Error = $true
+                $ErrorObject.ListName = $TargetList.Name
+                $ErrorObject.ListGuid = $TargetList.Guid
+                $ErrorObject.Note = $TargetList.Note
+                return $ErrorObject
             }
         }
 
-        # Set HTTP Request URL
-        $RequestUrl = $BaseUrl + "/lists/$Guid/items/"
+        # Set List Type
+        $LrListType = $TargetList.listType
+
+        # List Guid
+        $ListGuid = $TargetList.Guid
 
         # Map listItemDataType
         switch ($LrListType) {
@@ -462,7 +484,8 @@ Function Remove-LrListItem {
             if ($ItemValues.length -gt 1000) {
                 #Split Items into multiple body contents
                 # TO DO
-                Write-Host "Over 1000 items submitted.  Currently not supported."
+                $ErrorObject.Error = $true
+                $ErrorObject.Note = "Over 1000 items submitted.  Currently not supported."
             } else {
                 # Establish Body Contents
                 $BodyContents = $ItemValues
@@ -485,9 +508,13 @@ Function Remove-LrListItem {
             }
         }
         
-
+        # Set Request Body
         $Body = $BodyContents | ConvertTo-Json -Depth 5 -Compress
         Write-Verbose "[$Me] Request Body:`n$Body"
+
+        # Set HTTP Request URL
+        $RequestUrl = $BaseUrl + "/lists/$ListGuid/items/"
+
 
         # Check for Object Errors
         if ( $ErrorObject.Error -eq $true) {
@@ -516,7 +543,7 @@ Function Remove-LrListItem {
             }
         } else {
             # Check for Duplicates for single items
-            $ExistingValue = Test-LrListValue -Name $Guid -Value $Value
+            $ExistingValue = Test-LrListValue -Name $ListGuid -Value $Value
             if (($ExistingValue.IsPresent -eq $false) -and ($ExistingValue.ListValid -eq $true)) {
                 # Send Request
                 if ($PSEdition -eq 'Core'){
@@ -547,7 +574,14 @@ Function Remove-LrListItem {
                 return $ErrorObject
             }
         }  
-        return $Response
+
+        # Return output object
+        if ($ErrorObject.Error -eq $true) {
+            return $ErrorObject
+        }
+        if ($PassThru) {
+            return $Response
+        }
     }
     
     End { }

@@ -1,7 +1,7 @@
 using namespace System
 using namespace System.Collections.Generic
 
-Function Get-UrlScanResults {
+Function Get-UrlScanReport {
     <#
     .SYNOPSIS
         Get a URL Report from a UrlScan.io scan
@@ -58,7 +58,7 @@ Function Get-UrlScanResults {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
 
-        $BaseUrl = $SrfPreferences.UrlScan.BaseUrl
+        $BaseUrl = $LrtConfig.UrlScan.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
     }
 
@@ -78,8 +78,7 @@ Function Get-UrlScanResults {
             $Response = Invoke-RestMethod $RequestUrl -Method $Method -Headers $Headers -Body $Body
         }
         catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+            return $_
         }
 
         Return $Response

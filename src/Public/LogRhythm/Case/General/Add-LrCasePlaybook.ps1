@@ -58,6 +58,10 @@ Function Add-LrCasePlaybook {
         [Parameter( Mandatory = $true, Position = 1)]
         [ValidateNotNullOrEmpty()]
         [string] $Playbook,
+        
+        
+        [Parameter(Mandatory = $false, Position = 2)]
+        [switch] $PassThru,
 
 
         [Parameter(Mandatory = $false, Position = 2)]
@@ -140,7 +144,10 @@ Function Add-LrCasePlaybook {
             }
         }
 
-        return $Response
+        # Only return the case if PassThru was requested.
+        if ($PassThru) {
+            return $Response    
+        }
     }
 
 

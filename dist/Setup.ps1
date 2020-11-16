@@ -170,7 +170,7 @@ foreach($ConfigCategory in $LrtConfigInput.PSObject.Properties) {
                 # $Response = Read-Host -Prompt "  > $($ConfigField.Value.Prompt) [$OldValue]"   #<-- Old value displayed.  Holding off on this.
                 $Response = Read-Host -Prompt "  > $($ConfigField.Value.Prompt)"
                 $Response = $Response.Trim()
-                $Response = Remove-SpecialChars -Value $Response -Allow @("-",".")
+                $Response = Remove-SpecialChars -Value $Response -Allow @("-",".",":")
             }
 
             # Break the loop on this field if no input (keep the same value)

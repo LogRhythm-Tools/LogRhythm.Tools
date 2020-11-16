@@ -8,8 +8,6 @@ Function Update-LrNetwork {
         Update a Network entry for the LogRhythm Entity structure.
     .DESCRIPTION
         Update-LrNetwork updates a Network Entity record.
-    .PARAMETER Credential
-        PSCredential containing an API Token in the Password field.
     .PARAMETER Id
         Parameter for specifying object to be updated.  A network record's Id value cannot be changed.
 
@@ -63,6 +61,10 @@ Function Update-LrNetwork {
 
         For LogRhythm Versions 7.5.X and greater the lookup is performed via API.
         For LogRhythm Versions 7.4.X the lookup is performed via a local locations csv contained within LogRhyhtm.Tools.
+    .PARAMETER PassThru
+        Switch paramater that will enable the return of the output object from the cmdlet.
+    .PARAMETER Credential
+        PSCredential containing an API Token in the Password field.
     .INPUTS
         [System.String]    -> Id
         [System.String]    -> Name
@@ -83,7 +85,7 @@ Function Update-LrNetwork {
     .OUTPUTS
         PSCustomObject representing LogRhythm Network Entity for the updated record.
     .EXAMPLE
-        PS C:\> Update-LrNetwork -Id 5 -Name "New Network" -Entity "Secondary Site" -ThreatLevel "medium-high" -EIP 10.77.21.255 -Zone dmz -RecordStatus active -ShortDesc "It's not really all that new." -LongDesc "This record was first created on January 5th 2007." -ThreatLevelComment "This comment describes the risks associated with this network if it were to be the origin of abnormal activity." -Location "Spartanburg" -LocationLookup
+        PS C:\> Update-LrNetwork -Id 5 -Name "New Network" -Entity "Secondary Site" -ThreatLevel "medium-high" -EIP 10.77.21.255 -Zone dmz -RecordStatus active -ShortDesc "It's not really all that new." -LongDesc "This record was first created on January 5th 2007." -ThreatLevelComment "This comment describes the risks associated with this network if it were to be the origin of abnormal activity." -Location "Spartanburg" -LocationLookup -PassThru
         ----
         entity             : @{id=5; name=Secondary Site}
         name               : New Network
@@ -100,7 +102,7 @@ Function Update-LrNetwork {
         dateUpdated        : 2020-07-23T11:54:09.643Z
         id                 : 5
     .EXAMPLE
-        PS C:\> Update-LrNetwork -Name "New Network" -BIP 10.77.18.0
+        PS C:\> Update-LrNetwork -Name "New Network" -BIP 10.77.18.0 -PassThru
         --- 
         entity             : @{id=5; name=Secondary Site}
         name               : New Network
@@ -117,7 +119,7 @@ Function Update-LrNetwork {
         dateUpdated        : 2020-07-23T11:55:37.247Z
         id                 : 5
     .EXAMPLE
-        PS C:\> Update-LrNetwork -Id 5 -Name "Older Network"
+        PS C:\> Update-LrNetwork -Id 5 -Name "Older Network" -PassThru
         ---
         entity             : @{id=5; name=Secondary Site}
         name               : Older Network
@@ -134,7 +136,7 @@ Function Update-LrNetwork {
         dateUpdated        : 2020-07-23T11:56:22.327Z
         id                 : 5
     .EXAMPLE
-        PS C:\> Update-LrNetwork -Name "Older Network" -Entity "Primary Site"
+        PS C:\> Update-LrNetwork -Name "Older Network" -Entity "Primary Site" -PassThru
         ---
         entity             : @{id=1; name=Primary Site}
         name               : Older Network
@@ -241,8 +243,12 @@ Function Update-LrNetwork {
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 14)]
         [ipaddress]$Eip,
 
-
+                                
         [Parameter(Mandatory = $false, Position = 15)]
+        [switch] $PassThru,
+
+
+        [Parameter(Mandatory = $false, Position = 16)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -575,7 +581,13 @@ Function Update-LrNetwork {
             }
         }
 
-        return $Response
+        # Return output object
+        if ($ErrorObject.Error -eq $true) {
+            return $ErrorObject
+        }
+        if ($PassThru) {
+            return $Response
+        }
     }
 
     End { }

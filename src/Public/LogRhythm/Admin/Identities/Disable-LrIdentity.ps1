@@ -12,10 +12,12 @@ Function Disable-LrIdentity {
         PSCredential containing an API Token in the Password field.
     .PARAMETER IdentityId
         Unique Identifier ID # for a TrueID record.
+    .PARAMETER PassThru
+        Switch paramater that will enable the return of the output object from the cmdlet.
     .OUTPUTS
         PSCustomObject representing LogRhythm TrueIdentity Identity and its retirement status.
     .EXAMPLE
-        PS C:\> Disable-LrIdentity -IdentityId 11
+        PS C:\> Disable-LrIdentity -IdentityId 11 -PassThru
         ---
         identityID        : 11
         nameFirst         : Marcus
@@ -35,6 +37,8 @@ Function Disable-LrIdentity {
                             recordStatus=Active; source=}, @{identifierID=42; identifierType=Login; value=marcus.burnett_sup; recordStatus=Active; source=}, @{identifierID=43; identifierType=Email;
                             value=marcus.burnett@contoso.com; recordStatus=Active; source=}}
         groups            : {@{name=Domain Admins}}
+    .EXAMPLE
+        PS C:\> Disable-LrIdentity -IdentityId 12
 
     .NOTES
         LogRhythm-API        
@@ -47,8 +51,12 @@ Function Disable-LrIdentity {
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
         [long] $IdentityId,
 
-
+                        
         [Parameter(Mandatory = $false, Position = 1)]
+        [switch] $PassThru,
+
+
+        [Parameter(Mandatory = $false, Position = 2)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -99,7 +107,9 @@ Function Disable-LrIdentity {
             }
         }
 
-        return $Response
+        if ($PassThru) {
+            return $Response
+        }
     }
 
     End { }
