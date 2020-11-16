@@ -6,6 +6,8 @@ exhostwin02,172.16.1.3,,,exhostwin02.example.com,gbhostwin02.eu.example.com,,
 exhostwin03,172.16.1.4,172.16.22.5,199.55.12.15,exhostwin03.example.com,gbhostwin03.eu.example.com,extraavail1.pubdomain.example.com,External partner access portal 1
 #>
 
+Start-Transcript -Path "N:\Projects\git\SRF.Repo\LogRhythm.Tools\HostUpdate_$((Get-Date).tostring("yyyy-MM-dd_hh-mm-ss")).txt" -NoClobber
+
 #API sleep time between calls - Prevent API rate limit
 $APISleep = .2
 
@@ -15,19 +17,19 @@ $HostRecords = Import-Csv N:\Projects\git\SRF.Repo\LogRhythm.Tools\LR-FQDN-updat
 
 
 foreach ($HostRecord in $HostRecords) {
-    Write-Host "----- New Csv Entry -----"
+    Write-Host "$(Get-Timestamp) - Begin - Csv Entry"
     # Check if Network exists in LR Entity
     Write-Host "$(Get-Timestamp) - HostID Discovery via Hostname: $($HostRecord.Hostname)"
     $HostStatus = Get-LrHosts -HostIdentifier $($HostRecord.Hostname)
     Start-Sleep $APISleep
-    if ($HostStatus) {
+    if ($HostStatus.recordStatusName -like "active") {
         Write-Host "$(Get-Timestamp) - HostID Discovery: $($HostStatus.id)"
         $HostIdentifiers = $HostStatus.hostIdentifiers
 
         # Create variables containing values for specific identifier types
-        $HostIPv4Identifiers = $HostIdentifiers | Where-Object -Property type -like "IPAddress" | Select-Object -ExpandProperty value
-        $HostDNSIdentifiers = $HostIdentifiers | Where-Object -Property type -like "DNSName" | Select-Object -ExpandProperty value
-        $HostNameIdentifiers = $HostIdentifiers | Where-Object -Property type -like "WindowsName" | Select-Object -ExpandProperty value
+        $HostIPv4Identifiers = $HostIdentifiers | Where-Object -Property type -like "IPAddress" | Select-Object -ExpandProperty Value
+        $HostDNSIdentifiers = $HostIdentifiers | Where-Object -Property type -like "DNSName" | Select-Object -ExpandProperty Value
+        $HostNameIdentifiers = $HostIdentifiers | Where-Object -Property type -like "WindowsName" | Select-Object -ExpandProperty Value
 
         
         # Update a host record DNS entries
@@ -79,11 +81,12 @@ foreach ($HostRecord in $HostRecords) {
         # Update host ShortDesc if a value was provided.
         if ($HostRecord.ShortDesc.Length -gt 0) {
             Write-Host "$(Get-Timestamp) - Update Field - ShortDesc - HostID: $($HostStatus.id) Value: $($HostRecord.ShortDesc)"
-            Update-LrHost -Id $HostStatus.Id -ShortDesc $HostRecord.ShortDesc
+            $Response = Update-LrHost -Id $HostStatus.Id -ShortDesc $HostRecord.ShortDesc
         }
 
     } else {
         Write-Host "$(Get-Timestamp) - HostID Discovery: No record found."
     }
-    Write-Host "----- End Csv Entry -----"
+    Write-Host "$(Get-Timestamp) - End - Csv Entry"
 }
+Stop-Transcript
