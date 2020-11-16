@@ -146,14 +146,24 @@ Function Update-LrHostIdentifier {
             }
         }
 
-
-        # Establish JSON Body contents
-        $BodyContents = [PSCustomObject]@{
-            hostIdentifiers = @([PSCustomObject]@{
-                type = $_type
-                value = $Value
+        if ($LrtConfig.LogRhythm.Version -match '7\.4\.[0-6]') {
+            # Establish JSON Body contents
+            $BodyContents = @([PSCustomObject]@{
+                hostIdentifiers = @([PSCustomObject]@{
+                    type = $_type
+                    value = $Value
+                })
             })
+        } else {
+            # Establish JSON Body contents
+            $BodyContents = [PSCustomObject]@{
+                hostIdentifiers = @([PSCustomObject]@{
+                    type = $_type
+                    value = $Value
+                })
+            }
         }
+
 
         # Establish Body Contents
         $Body = $BodyContents | ConvertTo-Json
