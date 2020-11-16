@@ -249,6 +249,31 @@ foreach($ConfigCategory in $LrtConfigInput.PSObject.Properties) {
     }
     #endregion
 
+    #region: Credential Creation                                                                       
+    if ($ConfigCategory.Value.HasCredential) {
+
+        # Prompt for Username - no validation other than (length > 2 and < 101)
+        $Username = Confirm-StringPattern -Message "  > Please enter your Username" `
+            -Pattern "^.*$" `
+            -Hint 'Username is any letters, numbers and any of the following: "-",".","\", "@", "_"' `
+            -AllowChars @("-",".","\", "@", "_")
+
+        # Make sure Username is not empty, as it otherwise cause error
+        if ([string]::IsNullOrEmpty($Username.Value))
+        {
+            $Username.Value = $ConfigCategory.Name
+        }
+
+        # Create credential + username
+        $Result = Get-InputCredential `
+            -AppId $ConfigCategory.Name `
+            -AppName $ConfigCategory.Value.Name `
+            -Username $Username.Value `
+            -UserCredential
+
+    }
+    #endregion
+
 
 
     # Write Config

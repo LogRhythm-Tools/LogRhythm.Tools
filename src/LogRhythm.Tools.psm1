@@ -91,8 +91,9 @@ foreach ($include in $Includes.GetEnumerator()) {
 
 
 
-#region: Import API Keys                                                                 
+#region: Import API Keys and Credential (Username + Password)
 foreach($ConfigCategory in $LrtConfig.PSObject.Properties) {
+    # Import API Keys
     if($ConfigCategory.Value.PSObject.Properties.Name -eq "ApiKey") {
         $KeyFileName = $ConfigCategory.Name + ".ApiKey.xml"
         $KeyFile = [System.IO.FileInfo]::new("$ConfigDirPath\$KeyFileName")
@@ -103,9 +104,47 @@ foreach($ConfigCategory in $LrtConfig.PSObject.Properties) {
             Write-Verbose "[$($ConfigCategory.Name)]: API key not found"
         }
     }
+
+    # Credential
+    if($ConfigCategory.Value.PSObject.Properties.Name -eq "Credential") {
+        $KeyFileName = $ConfigCategory.Name + ".Credential.xml"
+        $KeyFile = [System.IO.FileInfo]::new("$ConfigDirPath\$KeyFileName")
+        if ($KeyFile.Exists) {
+            $LrtConfig.($ConfigCategory.Name).Credential = Import-Clixml -Path $KeyFile.FullName
+            Write-Verbose "[$($ConfigCategory.Name)]: Loaded Credential"
+        } else {
+            Write-Verbose "[$($ConfigCategory.Name)]: Credential not found"
+        }
+    }
 }
 #endregion
 
+#region: Bring Proxy settings to global:PSDefaultParameterValues 
+if ($LrtConfig.Proxy.Required -And ($LrtConfig.Proxy.Host.Length -gt 0)) {
+    # Proxy URL
+    $ProxyUrl = "http://{0}" -f $LrtConfig.Proxy.Host
+    if ($LrtConfig.Proxy.Port.Length -gt 0) {
+        $ProxyUrl += ":{0}" -f $LrtConfig.Proxy.Port
+    }
+    if (-Not $PSDefaultParameterValues.ContainsKey('Invoke-RestMethod:Proxy')) {
+        $PSDefaultParameterValues.Add('Invoke-RestMethod:Proxy', $ProxyUrl)
+    }
+    if (-Not $PSDefaultParameterValues.ContainsKey('Invoke-WebRequest:Proxy')) {
+        $PSDefaultParameterValues.Add('Invoke-WebRequest:Proxy', $ProxyUrl)
+    }
+
+    # Credential
+    if ($LrtConfig.Proxy.RequiresCredential -And ($LrtConfig.Proxy.Credential.GetType().Name -eq 'PSCredential')) {
+        if (-Not $PSDefaultParameterValues.ContainsKey('Invoke-RestMethod:ProxyCredential')) {
+            $PSDefaultParameterValues.Add('Invoke-RestMethod:ProxyCredential',$LrtConfig.Proxy.Credential)
+        }
+        if (-Not $PSDefaultParameterValues.ContainsKey('Invoke-WebRequest:ProxyCredential')) {
+            $PSDefaultParameterValues.Add('Invoke-WebRequest:ProxyCredential',$LrtConfig.Proxy.Credential)
+        }
+    }
+
+}
+#endregion
 
 
 #region: Export Module Members                                                           

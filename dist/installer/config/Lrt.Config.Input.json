@@ -15,6 +15,44 @@
         }
     },
 
+    "Proxy": {
+        "Name": "Proxy",
+        "Optional": false,
+        "Message": "",
+        "HasCredential": true,
+
+        "Fields": {
+            "Required": {
+                "Prompt": "Is a Proxy required for any Web (API) request?",
+                "Hint": "yes or no",
+                "InputCmd": "Get-InputYesNo",
+                "FallThru": false
+            },
+            "Host": {
+                "Prompt": "Proxy host",
+                "Hint": "Hostname or IP (x.x.x.x)",
+                "InputCmd": "Get-InputHostname",
+                "FallThru": false
+            },
+            "Port": {
+                "Prompt": "Proxy port",
+                "Hint": "Integer, typically 80 or 8080",
+                "InputCmd": "Get-StringPattern",
+                "FallThru": false,
+                "InputPattern": {
+                    "Pattern": "^\\d*$",
+                    "AllowChars": ""
+                }
+            },
+            "RequiresCredential": {
+                "Prompt": "Does the Proxy require any credential?",
+                "Hint": "yes or no",
+                "InputCmd": "Get-InputYesNo",
+                "FallThru": false
+            }
+        }
+    },
+
     "LogRhythm": {
         "Name": "LogRhythm",
         "Optional": false,
