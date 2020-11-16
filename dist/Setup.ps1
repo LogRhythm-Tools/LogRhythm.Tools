@@ -79,13 +79,16 @@ $ConfigInfo = New-LrtConfig
 # Import LogRhythm.Tools.json
 $LrtConfig = $ConfigInfo.Config
 
+# Import Previous LogRhythm.Tools config
+$PreviousLrtConfig = $ConfigInfo.LastConfig | ConvertFrom-Json
+
 # Import Setup input configuration
 $LrtConfigInput = Get-Content -Path (Join-Path $LrtInstallerPath "config\Lrt.Config.Input.json") -Raw | ConvertFrom-Json
+
 
 # Import ModuleInfo
 $ModuleInfo = Get-Content -Path "$PSScriptRoot\ModuleInfo.json" | ConvertFrom-Json
 #endregion
-
 
 
 #region: STOP - Banner Time.                                                                       
@@ -160,7 +163,12 @@ foreach($ConfigCategory in $LrtConfigInput.PSObject.Properties) {
         while (! $ResponseOk) {
 
             # Exiting Value for this field
-            $OldValue = $LrtConfig.($ConfigCategory.Name).($ConfigField.Name)
+            if ($PreviousLrtConfig) {
+                $OldValue = $PreviousLrtConfig.($ConfigCategory.Name).($ConfigField.Name)
+            } else {
+                $OldValue = $LrtConfig.($ConfigCategory.Name).($ConfigField.Name)
+            }
+            
 
             # Use previous field's response if this field is marked as FallThru
             if ($ConfigField.Value.FallThru) {
@@ -185,6 +193,7 @@ foreach($ConfigCategory in $LrtConfigInput.PSObject.Properties) {
             # If we are using Get-StringPattern, run that. 
             if ($ConfigField.Value.InputCmd -match "Get-StringPattern") {
                 Write-Verbose "Validation: Get-StringPattern"
+                Write-Verbose "Old Value: $OldValue"
                 $Result = Get-StringPattern `
                     -Value $Response `
                     -OldValue $OldValue `
@@ -192,18 +201,19 @@ foreach($ConfigCategory in $LrtConfigInput.PSObject.Properties) {
                     -AllowChars $ConfigField.Value.InputPattern.AllowChars
             } else {
                 # Otherwise invoke the command requested with common parameters.
+                Write-Verbose "Old Value: $OldValue"
                 $cmd = $ConfigField.Value.InputCmd +`
                     " -Value `"" + $Response + "`"" + `
                     " -OldValue `"" + $OldValue + "`""
                     Write-Verbose "Validation: $cmd"
 
-                $Result = Invoke-Expression $cmd
+                $Result = Invoke-Expression $cmd -Verbose
             }
 
 
             # Input OK - Update configuration object
             if ($Result.Valid) {
-                Write-Verbose "Previous Value: $($LrtConfig.($ConfigCategory.Name).($ConfigField.Name))"
+                Write-Verbose "Previous Value: $($PreviousLrtConfig.($ConfigCategory.Name).($ConfigField.Name))"
                 Write-Verbose "New Value: $($Result.Value)"
                 $ResponseOk = $true
                 $LrtConfig.($ConfigCategory.Name).($ConfigField.Name) = $Result.Value
@@ -278,7 +288,7 @@ foreach($ConfigCategory in $LrtConfigInput.PSObject.Properties) {
 
     # Write Config
     Write-Verbose "Writing Config to $($ConfigInfo.ConfigFilePath)"
-    $LrtConfig | ConvertTo-Json | Set-Content -Path $ConfigInfo.ConfigFilePath
+    $LrtConfig | ConvertTo-Json | Set-Content -Path $ConfigInfo.ConfigFilePath -Force
 }
 #endregion
 

@@ -30,12 +30,13 @@ Function New-LrtConfig {
     $InstallerInfo = Get-LrtInstallerInfo
     $ModuleInfo = $InstallerInfo.ModuleInfo
     $LocalAppData = [Environment]::GetFolderPath("LocalApplicationData")
-
+    $BackupConfigName = "LogRhythm.Tools.json.bak"
 
     # Configuration Dir: %LocalAppData%\LogRhythm.Tools\
     $ConfigDirPath = Join-Path `
         -Path $LocalAppData `
         -ChildPath $ModuleInfo.Name
+
 
     # Create Config Dir (if it does not exist)
     if (! (Test-Path -Path $ConfigDirPath)) {
@@ -50,6 +51,16 @@ Function New-LrtConfig {
     $ExistingCommonFiles = [List[string]]::new()
     Get-ChildItem -Path $ConfigDirPath | ForEach-Object { $ExistingCommonFiles.Add($_.Name) }
 
+    # Create backup of previous LogRhythm.Tools Config
+    if ($ExistingCommonFiles.Contains($($ModuleInfo.Conf))) {
+        move-item -Path $(Join-Path -Path $ConfigDirPath -ChildPath $ModuleInfo.Conf) -Destination $(Join-Path -Path $ConfigDirPath -ChildPath $BackupConfigName) -Force
+        $LastConfig = Get-Content -Path (Join-Path -Path $ConfigDirPath -ChildPath $BackupConfigName)
+        $ExistingCommonFiles.remove($($ModuleInfo.Conf))
+    } elseif ($(Test-Path -Path (Join-Path -Path $ConfigDirPath -ChildPath $BackupConfigName) -PathType Leaf)) {
+        $LastConfig = Get-Content -Path $(Join-Path -Path $ConfigDirPath -ChildPath $BackupConfigName)
+    } else {
+        $LastConfig = $null
+    }
 
     # Copy any missing common files to $ConfigDirPath
     foreach ($file in $InstallerInfo.CommonFiles) {
@@ -57,6 +68,7 @@ Function New-LrtConfig {
             Copy-Item -Path $file.FullName -Destination $ConfigDirPath
         }
     }
+
 
     # Config File Destination Path - for easy loading by other scripts
     $ConfigFilePath = Join-Path -Path $ConfigDirPath -ChildPath $ModuleInfo.Conf
@@ -66,6 +78,7 @@ Function New-LrtConfig {
         ConfigDir = [DirectoryInfo]::new($ConfigDirPath)
         ConfigFilePath = [DirectoryInfo]::new($ConfigFilePath)
         Config = Get-Content -Path $ConfigFilePath -Raw | ConvertFrom-Json
+        LastConfig = $LastConfig
     }
     return $Return
 }
