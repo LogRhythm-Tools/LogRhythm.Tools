@@ -58,7 +58,7 @@ Function Get-UrlScanReport {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
 
-        $BaseUrl = $SrfPreferences.UrlScan.BaseUrl
+        $BaseUrl = $LrtConfig.UrlScan.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
     }
 
@@ -78,8 +78,7 @@ Function Get-UrlScanReport {
             $Response = Invoke-RestMethod $RequestUrl -Method $Method -Headers $Headers -Body $Body
         }
         catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+            return $_
         }
 
         Return $Response
