@@ -80,7 +80,10 @@ $ConfigInfo = New-LrtConfig
 $LrtConfig = $ConfigInfo.Config
 
 # Import Previous LogRhythm.Tools config
-$PreviousLrtConfig = $ConfigInfo.LastConfig | ConvertFrom-Json
+if ($ConfigInfo.LastConfig) {
+    $PreviousLrtConfig = $ConfigInfo.LastConfig | ConvertFrom-Json
+}
+
 
 # Import Setup input configuration
 $LrtConfigInput = Get-Content -Path (Join-Path $LrtInstallerPath "config\Lrt.Config.Input.json") -Raw | ConvertFrom-Json
