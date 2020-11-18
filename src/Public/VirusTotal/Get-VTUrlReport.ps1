@@ -80,7 +80,10 @@ Function Get-VTUrlReport {
         }
 
         # Add value for scan type and value
-        $vtResponse | Add-Member -MemberType NoteProperty -Name 'Url' -Value $Url
+        if (!$vtResponse.url) {
+            $vtResponse | Add-Member -MemberType NoteProperty -Name 'Url' -Value $Url
+        }
+        
 
         Return $vtResponse
     }
