@@ -2,7 +2,7 @@ using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
 
-Function List-LrtAzMailAttachments {
+Function Show-LrtAzMailAttachments {
     <#
     .SYNOPSIS
         Retrieve a list of user signIn for an Azure Active Directory tenant.
