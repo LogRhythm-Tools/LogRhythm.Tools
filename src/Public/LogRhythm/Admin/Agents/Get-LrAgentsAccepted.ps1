@@ -297,14 +297,14 @@ Function Get-LrAgentsAccepted {
         if ($Direction) {
             $ValidStatus = "ASC", "DESC"
             if ($ValidStatus.Contains($($Direction.ToUpper()))) {
-                if ($LrVersion -like "7.5.*") {
+                if ($LrVersion -like "7.4.*") {
+                    return "$(Get-Timestamp) Function Get-LrLogSources requires LogRhythm version 7.5.0+.  Set LogRhythm version in LR Tools Preferences."
+                } else {
                     if($Direction.ToUpper() -eq "ASC") {
                         $_direction = "ascending"
                     } else {
                         $_direction = "descending"
                     }
-                } else {
-                    return "$(Get-Timestamp) Function Get-LrLogSources requires LogRhythm version 7.5.0+.  Set LogRhythm version in LR Tools Preferences."
                 }
                 $QueryParams.Add("dir", $_direction)
             } else {

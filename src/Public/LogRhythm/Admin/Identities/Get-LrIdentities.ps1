@@ -186,7 +186,7 @@ Function Get-LrIdentities {
         if ($Direction) {
             $ValidStatus = "ASC", "DESC"
             if ($ValidStatus.Contains($($Direction.ToUpper()))) {
-                if ($LrtConfig.LogRhythm.Version -match '7.5.\d') {
+                if ($LrtConfig.LogRhythm.Version -match '7.[5-9].\d') {
                     if($Direction.ToUpper() -eq "ASC") {
                         $_direction = "ascending"
                     } else {

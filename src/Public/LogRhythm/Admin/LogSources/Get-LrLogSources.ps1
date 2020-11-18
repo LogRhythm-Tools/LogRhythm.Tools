@@ -347,7 +347,7 @@ Function Get-LrLogSources {
         if ($Direction) {
             $ValidStatus = "ASC", "DESC"
             if ($ValidStatus.Contains($($Direction.ToUpper()))) {
-                if ($LrVersion -like "7.5.*") {
+                if ($LrVersion -like "7.[5-9].*") {
                     if($Direction.ToUpper() -eq "ASC") {
                         $_direction = "ascending"
                     } else {
