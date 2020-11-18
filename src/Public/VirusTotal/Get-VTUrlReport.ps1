@@ -78,10 +78,13 @@ Function Get-VTUrlReport {
             $Err = Get-RestErrorMessage $_
             throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
         }
+
+        # Add value for scan type and value
+        $vtResponse | Add-Member -MemberType NoteProperty -Name 'Url' -Value $Url
+
+        Return $vtResponse
     }
  
 
-    End {
-        Return $vtResponse
-    }
+    End {}
 }
