@@ -44,7 +44,7 @@ function Format-UrlscanTextOutput {
             if ( $($UrlscanData.verdicts.overall.Categories) ) { $status += "`r`nCategories: $($UrlscanData.verdicts.overall.categories)"}
             if ( $($UrlscanData.verdicts.overall.brands) ) { $status += "`r`nBrands: $($UrlscanData.verdicts.overall.brands)"}
             if ( $($UrlscanData.verdicts.overall.tags) ) { $status += "`r`nTags: $($UrlscanData.verdicts.overall.tags)"}
-            if ( $($UrlscanData.verdicts.overall.Malicious) ) { $status += "`r`nMalicious: $($UrlscanData.verdicts.overall.Malicious)"}
+            if ( $($UrlscanData.verdicts.overall.Malicious.tostring()) ) { $status += "`r`nMalicious: $($UrlscanData.verdicts.overall.Malicious)"}
         }
 
         if ($UrlscanData.meta.processors.asn.data) {
