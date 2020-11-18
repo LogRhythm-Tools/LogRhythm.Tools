@@ -2,7 +2,7 @@ using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
 
-Function Get-LrtAzADUsers {
+Function Get-LrtAzUsers {
     <#
     .SYNOPSIS
         Retrieve a list of user signIn for an Azure Active Directory tenant.
