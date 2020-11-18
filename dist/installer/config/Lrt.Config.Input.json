@@ -197,6 +197,36 @@
         }
     },
 
+    "Mimecast": {
+        "Name": "Mimecast",
+        "Optional": true,
+        "Message": "Provides access to Mimecast API.",
+        "HasKey": true,
+        "HasClientId": true,
+        "Fields": {
+            "AccessKey": {
+                "Prompt": "Mimecast Access Key",
+                "Hint": "AccessKey (GUID)",
+                "InputCmd": "Get-StringPattern",
+                "FallThru": false,
+                "InputPattern": {
+                    "Pattern": "^.*$",
+                    "AllowChars": "-"
+                }
+            },
+            "SecretKey": {
+                "Prompt": "Mimecast Secret Key",
+                "Hint": "SecretKey (Base64)",
+                "InputCmd": "Get-StringPattern",
+                "FallThru": false,
+                "InputPattern": {
+                    "Pattern": "^.*$",
+                    "AllowChars": "+/="
+                }
+            }
+
+        }
+    },
 
     "RecordedFuture": {
         "Name": "Recorded Future",

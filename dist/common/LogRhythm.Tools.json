@@ -55,6 +55,14 @@
         }
     },
 
+    "Mimecast": {
+        "BaseUrl": "https://us-api.mimecast.com/api",
+        "AccessKey": "",
+        "SecretKey": "",
+        "ApiKey": "",
+        "Token": ""
+    },
+
     "RecordedFuture": {
         "BaseUrl": "https://api.recordedfuture.com/v2/",
         "ApiKey": ""
