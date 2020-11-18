@@ -33,7 +33,8 @@ Function Get-LrtAzUserManager {
 
     [CmdletBinding()]
     Param(
-
+        [Parameter(Mandatory = $True, ValueFromPipeline = $true, Position = 0)]
+        [string] $userPrincipalName
     )
 
     Begin {
@@ -58,20 +59,6 @@ Function Get-LrtAzUserManager {
         $RequestUri = "https://graph.microsoft.com/v1.0/users/$userPrincipalName/manager"
 
 
-        # Build Request URI Filters
-        if ($Before) {
-            $_before = $Before | ConvertTo-Rfc3339
-            Write-Verbose "+ Filter Activity After (RFC-3339): $_before"
-            $RequestUri += " and createdDateTime le $_before"
-        }
-
-        if ($After) {
-            $_after = $After | ConvertTo-Rfc3339
-            Write-Verbose "+ Filter Activity After (RFC-3339): $_after"
-            $RequestUri += " and createdDateTime ge $_after"
-        }
-
-
         # REQUEST
         try {
             $Response = Invoke-RestMethod `
@@ -84,52 +71,10 @@ Function Get-LrtAzUserManager {
             throw [Exception] "[$Me] [$($Err.error.code)]: $($Err.error.message)`n"
         }
 
-    
-        # Cast result to List<Object>
-        Write-Verbose "Results: $($Response.value.count)"
-        [List[Object]] $ResultSet = $Response.value
-
-
-        #region: Paging                                                                  
-        # Check to see if we need to keep paging.
-        if ($Response.'@odata.nextLink') {
-            $Paging = $true
-            $NextPage = $Response.'@odata.nextLink'
-
-            # Begin paging until no more pages.
-            while ($Paging) {
-                Write-Verbose ">>>> More Results, calling next page <<<<"
-
-                # Make the next request, using the nextLink property.
-                try {
-                    $Response = Invoke-RestMethod `
-                        -Uri $NextPage `
-                        -Headers $Headers `
-                        -Method $Method `
-                }
-                catch [System.Net.WebException] {
-                    $Err = Get-RestErrorMessage $_
-                    throw [Exception] "[$Me] [$($Err.error.code)]: $($Err.error.message)`n"
-                }
-
-                # Cast result to List<Object> and append to ResultSet
-                Write-Verbose "Results: $($Response.value.count)"
-                [List[Object]] $PageSet = $Response.value
-                $ResultSet.AddRange($PageSet)
-
-
-                # Check if done
-                if ($Response.'@odata.nextLink') {
-                    $NextPage = $Response.'@odata.nextLink'
-                } else {
-                    $Paging = $false
-                }
-            }
-        }
         
         #endregion
 
-        return $ResultSet
+        return $Response
     }
 
     End { }
