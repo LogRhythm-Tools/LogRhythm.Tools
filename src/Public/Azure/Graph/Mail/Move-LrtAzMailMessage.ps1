@@ -63,9 +63,11 @@ Function Move-LrtAzMailMessage {
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $AccessToken")
 
-        $MessageBody = @[PSCustomObject]@{
+        <#
+        $MessageBody = [PSCustomObject]@{
             destinationId = $DestinationId
         }
+        #>
 
         # Request URI
         # https://docs.microsoft.com/en-us/graph/api/signin-list?view=graph-rest-1.0&tabs=http
