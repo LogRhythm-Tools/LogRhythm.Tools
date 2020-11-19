@@ -27,16 +27,17 @@ $MatchedIdentities = [list[object]]::new()
 $NewIdentities = [list[object]]::new()
 
 
-
 ForEach ($AzureUser in $AzureUsers) {
-    $UserTrueIdResults = Find-LrIdentitySummaries -Login $AzureUser.userPrincipalName
+    $UserTrueIdResults = Get-LrIdentities -Identifier $($AzureUser.userPrincipalName)
+    Write-Host "UserTrueIdResults: $($UserTrueIdResults.identityId)"
     if ($UserTrueIdResults) {
         # A TrueIdentity record exists in the target Entity that contains the userPrincipalName as a matching TrueId login value
         if ($MatchedIdentities -notcontains $UserTrueIdResults) {
             # Add the TrueIdentity details to the MatchedIdentities object list for later reference as needed
-            $MatchedIdentites.add($UserTrueIdResults)
+            $MatchedIdentities.add($UserTrueIdResults)
         }
     } else {
+        Write-Host "First Name: $($AzureUser.givenName)"
         # Else a TrueIdentity Record does not exist in the target entity that contains the userPrincipalName.
 
         # List that serves as an identifier container to support processing
@@ -147,6 +148,5 @@ ForEach ($AzureUser in $AzureUsers) {
             }
             Default {;break}
         }
-
     }
 }
