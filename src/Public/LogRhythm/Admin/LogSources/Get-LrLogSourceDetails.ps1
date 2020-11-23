@@ -154,6 +154,16 @@ Function Get-LrLogSourceDetails {
             Value                 =   $Id
         }
 
+        # Verify version
+        if ($LrtConfig.LogRhythm.Version -notmatch '7\.[5-9]\.\d+') {
+            $ErrorObject.Error = $true
+            $ErrorObject.Code = "404"
+            $ErrorObject.Type = "Cmdlet not supported."
+            $ErrorObject.Note = "This cmdlet is available in LogRhythm version 7.5.0 and greater."
+
+            return $ErrorObject
+        }
+
         # Check if ID value is an integer
         if ([int]::TryParse($Id, [ref]$_int)) {
             Write-Verbose "[$Me]: Id parses as integer."
