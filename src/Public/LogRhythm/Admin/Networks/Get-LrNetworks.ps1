@@ -112,11 +112,11 @@ Function Get-LrNetworks {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
-        [int] $PageValuesCount = 1000,
+        [string] $Name,
 
 
         [Parameter(Mandatory = $false, Position = 1)]
-        [int] $PageCount = 1,
+        [string] $Entity,
 
 
         [Parameter(Mandatory = $false, Position = 2)]
@@ -125,33 +125,33 @@ Function Get-LrNetworks {
 
 
         [Parameter(Mandatory = $false, Position = 3)]
-        [string] $Name,
-
-
-        [Parameter(Mandatory = $false, Position = 4)]
         [ValidateSet('all','active','retired', ignorecase=$true)]
         [string] $RecordStatus = "active",
 
 
-        [Parameter(Mandatory = $false, Position = 5)]
+        [Parameter(Mandatory = $false, Position = 4)]
         [string] $BIP,
 
 
-        [Parameter(Mandatory = $false, Position = 6)]
+        [Parameter(Mandatory = $false, Position = 5)]
         [string] $EIP,
 
 
-        [Parameter(Mandatory = $false, Position = 7)]
-        [string] $Entity,
-
-
-        [Parameter(Mandatory = $false, Position = 8)]
+        [Parameter(Mandatory = $false, Position = 6)]
         [ValidateSet('name','bip','eip','entity', ignorecase=$true)]
         [string] $OrderBy = "Entity",
 
         
-        [Parameter(Mandatory = $false, Position = 9)]
+        [Parameter(Mandatory = $false, Position = 7)]
         [switch] $Exact,
+
+
+        [Parameter(Mandatory = $false, Position = 8)]
+        [int] $PageValuesCount = 1000,
+
+
+        [Parameter(Mandatory = $false, Position = 9)]
+        [int] $PageCount = 1,
 
 
         [Parameter(Mandatory = $false, Position = 10)]

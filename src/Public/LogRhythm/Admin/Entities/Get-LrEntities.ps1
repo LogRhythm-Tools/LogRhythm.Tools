@@ -61,33 +61,33 @@ Function Get-LrEntities {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
-        [int] $PageValuesCount = 1000,
-
-        
-        [Parameter(Mandatory = $false, Position = 1)]
-        [int] $PageCount = 1,
-
-
-        [Parameter(Mandatory = $false, Position = 2)]
         [string] $Name,
 
 
-        [Parameter(Mandatory = $false, Position = 3)]
+        [Parameter(Mandatory = $false, Position = 1)]
         [int32] $ParentEntityId,
 
 
-        [Parameter(Mandatory = $false, Position = 4)]
+        [Parameter(Mandatory = $false, Position = 2)]
         [ValidateSet('name','id', ignorecase=$true)]
         [string] $OrderBy = "name",
 
 
-        [Parameter(Mandatory = $false, Position = 5)]
+        [Parameter(Mandatory = $false, Position = 3)]
         [ValidateSet('asc','desc', ignorecase=$true)]
         [string] $Direction = "asc",
 
 
-        [Parameter(Mandatory = $false, Position = 6)]
+        [Parameter(Mandatory = $false, Position = 4)]
         [switch] $Exact,
+
+
+        [Parameter(Mandatory = $false, Position = 5)]
+        [int] $PageValuesCount = 1000,
+
+        
+        [Parameter(Mandatory = $false, Position = 6)]
+        [int] $PageCount = 1,
 
 
         [Parameter(Mandatory = $false, Position = 7)]
@@ -206,9 +206,13 @@ Function Get-LrEntities {
         } else {
             try {
                 $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+<<<<<<< Updated upstream
             }
             catch [System.Net.WebException] {
                 return $_
+=======
+            } catch [System.Net.WebException] {
+>>>>>>> Stashed changes
                 $Err = Get-RestErrorMessage $_
                 $ErrorObject.Error = $true
                 $ErrorObject.Type = "System.Net.WebException"
@@ -217,15 +221,37 @@ Function Get-LrEntities {
                 return $ErrorObject
             }
         }
-    }
 
-    End {
+        # Check if pagination is required, if so - paginate!
         if ($Response.Count -eq $PageValuesCount) {
-            # Need to get next page results
-            $CurrentPage = $PageCount + 1
-            #return 
-            Return $Response + (Get-LrIdentities -PageCount $CurrentPage) 
+            DO {
+                # Increment Page Count / Offset
+                $PageCount = $PageCount + 1
+                $Offset = ($PageCount -1) * $PageValuesCount
+                # Update Query Paramater
+                $QueryParams.offset = $Offset
+                # Apply to Query String
+                $QueryString = $QueryParams | ConvertTo-QueryString
+                # Update Query URL
+                $RequestUrl = $BaseUrl + "/entities/" + $QueryString
+                # Retrieve Query Results
+                try {
+                    $PaginationResults = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+                } catch [System.Net.WebException] {
+                    $Err = Get-RestErrorMessage $_
+                    $ErrorObject.Error = $true
+                    $ErrorObject.Type = "System.Net.WebException"
+                    $ErrorObject.Code = $($Err.statusCode)
+                    $ErrorObject.Note = $($Err.message)
+                    return $ErrorObject
+                }
+                
+                # Append results to Response
+                $Response = $Response + $PaginationResults
+            } While ($($PaginationResults.Count) -eq $PageValuesCount)
         }
+
+        
         # [Exact] Parameter
         # Search "Malware" normally returns both "Malware" and "Malware Options"
         # This would only return "Malware"
@@ -249,5 +275,8 @@ Function Get-LrEntities {
         } else {
             return $Response
         }
+    }
+
+    End {
      }
 }

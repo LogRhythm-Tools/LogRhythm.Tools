@@ -66,11 +66,19 @@ Function Get-LrUsers {
 
         [Parameter(Mandatory = $false, Position = 2)]
         [ValidateSet('asc','desc')]
-        [string] $Sort = "asc",
+        [string] $Direction = "asc",
 
 
         [Parameter(Mandatory = $false, Position = 3)]
         [switch] $Exact,
+
+
+        [Parameter(Mandatory = $false, Position = 3)]
+        [int] $Count = 500,
+
+
+        [Parameter(Mandatory = $false, Position = 4)]
+        [int] $PageNumber = 1,
 
 
         [Parameter(Mandatory = $false, Position = 4)]
@@ -90,8 +98,24 @@ Function Get-LrUsers {
         # Request Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
-        $Headers.Add("count", 5000)
-        $Headers.Add("direction", $Sort)
+        
+        # Maximum results returned per API call before pagination required
+        if ($Count) {
+            $Headers.Add("count", $Count)
+        } else {
+            $Headers.Add("count", 500)
+        }
+
+        # Page requested via Offset for Results from API
+        if ($PageNumber) {
+            $Offset = ($PageNumber -1) * $Count
+            $Headers.Add("offset", $Offset)
+        }
+
+        if ($Direction) {
+            $Headers.Add("direction", $Direction)
+        }
+
 
         # Request Method
         $Method = $HttpMethod.Get
@@ -99,6 +123,14 @@ Function Get-LrUsers {
 
 
     Process {
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Code                  =   $null
+            Error                 =   $false
+            Type                  =   $null
+            Note                  =   $null
+        }
+
         # Transform OnlyUsers switch into a boolean
         # Note: Omitting OnlyUsers is the same as setting OnlyUsers to "false" as 
         # far as the LogRhythm API handles it.
@@ -133,8 +165,39 @@ Function Get-LrUsers {
             }
             catch [System.Net.WebException] {
                 $Err = Get-RestErrorMessage $_
-                throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+                $ErrorObject.Error = $true
+                $ErrorObject.Type = "System.Net.WebException"
+                $ErrorObject.Code = $($Err.statusCode)
+                $ErrorObject.Note = $($Err.message)
+                return $ErrorObject
             }
+        }
+
+
+        # Pagination
+        if ($Response.Count -eq $Count) {
+            DO {
+                # Increment Page Count / Offset
+                $PageNumber = $PageNumber + 1
+                $Offset = ($PageNumber -1) * $Count
+                # Update Header Pagination Paramater
+                $Headers.offset = $Offset
+                
+                # Retrieve Query Results
+                try {
+                    $PaginationResults = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+                } catch [System.Net.WebException] {
+                    $Err = Get-RestErrorMessage $_
+                    $ErrorObject.Error = $true
+                    $ErrorObject.Type = "System.Net.WebException"
+                    $ErrorObject.Code = $($Err.statusCode)
+                    $ErrorObject.Note = $($Err.message)
+                    return $ErrorObject
+                }
+                
+                # Append results to Response
+                $Response = $Response + $PaginationResults
+            } While ($($PaginationResults.Count) -eq $Count)
         }
 
 
