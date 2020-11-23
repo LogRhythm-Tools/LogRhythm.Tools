@@ -76,10 +76,10 @@ function Format-VTTextOutput {
         }
 
         Switch ($($VTData.verbose_msg)) {
-            "Domain found in dataset" {$VTScanStatus = $true}
-            "IP address in dataset" {$VTScanStatus = $true}
-            "Scan finished, scan information embedded in this object" {$VTScanStatus = $true}
-            "Scan finished, information embedded" {$VTScanStatus = $true}
+            "Domain found in dataset" {$VTScanStatus = $true;break}
+            "IP address in dataset" {$VTScanStatus = $true;break}
+            "Scan finished, scan information embedded in this object" {$VTScanStatus = $true;break}
+            "Scan finished, information embedded" {$VTScanStatus = $true;break}
         }
 
         
