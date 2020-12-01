@@ -60,7 +60,12 @@ Function Add-LrCaseCollaborators {
         [ValidateNotNull()]
         [int32[]] $GroupNumbers,
 
+
         [Parameter(Mandatory = $false, Position = 4)]
+        [switch] $PassThru,
+
+
+        [Parameter(Mandatory = $false, Position = 5)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -175,7 +180,10 @@ Function Add-LrCaseCollaborators {
             }
         }
         
-        return $Response
+        # Only return the case if PassThru was requested.
+        if ($PassThru) {
+            return $Response    
+        }
     }
 
 
