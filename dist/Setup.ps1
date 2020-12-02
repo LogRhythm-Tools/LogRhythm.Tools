@@ -182,6 +182,7 @@ foreach($ConfigCategory in $LrtConfigInput.PSObject.Properties) {
                 $Response = Read-Host -Prompt "  > $($ConfigField.Value.Prompt)"
                 $Response = $Response.Trim()
                 $Response = Remove-SpecialChars -Value $Response -Allow @("-",".",":")
+                Write-Verbose "Response: $Response"
             }
 
             # Break the loop on this field if no input (keep the same value)
@@ -272,8 +273,7 @@ foreach($ConfigCategory in $LrtConfigInput.PSObject.Properties) {
             -AllowChars @("-",".","\", "@", "_")
 
         # Make sure Username is not empty, as it otherwise cause error
-        if ([string]::IsNullOrEmpty($Username.Value))
-        {
+        if ([string]::IsNullOrEmpty($Username.Value)) {
             $Username.Value = $ConfigCategory.Name
         }
 
