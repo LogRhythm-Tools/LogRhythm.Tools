@@ -28,7 +28,7 @@ using namespace System.Collections.Generic
         Shortlink  : False
         Plugins    : @{Shodan=; Urlscan=; VirusTotal=}
     .NOTES
-        PIE      
+        PIE
     .LINK
         https://github.com/LogRhythm-Tools/LogRhythm.Tools
 #>
