@@ -21,7 +21,7 @@ Function New-LrCaseHelper {
     .OUTPUTS
         PSCustomObject representing the (new|modified) LogRhythm object.
     .EXAMPLE
-        PS C:\> New-LrCaseHelper -AlarmID 1 -CaseSummary "Someone broke in.. who could it have been?" -DefaultCaseTag "Tech_PhysicalSecurity" -TagOriginUsers -BindAlarmToExistingCase "userorigin" -Playbook "Unauthorized Access" -TagImpactedHosts -PassThru
+        PS C:\> New-LrCaseHelper -AlarmID 1 -CaseSummary "Someone broke in.. who could it have been?" -CaseCollaborators "Hart, Eric; Smith, Alice" -DefaultCaseTag "Tech_PhysicalSecurity" -TagOriginUsers "true" -BindAlarmToExistingCase "userorigin" -Playbook "Unauthorized Access" -TagImpactedHosts "true" -PassThru
         ---
         AlarmID         : 1
         DrilldownStatus : True
@@ -54,39 +54,43 @@ Function New-LrCaseHelper {
 
 
         [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 2)]
+        [string]$CaseCollaborators,
+
+
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 3)]
         [int32]$CaseDefaultPriority = 3,
 
 
-        [Parameter(Mandatory = $false, Position = 3)]
+        [Parameter(Mandatory = $false, Position = 4)]
         [string]$DefaultCaseTag,
 
 
-        [Parameter(Mandatory = $false, Position = 4)]
-        [switch]$TagOriginUsers,
-
-
         [Parameter(Mandatory = $false, Position = 5)]
-        [switch]$TagImpactedUsers,
+        [string]$TagOriginUsers,
 
 
         [Parameter(Mandatory = $false, Position = 6)]
-        [switch]$TagOriginHosts,
+        [string]$TagImpactedUsers,
 
 
         [Parameter(Mandatory = $false, Position = 7)]
-        [switch]$TagImpactedHosts,
+        [string]$TagOriginHosts,
 
 
         [Parameter(Mandatory = $false, Position = 8)]
-        [ValidateSet('userorigin', 'userimpacted', 'impactedhost','originhost', ignorecase=$true)]
-        [String]$BindAlarmToExistingCase="userorigin",
+        [string]$TagImpactedHosts,
 
 
         [Parameter(Mandatory = $false, Position = 9)]
-        [String]$Playbook,
+        [ValidateSet('userorigin', 'userimpacted', 'impactedhost','originhost', 'none', ignorecase=$true)]
+        [String]$BindAlarmToExistingCase="none",
 
 
         [Parameter(Mandatory = $false, Position = 10)]
+        [String]$Playbook,
+
+
+        [Parameter(Mandatory = $false, Position = 11)]
         [switch]$PassThru
     )
 
@@ -1085,7 +1089,7 @@ Function New-LrCaseHelper {
 
         # Check if BindAlarmToExistingCase is enabled for User Case association
         Write-Verbose "$(Get-Timestamp) - Begin - Bind Alarm to Existing Case - User"
-        if (($TagOriginUsers -or $TagImpactedUsers) -and ($BindAlarmToExistingCase -like "userorigin"-or $BindAlarmToExistingCase -like "userimpacted")) {
+        if ((($TagOriginUsers -like "true") -or ($TagImpactedUsers -like "true")) -and ($BindAlarmToExistingCase -like "userorigin"-or $BindAlarmToExistingCase -like "userimpacted")) {
             # Build array of pending Tags associated with primary TAG:USER
             if ($BindAlarmToExistingCase -like "userorigin") {
                 Write-Verbose "$(Get-Timestamp) - Info - Bind Alarm - User Origin"
@@ -1122,7 +1126,7 @@ Function New-LrCaseHelper {
                     $CurUserTags = $ScreenCases.tags | Where-Object -Property text -match "User_.*" | Select-Object -ExpandProperty text
 
                     # Generate User Origin Tags
-                    if ($TagOriginUsers) {
+                    if ($TagOriginUsers -like "true") {
                         Write-Verbose "$(Get-Timestamp) - Begin - Add User Origin Tags to Case"
                         $OriginUserTags = $CaseTags | Where-Object -Property Primary -in "User" | Where-Object -Property Note -in "Origin", "Sender"
 
@@ -1146,7 +1150,7 @@ Function New-LrCaseHelper {
                     }
 
                     # General User Impacted Tags
-                    if ($TagImpactedUsers) {
+                    if ($TagImpactedUsers -like "true" ) {
                         Write-Verbose "$(Get-Timestamp) - Begin - Add User Impacted Tags to Case"
                         $ImpactUserTags = $CaseTags | Where-Object -Property Primary -in "User" | Where-Object -Property Note -in "Impacted", "Recipient"
 
@@ -1174,7 +1178,7 @@ Function New-LrCaseHelper {
                     $CurHostTags = $ScreenCases.tags | Where-Object -Property text -Match "(HOST|IP|DNS)_.*" | Select-Object -ExpandProperty text
                     
                     # If CaseTagOriginHosts is enabled, add new CaseTagOriginHosts to Case
-                    if ($TagOriginHosts -eq $true) {
+                    if ($TagOriginHosts -like "true" ) {
                         Write-Verbose "$(Get-Timestamp) - Begin - Add Host Origin Tags to Case"
                         $OriginHostTags = $CaseTags | Where-Object -Property Primary -in "HOST","IP","DNS" | Where-Object -Property Note -eq "Origin"
 
@@ -1197,7 +1201,7 @@ Function New-LrCaseHelper {
                         Write-Verbose "$(Get-Timestamp) - End - Add Host Origin Tags to Case"
                     }
 
-                    if ($TagImpactedHosts -eq $true) {
+                    if ($TagImpactedHosts -like "true" ) {
                         Write-Verbose "$(Get-Timestamp) - Begin - Add Host Impacted Tags to Case"
                         $ImpactedHostTags = $CaseTags | Where-Object -Property Primary -in "HOST","IP","DNS" | Where-Object -Property Note -eq "Impacted"
 
@@ -1245,7 +1249,7 @@ Function New-LrCaseHelper {
 
 
         # Check if BindAlarmToExistingCase is enabled for User Case association
-        if ($CaseTagImpactedHosts -eq $true) {
+        if ($TagImpactedHosts -like "true" ) {
             Write-Verbose "$(Get-Timestamp) - Begin - Bind Alarm to Existing Case - Host Impacted"
             if ($BindAlarmToExistingCase -like "impactedhost") {
                 # Build array of pending Tags associated with primary TAG:USER
@@ -1276,7 +1280,7 @@ Function New-LrCaseHelper {
                         $CurUserTags = $ScreenCases.tags | Where-Object -Property text -match "User_.*" | Select-Object -ExpandProperty text
 
                         # Generate User Origin Tags
-                        if ($TagOriginUsers) {
+                        if ($TagOriginUsers -like "true") {
                             Write-Verbose "$(Get-Timestamp) - Begin - Add User Origin Tags to Case"
                             $OriginUserTags = $CaseTags | Where-Object -Property Primary -in "User" | Where-Object -Property Note -in "Origin", "Sender"
 
@@ -1300,7 +1304,7 @@ Function New-LrCaseHelper {
                         }
 
                         # General User Impacted Tags
-                        if ($TagImpactedUsers) {
+                        if ($TagImpactedUsers  -like "true" ) {
                             Write-Verbose "$(Get-Timestamp) - Begin - Add User Impacted Tags to Case"
                             $ImpactUserTags = $CaseTags | Where-Object -Property Primary -in "User" | Where-Object -Property Note -in "Impacted", "Recipient"
 
@@ -1328,7 +1332,7 @@ Function New-LrCaseHelper {
                         $CurHostTags = $ScreenCases.tags | Where-Object -Property text -Match "(HOST|IP|DNS)_.*" | Select-Object -ExpandProperty text
                         
                         # If CaseTagOriginHosts is enabled, add new CaseTagOriginHosts to Case
-                        if ($TagOriginHosts -eq $true) {
+                        if ($TagOriginHosts -like "true" ) {
                             Write-Verbose "$(Get-Timestamp) - Begin - Add Host Origin Tags to Case"
                             $OriginHostTags = $CaseTags | Where-Object -Property Primary -in "HOST","IP","DNS" | Where-Object -Property Note -eq "Origin"
 
@@ -1351,7 +1355,7 @@ Function New-LrCaseHelper {
                             Write-Verbose "$(Get-Timestamp) - End - Add Host Origin Tags to Case"
                         }
 
-                        if ($TagImpactedHosts -eq $true) {
+                        if ($TagImpactedHosts -like "true" ) {
                             Write-Verbose "$(Get-Timestamp) - Begin - Add Host Impacted Tags to Case"
                             $ImpactedHostTags = $CaseTags | Where-Object -Property Primary -in "HOST","IP","DNS" | Where-Object -Property Note -eq "Impacted"
 
@@ -1398,7 +1402,7 @@ Function New-LrCaseHelper {
         }
 
         # Check if BindAlarmToExistingCase is enabled for User Case association
-        if ($CaseTagImpactedHosts -eq $true) {
+        if ($TagImpactedHosts -like "true") {
             Write-Verbose "$(Get-Timestamp) - Begin - Bind Alarm to Existing Case - Host Origin"
             if ($BindAlarmToExistingCase -like "originhost") {
                 # Build array of pending Tags associated with primary TAG:USER
@@ -1429,7 +1433,7 @@ Function New-LrCaseHelper {
                         $CurUserTags = $ScreenCases.tags | Where-Object -Property text -match "User_.*" | Select-Object -ExpandProperty text
 
                         # Generate User Origin Tags
-                        if ($TagOriginUsers) {
+                        if ($TagOriginUsers -like "true") {
                             Write-Verbose "$(Get-Timestamp) - Begin - Add User Origin Tags to Case"
                             $OriginUserTags = $CaseTags | Where-Object -Property Primary -in "User" | Where-Object -Property Note -in "Origin", "Sender"
 
@@ -1453,7 +1457,7 @@ Function New-LrCaseHelper {
                         }
 
                         # General User Impacted Tags
-                        if ($TagImpactedUsers) {
+                        if ($TagImpactedUsers  -like "true") {
                             Write-Verbose "$(Get-Timestamp) - Begin - Add User Impacted Tags to Case"
                             $ImpactUserTags = $CaseTags | Where-Object -Property Primary -in "User" | Where-Object -Property Note -in "Impacted", "Recipient"
 
@@ -1480,7 +1484,7 @@ Function New-LrCaseHelper {
                         $CurHostTags = $ScreenCases.tags | Where-Object -Property text -Match "(HOST|IP|DNS)_.*" | Select-Object -ExpandProperty text
                         
                         # If CaseTagOriginHosts is enabled, add new CaseTagOriginHosts to Case
-                        if ($TagOriginHosts -eq $true) {
+                        if ($TagOriginHosts -like "true" ) {
                             Write-Verbose "$(Get-Timestamp) - Begin - Add Host Origin Tags to Case"
                             $OriginHostTags = $CaseTags | Where-Object -Property Primary -in "HOST","IP","DNS" | Where-Object -Property Note -eq "Origin"
 
@@ -1503,7 +1507,7 @@ Function New-LrCaseHelper {
                             Write-Verbose "$(Get-Timestamp) - End - Add Host Origin Tags to Case"
                         }
 
-                        if ($TagImpactedHosts -eq $true) {
+                        if ($TagImpactedHosts -like "true") {
                             Write-Verbose "$(Get-Timestamp) - Begin - Add Host Impacted Tags to Case"
                             $ImpactedHostTags = $CaseTags | Where-Object -Property Primary -in "HOST","IP","DNS" | Where-Object -Property Note -eq "Impacted"
 
@@ -1591,7 +1595,7 @@ Function New-LrCaseHelper {
 
         # Create and assign HOST Tags
         # HostOrigin
-        if ($TagOriginHosts -eq $true) {
+        if ($TagOriginHosts -like "true" ) {
             Write-Verbose "$(Get-Timestamp) - Begin - Add Host Origin Tags to Case"
             $HostTags = $CaseTags | Where-Object -Property Primary -in "HOST","IP","DNS" | Where-Object -Property Note -eq "Origin"
             ForEach ($HostTag in $HostTags) {
@@ -1610,7 +1614,7 @@ Function New-LrCaseHelper {
         }
 
         # HostImpacted
-        if ($TagImpactedHosts -eq $true) {
+        if ($TagImpactedHosts -like "true") {
             Write-Verbose "$(Get-Timestamp) - Begin - Add Host Impacted Tags to Case"
             $HostTags = $CaseTags | Where-Object -Property Primary -in "HOST","IP","DNS" | Where-Object -Property Note -eq "Impacted"
             ForEach ($HostTag in $HostTags) {
@@ -1629,7 +1633,7 @@ Function New-LrCaseHelper {
         }
 
         # Generate User Origin Tags
-        if ($TagOriginUsers) {
+        if ($TagOriginUsers -like "true") {
             Write-Verbose "$(Get-Timestamp) - Begin - Add User Origin Tags to Case"
             $OriginUserTags = $CaseTags | Where-Object -Property Primary -in "User" | Where-Object -Property Note -in "Origin", "Sender"
 
@@ -1653,7 +1657,7 @@ Function New-LrCaseHelper {
         }
 
         # General User Impacted Tags
-        if ($TagImpactedUsers) {
+        if ($TagImpactedUsers  -like "true") {
             Write-Verbose "$(Get-Timestamp) - Begin - Add User Impacted Tags to Case"
             $ImpactUserTags = $CaseTags | Where-Object -Property Primary -eq "User" | Where-Object -Property Note -in "Impacted", "Recipient"
             ForEach ($ImpactUserTag in $ImpactUserTags) {
@@ -1707,6 +1711,15 @@ Function New-LrCaseHelper {
             Start-Sleep $APISleep
             Write-Verbose "$(Get-Timestamp) - End - Add CaseTagTaxonomy"
         }
+
+        if ($Collaborators) {
+            Write-Verbose "$(Get-Timestamp) - Begin - Add Collaborators"
+            $CollaboratorsArray=@()
+            $Collaborators = $Collaborators.TrimEnd(";")
+            $CollaboratorsArray = $Collaborators.split(";")
+            Add-LrCaseCollaborators -Id $OutObject.CaseNumber -Names $CollaboratorsArray
+            Write-Verbose "$(Get-Timestamp) - Begin - End Collaborators"
+        }  
 
         Write-Verbose "$(Get-Timestamp) - End New-LrCaseHelper"
         if ($PassThru) {
