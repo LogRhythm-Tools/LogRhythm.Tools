@@ -103,11 +103,7 @@ Function Merge-LrIdentities {
 
     Begin {
         # Set migration to leverage 7.5. or 7.4 API endpoints
-<<<<<<< Updated upstream
-        if ($LrtConfig.LogRhythm.Version -match '7\.[5-9]\.\d{1,2}') {
-=======
         if ($LrtConfig.LogRhythm.Version -match '7\.[5-9]\.\d+') {
->>>>>>> Stashed changes
             $Mode = "7.5"
             # Request Setup
             $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl

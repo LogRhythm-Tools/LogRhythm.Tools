@@ -357,18 +357,19 @@ Function Get-LrLogSources {
         if ($Direction) {
             $ValidStatus = "ASC", "DESC"
             if ($ValidStatus.Contains($($Direction.ToUpper()))) {
-<<<<<<< Updated upstream
-                if ($LrVersion -like "7.[5-9].*") {
-=======
                 if ($LrVersion -match '7\.[5-9]\.\d+') {
->>>>>>> Stashed changes
                     if($Direction.ToUpper() -eq "ASC") {
                         $_direction = "ascending"
                     } else {
                         $_direction = "descending"
                     }
                 } else {
-                    return "$(Get-Timestamp) Function Get-LrLogSources requires LogRhythm version 7.5.0+.  Set LogRhythm version in LR Tools Preferences."
+                    $ErrorObject.Error = $true
+                    $ErrorObject.Code = "404"
+                    $ErrorObject.Type = "Cmdlet not supported."
+                    $ErrorObject.Note = "This cmdlet is available in LogRhythm version 7.5.0 and greater."
+        
+                    return $ErrorObject
                 }
                 $QueryParams.Add("dir", $_direction)
             } else {

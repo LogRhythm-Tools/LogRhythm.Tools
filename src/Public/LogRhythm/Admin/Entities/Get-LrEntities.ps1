@@ -206,13 +206,7 @@ Function Get-LrEntities {
         } else {
             try {
                 $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-<<<<<<< Updated upstream
-            }
-            catch [System.Net.WebException] {
-                return $_
-=======
             } catch [System.Net.WebException] {
->>>>>>> Stashed changes
                 $Err = Get-RestErrorMessage $_
                 $ErrorObject.Error = $true
                 $ErrorObject.Type = "System.Net.WebException"
