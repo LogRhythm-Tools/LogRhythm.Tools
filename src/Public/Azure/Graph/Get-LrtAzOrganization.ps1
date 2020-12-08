@@ -2,7 +2,7 @@ using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
 
-Function Get-LrtAzUserManager {
+Function Get-LrtAzOrganization {
     <#
     .SYNOPSIS
         Retrieve a list of user signIn for an Azure Active Directory tenant.
@@ -33,8 +33,7 @@ Function Get-LrtAzUserManager {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $True, ValueFromPipeline = $true, Position = 0)]
-        [string] $userPrincipalName
+
     )
 
     Begin {
@@ -56,7 +55,7 @@ Function Get-LrtAzUserManager {
         # Request URI
         # https://docs.microsoft.com/en-us/graph/api/signin-list?view=graph-rest-1.0&tabs=http
         $Method = $HttpMethod.Get
-        $RequestUri = "https://graph.microsoft.com/v1.0/users/$userPrincipalName/manager"
+        $RequestUri = "https://graph.microsoft.com/v1.0/organization"
 
 
         # REQUEST
@@ -71,10 +70,14 @@ Function Get-LrtAzUserManager {
             throw [Exception] "[$Me] [$($Err.error.code)]: $($Err.error.message)`n"
         }
 
+    
+        # Cast result to List<Object>
+        Write-Verbose "Results: $($Response.value.count)"
+        [List[Object]] $ResultSet = $Response.value
         
         #endregion
 
-        return $Response
+        return $ResultSet
     }
 
     End { }

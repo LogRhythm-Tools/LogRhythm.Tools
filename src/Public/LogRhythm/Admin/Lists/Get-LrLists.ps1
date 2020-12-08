@@ -87,14 +87,17 @@ Function Get-LrLists {
         [string] $ListType,
 
 
+        [Parameter(Mandatory = $false, Position = 3)]
+        [switch] $Exact,
+
+        
         [Parameter(Mandatory = $false, Position = 2)]
         [ValidateRange(1,1000)]
         [int] $PageSize = 1000,
 
 
-        [Parameter(Mandatory = $false, Position = 3)]
-        [switch] $Exact,
-
+        [Parameter(Mandatory = $false, Position = 2)]
+        [int] $PageNumber = 1,
 
         [Parameter(Mandatory = $false, Position = 4)]
         [ValidateNotNull()]
@@ -120,9 +123,17 @@ Function Get-LrLists {
         # Define HTTP Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
-        if ($pageSize) {
+
+        # Number of Results returned per API Call
+        if ($PageSize) {
             $Headers.Add("pageSize", $PageSize)
         }
+
+        # Page requested for Results from API
+        if ($PageNumber) {
+            $Headers.Add("PageNumber", $PageNumber)
+        }
+
         if ($ListTypeValid) { 
             $Headers.Add("listType", $ListTypeValid)
         }
@@ -137,7 +148,16 @@ Function Get-LrLists {
         Enable-TrustAllCertsPolicy
     }
 
-    Process {      
+    Process {
+        # Define ErrorObject
+        $ErrorObject = [PSCustomObject]@{
+            Code                  =   $null
+            Error                 =   $false
+            Type                  =   $null
+            Note                  =   $null
+        }
+
+
         if ($Name) {
             $Headers.Add("name", $Name)
         }
@@ -157,10 +177,39 @@ Function Get-LrLists {
                 $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
             }
             catch [System.Net.WebException] {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                return $ExceptionMessage
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Error = $true
+                $ErrorObject.Type = "System.Net.WebException"
+                $ErrorObject.Code = $($Err.statusCode)
+                $ErrorObject.Note = $($Err.message)
+                return $ErrorObject
             }
+        }
+
+        # Pagination
+        if ($Response.Count -eq $PageSize) {
+            DO {
+                # Increment Page Count / Offset
+                $PageNumber = $PageNumber + 1
+                $Offset = ($PageNumber -1) * $PageSize
+                # Update Header Pagination Paramater
+                $Headers.PageNumber = $Offset
+                
+                # Retrieve Query Results
+                try {
+                    $PaginationResults = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+                } catch [System.Net.WebException] {
+                    $Err = Get-RestErrorMessage $_
+                    $ErrorObject.Error = $true
+                    $ErrorObject.Type = "System.Net.WebException"
+                    $ErrorObject.Code = $($Err.statusCode)
+                    $ErrorObject.Note = $($Err.message)
+                    return $ErrorObject
+                }
+                
+                # Append results to Response
+                $Response = $Response + $PaginationResults
+            } While ($($PaginationResults.Count) -eq $PageSize)
         }
         
 

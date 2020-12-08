@@ -268,317 +268,369 @@ Function Get-LrCases {
 
 
         [Parameter(Mandatory = $false, Position = 15)]
-        [int] $Count = 500,
-
-
-        [Parameter(Mandatory = $false, Position = 16)]
         [switch] $Summary,
 
 
-        [Parameter(Mandatory = $false, Position = 17)]
+        [Parameter(Mandatory = $false, Position = 16)]
         [switch] $Exact,
 
 
-        [Parameter(Mandatory = $false, Position = 18)]
+        [Parameter(Mandatory = $false, Position = 17)]
         [switch] $Metrics,
 
 
+        [Parameter(Mandatory = $false, Position = 18)]
+        [int] $Count = 500,
+
+
         [Parameter(Mandatory = $false, Position = 19)]
+        [int] $PageNumber = 1,
+
+
+        [Parameter(Mandatory = $false, Position = 20)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
         #endregion
+    Begin {
+        #region: Setup_______________________________________________________________________
+        $Me = $MyInvocation.MyCommand.Name
 
+        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $Token = $Credential.GetNetworkCredential().Password
 
+        #region: Process Request Headers_____________________________________________________
+        $Headers = [Dictionary[string,string]]::new()
+        $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("count", $Count)
 
-    #region: Setup_______________________________________________________________________
-    $Me = $MyInvocation.MyCommand.Name
+        # Page requested via Offset for Results from API
+        if ($PageNumber) {
+            $Offset = ($PageNumber -1) * $Count
+            $Headers.Add("offset", $Offset)
+        }
 
-    $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
-    $Token = $Credential.GetNetworkCredential().Password
+        $Headers.Add("direction", $Direction)
 
-    # Enable self-signed certificates and Tls1.2
-    Enable-TrustAllCertsPolicy
-    #endregion
+        # HTTP Method
+        $Method = $HttpMethod.Get
 
-
-
-    #region: Process Query Parameters____________________________________________________
-    $QueryParams = [Dictionary[string,string]]::new()
-
-    # DueBefore
-    if ($DueBefore) {
-        $_dueBefore = $DueBefore | ConvertTo-Rfc3339
-        $QueryParams.Add("dueBefore", $_dueBefore)
+        # Enable self-signed certificates and Tls1.2
+        Enable-TrustAllCertsPolicy
+        #endregion
     }
 
 
-    # Priority
-    if ($Priority) {
-        if ($Priority.Count -gt 1) {
-            $_priority = $Priority -join ','
+    Process {
+        # Define ErrorObject
+        $ErrorObject = [PSCustomObject]@{
+            Code                  =   $null
+            Error                 =   $false
+            Type                  =   $null
+            Note                  =   $null
+        }
+
+        #region: Process Query Parameters____________________________________________________
+        $QueryParams = [Dictionary[string,string]]::new()
+
+        # DueBefore
+        if ($DueBefore) {
+            $_dueBefore = $DueBefore | ConvertTo-Rfc3339
+            $QueryParams.Add("dueBefore", $_dueBefore)
+        }
+
+
+        # Priority
+        if ($Priority) {
+            if ($Priority.Count -gt 1) {
+                $_priority = $Priority -join ','
+            } else {
+                $_priority = $Priority
+            }
+            $QueryParams.Add("priority", $_priority)
+        }
+
+
+        # Status
+        if ($Status) {
+            $_statusNumbers = $Status | ConvertTo-LrCaseStatusId
+            if (! $_statusNumbers) {
+                throw [ArgumentException] "Status in [$Status] not found."
+            }
+            if ($_statusNumbers.count -gt 1) {
+                $_status = $_statusNumbers -join ','
+            } else {
+                $_status = $_statusNumbers
+            }
+            $QueryParams.Add("statusNumber", $_status)
+        }
+
+
+        # Owner
+        if ($Owners) {
+            $_ownerNumbers = $Owners | Get-LrUserNumber
+            if (! $_ownerNumbers) {
+                $ErrorObject.Error = $true
+                $ErrorObject.Type = "User not found."
+                $ErrorObject.Code = 404
+                $ErrorObject.Note = "Owner(s) [$Owners] not found."
+                return $ErrorObject
+            }
+            if ($_ownerNumbers.count -gt 1) {
+                $_owner = $_ownerNumbers -join ','
+            } else {
+                $_owner = $_ownerNumbers
+            }
+            $QueryParams.Add("ownerNumber", $_owner)
+        }
+
+        # Collaborator
+        if ($Collaborator) {
+            $_collabNumber = $Collaborator | Get-LrUserNumber
+            if ($_collabNumber) {
+                $QueryParams.Add("collaboratorNumber", $_collabNumber)
+            } else {
+                $ErrorObject.Error = $true
+                $ErrorObject.Type = "User not found."
+                $ErrorObject.Code = 404
+                $ErrorObject.Note = "Collaborator [$Collaborator] not found."
+                return $ErrorObject
+            }
+        }
+
+
+        # Tags  (Exclude Tags are removed from the final result)
+        if ($Tags) {
+            $_tagNumbers = [list[string]]::new()
+            ForEach ($Tag in $Tags) {
+                $_tagNumbers.add($($Tag | Get-LrTagNumber))
+            }
+            if ($_tagNumbers.count -gt 1) {
+                $_tags = $_tagNumbers -join ','
+            } else {
+                $_tags = $_tagNumbers
+            }
+            $QueryParams.Add("tagNumber", $_tags)
+        }
+
+
+        # Name
+        if ($Name) {
+            # should we uri-encode this?
+            $QueryParams.Add("text", $Name)
+        }
+
+
+        # EvidenceType
+        if ($EvidenceType) {
+            if ($EvidenceType.Count -gt 1) {
+                $EvidenceType = $EvidenceType -join ','
+            }
+            $QueryParams.Add("evidenceType", $EvidenceType)
+        }
+
+        if ($QueryParams.Count -gt 0) {
+            $QueryString = $QueryParams | ConvertTo-QueryString
+            Write-Verbose "[$Me]: QueryString is [$QueryString]"
+        }
+        #endregion
+
+        # Update / Create DateTimes
+        if ($UpdatedAfter) {
+            $_updatedAfter = $UpdatedAfter | ConvertTo-Rfc3339
+            $Headers.Add("updatedAfter", $_updatedAfter)
+        }
+        if ($UpdatedBefore) {
+            $_updatedBefore = $UpdatedBefore | ConvertTo-Rfc3339
+            $Headers.Add("updatedBefore", $_updatedBefore)
+        }
+        if ($CreatedAfter) {
+            $_createdAfter = $CreatedAfter | ConvertTo-Rfc3339
+            $Headers.Add("createdAfter", $_createdAfter)
+        }
+        if ($CreatedBefore) {
+            $_createdBefore = $CreatedBefore | ConvertTo-Rfc3339
+            $Headers.Add("createdBefore", $_createdBefore)
+        }
+        #endregion
+
+        #region: Send RequestHeaders_________________________________________________________
+        # Request URI
+        $RequestUrl = $BaseUrl + "/cases/" + $QueryString
+
+        # REQUEST
+        if ($PSEdition -eq 'Core'){
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
+            }
+            catch {
+                $Err = Get-RestErrorMessage $_
+                throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+            }
         } else {
-            $_priority = $Priority
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+            }
+            catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Error = $true
+                $ErrorObject.Type = "System.Net.WebException"
+                $ErrorObject.Code = $($Err.statusCode)
+                $ErrorObject.Note = $($Err.message)
+                return $ErrorObject
+            }
         }
-        $QueryParams.Add("priority", $_priority)
-    }
 
-
-    # Status
-    if ($Status) {
-        $_statusNumbers = $Status | ConvertTo-LrCaseStatusId
-        if (! $_statusNumbers) {
-            throw [ArgumentException] "Status in [$Status] not found."
-        }
-        if ($_statusNumbers.count -gt 1) {
-            $_status = $_statusNumbers -join ','
-        } else {
-            $_status = $_statusNumbers
-        }
-        $QueryParams.Add("statusNumber", $_status)
-    }
-
-
-    # Owner
-    if ($Owners) {
-        $_ownerNumbers = $Owners | Get-LrUserNumber
-        if (! $_ownerNumbers) {
-            throw [ArgumentException] "Owner(s) [$Owners] not found."
-        }
-        if ($_ownerNumbers.count -gt 1) {
-            $_owner = $_ownerNumbers -join ','
-        } else {
-            $_owner = $_ownerNumbers
-        }
-        $QueryParams.Add("ownerNumber", $_owner)
-    }
-
-    # Collaborator
-    if ($Collaborator) {
-        $_collabNumber = $Collaborator | Get-LrUserNumber
-        if ($_collabNumber) {
-            $QueryParams.Add("collaboratorNumber", $_collabNumber)
-        } else {
-            throw [ArgumentException] "Collaborator [$Collaborator] not found."
+        # Pagination
+        if ($Response.Count -eq $Count) {
+            DO {
+                # Increment Page Count / Offset
+                $PageNumber = $PageNumber + 1
+                $Offset = ($PageNumber -1) * $Count
+                # Update Header Pagination Paramater
+                $Headers.offset = $Offset
+                
+                # Retrieve Query Results
+                try {
+                    $PaginationResults = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+                } catch [System.Net.WebException] {
+                    $Err = Get-RestErrorMessage $_
+                    $ErrorObject.Error = $true
+                    $ErrorObject.Type = "System.Net.WebException"
+                    $ErrorObject.Code = $($Err.statusCode)
+                    $ErrorObject.Note = $($Err.message)
+                    return $ErrorObject
+                }
+                
+                # Append results to Response
+                $Response = $Response + $PaginationResults
+            } While ($($PaginationResults.Count) -eq $Count)
         }
     }
 
-
-    # Tags  (Exclude Tags are removed from the final result)
-    if ($Tags) {
-        $_tagNumbers = [list[string]]::new()
-        ForEach ($Tag in $Tags) {
-            $_tagNumbers.add($($Tag | Get-LrTagNumber))
+    End {
+        # For Summary, return a formatted report
+        if ($Summary) {
+            return Format-LrCaseListSummary -InputObject $Response
         }
-        if ($_tagNumbers.count -gt 1) {
-            $_tags = $_tagNumbers -join ','
-        } else {
-            $_tags = $_tagNumbers
+
+        # Exclude Tags
+        if ($ExcludeTags -and $Response) {
+            $FilteredResult = [List[Object]]::new()
+
+            # Check every case
+            foreach ($case in $Response) {
+                $Exclude = $false
+                # Inspect each case's tags
+                foreach ($tag in $case.tags) {
+                    # Check each case tag against Excluded Tags
+                    foreach ($excludedTag in $ExcludeTags) {
+                        if ($tag.text -eq $excludedTag) {
+                            Write-Verbose "Excluding Case $($case.number) because it contains tag $excludedTag."
+                            $Exclude = $true
+                        }
+                    }
+                }
+                if (-not $Exclude) {
+                    $FilteredResult.Add($case)
+                }
+            }
         }
-        $QueryParams.Add("tagNumber", $_tags)
-    }
+        #endregion
 
+        #region: Return Results                                                                        
+        # [Exact Match] - return a single result based on exact name
+        if ($Exact) {
+            $Pattern = "^$Name$"
+            # LogRhythm allows multiple cases to share the same exact name - find all the exact
+            # matches, add to collection, and warn if there are more than one.
+            $ExactCaseMatches = [List[object]]::New()
 
-    # Name
-    if ($Name) {
-        # should we uri-encode this?
-        $QueryParams.Add("text", $Name)
-    }
-
-
-    # EvidenceType
-    if ($EvidenceType) {
-        if ($EvidenceType.Count -gt 1) {
-            $EvidenceType = $EvidenceType -join ','
-        }
-        $QueryParams.Add("evidenceType", $EvidenceType)
-    }
-
-    if ($QueryParams.Count -gt 0) {
-        $QueryString = $QueryParams | ConvertTo-QueryString
-        Write-Verbose "[$Me]: QueryString is [$QueryString]"
-    }
-    #endregion
-
-
-
-    #region: Process Request Headers_____________________________________________________
-    $Headers = [Dictionary[string,string]]::new()
-    $Headers.Add("Authorization", "Bearer $Token")
-    $Headers.Add("count", $Count)
-    $Headers.Add("direction", $Direction)
-
-    # Update / Create DateTimes
-    if ($UpdatedAfter) {
-        $_updatedAfter = $UpdatedAfter | ConvertTo-Rfc3339
-        $Headers.Add("updatedAfter", $_updatedAfter)
-    }
-    if ($UpdatedBefore) {
-        $_updatedBefore = $UpdatedBefore | ConvertTo-Rfc3339
-        $Headers.Add("updatedBefore", $_updatedBefore)
-    }
-    if ($CreatedAfter) {
-        $_createdAfter = $CreatedAfter | ConvertTo-Rfc3339
-        $Headers.Add("createdAfter", $_createdAfter)
-    }
-    if ($CreatedBefore) {
-        $_createdBefore = $CreatedBefore | ConvertTo-Rfc3339
-        $Headers.Add("createdBefore", $_createdBefore)
-    }
-    #endregion
-
-
-
-    #region: Send RequestHeaders_________________________________________________________
-    # Request URI
-    $Method = $HttpMethod.Get
-    $RequestUrl = $BaseUrl + "/cases/" + $QueryString
-
-
-    # REQUEST
-    if ($PSEdition -eq 'Core'){
-        try {
-            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
-        }
-        catch {
-            $Err = Get-RestErrorMessage $_
-            throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
-        }
-    } else {
-        try {
-            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-        }
-        catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
-        }
-    }
-
-    # For Summary, return a formatted report
-    if ($Summary) {
-        return Format-LrCaseListSummary -InputObject $Response
-    }
-
-
-    # Exclude Tags
-    if ($ExcludeTags -and $Response) {
-        $FilteredResult = [List[Object]]::new()
-
-        # Check every case
-        foreach ($case in $Response) {
-            $Exclude = $false
-            # Inspect each case's tags
-            foreach ($tag in $case.tags) {
-                # Check each case tag against Excluded Tags
-                foreach ($excludedTag in $ExcludeTags) {
-                    if ($tag.text -eq $excludedTag) {
-                        Write-Verbose "Excluding Case $($case.number) because it contains tag $excludedTag."
-                        $Exclude = $true
+            # [Exact Match] - Filtered Results
+            if ($FilteredResult) {
+                $FilteredResult | ForEach-Object {
+                    if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
+                        $ExactCaseMatches.Add($_)
+                    }
+                }
+            } else {
+                # [Exact Match] - All Results
+                $Response | ForEach-Object {
+                    if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
+                        Write-Verbose "[$Me]: Exact case name match found: $($_.Name)"
+                        $ExactCaseMatches.Add($_)
                     }
                 }
             }
-            if (-not $Exclude) {
-                $FilteredResult.Add($case)
+
+            # [Exact Match] - Check Result Count
+            if ($ExactCaseMatches.Count -gt 1) {
+                Write-Warning "More than one case found matching exact name: $Name"
+                Write-Warning "Only the first result will be returned"
             }
-        }
-    }
-    #endregion
-
-
-
-    #region: Return Results                                                                        
-    # [Exact Match] - return a single result based on exact name
-    if ($Exact) {
-        $Pattern = "^$Name$"
-        # LogRhythm allows multiple cases to share the same exact name - find all the exact
-        # matches, add to collection, and warn if there are more than one.
-        $ExactCaseMatches = [List[object]]::New()
-
-        # [Exact Match] - Filtered Results
-        if ($FilteredResult) {
-            $FilteredResult | ForEach-Object {
-                if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
-                    $ExactCaseMatches.Add($_)
-                }
-            }
-        } else {
-            # [Exact Match] - All Results
-            $Response | ForEach-Object {
-                if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
-                    Write-Verbose "[$Me]: Exact case name match found: $($_.Name)"
-                    $ExactCaseMatches.Add($_)
-                }
-            }
-        }
-
-        # [Exact Match] - Check Result Count
-        if ($ExactCaseMatches.Count -gt 1) {
-            Write-Warning "More than one case found matching exact name: $Name"
-            Write-Warning "Only the first result will be returned"
-        }
-        
-        # [Exact Match] - Get Metrics if requested
-        if ($Metrics) {
-            if ($ExactCaseMatches[0]) {
-                $_metrics = $ExactCaseMatches[0] | Get-LrCaseMetrics    
-                $ExactCaseMatches[0] | Add-Member -MemberType NoteProperty -Name "Metrics" -Value $_metrics
-            }
-        }
-        return $ExactCaseMatches[0]
-
-    # [Name Match] - return one or more resuls based on partial name match
-    } elseif ($Name) {
-        $Pattern = ".*$Name.*"
-        $CaseMatches = [List[object]]::New()
-
-        # [Name Match] - Filtered Results
-        if ($FilteredResult) {
-            $FilteredResult | ForEach-Object {
-                if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
-                    $CaseMatches.Add($_)
-                }
-            }
-
-        # [Name Match] - All Results
-        } else {
-            $Response | ForEach-Object {
-                if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
-                    $CaseMatches.Add($_)
-                }
-            }
-        }
-        
-        # [Name Match] - Get Case Metrics
-        if ($Metrics) {
-            foreach ($case in $CaseMatches) {
-                $_metrics = $case | Get-LrCaseMetrics
-                $case | Add-Member -MemberType NoteProperty -Name "Metrics" -Value $_metrics
-            }
-        }
-        return $CaseMatches
-
-    # [Default] - return all results
-    } else {
-        # Return FilteredResult if present (excluded tags)
-        if ($FilteredResult) {
+            
+            # [Exact Match] - Get Metrics if requested
             if ($Metrics) {
+                if ($ExactCaseMatches[0]) {
+                    $_metrics = $ExactCaseMatches[0] | Get-LrCaseMetrics    
+                    $ExactCaseMatches[0] | Add-Member -MemberType NoteProperty -Name "Metrics" -Value $_metrics
+                }
+                return $ExactCaseMatches[0]
+            }
+            
+        # [Name Match] - return one or more resuls based on partial name match
+        } elseif ($Name) {
+            $Pattern = ".*$Name.*"
+            $CaseMatches = [List[object]]::New()
+
+            # [Name Match] - Filtered Results
+            if ($FilteredResult) {
                 $FilteredResult | ForEach-Object {
-                    $_metrics = $_ | Get-LrCaseMetrics
-                    $_ | Add-Member -MemberType NoteProperty -Name "Metrics" -Value $_metrics
-                } 
-            }
-            return $FilteredResult
-        # Return the base results
-        } else {
-            if ($Metrics) {
+                    if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
+                        $CaseMatches.Add($_)
+                    }
+                }
+
+            # [Name Match] - All Results
+            } else {
                 $Response | ForEach-Object {
-                    $_metrics = $_ | Get-LrCaseMetrics
-                    $_ | Add-Member -MemberType NoteProperty -Name "Metrics" -Value $_metrics
+                    if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
+                        $CaseMatches.Add($_)
+                    }
                 }
             }
-            return $Response
+            
+            # [Name Match] - Get Case Metrics
+            if ($Metrics) {
+                foreach ($case in $CaseMatches) {
+                    $_metrics = $case | Get-LrCaseMetrics
+                    $case | Add-Member -MemberType NoteProperty -Name "Metrics" -Value $_metrics
+                }
+            }
+            return $CaseMatches
+
+        # [Default] - return all results
+        } else {
+            # Return FilteredResult if present (excluded tags)
+            if ($FilteredResult) {
+                if ($Metrics) {
+                    $FilteredResult | ForEach-Object {
+                        $_metrics = $_ | Get-LrCaseMetrics
+                        $_ | Add-Member -MemberType NoteProperty -Name "Metrics" -Value $_metrics
+                    } 
+                }
+                return $FilteredResult
+            # Return the base results
+            } else {
+                if ($Metrics) {
+                    $Response | ForEach-Object {
+                        $_metrics = $_ | Get-LrCaseMetrics
+                        $_ | Add-Member -MemberType NoteProperty -Name "Metrics" -Value $_metrics
+                    }
+                }
+                return $Response
+            }
         }
     }
-    #endregion
-
+        #endregion
 }

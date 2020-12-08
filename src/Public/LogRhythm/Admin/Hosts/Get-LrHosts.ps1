@@ -99,30 +99,33 @@ Function Get-LrHosts {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
-        [int] $PageCount,
-
-
-        [Parameter(Mandatory = $false, Position = 1)]
         [string] $Name,
 
 
-        [Parameter(Mandatory = $false, Position = 2)]
+        [Parameter(Mandatory = $false, Position = 1)]
         [string] $Entity,
 
 
-        [Parameter(Mandatory = $false, Position = 3)]
+        [Parameter(Mandatory = $false, Position = 2)]
         [string] $RecordStatus,
 
 
-        [Parameter(Mandatory = $false, Position = 4)]
+        [Parameter(Mandatory = $false, Position = 3)]
         [string[]] $HostIdentifier,
 
 
-        [Parameter(Mandatory = $false, Position = 5)]
+        [Parameter(Mandatory = $false, Position = 4)]
         [switch] $Exact,
+
+        [Parameter(Mandatory = $false, Position = 5)]
+        [int] $PageValuesCount = 1000,
 
 
         [Parameter(Mandatory = $false, Position = 6)]
+        [int] $PageCount = 1,
+
+
+        [Parameter(Mandatory = $false, Position = 7)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -147,17 +150,22 @@ Function Get-LrHosts {
     }
 
     Process {
+        $ErrorObject = [PSCustomObject]@{
+            Code                  =   $null
+            Error                 =   $false
+            Type                  =   $null
+            Note                  =   $null
+        }
+
         #region: Process Query Parameters____________________________________________________
         $QueryParams = [Dictionary[string,string]]::new()
 
-        # PageCount
-        if ($PageCount) {
-            $_pageCount = $PageCount
-        } else {
-            $_pageCount = 1000
-        }
-        $QueryParams.Add("count", $_pageCount)
+        # PageValuesCount - Amount of Values per Page
+        $QueryParams.Add("count", $PageValuesCount)
 
+        # Query Offset - PageCount
+        $Offset = ($PageCount -1) * $PageValuesCount
+        $QueryParams.Add("offset", $Offset)
 
         # Filter by Object Name
         if ($Name) {
@@ -218,13 +226,44 @@ Function Get-LrHosts {
         } else {
             try {
                 $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-            }
-            catch [System.Net.WebException] {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                return $ExceptionMessage
+            } catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Error = $true
+                $ErrorObject.Type = "System.Net.WebException"
+                $ErrorObject.Code = $($Err.statusCode)
+                $ErrorObject.Note = $($Err.message)
+                return $ErrorObject
             }
         }
+
+        if ($Response.Count -eq $PageValuesCount) {
+            DO {
+                # Increment Page Count / Offset
+                $PageCount = $PageCount + 1
+                $Offset = ($PageCount -1) * $PageValuesCount
+                # Update Query Paramater
+                $QueryParams.offset = $Offset
+                # Apply to Query String
+                $QueryString = $QueryParams | ConvertTo-QueryString
+                # Update Query URL
+                $RequestUrl = $BaseUrl + "/hosts/" + $QueryString
+                # Retrieve Query Results
+                try {
+                    $PaginationResults = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+                } catch [System.Net.WebException] {
+                    $Err = Get-RestErrorMessage $_
+                    $ErrorObject.Error = $true
+                    $ErrorObject.Type = "System.Net.WebException"
+                    $ErrorObject.Code = $($Err.statusCode)
+                    $ErrorObject.Note = $($Err.message)
+                    return $ErrorObject
+                }
+                
+                # Append results to Response
+                $Response = $Response + $PaginationResults
+            } While ($($PaginationResults.Count) -eq $PageValuesCount)
+        }
+
 
         # [Exact] Parameter
         # Search "Malware" normally returns both "Malware" and "Malware Options"
@@ -243,5 +282,6 @@ Function Get-LrHosts {
         }
     }
 
-    End { }
+    End {
+    }
 }

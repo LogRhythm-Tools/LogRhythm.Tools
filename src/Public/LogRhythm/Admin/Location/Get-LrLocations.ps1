@@ -119,11 +119,13 @@ Function Get-LrLocations {
             Note                  =   $null
         }
 
-        if ($LrVersion -lt 7.5) {
+        # Verify version
+        if ($LrtConfig.LogRhythm.Version -notmatch '7\.[5-9]\.\d+') {
             $ErrorObject.Error = $true
-            $ErrorObject.Type = "LogRhythm.Version"
-            $ErrorObject.Code = 410
-            $ErrorObject.Note = "Get-LrLocations requires LogRhythm version 7.5.0 or greater.  Use Show-LrLocations as an alternative cmdlet."
+            $ErrorObject.Code = "404"
+            $ErrorObject.Type = "Cmdlet not supported."
+            $ErrorObject.Note = "This cmdlet is available in LogRhythm version 7.5.0 and greater."
+
             return $ErrorObject
         }
 
