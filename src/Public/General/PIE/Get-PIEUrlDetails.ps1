@@ -164,6 +164,16 @@ function Get-PIEUrlDetails {
                 if ($LrtConfig.VirusTotal.ApiKey) {
                     if ($VTDomainScan) {
                         $VTResults = Get-VtDomainReport -Domain $URLDetails.ScanTarget.Domain
+                        Start-Sleep 2
+                        # Request the URL to be scanned if it is not found in the dataset
+                        if ($VTResults.response_code -eq 0) {
+                            $VTNewScan = New-VTUrlScanRequest -Url $URLDetails.ScanTarget.Url
+                            Start-Sleep 5
+                        }
+                        # Retrieve the results if the data is found within the dataset
+                        if ($VTResults.response_code -eq 1) {
+                            $URLDetails.Plugins.VirusTotal = $VTResults
+                        }
                     } else {
                         $VTResults = Get-VTUrlReport -Url $URLDetails.ScanTarget.Url
                         # Request the URL to be scanned if it is not found in the dataset
