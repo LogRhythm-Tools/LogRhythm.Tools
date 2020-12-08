@@ -9,16 +9,21 @@
 function New-PIELogger {
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
-        $logLevel = "debug",
+        [ValidateSet('info','debug', ignorecase=$true)]
+        $logLevel = "info",
 
         [Parameter(Mandatory = $true, Position = 1)]
-        $logSev,
+        [ValidateSet('e', 's', 'a', 'i', 'd', ignorecase=$true)]
+        [string] $logSev,
 
         [Parameter(Mandatory = $true, Position = 2)]
-        $Message,
+        [string] $Message,
 
         [Parameter(Mandatory = $true, Position = 3)]
-        $LogFile
+        $LogFile,
+
+        [Parameter(Mandatory = $false, Position = 4)]
+        [switch] $PassThru
     )
     $cTime = "[{0:MM/dd/yy} {0:HH:mm:ss}]" -f (Get-Date)
     #Create phishLog if file does not exist.
@@ -26,27 +31,33 @@ function New-PIELogger {
         Set-Content $LogFile -Value "PIE Powershell Runlog for $date"
         Write-Output "$cTime ALERT - No runLog detected.  Created new $runLog" | Out-File $LogFile
     }
-    if ($LogLevel -like "info" -Or $LogLevel -like "debug") {
-        if ($logSev -like "s") {
-            Write-Output "$cTime STATUS - $Message" | Out-File $LogFile -Append
-        } elseif ($logSev -like "a") {
-            Write-Output "$cTime ALERT - $Message" | Out-File $LogFile -Append
-        } elseif ($logSev -like "e") {
-            Write-Output "$cTime ERROR - $Message" | Out-File $LogFile -Append
-        }
-    }
-    if ($LogSev -like "i") {
-        Write-Output "$cTime INFO - $Message" | Out-File $LogFile -Append
-    }
-    if ($LogSev -like "d") {
-        Write-Output "$cTime DEBUG - $Message" | Out-File $LogFile -Append
-    }
+
     Switch ($logSev) {
-        e {$logSev = "ERROR"}
-        s {$logSev = "STATUS"}
-        a {$logSev = "ALERT"}
-        i {$logSev = "INFO"}
-        d {$logSev = "DEBUG"}
+        e {$LogOutput = "$cTime ERROR - $Message"}
+        s {$LogOutput = "$cTime STATUS - $Message"}
+        a {$LogOutput = "$cTime ALERT - $Message"}
+        i {$LogOutput = "$cTime INFO - $Message"}
+        d {$LogOutput = "$cTime DEBUG - $Message"}
         default {$logSev = "LOGGER ERROR"}
+    }
+
+    if ($logLevel -like "info") {
+
+    }
+
+    # If Debug mode, write out all log messages
+    if ($LogLevel -like "debug") {
+        Write-Output $LogOutput | Out-File $LogFile -Append
+        if ($PassThru) {
+            Write-Host $LogOutput
+        }
+    } else {
+        # Write to file all but debug logs
+        if ($LogSev -notlike "d") {
+            Write-Output $LogOutput | Out-File $LogFile -Append
+            if ($PassThru) {
+                Write-Host $LogOutput
+            }
+        }
     }
 }
