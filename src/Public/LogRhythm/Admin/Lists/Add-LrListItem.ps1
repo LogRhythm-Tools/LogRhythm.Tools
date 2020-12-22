@@ -471,7 +471,7 @@ Function Add-LrListItem {
             $ItemValues = [PSCustomObject]@{}
             ForEach ($Entry in $Value) {
                 $ItemValue = [PSCustomObject]@{
-                        displayValue = 'List'
+                        displayValue = $Entry
                         expirationDate = $ExpDate
                         isExpired =  $false
                         isListItem = $false
@@ -497,7 +497,7 @@ Function Add-LrListItem {
             # Request Body
             $BodyContents = [PSCustomObject]@{
                 items = @([PSCustomObject]@{
-                        displayValue = 'List'
+                        displayValue = $Value
                         expirationDate = $ExpDate
                         isExpired =  $false
                         isListItem = $false
@@ -510,7 +510,6 @@ Function Add-LrListItem {
                 )
             }
         }
-        
 
         $Body = $BodyContents | ConvertTo-Json -Depth 5 -Compress
         Write-Verbose "[$Me] Request Body:`n$Body"
