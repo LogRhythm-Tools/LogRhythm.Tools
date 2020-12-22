@@ -64,7 +64,7 @@ Function Add-LrNoteToCase {
         [object] $Id,
 
 
-        [Parameter(Mandatory = $true, Position = 1)]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 1)]
         [ValidateNotNullOrEmpty()]
         [string] $Text,
 
