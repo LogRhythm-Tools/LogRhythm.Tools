@@ -26,7 +26,7 @@ Function Enable-TrustAllCertsPolicy {
     # Set PowerShell to TLS1.2
     [ServicePointManager]::SecurityProtocol = [SecurityProtocolType]::Tls12
 
-    if ($LrtConfig.General.CertPolicyRequired) {
+    if ( -Not ("TrustAllCertsPolicy" -as [type]) -and ( $LrtConfig.General.CertPolicyRequired) ) {
         if ($PSEdition -ne 'Core'){
             Write-Verbose "[Enable-TrustAllCertsPolicy]: Cert Policy is not enabled. Enabling."
             Add-Type $PSDesktopException
