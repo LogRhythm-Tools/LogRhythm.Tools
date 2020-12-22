@@ -105,11 +105,14 @@ Function Sync-LrListItems {
         [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 1)]
         [string[]] $Value,
 
+
         [Parameter(Mandatory = $false, Position = 2)]
         [switch] $Clear,
 
+
         [Parameter(Mandatory = $false, Position = 3)]
         [switch] $PassThru,
+
 
         [Parameter(Mandatory = $false, Position = 4)]
         [ValidateNotNull()]
@@ -148,7 +151,7 @@ Function Sync-LrListItems {
             After                 =   $null
             Added                 =   $null
             Removed               =   $null
-            ListType              =   $ListType
+            ListType              =   $null
         }
 
         # Process Name
@@ -164,13 +167,10 @@ Function Sync-LrListItems {
                 $OutObject.ListName = $TargetList.Name
                 $OutObject.ListGuid = $TargetList.Guid
                 $OutObject.Before = $TargetList.entryCount
-                if (!$ListType) {
-                    $ListType = $TargetList.listType
-                    $OutObject.ListType = $TargetList.ListType
-                }
+                $OutObject.ListType = $TargetList.ListType
             }
         } else {
-            $TargetList = Get-LrList -Name $Name.ToString() -Exact
+            $TargetList = Get-LrLists -Name $Name.ToString() -Exact
             if ($TargetList -is [array]) {
                 $ErrorObject.Error = $true
                 $ErrorObject.ListName = $Name.ToString()
@@ -187,17 +187,14 @@ Function Sync-LrListItems {
                 $OutObject.ListName = $TargetList.Name
                 $OutObject.ListGuid = $TargetList.Guid
                 $OutObject.Before = $TargetList.entryCount
-                if (!$ListType) {
-                    $ListType = $TargetList.listType
-                    $OutObject.ListType = $TargetList.ListType
-                }
+                $OutObject.ListType = $TargetList.ListType
             }
         }
 
 
-        if ($($OutObject.ListGuid) -or $($OutObject.ListName)) {
+        if ($OutObject.ListGuid) {
             Write-Verbose "$(Get-TimeStamp) - Retrieving List Values for: $($OutObject.ListName)"
-            $ListValues = Get-LrListItems -Name $OutObject.ListName -ValuesOnly
+            $ListValues = Get-LrListItems -Name $OutObject.ListGuid -ValuesOnly
             if ($Value.Count -ge 1 -And $ListValues.Count -ge 1) {
                 Write-Verbose "$(Get-TimeStamp) - Number of ListValues: $($ListValues.Count) - Number of Values: $($Value.Count)"
                 $ComparisonResults = Compare-StringArrays $Value $ListValues -Unsorted
@@ -226,7 +223,7 @@ Function Sync-LrListItems {
                     foreach ($RemoveArray in $SegmentedRemoveList) {
                         Write-Verbose "$(Get-TimeStamp) - Submitting $($RemoveArray.count)"
                         Try {
-                            Remove-LrListItem -name $OutObject.ListGuid -Value $RemoveArray -ItemType $ListType | Out-Null
+                            Remove-LrListItem -name $OutObject.ListGuid -Value $RemoveArray -ItemType $OutObject.ListType
                         } Catch {
                             $ErrorObject.Error = $true
                             $ErrorObject.Note = "Failed to submit removal entries."
@@ -237,7 +234,7 @@ Function Sync-LrListItems {
                 } else {
                     if ($ItemType) {
                         Try {
-                            Remove-LrListItem -name $OutObject.ListGuid -Value $RemoveList -ItemType $ListType | Out-Null
+                            Remove-LrListItem -name $OutObject.ListGuid -Value $RemoveList -ItemType $OutObject.ListType
                         } Catch {
                             $ErrorObject.Error = $true
                             $ErrorObject.Note = "Failed to submit removal entries."
@@ -245,7 +242,7 @@ Function Sync-LrListItems {
                         }
                     } else {
                         Try {
-                            Remove-LrListItem -name $OutObject.ListGuid -Value $RemoveList | Out-Null
+                            Remove-LrListItem -name $OutObject.ListGuid -Value $RemoveList
                         } Catch {
                             $ErrorObject.Error = $true
                             $ErrorObject.Note = "Failed to submit removal entries."
@@ -271,7 +268,7 @@ Function Sync-LrListItems {
                     foreach ($AddArray in $SegmentedAddList) {
                         Write-Verbose "$(Get-TimeStamp) - Submitting $($AddArray.count)"
                         Try {
-                            Add-LrListItem -name $OutObject.ListGuid -Value $AddArray -ItemType $ListType | Out-Null
+                            Add-LrListItem -name $OutObject.ListGuid -Value $AddArray -ItemType $OutObject.ListType
                         } Catch {
                             $ErrorObject.Error = $true
                             $ErrorObject.Note = "Failed to submit addition entries."
@@ -282,7 +279,7 @@ Function Sync-LrListItems {
                 } else {
                     if ($ItemType) {
                         Try {
-                            Add-LrListItem -Name $OutObject.ListGuid -Value $AddList -ItemType $ListType | Out-Null
+                            Add-LrListItem -Name $OutObject.ListGuid -Value $AddList -ItemType $OutObject.ListType
                         } Catch {
                             $ErrorObject.Error = $true
                             $ErrorObject.Note = "Failed to submit addition entries."
@@ -290,7 +287,7 @@ Function Sync-LrListItems {
                         }
                     } else {
                         Try {
-                            Add-LrListItem -Name $OutObject.ListGuid -Value $AddList | Out-Null
+                            Add-LrListItem -Name $OutObject.ListGuid -Value $AddList
                         } Catch {
                             $ErrorObject.Error = $true
                             $ErrorObject.Note = "Failed to submit addition entries."
