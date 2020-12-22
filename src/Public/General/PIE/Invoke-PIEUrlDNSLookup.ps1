@@ -47,8 +47,8 @@ function Invoke-PIEUrlDNSLookup {
             $DNSOutput.Status = $true
             $IPv6Results = $DNSResults | Where-Object -Property "Type" -like "AAAA"
             $IPv4Results = $DNSResults | Where-Object -Property "Type" -like "A"
-            $IPv4Output = [list[ipaddress]]::new()
-            $IPv6Output = [list[ipaddress]]::new()
+            $IPv4Output = [list[string]]::new()
+            $IPv6Output = [list[string]]::new()
             ForEach ($IPv4Result in $IPv4Results) {
                 $IPv4 = Test-ValidIPv4Address -IP $($IPv4Result | Select-Object -ExpandProperty IP4Address).ToString()
                 if ($IPv4.IsValid -eq $True) {

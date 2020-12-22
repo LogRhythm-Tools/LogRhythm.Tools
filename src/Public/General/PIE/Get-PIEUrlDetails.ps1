@@ -144,7 +144,7 @@ function Get-PIEUrlDetails {
 
             # Set one IPv4 out of the DNS results as the IP Scan Target
             if ($ScanTarget.DNS.Status -eq $true) {
-                $ScanTarget.IP = $ScanTarget.DNS.IPv4 | Select-Object -First 1 -ExpandProperty IPAddressToString
+                $ScanTarget.IP = $ScanTarget.DNS.IPv4 | Select-Object -First 1
             }
 
             # Update UrlDetails.ScanTarget

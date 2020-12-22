@@ -76,10 +76,7 @@ function Format-PIEEvidenceSummary {
 
     Process {
         $CaseOutput = [list[String]]::new()
-        $UndetectedUrls = [list[PSObject]]::new()
-        $DetectedHashes = [list[PSObject]]::new()
-        $UndetectedHashes = [list[PSObject]]::new()
-        $PositiveScans = [list[PSObject]]::new()
+
 
         $CaseOutput.Add("=== E-mail Links & Attachments Summary ===")
         if ($EvaluationResults.Links.Details) {
@@ -97,11 +94,11 @@ function Format-PIEEvidenceSummary {
                 $CaseOutput.Add("Url: $($Url.ScanTarget.Defang)")
                 $CaseOutput.Add("Domain: $($Url.ScanTarget.Domain)")
                 if ($Url.ScanTarget.Dns.Status -eq $true) {
-                    $IPv4DNS = ($Url.ScanTarget.DNS.IPv4 | Select-Object -ExpandProperty IPAddressToString) -join ", "
+                    $IPv4DNS = ($Url.ScanTarget.DNS.IPv4) -join ", "
                     if ($IPv4DNS) {
                         $CaseOutput.Add("DNS IPv4: $IPv4DNS")
                     }
-                    $IPv6DNS = ($Url.ScanTarget.DNS.IPv6 | Select-Object -ExpandProperty IPAddressToString) -join ", "
+                    $IPv6DNS = ($Url.ScanTarget.DNS.IPv6) -join ", "
                     if ($IPv6DNS) {
                         $CaseOutput.Add("DNS IPv6: $IPv6DNS")
                     }
