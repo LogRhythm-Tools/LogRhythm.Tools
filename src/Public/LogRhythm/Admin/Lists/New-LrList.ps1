@@ -51,11 +51,6 @@ Function New-LrList {
         [string] $Name,
 
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 1)]
-        [ValidateNotNull()]
-        [string] $Guid = $null,
-
-
         [Parameter(Mandatory = $True, Position = 2)]
         [ValidateSet(
             'application',
