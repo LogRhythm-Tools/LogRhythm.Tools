@@ -265,23 +265,13 @@ Function Update-LrList {
         }
 
         if ($UseContext) {
-            $UseContexts = @("None", "Address", "DomainImpacted", "Group", "HostName", "Message", "Object", "Process", "Session", "Subject", "URL", "User", "VendorMsgID", "DomainOrigin", "Hash", "Policy", "VendorInfo", "Result", "ObjectType", "CVE", "UserAgent", "ParentProcessId", "ParentProcessName", "ParentProcessPath", "SerialNumber", "Reason", "Status", "ThreatId", "ThreatName", "SessionType", "Action", "ResponseCode")
-            if ($UseContexts -contains $UseContext) {
-                ForEach ($Context in $UseContexts) {
-                    if ($UseContext.count -gt 1) {
-                        Write-Verbose "Use Context - Array: $UseContext"
-                        ForEach ($Use in $UseContext) {
-                            if ($Use -like $Context) {
-                                # Establish FinalContext based on stored definitions
-                                $_finalContext += $Context
-                            }
-                        }
-                    } else {
-                        if ($UseContext -like $Context) {
-                            # Set FinalContext to stored definition
-                            $_finalContext = $Context
-                            Write-Verbose "Use Context - Single: $UseContext  Mapped Context: $Context"
-                        }
+            $ValidContexts = @("None", "Address", "DomainImpacted", "Group", "HostName", "Message", "Object", "Process", "Session", "Subject", "URL", "User", "VendorMsgID", "DomainOrigin", "Hash", "Policy", "VendorInfo", "Result", "ObjectType", "CVE", "UserAgent", "ParentProcessId", "ParentProcessName", "ParentProcessPath", "SerialNumber", "Reason", "Status", "ThreatId", "ThreatName", "SessionType", "Action", "ResponseCode")
+            [string[]] $_finalContext = @()
+            
+            ForEach ($Context in $UseContext) {
+                ForEach ($ValidContext in $ValidContexts) {
+                    if ($Context -like $ValidContext) {
+                        $_finalContext += $ValidContext
                     }
                 }
             }
