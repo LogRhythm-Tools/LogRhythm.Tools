@@ -87,19 +87,19 @@ Function Get-LrLists {
         [string] $ListType,
 
 
-        [Parameter(Mandatory = $false, Position = 3)]
+        [Parameter(Mandatory = $false, Position = 2)]
         [switch] $Exact,
 
         
-        [Parameter(Mandatory = $false, Position = 2)]
+        [Parameter(Mandatory = $false, Position = 3)]
         [ValidateRange(1,1000)]
         [int] $PageSize = 1000,
 
 
-        [Parameter(Mandatory = $false, Position = 2)]
+        [Parameter(Mandatory = $false, Position = 4)]
         [int] $PageNumber = 1,
 
-        [Parameter(Mandatory = $false, Position = 4)]
+        [Parameter(Mandatory = $false, Position = 5)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
