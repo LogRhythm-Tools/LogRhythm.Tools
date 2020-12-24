@@ -821,7 +821,7 @@ Function Invoke-RfSync {
 
                 # Check if list exists - Change to Get-LRListGuidByName
                 Write-Host "$(Get-TimeStamp) - Testing ConfHi Status"
-                $IPConfHiStatus = Get-LrLists -name $IPConfHiList -Exact -Exact
+                $IPConfHiStatus = Get-LrLists -name $IPConfHiList -Exact
 
                 # If the list exists then update it.  Else create it.
                 if ($IPConfHiStatus) {
