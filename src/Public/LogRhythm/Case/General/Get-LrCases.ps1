@@ -521,6 +521,7 @@ Function Get-LrCases {
             # Check every case
             foreach ($case in $Response) {
                 $Exclude = $false
+                
                 # Inspect each case's tags
                 foreach ($tag in $case.tags) {
                     # Check each case tag against Excluded Tags
@@ -531,6 +532,7 @@ Function Get-LrCases {
                         }
                     }
                 }
+
                 if (-not $Exclude) {
                     $FilteredResult.Add($case)
                 }
