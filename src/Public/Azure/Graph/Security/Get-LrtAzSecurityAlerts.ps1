@@ -13,6 +13,11 @@ Function Get-LrtAzSecurityAlerts {
         federated sign-ins are currently included in the sign-in logs. 
         
         The most recent sign-ins are returned first.
+    .PARAMETER CreatedDateTime
+        Time at which the alert was created by the alert provider. The Timestamp type represents
+        date and time information using ISO 8601 format and is always in UTC time. For example, 
+        midnight UTC on Jan 1, 2014 would look like this: '2014-01-01T00:00:00Z'. 
+        
     .PARAMETER Token
         An access token issued by the Microsoft identity platform with a valid claim to Microsoft
         Graph. The registered application will require the IdentityRiskyUser.Read.All role.
@@ -34,37 +39,45 @@ Function Get-LrtAzSecurityAlerts {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 0)]
-        [ValidateSet('high','medium', 'low')]
+        [ValidateSet('high','medium', 'low', 'informational', ignorecase=$true)]
         [string] $Severity,
 
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 0)]
-        #[ValidateSet('high','medium', 'low')]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 1)]
+        #[ValidateSet('UnfamiliarLocation','Ransomware', '', '', ignorecase=$true)]
         [string] $Category,
 
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 0)]
-        [string] $OrderBy,
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 2)]
+        [ValidateSet('unknown','newAlert', 'inProgress', 'resolved', ignorecase=$true)]
+        [string] $Status,
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 1)]
+
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 4)]
         [int32] $Top,
 
-        [Parameter(Mandatory = $false, Position = 2)]
-        [switch] $AzureATP,
-
-        [Parameter(Mandatory = $false, Position = 3)]
-        [switch] $AzureSecurityCenter,
-
-        [Parameter(Mandatory = $false, Position = 4)]
-        [switch] $MCAS,
 
         [Parameter(Mandatory = $false, Position = 5)]
-        [switch] $AzureADIdentityProtection,
+        [switch] $AzureATP,
+
 
         [Parameter(Mandatory = $false, Position = 6)]
-        [switch] $AzureSentinel,
+        [switch] $AzureSecurityCenter,
+
 
         [Parameter(Mandatory = $false, Position = 7)]
+        [switch] $MCAS,
+
+
+        [Parameter(Mandatory = $false, Position = 8)]
+        [switch] $AzureADIdentityProtection,
+
+
+        [Parameter(Mandatory = $false, Position = 9)]
+        [switch] $AzureSentinel,
+
+
+        [Parameter(Mandatory = $false, Position = 10)]
         [switch] $DefenderATP
     )
 
@@ -92,9 +105,6 @@ Function Get-LrtAzSecurityAlerts {
         $Method = $HttpMethod.Get
         $RequestUri = "https://graph.microsoft.com/v1.0/security/alerts"
 
-        if ($Top) {
-            $RequestUri += "&`$top=$Top"
-        }
 
 
         if ($Severity) {
@@ -117,6 +127,16 @@ Function Get-LrtAzSecurityAlerts {
         }
 
 
+        if ($Status) {
+            if ($Filter -eq $true) {
+                $RequestUri += "&Status eq `'$Status`'"
+            } else {
+                $RequestUri += "?`$filter=Status eq `'$Status`'"
+                $Filter = $true
+            }
+        }
+
+
         if ($AzureATP) {
             if ($Filter -eq $true) {
                 $RequestUri += "&vendorInformation/provider eq `'Azure Advanced Threat Protection`'"
@@ -125,6 +145,7 @@ Function Get-LrtAzSecurityAlerts {
                 $Filter = $true
             }
         }
+
 
         if ($AzureSecurityCenter) {
             if ($Filter -eq $true) {
@@ -135,6 +156,7 @@ Function Get-LrtAzSecurityAlerts {
             }
         }
 
+
         if ($MCAS) {
             if ($Filter -eq $true) {
                 $RequestUri += "&vendorInformation/provider eq `'MCAS`'"
@@ -143,6 +165,7 @@ Function Get-LrtAzSecurityAlerts {
                 $Filter = $true
             }
         }
+
 
         if ($AzureADIdentityProtection) {
             if ($Filter -eq $true) {
@@ -153,6 +176,7 @@ Function Get-LrtAzSecurityAlerts {
             }
         }
 
+
         if ($AzureSentinel) {
             if ($Filter -eq $true) {
                 $RequestUri += "&vendorInformation/provider eq `'Azure Sentinel`'"
@@ -162,6 +186,7 @@ Function Get-LrtAzSecurityAlerts {
             }
         } 
 
+
         if ($DefenderATP) {
             if ($Filter -eq $true) {
                 $RequestUri += "&vendorInformation/provider eq `'Microsoft Defender ATP`'"
@@ -169,7 +194,12 @@ Function Get-LrtAzSecurityAlerts {
                 $RequestUri += "?`$filter=vendorInformation/provider eq `'Microsoft Defender ATP`'"
                 $Filter = $true
             }
-        } 
+        }
+
+
+        if ($Top) {
+            $RequestUri += "&`$top=$Top"
+        }
 
 
         # REQUEST
@@ -178,8 +208,7 @@ Function Get-LrtAzSecurityAlerts {
                 -Uri $RequestUri `
                 -Headers $Headers `
                 -Method $Method `
-        }
-        catch [System.Net.WebException] {
+        } catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_
             throw [Exception] "[$Me] [$($Err.error.code)]: $($Err.error.message)`n"
         }
@@ -192,6 +221,7 @@ Function Get-LrtAzSecurityAlerts {
 
         #region: Paging                                                                  
         # Check to see if we need to keep paging.
+        
         if ($Response.'@odata.nextLink') {
             $Paging = $true
             $NextPage = $Response.'@odata.nextLink'
@@ -206,8 +236,7 @@ Function Get-LrtAzSecurityAlerts {
                         -Uri $NextPage `
                         -Headers $Headers `
                         -Method $Method `
-                }
-                catch [System.Net.WebException] {
+                } catch [System.Net.WebException] {
                     $Err = Get-RestErrorMessage $_
                     throw [Exception] "[$Me] [$($Err.error.code)]: $($Err.error.message)`n"
                 }
@@ -226,6 +255,7 @@ Function Get-LrtAzSecurityAlerts {
                 }
             }
         }
+        #>
         
         #endregion
 
