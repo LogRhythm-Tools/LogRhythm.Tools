@@ -131,7 +131,7 @@ Function Get-LrEntities {
         $QueryParams.Add("count", $PageValuesCount)
 
         # Query Offset - PageCount
-        $Offset = ($PageCount -1) * $PageValuesCount
+        $Offset = $PageCount - 1
         $QueryParams.Add("offset", $Offset)
 
         # Direction
@@ -220,8 +220,8 @@ Function Get-LrEntities {
         if ($Response.Count -eq $PageValuesCount) {
             DO {
                 # Increment Page Count / Offset
-                $PageCount = $PageCount + 1
-                $Offset = ($PageCount -1) * $PageValuesCount
+                #$PageCount = $PageCount + 1
+                $Offset = $Offset + 1
                 # Update Query Paramater
                 $QueryParams.offset = $Offset
                 # Apply to Query String
@@ -243,6 +243,7 @@ Function Get-LrEntities {
                 # Append results to Response
                 $Response = $Response + $PaginationResults
             } While ($($PaginationResults.Count) -eq $PageValuesCount)
+            $Response = $Response | Sort-Object -Property Id -Unique
         }
 
         
