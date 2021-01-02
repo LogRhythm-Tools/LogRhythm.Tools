@@ -200,7 +200,7 @@ Function Get-LrNetworks {
         $QueryParams.Add("count", $_pageValueCount)
 
         # Query Offset - PageCount
-        $Offset = ($PageCount -1) * $_pageValueCount
+        $Offset = $PageCount - 1
         $QueryParams.Add("offset", $Offset)
 
         # Filter by Object Name
@@ -310,15 +310,37 @@ Function Get-LrNetworks {
                 return $ErrorObject
             }
         }
-    }
 
-    End {
-        if ($Response.Count -eq $_pageValueCount) {
-            # Need to get next page results
-            $CurrentPage = $PageCount + 1
-            #return 
-            Return $Response + (Get-LrNetworks -PageCount $CurrentPage) 
+        # Check if pagination is required, if so - paginate!
+        if ($Response.Count -eq $PageValuesCount) {
+            DO {
+                # Increment Page Count / Offset
+                #$PageCount = $PageCount + 1
+                $Offset = $Offset + 1
+                # Update Query Paramater
+                $QueryParams.offset = $Offset
+                # Apply to Query String
+                $QueryString = $QueryParams | ConvertTo-QueryString
+                # Update Query URL
+                $RequestUrl = $BaseUrl + "/networks/" + $QueryString
+                # Retrieve Query Results
+                try {
+                    $PaginationResults = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+                } catch [System.Net.WebException] {
+                    $Err = Get-RestErrorMessage $_
+                    $ErrorObject.Error = $true
+                    $ErrorObject.Type = "System.Net.WebException"
+                    $ErrorObject.Code = $($Err.statusCode)
+                    $ErrorObject.Note = $($Err.message)
+                    return $ErrorObject
+                }
+                
+                # Append results to Response
+                $Response = $Response + $PaginationResults
+            } While ($($PaginationResults.Count) -eq $PageValuesCount)
+            $Response = $Response | Sort-Object -Property Id -Unique
         }
+
         # [Exact] Parameter
         # Search "Malware" normally returns both "Malware" and "Malware Options"
         # This would only return "Malware"
@@ -376,5 +398,8 @@ Function Get-LrNetworks {
         } else {
             return $Response
         }
+    }
+
+    End {
     }
 }
