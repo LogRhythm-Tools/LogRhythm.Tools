@@ -1,7 +1,6 @@
 using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
-
 Function Get-LrHosts {
     <#
     .SYNOPSIS
@@ -117,6 +116,7 @@ Function Get-LrHosts {
         [Parameter(Mandatory = $false, Position = 4)]
         [switch] $Exact,
 
+
         [Parameter(Mandatory = $false, Position = 5)]
         [int] $PageValuesCount = 1000,
 
@@ -157,6 +157,7 @@ Function Get-LrHosts {
             Note                  =   $null
         }
 
+
         #region: Process Query Parameters____________________________________________________
         $QueryParams = [Dictionary[string,string]]::new()
 
@@ -164,7 +165,7 @@ Function Get-LrHosts {
         $QueryParams.Add("count", $PageValuesCount)
 
         # Query Offset - PageCount
-        $Offset = ($PageCount -1) * $PageValuesCount
+        $Offset = ($PageCount -1)
         $QueryParams.Add("offset", $Offset)
 
         # Filter by Object Name
@@ -172,7 +173,6 @@ Function Get-LrHosts {
             $_name = $Name
             $QueryParams.Add("name", $_name)
         }
-
 
 
         # Filter by Object Entity Name
@@ -236,11 +236,12 @@ Function Get-LrHosts {
             }
         }
 
+
         if ($Response.Count -eq $PageValuesCount) {
+            write-verbose "Response Count: $($Response.Count)  Page Value Count: $PageValuesCount"
             DO {
-                # Increment Page Count / Offset
-                $PageCount = $PageCount + 1
-                $Offset = ($PageCount -1) * $PageValuesCount
+                # Increment Offset
+                $Offset = $Offset + 1
                 # Update Query Paramater
                 $QueryParams.offset = $Offset
                 # Apply to Query String
@@ -261,7 +262,9 @@ Function Get-LrHosts {
                 
                 # Append results to Response
                 $Response = $Response + $PaginationResults
+                write-verbose "Response Count: $($PaginationResults.Count)  Page Value Count: $PageValuesCount"
             } While ($($PaginationResults.Count) -eq $PageValuesCount)
+            $Response = $Response | Sort-Object -Property Id -Unique
         }
 
 
