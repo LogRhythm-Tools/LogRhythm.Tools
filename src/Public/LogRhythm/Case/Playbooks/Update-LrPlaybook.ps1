@@ -94,7 +94,11 @@ Function Update-LrPlaybook {
 
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 3)]
-        [string] $Permissions,
+        [string] $ReadPermission,
+
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 3)]
+        [string] $WritePermission,
 
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 4)]
@@ -110,6 +114,10 @@ Function Update-LrPlaybook {
 
 
         [Parameter(Mandatory = $false, Position = 7)]
+        [switch] $PassThru,
+
+
+        [Parameter(Mandatory = $false, Position = 8)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -175,7 +183,7 @@ Function Update-LrPlaybook {
                     if ($Force) {
                         Write-Verbose "$(Get-TimeStamp) Force Set - Creating Tag"
                         if (!([int]::TryParse($Tag, [ref]$_int))) {
-                            $NewTagResults = New-LrTag -Tag $Tag
+                            $NewTagResults = New-LrTag -Tag $Tag -PassThru
                             if (($null -eq $NewTagResults.Error) -or ($NewTagResults.Error -eq "")) {
                                 Write-Verbose "$(Get-TimeStamp) Adding new tag number: $($NewTagResults.number) to variable: _tags"
                                 $_tags += $NewTagResults.number
@@ -230,16 +238,31 @@ Function Update-LrPlaybook {
             $_name = $Pb.Name
         }
 
+
         # New new value set, apply new value.  Otherwise keep existing value.
         if ($ReadPermission) {
-            $_readPermission = $ReadPermission
+            Switch ($ReadPermission) {
+                "publicGlobalAdmin" {$_readPermission = "publicGlobalAdmin";break}
+                "publicGlobalAnalyst" {$_readPermission = "publicGlobalAnalyst";break}
+                "publicRestrictedAdmin" {$_readPermission = "publicRestrictedAdmin";break}
+                "publicRestrictedAnalyst" {$_readPermission = "publicRestrictedAnalyst";break}
+                "privateOwnerOnly" {$_readPermission = "privateOwnerOnly";break}
+                default {$_readPermission = "publicGlobalAnalyst"}
+            }
         } else {
             $_readPermission = $Pb.permissions.read
         }
 
         # New new value set, apply new value.  Otherwise keep existing value.
         if ($WritePermission) {
-            $_writePermission = $WritePermission
+            Switch ($WritePermission) {
+                "publicGlobalAdmin" {$_writePermission = "publicGlobalAdmin";break}
+                "publicGlobalAnalyst" {$_writePermission = "publicGlobalAnalyst";break}
+                "publicRestrictedAdmin" {$_writePermission = "publicRestrictedAdmin";break}
+                "publicRestrictedAnalyst" {$_writePermission = "publicRestrictedAnalyst";break}
+                "privateOwnerOnly" {$_writePermission = "privateOwnerOnly";break}
+                default {$_writePermission = "publicGlobalAnalyst"}
+            }
         } else {
             $_writePermission = $Pb.permissions.write
         }
@@ -262,8 +285,7 @@ Function Update-LrPlaybook {
             tags = @(
                 $_tags
             )
-        }
-        $Body = $Body | ConvertTo-Json
+        } | ConvertTo-Json
         Write-Verbose "[$Me]: Body: $Body"
 
 
@@ -296,7 +318,9 @@ Function Update-LrPlaybook {
             }
         }
 
-        return $Response
+        if ($PassThru) {
+            return $Response
+        }
     }
 
 
