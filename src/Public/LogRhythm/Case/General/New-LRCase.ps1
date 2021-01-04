@@ -91,7 +91,7 @@ Function New-LrCase {
         [string] $Summary,
 
 
-        [Parameter(Mandatory = $false, Position = 4)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 4)]
         [int[]] $AlarmNumbers,
 
 
