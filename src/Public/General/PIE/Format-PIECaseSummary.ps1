@@ -45,15 +45,12 @@ function Format-PIECaseSummary {
         $CaseOutput.Add("=== PIE Analysis Summary ===")
 
         $CaseOutput.Add("--- Submitted E-mail ---")
-        $CaseOutput.Add("Reported On: $($ReportEvidence.ReportSubmission.Date)")
+        $CaseOutput.Add("Reported On: $($ReportEvidence.ReportSubmission.UtcDate)")
         $CaseOutput.Add("Reported By: $($ReportEvidence.ReportSubmission.Sender)")
         $CaseOutput.Add("Subject: $($ReportEvidence.ReportSubmission.Subject.Original)")
         $CaseOutput.Add("")
         $CaseOutput.Add("--- Evaluated E-mail ---")
-        $CaseOutput.Add("Email Parsed Format: $($ReportEvidence.EvaluationResults.ParsedFromFormat)")
-        $DateString1 = "Sent On: $($ReportEvidence.EvaluationResults.Date.SentOn)"
-        $DateString2 = "Received On: $($ReportEvidence.EvaluationResults.Date.ReceivedOn)"
-        $CaseOutput.Add("$DateString1 $($DateString2.PadLeft(46-($DateString1.length)+$($DateString2.length)))")
+        $CaseOutput.Add("Sent On: $($ReportEvidence.EvaluationResults.UtcDate)")
         $SenderString1 = "Sender: $($ReportEvidence.EvaluationResults.Sender)"
         $SenderString2 = "Sender Display Name: $($ReportEvidence.EvaluationResults.SenderDisplayName)"
         $CaseOutput.Add("$SenderString1 $($SenderString2.PadLeft(43-($SenderString1.length)+$($SenderString2.length)))")
@@ -61,7 +58,7 @@ function Format-PIECaseSummary {
         if ($Recipients) {
             $CaseOutput.Add("Recipients: $Recipients")
         }
-        if ($ReportEvidence.EvaluationResults.Recipient.CC) {
+        if ($ReportEvidence.EvaluationResults.Recipient.CC.count -gt 0) {
             $CCRecipients = ($ReportEvidence.EvaluationResults.Recipient | Select-Object -ExpandProperty CC) -join ", "
             $CaseOutput.Add("CC Recipients: $CCRecipients")
         }
