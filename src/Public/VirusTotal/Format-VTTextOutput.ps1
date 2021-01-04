@@ -29,7 +29,6 @@ function Format-VTTextOutput {
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
         [object] $VTData,
 
-
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true ,Position = 1)]
         [string] $Domain,
 
