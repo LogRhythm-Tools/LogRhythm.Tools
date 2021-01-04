@@ -59,22 +59,46 @@ Function New-LrPlaybook {
 
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 2)]
-        [string] $Permissions,
+        [ValidateSet(
+            'publicGlobalAdmin',
+            'publicGlobalAnalyst',
+            'publicRestrictedAdmin',
+            'publicRestrictedAnalyst',
+            'privateOwnerOnly',
+            ignorecase=$true
+        )]
+        [string] $ReadPermission,
 
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 3)]
-        [string] $Entities,
+        [ValidateSet(
+            'publicGlobalAdmin',
+            'publicGlobalAnalyst',
+            'publicRestrictedAdmin',
+            'publicRestrictedAnalyst',
+            'privateOwnerOnly',
+            ignorecase=$true
+        )]
+        [string] $WritePermission,
 
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 4)]
+        [string] $Entities,
+
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 5)]
         [object[]] $Tags,
 
 
-        [Parameter(Mandatory = $false, Position = 5)]
+        [Parameter(Mandatory = $false, Position = 6)]
         [switch] $Force,
 
 
-        [Parameter(Mandatory = $false, Position = 6)]
+        [Parameter(Mandatory = $false, Position = 7)]
+        [switch] $PassThru,
+
+
+        [Parameter(Mandatory = $false, Position = 8)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -132,7 +156,7 @@ Function New-LrPlaybook {
                     if ($Force) {
                         Write-Verbose "$(Get-TimeStamp) Force Set - Creating Tag"
                         if (!([int]::TryParse($Tag, [ref]$_int))) {
-                            $NewTagResults = New-LrTag -Tag $Tag
+                            $NewTagResults = New-LrTag -Tag $Tag -PassThru
                             if (($null -eq $NewTagResults.Error) -or ($NewTagResults.Error -eq "")) {
                                 Write-Verbose "$(Get-TimeStamp) Adding new tag number: $($NewTagResults.number) to variable: _tags"
                                 $_tags += $NewTagResults.number
@@ -172,6 +196,28 @@ Function New-LrPlaybook {
             $_Entities = 1
         }
 
+
+
+        Switch ($ReadPermission) {
+            "publicGlobalAdmin" {$_readPermission = "publicGlobalAdmin";break}
+            "publicGlobalAnalyst" {$_readPermission = "publicGlobalAnalyst";break}
+            "publicRestrictedAdmin" {$_readPermission = "publicRestrictedAdmin";break}
+            "publicRestrictedAnalyst" {$_readPermission = "publicRestrictedAnalyst";break}
+            "privateOwnerOnly" {$_readPermission = "privateOwnerOnly";break}
+            default {$_readPermission = "publicGlobalAnalyst"}
+        }
+
+        Switch ($WritePermission) {
+            "publicGlobalAdmin" {$_writePermission = "publicGlobalAdmin";break}
+            "publicGlobalAnalyst" {$_writePermission = "publicGlobalAnalyst";break}
+            "publicRestrictedAdmin" {$_writePermission = "publicRestrictedAdmin";break}
+            "publicRestrictedAnalyst" {$_writePermission = "publicRestrictedAnalyst";break}
+            "privateOwnerOnly" {$_writePermission = "privateOwnerOnly";break}
+            default {$_writePermission = "publicGlobalAnalyst"}
+        }
+
+
+
         $RequestUrl = $BaseUrl + "/playbooks/"
         Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
@@ -180,18 +226,17 @@ Function New-LrPlaybook {
             name = $Name
             description = $Description
             permissions = [PSCustomObject]@{
-                read = "privateOwnerOnly"
-                write = "privateOwnerOnly"
+                read = $_readPermission
+                write = $_writePermission
             }
             entities = @(
                 $_Entities
-        
             )
             tags = @(
                 $_tags
             )
-        }
-        $Body = $Body | ConvertTo-Json
+        } | ConvertTo-Json
+
         Write-Verbose "[$Me]: Body: $Body"
 
 
@@ -224,7 +269,9 @@ Function New-LrPlaybook {
             }
         }
 
-        return $Response
+        if ($PassThru) {
+            return $Response
+        }
     }
 
 
