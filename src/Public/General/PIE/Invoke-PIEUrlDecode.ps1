@@ -58,12 +58,17 @@ function Invoke-PIEUrlDecode {
 
         Switch ($($Rewrite.Provider)) {
             "Mimecast" {
-                $DecodeUrl = Get-MimecastDecodeUrls -Urls $Rewrite.Before
-                if ($DecodeUrl.success) {
-                    $DecodedUrl = $($DecodeUrl.url)
-                    $Rewrite.After = $DecodedUrl
+                if ($LrtConfig.Mimecast.Apikey -And $LrtConfig.Mimecast.Credential) {
+                    $DecodeUrl = Get-MimecastDecodeUrls -Urls $Rewrite.Before
+                    if ($DecodeUrl.success) {
+                        $DecodedUrl = $($DecodeUrl.url)
+                        $Rewrite.After = $DecodedUrl
+                    }
+                    break
+                } else {
+                    # Unable to decode due to no API key credentials.  Retain original URL.
+                    $Rewrite.After = $Rewrite.Before
                 }
-                break
             }
             "MS-Safelink" {
                 [string[]] $urlParts = $Rewrite.Before.ToString().Split("?")[1]
@@ -95,5 +100,3 @@ function Invoke-PIEUrlDecode {
         return $Rewrite
     }    
 }
-
-
