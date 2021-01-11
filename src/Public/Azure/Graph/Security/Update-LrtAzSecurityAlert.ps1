@@ -74,6 +74,7 @@ Function Update-LrtAzSecurityAlert {
 
 
         [Parameter(Mandatory = $false, Position = 5)]
+        #[ValidateSet('Office 365 Security and Compliance', 'IPC', ignorecase=$true)]
         [string] $Provider,
 
 
@@ -87,6 +88,7 @@ Function Update-LrtAzSecurityAlert {
 
 
         [Parameter(Mandatory = $false, Position = 8)]
+        [ValidateSet('microsoft', ignorecase=$true)]
         [string] $Vendor
     )
 
@@ -104,7 +106,7 @@ Function Update-LrtAzSecurityAlert {
         # Request Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $AccessToken")
-
+        $Headers.Add("Content-type", "application/json")
 
         # Request URI
         # https://docs.microsoft.com/en-us/graph/api/signin-list?view=graph-rest-1.0&tabs=http
@@ -112,17 +114,17 @@ Function Update-LrtAzSecurityAlert {
         $RequestUri = "https://graph.microsoft.com/v1.0/security/alerts/$AlertID"
 
         Switch ($Provider) {
-            "unknown" { $_provider = 'unknown' }
-            "truePositive" { $_provider = 'truePositive' }
-            "falsePositive" { $_provider = 'falsePositive' }
-            "benignPositive" { $_provider = 'benignPositive' }
+            "Office 365 Security and Compliance" { $_provider = 'Office 365 Security and Compliance' }
+            "IPC" { $_provider = 'IPC' }
+            default { $_provider = $Provider }
         }
 
         Switch ($Vendor) {
-            "unknown" { $_vendor = 'unknown' }
+            "Microsoft" { $_vendor = 'Microsoft' }
             "truePositive" { $_vendor = 'truePositive' }
             "falsePositive" { $_vendor = 'falsePositive' }
             "benignPositive" { $_vendor = 'benignPositive' }
+            default { $_vendor = 'Microsoft' }
         }
 
         if ($Feedback) {
@@ -147,23 +149,31 @@ Function Update-LrtAzSecurityAlert {
             $_closedDate = $ClosedDate.GetDateTimeFormats("u")
         }
 
-        $Body = [PSCustomObject]@{
-            assignedTo = $AssignedTo
-            closedDateTime = $_closedDate
-            comments = @(
-                $Comments
-            )
-            feedback = $_feedback
-            status = $_status
-            tags = @(
-                $Tags
-            )
+
+        # Build PatchBody
+        $_body = [PSCustomObject]@{
             vendorInformation = [PSCustomObject]@{
                 provider = $_provider
                 vendor = $_vendor
             }
-        } | ConvertTo-Json
+        }
 
+        if ($_status) {
+            $_body | Add-Member -NotePropertyName status -NotePropertyValue $_status
+        }
+
+
+        if ($_closedDate) {
+            $_body | Add-Member -NotePropertyName closedDateTime -NotePropertyValue $_closedDate
+        }
+
+        if ($AssignedTo) {
+            $_body | Add-Member -NotePropertyName assignedTo -NotePropertyValue $AssignedTo
+        }
+
+        $Body = $_body | ConvertTo-Json
+
+        Write-Verbose "Message Body: `r$Body"
 
         # REQUEST
         try {
