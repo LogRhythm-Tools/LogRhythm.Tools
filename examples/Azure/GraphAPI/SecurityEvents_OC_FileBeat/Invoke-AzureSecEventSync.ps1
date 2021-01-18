@@ -1,33 +1,42 @@
-$RootFolderPath = "\home\logrhythm\AzureSecurityAlerts"
+using namespace System.Collections.Generic
+
+# Set home folder for Sync to read/write content to.
+$RootFolderPath = "/opt/logrhythm/lrtools_azure_securityevents"
 #$RootFolderPath = "C:\Users\eric\Documents\GitHub\LogRhythm.Tools"
 $SecEventSyncLog = "azure_synclog.csv"
 
+# Log Maintenance
+$LogFileTimestamp = $(get-date -f yyyyMMdd)
+
+# Cleanup log files older than 10 days
+$CleanupDate = (Get-Date).AddDays(-10).Date
+
 # FileBeat File Names
 # AzureATP
-$FB_AzureATP = "FB_AzureATP.log"
+$FB_AzureATP = "FB_AzureATP_$LogFileTimestamp.log"
 $FB_AzureATP_Path = (Join-Path $RootFolderPath -ChildPath $FB_AzureATP)
 
 # AzureSecurityCenter
-$FB_AzureSecurityCenter = "FB_AzureSecurityCenter.log"
-$FB_AzureSecurityCenter_Path = (Join-Path $RootFolderPath -ChildPath $AzureSecurityCenter)
+$FB_AzureSecurityCenter = "FB_AzureSecurityCenter_$LogFileTimestamp.log"
+$FB_AzureSecurityCenter_Path = (Join-Path $RootFolderPath -ChildPath $FB_AzureSecurityCenter)
 
 
 # MCAS
-$FB_MCAS = "FB_MCAS.log"
+$FB_MCAS = "FB_MCAS_$LogFileTimestamp.log"
 $FB_MCAS_Path = (Join-Path $RootFolderPath -ChildPath $FB_MCAS)
 
 
 # AzureADIdentityProtection
-$FB_AzureADIdentityProtection = "FB_AzureADIdentityProtection.log"
+$FB_AzureADIdentityProtection = "FB_AzureADIdentityProtection_$LogFileTimestamp.log"
 $FB_AzureADIdentityProtection_Path = (Join-Path $RootFolderPath -ChildPath $FB_AzureADIdentityProtection)
 
 
 # AzureSentinel
-$FB_AzureSentinel = "FB_AzureSentinel.log"
+$FB_AzureSentinel = "FB_AzureSentinel_$LogFileTimestamp.log"
 $FB_AzureSentinel_Path = (Join-Path $RootFolderPath -ChildPath $FB_AzureSentinel)
 
 # DefenderATP
-$FB_DefenderATP = "FB_DefenderATP.log"
+$FB_DefenderATP = "FB_DefenderATP_$LogFileTimestamp.log"
 $FB_DefenderATP_Path = (Join-Path $RootFolderPath -ChildPath $FB_DefenderATP)
 
 #####
@@ -44,34 +53,36 @@ if (!(Test-Path $SecEventSyncLogPath -PathType Leaf)) {
         severity = "medium"
     }
     $SecEventSyncTemplate | Export-Csv -Path $SecEventSyncLogPath -NoTypeInformation
-} else {
-    $SecEventLogs = Import-Csv -Path $SecEventSyncLogPath
 }
+
+# Load in Security Events Log
+$SecEventLogs = Import-Csv -Path $SecEventSyncLogPath
 
 # Begin Section - AzureATP
 $AzureATP_SecEvents = Get-LrtAzSecurityAlerts -AzureATP -Status 'newAlert'
 $AzureATP_LoggedEvents = $SecEventLogs | Where-Object -Property "type" -like "AzureATP"
 
+
 # Loop through results and proceed to process identified new events
-ForEach ($SecurityEvent in $AzureATP_SecEvents) {
-    if ($AzureATP_LoggedEvents.Id -notcontains $SecurityEvent.Id) {
+ForEach ($AZAtpSecurityEvent in $AzureATP_SecEvents) {
+    if ($AzureATP_LoggedEvents.Id -notcontains $AZAtpSecurityEvent.Id) {
         # New Event
         # Establish Log Entry
         $SecEvent = [PSCustomObject]@{
             log_timestamp = (get-date -Format yyyy-MM-ddTHH:mm:ss:ffffffK)
-            event_timestamp = $SecurityEvent.createdDateTime
+            event_timestamp = $AZAtpSecurityEvent.createdDateTime
             type = "AzureATP"
-            id = $SecurityEvent.id
-            azureTenantId = $SecurityEvent.azureTenantId
-            severity = $SecurityEvent.severity
+            id = $AZAtpSecurityEvent.id
+            azureTenantId = $AZAtpSecurityEvent.azureTenantId
+            severity = $AZAtpSecurityEvent.severity
         }
 
         # Write out JSON event for FileBeat
         Try {
             if (!(Test-Path $FB_AzureATP_Path -PathType Leaf)) {
-                $SecurityEvent | ConvertTo-Json | Out-File -FilePath $FB_AzureATP_Path
+                $AZAtpSecurityEvent | ConvertTo-Json -Depth 50 -Compress | Out-File -FilePath $FB_AzureATP_Path
             } else {
-                $SecurityEvent | ConvertTo-Json | Out-File -FilePath $FB_AzureATP_Path -Append
+                $AZAtpSecurityEvent | ConvertTo-Json -Depth 50 -Compress | Out-File -FilePath $FB_AzureATP_Path -Append
             }
             
             # Record Log Entry
@@ -93,25 +104,25 @@ $AzureSecurityCenter_SecEvents = Get-LrtAzSecurityAlerts -AzureSecurityCenter -S
 $AzureSecurityCenter_LoggedEvents = $SecEventLogs | Where-Object -Property "type" -like "AzureSecurityCenter"
 
 # Loop through results and proceed to process identified new events
-ForEach ($SecurityEvent in $AzureSecurityCenter_SecEvents) {
-    if ($AzureSecurityCenter_LoggedEvents.Id -notcontains $SecurityEvent.Id) {
+ForEach ($AzSecCenSecurityEvent in $AzureSecurityCenter_SecEvents) {
+    if ($AzureSecurityCenter_LoggedEvents.Id -notcontains $AzSecCenSecurityEvent.Id) {
         # New Event
         # Establish Log Entry
         $SecEvent = [PSCustomObject]@{
             log_timestamp = (get-date -Format yyyy-MM-ddTHH:mm:ss:ffffffK)
-            event_timestamp = $SecurityEvent.createdDateTime
+            event_timestamp = $AzSecCenSecurityEvent.createdDateTime
             type = "AzureSecurityCenter"
-            id = $SecurityEvent.id
-            azureTenantId = $SecurityEvent.azureTenantId
-            severity = $SecurityEvent.severity
+            id = $AzSecCenSecurityEvent.id
+            azureTenantId = $AzSecCenSecurityEvent.azureTenantId
+            severity = $AzSecCenSecurityEvent.severity
         }
 
         # Write out JSON event for FileBeat
         Try {
             if (!(Test-Path $FB_AzureSecurityCenter_Path -PathType Leaf)) {
-                $SecurityEvent | ConvertTo-Json | Out-File -FilePath $FB_AzureSecurityCenter_Path
+                $AzSecCenSecurityEvent | ConvertTo-Json -Depth 50 -Compress | Out-File -FilePath $FB_AzureSecurityCenter_Path
             } else {
-                $SecurityEvent | ConvertTo-Json | Out-File -FilePath $FB_AzureSecurityCenter_Path -Append
+                $AzSecCenSecurityEvent | ConvertTo-Json -Depth 50 -Compress | Out-File -FilePath $FB_AzureSecurityCenter_Path -Append
             }
             
             # Record Log Entry
@@ -132,25 +143,25 @@ $MCAS_SecEvents = Get-LrtAzSecurityAlerts -MCAS -Status 'newAlert'
 $MCAS_LoggedEvents = $SecEventLogs | Where-Object -Property "type" -like "MCAS"
 
 # Loop through results and proceed to process identified new events
-ForEach ($SecurityEvent in $MCAS_SecEvents) {
-    if ($MCAS_LoggedEvents.Id -notcontains $SecurityEvent.Id) {
+ForEach ($MCASSecurityEvent in $MCAS_SecEvents) {
+    if ($MCAS_LoggedEvents.Id -notcontains $MCASSecurityEvent.Id) {
         # New Event
         # Establish Log Entry
         $SecEvent = [PSCustomObject]@{
             log_timestamp = (get-date -Format yyyy-MM-ddTHH:mm:ss:ffffffK)
-            event_timestamp = $SecurityEvent.createdDateTime
+            event_timestamp = $MCASSecurityEvent.createdDateTime
             type = "MCAS"
-            id = $SecurityEvent.id
-            azureTenantId = $SecurityEvent.azureTenantId
-            severity = $SecurityEvent.severity
+            id = $MCASSecurityEvent.id
+            azureTenantId = $MCASSecurityEvent.azureTenantId
+            severity = $MCASSecurityEvent.severity
         }
 
         # Write out JSON event for FileBeat
         Try {
             if (!(Test-Path $FB_MCAS_Path -PathType Leaf)) {
-                $SecurityEvent | ConvertTo-Json | Out-File -FilePath $FB_MCAS_Path
+                $MCASSecurityEvent | ConvertTo-Json  -Depth 50 -Compress | Out-File -FilePath $FB_MCAS_Path
             } else {
-                $SecurityEvent | ConvertTo-Json | Out-File -FilePath $FB_MCAS_Path -Append
+                $MCASSecurityEvent | ConvertTo-Json  -Depth 50 -Compress | Out-File -FilePath $FB_MCAS_Path -Append
             }
             
             # Record Log Entry
@@ -171,25 +182,25 @@ $AzureADIdentityProtection_SecEvents = Get-LrtAzSecurityAlerts -AzureADIdentityP
 $AzureADIdentityProtection_LoggedEvents = $SecEventLogs | Where-Object -Property "type" -like "AzureADIdentityProtection"
 
 # Loop through results and proceed to process identified new events
-ForEach ($SecurityEvent in $AzureADIdentityProtection_SecEvents) {
-    if ($AzureADIdentityProtection_LoggedEvents.Id -notcontains $SecurityEvent.Id) {
+ForEach ($AZADIdProtSecurityEvent in $AzureADIdentityProtection_SecEvents) {
+    if ($AzureADIdentityProtection_LoggedEvents.Id -notcontains $AZADIdProtSecurityEvent.Id) {
         # New Event
         # Establish Log Entry
         $SecEvent = [PSCustomObject]@{
             log_timestamp = (get-date -Format yyyy-MM-ddTHH:mm:ss:ffffffK)
-            event_timestamp = $SecurityEvent.createdDateTime
+            event_timestamp = $AZADIdProtSecurityEvent.createdDateTime
             type = "AzureADIdentityProtection"
-            id = $SecurityEvent.id
-            azureTenantId = $SecurityEvent.azureTenantId
-            severity = $SecurityEvent.severity
+            id = $AZADIdProtSecurityEvent.id
+            azureTenantId = $AZADIdProtSecurityEvent.azureTenantId
+            severity = $AZADIdProtSecurityEvent.severity
         }
 
         # Write out JSON event for FileBeat
         Try {
             if (!(Test-Path $FB_AzureADIdentityProtection_Path -PathType Leaf)) {
-                $SecurityEvent | ConvertTo-Json | Out-File -FilePath $FB_AzureADIdentityProtection_Path
+                $AZADIdProtSecurityEvent | ConvertTo-Json -Depth 50 -Compress | Out-File -FilePath $FB_AzureADIdentityProtection_Path
             } else {
-                $SecurityEvent | ConvertTo-Json | Out-File -FilePath $FB_AzureADIdentityProtection_Path -Append
+                $AZADIdProtSecurityEvent | ConvertTo-Json -Depth 50 -Compress | Out-File -FilePath $FB_AzureADIdentityProtection_Path -Append
             }
             
             # Record Log Entry
@@ -207,29 +218,29 @@ ForEach ($SecurityEvent in $AzureADIdentityProtection_SecEvents) {
 # End Section - AzureADIdentityProtection
 
 # Begin Section - AzureSentinel
-$AzureSentinel_SecEvents = Get-LrtAzSecurityAlerts -MCAS -Status 'newAlert'
-$AzureSentinel_LoggedEvents = $SecEventLogs | Where-Object -Property "type" -like "MCAS"
+$AzureSentinel_SecEvents = Get-LrtAzSecurityAlerts -AzureSentinel -Status 'newAlert'
+$AzureSentinel_LoggedEvents = $SecEventLogs | Where-Object -Property "type" -like "AzureSentinel"
 
 # Loop through results and proceed to process identified new events
-ForEach ($SecurityEvent in $AzureSentinel_SecEvents) {
-    if ($AzureSentinel_LoggedEvents.Id -notcontains $SecurityEvent.Id) {
+ForEach ($AZSentSecurityEvent in $AzureSentinel_SecEvents) {
+    if ($AzureSentinel_LoggedEvents.Id -notcontains $AZSentSecurityEvent.Id) {
         # New Event
         # Establish Log Entry
         $SecEvent = [PSCustomObject]@{
             log_timestamp = (get-date -Format yyyy-MM-ddTHH:mm:ss:ffffffK)
-            event_timestamp = $SecurityEvent.createdDateTime
+            event_timestamp = $AZSentSecurityEvent.createdDateTime
             type = "AzureSentinel"
-            id = $SecurityEvent.id
-            azureTenantId = $SecurityEvent.azureTenantId
-            severity = $SecurityEvent.severity
+            id = $AZSentSecurityEvent.id
+            azureTenantId = $AZSentSecurityEvent.azureTenantId
+            severity = $AZSentSecurityEvent.severity
         }
 
         # Write out JSON event for FileBeat
         Try {
             if (!(Test-Path $FB_AzureSentinel_Path -PathType Leaf)) {
-                $SecurityEvent | ConvertTo-Json | Out-File -FilePath $FB_AzureSentinel_Path
+                $AZSentSecurityEvent | ConvertTo-Json -Depth 50 -Compress | Out-File -FilePath $FB_AzureSentinel_Path
             } else {
-                $SecurityEvent | ConvertTo-Json | Out-File -FilePath $FB_AzureSentinel_Path -Append
+                $AZSentSecurityEvent | ConvertTo-Json -Depth 50 -Compress | Out-File -FilePath $FB_AzureSentinel_Path -Append
             }
             
             # Record Log Entry
@@ -250,25 +261,25 @@ $DefenderATP_SecEvents = Get-LrtAzSecurityAlerts -DefenderATP -Status 'newAlert'
 $DefenderATP_LoggedEvents = $SecEventLogs | Where-Object -Property "type" -like "DefenderATP"
 
 # Loop through results and proceed to process identified new events
-ForEach ($SecurityEvent in $DefenderATP_SecEvents) {
-    if ($DefenderATP_LoggedEvents.Id -notcontains $SecurityEvent.Id) {
+ForEach ($DefSecurityEvent in $DefenderATP_SecEvents) {
+    if ($DefenderATP_LoggedEvents.Id -notcontains $DefSecurityEvent.Id) {
         # New Event
         # Establish Log Entry
         $SecEvent = [PSCustomObject]@{
             log_timestamp = (get-date -Format yyyy-MM-ddTHH:mm:ss:ffffffK)
-            event_timestamp = $SecurityEvent.createdDateTime
+            event_timestamp = $DefSecurityEvent.createdDateTime
             type = "DefenderATP"
-            id = $SecurityEvent.id
-            azureTenantId = $SecurityEvent.azureTenantId
-            severity = $SecurityEvent.severity
+            id = $DefSecurityEvent.id
+            azureTenantId = $DefSecurityEvent.azureTenantId
+            severity = $DefSecurityEvent.severity
         }
 
         # Write out JSON event for FileBeat
         Try {
             if (!(Test-Path $FB_DefenderATP_Path -PathType Leaf)) {
-                $SecurityEvent | ConvertTo-Json | Out-File -FilePath $FB_DefenderATP_Path
+                $DefSecurityEvent | ConvertTo-Json -Depth 50 -Compress | Out-File -FilePath $FB_DefenderATP_Path
             } else {
-                $SecurityEvent | ConvertTo-Json | Out-File -FilePath $FB_DefenderATP_Path -Append
+                $DefSecurityEvent | ConvertTo-Json -Depth 50 -Compress | Out-File -FilePath $FB_DefenderATP_Path -Append
             }
             
             # Record Log Entry
@@ -283,3 +294,22 @@ ForEach ($SecurityEvent in $DefenderATP_SecEvents) {
     }
 }
 # End Section - DefenderATP
+
+
+# Log Maintenance
+$AzureSecLogs = Get-ChildItem -Path $RootFolderPath -Filter '*.log' -File
+$LogRemovalList = [list[String]]::new()
+ForEach ($AzureSecLog in $AzureSecLogs) {
+    if ($AzureSecLog.BaseName -Match '(\d{8}).log') {
+        $FileDate = [datetime]::ParseExact($Matches[1], 'yyyyMMdd', $null)
+        if ($FileDate -lt $CleanupDate) {
+            $LogRemovalList.add($AzureSecLog)
+        }
+    }
+}
+
+Write-host "Log Removal List:"
+Write-Host $LogRemovalList
+<#
+$LogRemoveList | Remove-Item
+#>
