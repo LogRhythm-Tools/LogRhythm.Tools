@@ -57,7 +57,6 @@ Function Get-LrtAzUsers {
         $Method = $HttpMethod.Get
         $RequestUri = "https://graph.microsoft.com/v1.0/users/"
 
-
         # Build Request URI Filters
         if ($Before) {
             $_before = $Before | ConvertTo-Rfc3339
@@ -83,7 +82,6 @@ Function Get-LrtAzUsers {
             $Err = Get-RestErrorMessage $_
             throw [Exception] "[$Me] [$($Err.error.code)]: $($Err.error.message)`n"
         }
-
     
         # Cast result to List<Object>
         Write-Verbose "Results: $($Response.value.count)"
