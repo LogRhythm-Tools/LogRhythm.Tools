@@ -105,13 +105,82 @@ Function Get-LrtAzSecurityAlerts {
         $Method = $HttpMethod.Get
         $RequestUri = "https://graph.microsoft.com/v1.0/security/alerts"
 
+        #region: Process Query Parameters
+        $QueryParams = [Dictionary[string,string]]::new()
+        $QueryODataAnd = [List[string]]::new()
+        $QueryODataOr = [List[string]]::new()
 
+
+        if ($AzureATP) {
+            if ($Filter -eq $true) {
+                $QueryODataOr.Add("vendorInformation/provider eq `'Azure Advanced Threat Protection`'")
+            } else {
+                $QueryParams.Add("`$filter", "vendorInformation/provider eq `'Azure Advanced Threat Protection`'")
+                $Filter = $true
+            }
+        }
+        
+        if ($AzureSecurityCenter) {
+            if ($Filter -eq $true) {
+                $QueryODataOr.Add("vendorInformation/provider eq `'ASC`'")
+            } else {
+                $QueryParams.Add("`$filter", "vendorInformation/provider eq `'ASC`'")
+                $Filter = $true
+            }
+        }
+        
+
+        if ($MCAS) {
+            if ($Filter -eq $true) {
+                $QueryODataOr.Add("vendorInformation/provider eq `'MCAS`'")
+            } else {
+                $QueryParams.Add("`$filter", "vendorInformation/provider eq `'MCAS`'")
+                $Filter = $true
+            }
+        }
+
+        if ($AzureADIdentityProtection) {
+            if ($Filter -eq $true) {
+                $QueryODataOr.Add("vendorInformation/provider eq `'IPC`'")
+            } else {
+                $QueryParams.Add("`$filter", "vendorInformation/provider eq `'IPC`'")
+                $Filter = $true
+            }
+        }
+
+        
+        if ($AzureSentinel) {
+            if ($Filter -eq $true) {
+                $QueryODataOr.Add("vendorInformation/provider eq `'Azure Sentinel`'")
+            } else {
+                $QueryParams.Add("`$filter", "vendorInformation/provider eq `'Azure Sentinel`'")
+                $Filter = $true
+            }
+        }
+
+        if ($DefenderATP) {
+            if ($Filter -eq $true) {
+                $QueryODataOr.Add("vendorInformation/provider eq `'Microsoft Defender ATP`'")
+            } else {
+                $QueryParams.Add("`$filter", "vendorInformation/provider eq `'Microsoft Defender ATP`'")
+                $Filter = $true
+            }
+        }
+
+        if ($Status) {
+            if ($Filter -eq $true) {
+                $QueryODataAnd.Add("Status eq `'$Status`'")
+            } else {
+                $QueryParams.Add("`$filter","Status eq `'$Status`'")
+                $Filter = $true
+            }
+        }
 
         if ($Severity) {
             if ($Filter -eq $true) {
-                $RequestUri += "&Severity eq `'$Severity`'"
+                $QueryODataAnd.Add("Severity eq `'$Severity`'")
             } else {
-                $RequestUri += "?`$filter=Severity eq `'$Severity`'"
+                $QueryParams.Add("`$filter","Severity eq `'$Severity`'")
                 $Filter = $true
             }
         }
@@ -119,93 +188,47 @@ Function Get-LrtAzSecurityAlerts {
 
         if ($Category) {
             if ($Filter -eq $true) {
-                $RequestUri += "&Category eq `'$Category`'"
+                $QueryODataAnd.Add("Category eq `'$Category`'")
             } else {
-                $RequestUri += "?`$filter=Category eq `'$Category`'"
+                $QueryParams.Add("`$filter","Category eq `'$Category`'")
                 $Filter = $true
             }
         }
 
 
-        if ($Status) {
-            if ($Filter -eq $true) {
-                $RequestUri += "&Status eq `'$Status`'"
-            } else {
-                $RequestUri += "?`$filter=Status eq `'$Status`'"
-                $Filter = $true
-            }
+
+        if ($QueryParams.Count -gt 0) {
+            $QueryString = $QueryParams | ConvertTo-QueryString
+            Write-Verbose "[$Me]: QueryString is [$QueryString]"
         }
 
-
-        if ($AzureATP) {
-            if ($Filter -eq $true) {
-                $RequestUri += "&vendorInformation/provider eq `'Azure Advanced Threat Protection`'"
-            } else {
-                $RequestUri += "?`$filter=vendorInformation/provider eq `'Azure Advanced Threat Protection`'"
-                $Filter = $true
+        if ($QueryODataOr.Count -gt 0) {
+            ForEach ($ODataOr in $QueryODataOr) {
+                $QueryFilterOr += $QueryFilterOr + " or " + $ODataOr
             }
+            $QueryString += $QueryFilterOr
+            Write-Verbose "[$Me]: QueryString is [$QueryString]"
         }
 
-
-        if ($AzureSecurityCenter) {
-            if ($Filter -eq $true) {
-                $RequestUri += "&vendorInformation/provider eq `'ASC`'"
-            } else {
-                $RequestUri += "?`$filter=vendorInformation/provider eq `'ASC`'"
-                $Filter = $true
+        if ($QueryODataAnd.Count -gt 0) {
+            ForEach ($ODataAnd in $QueryODataAnd) {
+                $QueryFilterAnd += $QueryFilterAnd + " and " + $ODataAnd
             }
+            $QueryString += $QueryFilterAnd
+            Write-Verbose "[$Me]: QueryString is [$QueryString]"
         }
-
-
-        if ($MCAS) {
-            if ($Filter -eq $true) {
-                $RequestUri += "&vendorInformation/provider eq `'MCAS`'"
-            } else {
-                $RequestUri += "?`$filter=vendorInformation/provider eq `'MCAS`'"
-                $Filter = $true
-            }
-        }
-
-
-        if ($AzureADIdentityProtection) {
-            if ($Filter -eq $true) {
-                $RequestUri += "&vendorInformation/provider eq `'IPC`'"
-            } else {
-                $RequestUri += "?`$filter=vendorInformation/provider eq `'IPC`'"
-                $Filter = $true
-            }
-        }
-
-
-        if ($AzureSentinel) {
-            if ($Filter -eq $true) {
-                $RequestUri += "&vendorInformation/provider eq `'Azure Sentinel`'"
-            } else {
-                $RequestUri += "?`$filter=vendorInformation/provider eq `'Azure Sentinel`'"
-                $Filter = $true
-            }
-        } 
-
-
-        if ($DefenderATP) {
-            if ($Filter -eq $true) {
-                $RequestUri += "&vendorInformation/provider eq `'Microsoft Defender ATP`'"
-            } else {
-                $RequestUri += "?`$filter=vendorInformation/provider eq `'Microsoft Defender ATP`'"
-                $Filter = $true
-            }
-        }
-
 
         if ($Top) {
-            $RequestUri += "&`$top=$Top"
+            $QueryString = $QueryString + "&`$top=$Top"
         }
+
+        $RequestUrl = $RequestUri + $QueryString
 
 
         # REQUEST
         try {
             $Response = Invoke-RestMethod `
-                -Uri $RequestUri `
+                -Uri $RequestUrl `
                 -Headers $Headers `
                 -Method $Method `
         } catch [System.Net.WebException] {
@@ -229,6 +252,7 @@ Function Get-LrtAzSecurityAlerts {
             # Begin paging until no more pages.
             while ($Paging) {
                 Write-Verbose ">>>> More Results, calling next page <<<<"
+
 
                 # Make the next request, using the nextLink property.
                 try {
