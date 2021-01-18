@@ -153,7 +153,7 @@ Function New-LrList {
 
 
         [Parameter(Mandatory = $false, Position = 13)]
-        [ValidateLength(3,200)]
+        [ValidateLength(1,200)]
         [string] $EntityName = "Primary Site",
 
 
