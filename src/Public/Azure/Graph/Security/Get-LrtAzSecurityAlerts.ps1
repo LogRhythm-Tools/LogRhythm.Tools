@@ -248,11 +248,11 @@ Function Get-LrtAzSecurityAlerts {
         if ($Response.'@odata.nextLink') {
             $Paging = $true
             $NextPage = $Response.'@odata.nextLink'
-
+            $PageCount = 0
             # Begin paging until no more pages.
             while ($Paging) {
                 Write-Verbose ">>>> More Results, calling next page <<<<"
-
+                $PageCount += 1
 
                 # Make the next request, using the nextLink property.
                 try {
@@ -274,6 +274,8 @@ Function Get-LrtAzSecurityAlerts {
                 # Check if done
                 if ($Response.'@odata.nextLink') {
                     $NextPage = $Response.'@odata.nextLink'
+                } elseif ($PageCount -ge 20) {
+                    $Paging = $false
                 } else {
                     $Paging = $false
                 }
