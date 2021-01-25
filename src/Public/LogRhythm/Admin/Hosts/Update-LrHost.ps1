@@ -360,7 +360,7 @@ Function Update-LrHost {
         # Location lookup
         if ($LocationId -and $Location) {
             if ($LocationLookup) {
-                if ($LrtConfig.LogRhythm.Version -notmatch '7.5.\d') {
+                if ($LrtConfig.LogRhythm.Version -notmatch '7\.[5-9]\.\d+') {
                     $LocationStatus = Show-LrLocations -Id $LocationId
                     if ($LocationStatus) {
                         $_locationName = $LocationStatus.name
@@ -383,7 +383,7 @@ Function Update-LrHost {
             }
         } elseif ($Location) {
             if ($LocationLookup) {
-                if ($LrtConfig.LogRhythm.Version -notmatch '7.5.\d') {
+                if ($LrtConfig.LogRhythm.Version -notmatch '7\.[5-9]\.\d+') {
                     $LocationStatus = Show-LrLocations -Name $Location -Exact
                     if ($LocationStatus) {
                         $_locationName = $LocationStatus.name

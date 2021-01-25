@@ -138,7 +138,7 @@ Function Get-LrEntities {
         if ($Direction) {
             $ValidStatus = "ASC", "DESC"
             if ($ValidStatus.Contains($($Direction.ToUpper()))) {
-                if ($LrVersion -like "7.[5-9].*") {
+                if ($LrVersion -match '7\.[5-9]\.\d+') {
                     if($Direction.ToUpper() -eq "ASC") {
                         $_direction = "ascending"
                     } else {
@@ -190,30 +190,15 @@ Function Get-LrEntities {
 
 
         # Send Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
-            }
-            catch {
-                return $_
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                return $ErrorObject
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-            } catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                return $ErrorObject
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "System.Net.WebException"
+            $ErrorObject.Code = $($Err.statusCode)
+            $ErrorObject.Note = $($Err.message)
+            return $ErrorObject
         }
 
         # Check if pagination is required, if so - paginate!

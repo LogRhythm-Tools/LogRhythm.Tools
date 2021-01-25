@@ -135,24 +135,12 @@ Function New-LrCase {
         $Body = $Body | ConvertTo-Json
 
         # Send Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
-                Write-Verbose "[$Me]: Created Case $($Response.id)" 
-            }
-            catch {
-                $Err = Get-RestErrorMessage $_
-                throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
-                Write-Verbose "[$Me]: Created Case $($Response.id)"
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
+            Write-Verbose "[$Me]: Created Case $($Response.id)"
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
         }
         
         # Attach Alarm to Case

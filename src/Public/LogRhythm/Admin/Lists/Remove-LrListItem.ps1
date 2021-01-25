@@ -522,48 +522,24 @@ Function Remove-LrListItem {
         } elseif ($Value -is [array]) {
             # No Duplicate checking for array of items
             # Send Request
-            if ($PSEdition -eq 'Core'){
-                try {
-                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
-                }
-                catch {
-                    $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                    Write-Verbose "Exception Message: $ExceptionMessage"
-                    return $ExceptionMessage
-                }
-            } else {
-                try {
-                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
-                }
-                catch [System.Net.WebException] {
-                    $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                    Write-Verbose "Exception Message: $ExceptionMessage"
-                    return $ExceptionMessage
-                }
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
+            } catch [System.Net.WebException] {
+                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+                Write-Verbose "Exception Message: $ExceptionMessage"
+                return $ExceptionMessage
             }
         } else {
             # Check for Duplicates for single items
             $ExistingValue = Test-LrListValue -Name $ListGuid -Value $Value
             if (($ExistingValue.IsPresent -eq $false) -and ($ExistingValue.ListValid -eq $true)) {
                 # Send Request
-                if ($PSEdition -eq 'Core'){
-                    try {
-                        $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
-                    }
-                    catch {
-                        $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                        Write-Verbose "Exception Message: $ExceptionMessage"
-                        return $ExceptionMessage
-                    }
-                } else {
-                    try {
-                        $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
-                    }
-                    catch [System.Net.WebException] {
-                        $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                        Write-Verbose "Exception Message: $ExceptionMessage"
-                        return $ExceptionMessage
-                    }
+                try {
+                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
+                } catch [System.Net.WebException] {
+                    $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+                    Write-Verbose "Exception Message: $ExceptionMessage"
+                    return $ExceptionMessage
                 }
             } else {
                 $ErrorObject.Error = $true

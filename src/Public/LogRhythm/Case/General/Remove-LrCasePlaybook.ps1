@@ -147,30 +147,15 @@ Function Remove-LrCasePlaybook {
 
 
         # Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            if ($Err.statusCode -eq "409") {
+                # we know we can use $Pb.name because a 409 wouldn't throw unless the playbook existed.
+                throw [InvalidOperationException] "[409]: Playbook '$($Pb.name)' has already been added to case '$Id'"
             }
-            catch {
-                $Err = Get-RestErrorMessage $_
-                if ($Err.statusCode -eq "409") {
-                    # we know we can use $Pb.name because a 409 wouldn't throw unless the playbook existed.
-                    throw [InvalidOperationException] "[409]: Playbook '$($Pb.name)' has already been added to case '$Id'"
-                }
-                $PSCmdlet.ThrowTerminatingError($PSItem)
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                if ($Err.statusCode -eq "409") {
-                    # we know we can use $Pb.name because a 409 wouldn't throw unless the playbook existed.
-                    throw [InvalidOperationException] "[409]: Playbook '$($Pb.name)' has already been added to case '$Id'"
-                }
-                $PSCmdlet.ThrowTerminatingError($PSItem)
-            }
+            $PSCmdlet.ThrowTerminatingError($PSItem)
         }
 
         return $Response

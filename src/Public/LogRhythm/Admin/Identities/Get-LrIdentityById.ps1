@@ -89,6 +89,7 @@ Function Get-LrIdentityById {
         # Define HTTP Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
 
         # Define HTTP Method
         $Method = $HttpMethod.Get
@@ -111,40 +112,20 @@ Function Get-LrIdentityById {
         $RequestUrl = $BaseUrl + "/identities/" + $IdentityId
 
         # Send Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
-            }
-            catch {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                if ($Silent) {
-                    if ($ErrorObject.Code -eq 404) {
-                        return $null
-                    }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "System.Net.WebException"
+            $ErrorObject.Code = $($Err.statusCode)
+            $ErrorObject.Note = $($Err.message)
+            if ($Silent) {
+                if ($ErrorObject.Code -eq 404) {
+                    return $null
                 }
-                return $ErrorObject
             }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                if ($Silent) {
-                    if ($ErrorObject.Code -eq 404) {
-                        return $null
-                    }
-                }
-                return $ErrorObject
-            }
+            return $ErrorObject
         }
 
         # Return Identity Object or array of Identifiers

@@ -302,6 +302,7 @@ Function Get-LrCases {
         #region: Process Request Headers_____________________________________________________
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
         $Headers.Add("count", $Count)
 
         # Page requested via Offset for Results from API
@@ -459,26 +460,15 @@ Function Get-LrCases {
         $RequestUrl = $BaseUrl + "/cases/" + $QueryString
 
         # REQUEST
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
-            }
-            catch {
-                $Err = Get-RestErrorMessage $_
-                throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                return $ErrorObject
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "System.Net.WebException"
+            $ErrorObject.Code = $($Err.statusCode)
+            $ErrorObject.Note = $($Err.message)
+            return $ErrorObject
         }
 
         # Pagination

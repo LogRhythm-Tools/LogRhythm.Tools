@@ -123,6 +123,7 @@ Function Get-LrLists {
         # Define HTTP Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
 
         # Number of Results returned per API Call
         if ($PageSize) {
@@ -163,27 +164,15 @@ Function Get-LrLists {
         }
 
         # Send Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
-            }
-            catch {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                return $ExceptionMessage
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                return $ErrorObject
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "System.Net.WebException"
+            $ErrorObject.Code = $($Err.statusCode)
+            $ErrorObject.Note = $($Err.message)
+            return $ErrorObject
         }
 
         # Pagination

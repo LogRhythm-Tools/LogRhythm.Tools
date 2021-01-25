@@ -130,6 +130,7 @@ Function Get-LrIdentities {
         # Define HTTP Header
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
 
         # Define HTTP Method
         $Method = $HttpMethod.Get
@@ -235,30 +236,16 @@ Function Get-LrIdentities {
         $RequestUrl = $BaseUrl + "/identities/" + $QueryString
 
         # Send Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
-            }
-            catch {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                return $ErrorObject
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                return $ErrorObject
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+        }
+        catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "System.Net.WebException"
+            $ErrorObject.Code = $($Err.statusCode)
+            $ErrorObject.Note = $($Err.message)
+            return $ErrorObject
         }
 
 

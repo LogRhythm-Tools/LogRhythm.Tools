@@ -277,7 +277,7 @@ Function New-LrHost {
         # Location lookup
         if ($LocationId -and $Location) {
             if ($LocationLookup) {
-                if ($LrtConfig.LogRhythm.Version -notmatch '7.5.\d') {
+                if ($LrtConfig.LogRhythm.Version -notmatch '7\.[5-9]\.\d+') {
                     $LocationStatus = Show-LrLocations -Id $LocationId
                     if ($LocationStatus) {
                         $_locationName = $LocationStatus.name
@@ -300,7 +300,7 @@ Function New-LrHost {
             }
         } elseif ($Location) {
             if ($LocationLookup) {
-                if ($LrtConfig.LogRhythm.Version -notmatch '7.5.\d') {
+                if ($LrtConfig.LogRhythm.Version -notmatch '7\.[5-9]\.\d+') {
                     $LocationStatus = Show-LrLocations -Name $Location -Exact
                     if ($LocationStatus) {
                         $_locationName = $LocationStatus.name
@@ -327,7 +327,7 @@ Function New-LrHost {
         # Ensure proper syntax
         if ($RecordStatus) {
             # Update RecordStatus for 7.5 API
-            if ($LrtConfig.LogRhythm.Version -match '7.5.\d') {
+            if ($LrtConfig.LogRhythm.Version -match '7\.[5-9]\.\d+') {
                 if ($RecordStatus -eq "new") {
                     $RecordStatus = "active"
                 }
@@ -442,30 +442,16 @@ Function New-LrHost {
         $RequestUrl = $BaseUrl + "/hosts/"
 
         # Send Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
-            }
-            catch {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                return $ErrorObject
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body 
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                return $ErrorObject
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body 
+        }
+        catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "System.Net.WebException"
+            $ErrorObject.Code = $($Err.statusCode)
+            $ErrorObject.Note = $($Err.message)
+            return $ErrorObject
         }
         
         # Return output object

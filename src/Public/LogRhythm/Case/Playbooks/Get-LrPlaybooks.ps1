@@ -133,6 +133,7 @@ Function Get-LrPlaybooks {
         # Request Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
 
         # Maximum results returned per API call before pagination required
         if ($Count) {
@@ -178,32 +179,16 @@ Function Get-LrPlaybooks {
 
 
         # REQUEST
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
-            }
-            catch {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Code = $Err.statusCode
-                $ErrorObject.Type = "WebException"
-                $ErrorObject.Note = $Err.message
-                $ErrorObject.ResponseUrl = $RequestUrl
-                $ErrorObject.Error = $true
-                return $ErrorObject
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Code = $Err.statusCode
-                $ErrorObject.Type = "WebException"
-                $ErrorObject.Note = $Err.message
-                $ErrorObject.ResponseUrl = $RequestUrl
-                $ErrorObject.Error = $true
-                return $ErrorObject
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Code = $Err.statusCode
+            $ErrorObject.Type = "WebException"
+            $ErrorObject.Note = $Err.message
+            $ErrorObject.ResponseUrl = $RequestUrl
+            $ErrorObject.Error = $true
+            return $ErrorObject
         }
 
         # Pagination

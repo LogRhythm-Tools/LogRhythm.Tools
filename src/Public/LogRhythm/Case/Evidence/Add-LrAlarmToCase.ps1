@@ -141,24 +141,12 @@ Function Add-LrAlarmToCase {
 
 
         #region: Send Request                                                            
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
-            }
-            catch {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                return $ExceptionMessage
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
-            }
-            catch [System.Net.WebException] {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                return $ExceptionMessage
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
+        } catch [System.Net.WebException] {
+            $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+            Write-Verbose "Exception Message: $ExceptionMessage"
+            return $ExceptionMessage
         }
 
         # The response is an array of alarms added to the case
@@ -173,8 +161,7 @@ Function Add-LrAlarmToCase {
             Write-Verbose "[$Me] Getting Updated Case"
             try {
                 $UpdatedCase = Get-LrCaseById -Id $CaseNumber    
-            }
-            catch {
+            } catch {
                 Write-Verbose "Encountered error while retrieving updated case $CaseNumber."
                 $PSCmdlet.ThrowTerminatingError($PSItem)
             }

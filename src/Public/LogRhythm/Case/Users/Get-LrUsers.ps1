@@ -98,6 +98,7 @@ Function Get-LrUsers {
         # Request Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
         
         # Maximum results returned per API call before pagination required
         if ($Count) {
@@ -151,26 +152,15 @@ Function Get-LrUsers {
         $RequestUrl = $BaseUrl + "/persons/" + $Params
 
         # REQUEST
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod -Uri $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
-            }
-            catch {
-                $Err = Get-RestErrorMessage $_
-                throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod -Uri $RequestUrl -Headers $Headers -Method $Method
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                return $ErrorObject
-            }
+        try {
+            $Response = Invoke-RestMethod -Uri $RequestUrl -Headers $Headers -Method $Method
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "System.Net.WebException"
+            $ErrorObject.Code = $($Err.statusCode)
+            $ErrorObject.Note = $($Err.message)
+            return $ErrorObject
         }
 
 

@@ -68,6 +68,7 @@ Function Enable-LrIdentity {
         # Define HTTP Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
 
         # Define HTTP Method
         $Method = $HttpMethod.Put
@@ -86,24 +87,12 @@ Function Enable-LrIdentity {
         $RequestUrl = $BaseUrl + "/identities/" + $IdentityId + "/status"
 
         # Send Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents -SkipCertificateCheck
-            }
-            catch {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                return $false
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
-            }
-            catch [System.Net.WebException] {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                return $false
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
+        } catch [System.Net.WebException] {
+            $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+            Write-Verbose "Exception Message: $ExceptionMessage"
+            return $ExceptionMessage
         }
 
         if ($PassThru) {
