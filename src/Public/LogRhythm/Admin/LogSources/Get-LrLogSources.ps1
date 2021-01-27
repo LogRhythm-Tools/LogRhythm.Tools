@@ -210,15 +210,13 @@ Function Get-LrLogSources {
         [string] $Description,
 
 
-        [Parameter(Mandatory = $false, Position = 8)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 8)]
         [string] $MessageSourceTypeId,
-        
 
 
         [Parameter(Mandatory = $false, Position = 9)]
         [ValidateSet('true','false', ignorecase=$true)]
         [string] $Virtual,
-
 
 
         [Parameter(Mandatory = $false, Position = 10)]
