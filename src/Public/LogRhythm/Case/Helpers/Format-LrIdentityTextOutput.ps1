@@ -67,10 +67,14 @@ Function Format-LrIdentityTextOutput {
 
     Process {
         $CaseOutput = [list[String]]::new()
-        if ($Identity) {
+        if ($Identity.identityId) {
             if ($Type -eq "Detail") {
                 $CaseOutput.Add("-==- TrueIdentity Summary -==-")
-                $CaseOutput.Add("Name: $($Identity.nameFirst) $($Identity.nameMiddle) $($Identity.nameLast)")
+                if ($Identity.nameMiddle) {
+                    $CaseOutput.Add("Name: $($Identity.nameFirst) $($Identity.nameMiddle) $($Identity.nameLast)" )
+                } else {
+                    $CaseOutput.Add("Name: $($Identity.nameFirst) $($Identity.nameLast)" )
+                }
                 if ($Identity.displayIdentifier) { $CaseOutput.Add("Display Identifier: $($Identity.displayIdentifier) ")}
                 if ($Identity.company) { $CaseOutput.Add("Company: $($Identity.company) ")}
                 if ($Identity.department) { $CaseOutput.Add("Department: $($Identity.department) ")}
@@ -80,14 +84,20 @@ Function Format-LrIdentityTextOutput {
                 if ($Identity.domainName) { $CaseOutput.Add("Manager: $($Identity.domainName) ")}
                 if ($Identity.entity.name) { $CaseOutput.Add("LogRhythm Entity: $($Identity.entity.name) ")}
                 if ($Identity.identifiers) { $CaseOutput.Add("`r`n---- Identifiers ----")}
+                $i = 0
                 ForEach ($Identifier in $Identity.Identifiers) {
                     $i += 1
-                    $CaseOutput.Add("Identifier $i.  Type: $($Identifier.IdentifierType)  Value: $($Identifier.value)")
+                    $CaseOutput.Add("Identifier: $i  Type: $($Identifier.IdentifierType)  Value: $($Identifier.value)")
                 }
-                if ($Identity.dateUpdated) { $CaseOutput.Add("`r`nRecord last updated: $($Identity.dateUpdated)")}
+                if ($Identity.dateUpdated) { $CaseOutput.Add("`r`nRecord ID: $($Identity.identityID)      Record last updated: $($Identity.dateUpdated)")}
             }
             if ($Type -eq "Summary") {
-                $CaseOutput.Add("TrueID: $($Identity.Id) Name: $($Identity.nameFirst) $($Identity.nameMiddle) $($Identity.nameLast)" )
+                if ($Identity.nameMiddle) {
+                    $CaseOutput.Add("TrueID: $($Identity.identityId) Name: $($Identity.nameFirst) $($Identity.nameMiddle) $($Identity.nameLast)" )
+                } else {
+                    $CaseOutput.Add("TrueID: $($Identity.identityId) Name: $($Identity.nameFirst) $($Identity.nameLast)" )
+                }
+                
                 if ($Identity.company) { $CaseOutput.Add("Company: $($Identity.company) ")}
                 if ($Identity.department) { $CaseOutput.Add("Department: $($Identity.department) ")}
                 if ($Identity.title) { $CaseOutput.Add("Title: $($Identity.title) ")}
