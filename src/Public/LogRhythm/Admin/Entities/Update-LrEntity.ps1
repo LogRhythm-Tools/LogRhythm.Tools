@@ -83,6 +83,7 @@ Function Update-LrEntity {
         [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 1)]
         [string] $Id,
 
+
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 0)]
         [string] $ParentEntityName,
 
@@ -148,6 +149,7 @@ Function Update-LrEntity {
             Type                  =   $null
             Note                  =   $null
             Value                 =   $Name
+            Raw                   =   $null
         }
 
         # Lookup Entity By ID or Name
@@ -277,6 +279,7 @@ Function Update-LrEntity {
             $ErrorObject.Type = "System.Net.WebException"
             $ErrorObject.Code = $($Err.statusCode)
             $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
             return $ErrorObject
         }
         

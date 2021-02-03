@@ -245,6 +245,7 @@ Function New-LrHost {
             Type                  =   $null
             Note                  =   $null
             Value                 =   $Name
+            Raw                   =   $null
         }
 
         # Lookup Entity By ID or Name
@@ -256,11 +257,7 @@ Function New-LrHost {
                 Write-Verbose "[$Me]: Id does not parse as integer.  Performing string lookup."
                 $EntityLookup = Get-LrEntities -Name $Entity -Exact
                 if ($EntityLookup.Error -eq $true) {
-                    $ErrorObject.Error = $EntityLookup.Error
-                    $ErrorObject.Type = $EntityLookup.Type
-                    $ErrorObject.Code = $EntityLookup.Code
-                    $ErrorObject.Note = $EntityLookup.Note
-                    return $ErrorObject
+                    return $EntityLookup
                 } else {
                     $_entity = $EntityLookup
                 }
@@ -451,6 +448,7 @@ Function New-LrHost {
             $ErrorObject.Type = "System.Net.WebException"
             $ErrorObject.Code = $($Err.statusCode)
             $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
             return $ErrorObject
         }
         

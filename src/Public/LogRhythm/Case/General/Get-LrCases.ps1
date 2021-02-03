@@ -329,6 +329,7 @@ Function Get-LrCases {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
+            Raw                   =   $null
         }
 
         #region: Process Query Parameters____________________________________________________
@@ -468,6 +469,7 @@ Function Get-LrCases {
             $ErrorObject.Type = "System.Net.WebException"
             $ErrorObject.Code = $($Err.statusCode)
             $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
             return $ErrorObject
         }
 
@@ -489,6 +491,7 @@ Function Get-LrCases {
                     $ErrorObject.Type = "System.Net.WebException"
                     $ErrorObject.Code = $($Err.statusCode)
                     $ErrorObject.Note = $($Err.message)
+                    $ErrorObject.Raw = $_
                     return $ErrorObject
                 }
                 

@@ -123,9 +123,9 @@ Function Remove-LrCaseTags {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
-            ResponseUrl           =   $null
             Tags                  =   $Tags
             Case                  =   $Id
+            Raw                   =   $null
         }
         Write-Verbose "[$($MyInvocation.MyCommand.Name)]: Case Id: $Id"
 
@@ -176,8 +176,8 @@ Function Remove-LrCaseTags {
             $ErrorObject.Code = $Err.statusCode
             $ErrorObject.Type = "WebException"
             $ErrorObject.Note = $Err.message
-            $ErrorObject.ResponseUrl = $RequestUrl
             $ErrorObject.Error = $true
+            $ErrorObject.Raw = $_
             return $ErrorObject
         }
         

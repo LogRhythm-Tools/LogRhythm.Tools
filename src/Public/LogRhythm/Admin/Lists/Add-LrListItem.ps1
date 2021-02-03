@@ -142,6 +142,7 @@ Function Add-LrListItem {
             ListGuid              =   $null
             ListName              =   $null
             FieldType             =   $null
+            Raw                   =   $null
         }
 
         # Process Name
@@ -161,13 +162,10 @@ Function Add-LrListItem {
                 $ErrorObject.ListName = $Name.ToString()
                 $ErrorObject.ListGuid = $Guid
                 $ErrorObject.Note = "List lookup returned an array of values.  Ensure the list referenced is unique."
+                $ErrorObject.Raw = $TargetList
                 return $ErrorObject
             } elseif ($TargetList.Error -eq $true) {
-                $ErrorObject.Error = $true
-                $ErrorObject.ListName = $TargetList.Name
-                $ErrorObject.ListGuid = $TargetList.Guid
-                $ErrorObject.Note = $TargetList.Note
-                return $ErrorObject
+                return $TargetList
             }
         }
 
@@ -523,9 +521,13 @@ Function Add-LrListItem {
             try {
                 $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
             } catch [System.Net.WebException] {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                return $ExceptionMessage
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Error = $true
+                $ErrorObject.Type = "System.Net.WebException"
+                $ErrorObject.Code = $($Err.statusCode)
+                $ErrorObject.Note = $($Err.message)
+                $ErrorObject.Raw = $_
+                return $ErrorObject
             }
         } else {
             # Check for Duplicates for single items
@@ -535,9 +537,13 @@ Function Add-LrListItem {
                 try {
                     $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
                 } catch [System.Net.WebException] {
-                    $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                    Write-Verbose "Exception Message: $ExceptionMessage"
-                    return $ExceptionMessage
+                    $Err = Get-RestErrorMessage $_
+                    $ErrorObject.Error = $true
+                    $ErrorObject.Type = "System.Net.WebException"
+                    $ErrorObject.Code = $($Err.statusCode)
+                    $ErrorObject.Note = $($Err.message)
+                    $ErrorObject.Raw = $_
+                    return $ErrorObject
                 }
             } else {
                 $ErrorObject.Error = $true

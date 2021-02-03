@@ -62,31 +62,46 @@ Function Get-LrListItems {
     Begin { }
 
     Process {
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Code                  =   $null
+            Error                 =   $false
+            Value                 =   $Value
+            Note                  =   $null
+            Raw                   =   $null
+        }
+
         # Process Identity Object
         if (($Name.GetType() -eq [System.Guid]) -Or (Test-Guid $Name)) {
             $Guid = $Name.ToString()
         } else {
-            try {
-                if ($Exact) {
-                    $Guid = Get-LRListGuidByName -Name $Name.ToString() -Exact
-                } else {
-                    $Guid = Get-LRListGuidByName -Name $Name.ToString()
-                }
+            if ($Exact) {
+                $Guid = Get-LRListGuidByName -Name $Name.ToString() -Exact
+            } else {
+                $Guid = Get-LRListGuidByName -Name $Name.ToString()
             }
-            catch {
-                $Err = Get-RestErrorMessage $_
-                throw [Exception] "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)"
-            }
+            if ($Guid.Error -eq $true ) {
+                return $Guid
+            } 
         }
 
         # Send Request
-        $Response = Get-LrList -Name $Guid | Select-Object items
+        $Response = Get-LrList -Name $Guid
+        
+        # Validate if error is present in cmdlet return
+        if ($Response.Error -eq $true) {
+            return $Response
+        } else {
+            $ResponseItems = $Response | Select-Object items
+        }
+        
+        
         
         # Process Results
         if ($ValuesOnly) {
-            $ReturnList = $($Response.items | Select-Object -ExpandProperty "value")
+            $ReturnList = $($ResponseItems.items | Select-Object -ExpandProperty "value")
         } else {
-            $ReturnList = $Response.items
+            $ReturnList = $ResponseItems.items
         }
         
 

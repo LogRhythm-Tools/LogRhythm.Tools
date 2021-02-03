@@ -148,8 +148,8 @@ Function Update-LrPlaybook {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
-            ResponseUrl           =   $null
             Value                 =   $Id
+            Raw                   =   $null
         }
 
         # Validate Playbook Ref
@@ -166,7 +166,6 @@ Function Update-LrPlaybook {
                 $ErrorObject.Error = $true
                 $ErrorObject.Type = "Null"
                 $ErrorObject.Note = "Playbook does not exist."
-                $ErrorObject.ResponseUrl = "$BaseUrl/playbooks/$($Pb.id)/"
                 return $ErrorObject
             }
         }
@@ -193,7 +192,6 @@ Function Update-LrPlaybook {
                             $ErrorObject.Error = $true
                             $ErrorObject.Type = "Type mismatch"
                             $ErrorObject.Note = "Request tag is integer.  New tags must be type String."
-                            $ErrorObject.ResponseUrl = "Reference: New-LrTag"
                             $ErrorObject.Value = $Tag
                             return $ErrorObject
                         }
@@ -202,7 +200,6 @@ Function Update-LrPlaybook {
                         $ErrorObject.Error = $true
                         $ErrorObject.Type = "Missing tag"
                         $ErrorObject.Note = "Request tag does not exist.  Create tag or re-run with -force."
-                        $ErrorObject.ResponseUrl = "get-lrtags -name $tag -exact"
                         $ErrorObject.Value = $Tag
                         return $ErrorObject
                     }
@@ -296,9 +293,9 @@ Function Update-LrPlaybook {
             $Err = Get-RestErrorMessage $_
             $ErrorObject.Code = $Err.statusCode
             $ErrorObject.Type = "WebException"
-            $ErrorObject.Note = $Err
-            $ErrorObject.ResponseUrl = $RequestUrl
+            $ErrorObject.Note = $Err.message
             $ErrorObject.Error = $true
+            $ErrorObject.Raw = $_
             return $ErrorObject
         }
 

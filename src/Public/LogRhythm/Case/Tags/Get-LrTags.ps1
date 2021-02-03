@@ -152,8 +152,8 @@ Function Get-LrTags {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
-            ResponseUrl           =   $null
             Tag                   =   $Name
+            Raw                   =   $null
         }
 
         # Request URI
@@ -167,8 +167,8 @@ Function Get-LrTags {
             $ErrorObject.Code = $Err.statusCode
             $ErrorObject.Type = "System.Net.WebException"
             $ErrorObject.Note = $Err.message
-            $ErrorObject.ResponseUrl = $RequestUrl
             $ErrorObject.Error = $true
+            $ErrorObject.Raw = $_
             return $ErrorObject
         }
 

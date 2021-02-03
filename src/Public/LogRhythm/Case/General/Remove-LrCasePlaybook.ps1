@@ -87,8 +87,8 @@ Function Remove-LrCasePlaybook {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
-            ResponseUrl           =   $null
             Value                 =   $Id
+            Raw                   =   $null
         }
 
         # Test CaseID Format
@@ -150,12 +150,13 @@ Function Remove-LrCasePlaybook {
         try {
             $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
         } catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            if ($Err.statusCode -eq "409") {
-                # we know we can use $Pb.name because a 409 wouldn't throw unless the playbook existed.
-                throw [InvalidOperationException] "[409]: Playbook '$($Pb.name)' has already been added to case '$Id'"
-            }
-            $PSCmdlet.ThrowTerminatingError($PSItem)
+		    $Err = Get-RestErrorMessage $_
+            $ErrorObject.Code = $Err.statusCode
+            $ErrorObject.Type = "WebException"
+            $ErrorObject.Note = $Err.message
+            $ErrorObject.Error = $true
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
 
         return $Response

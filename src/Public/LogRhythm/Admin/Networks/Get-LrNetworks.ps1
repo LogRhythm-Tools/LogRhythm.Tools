@@ -186,6 +186,7 @@ Function Get-LrNetworks {
             Type                  =   $null
             Code                  =   $null
             Note                  =   $null
+            Raw                   =   $null
         }
 
         #region: Process Query Parameters____________________________________________________
@@ -217,11 +218,7 @@ Function Get-LrNetworks {
                 Write-Verbose "[$Me]: Validating Entity as Int32.  EntityId: $Entity"
                 $EntityLookup = Get-LrEntityDetails -Id $Entity
                 if ($EntityLookup.Error -eq $true) {
-                    $ErrorObject.Error = $EntityLookup.Error
-                    $ErrorObject.Type = $EntityLookup.Type
-                    $ErrorObject.Code = $EntityLookup.Code
-                    $ErrorObject.Note = $EntityLookup.Note
-                    return $ErrorObject
+                    return $EntityLookup
                 } else {
                     $_entity = $EntityLookup
                 }
@@ -229,11 +226,7 @@ Function Get-LrNetworks {
                 Write-Verbose "[$Me]: Validating Entity as String.  EntityName: $Entity"
                 $EntityLookup = Get-LrEntities -Name $Entity -Exact
                 if ($EntityLookup.Error -eq $true) {
-                    $ErrorObject.Error = $EntityLookup.Error
-                    $ErrorObject.Type = $EntityLookup.Type
-                    $ErrorObject.Code = $EntityLookup.Code
-                    $ErrorObject.Note = $EntityLookup.Note
-                    return $ErrorObject
+                    return $EntityLookup
                 } else {
                     $_entity = $EntityLookup
                 }
@@ -294,6 +287,7 @@ Function Get-LrNetworks {
             $ErrorObject.Type = "System.Net.WebException"
             $ErrorObject.Code = $($Err.statusCode)
             $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
             return $ErrorObject
         }
 
@@ -318,6 +312,7 @@ Function Get-LrNetworks {
                     $ErrorObject.Type = "System.Net.WebException"
                     $ErrorObject.Code = $($Err.statusCode)
                     $ErrorObject.Note = $($Err.message)
+                    $ErrorObject.Raw = $_
                     return $ErrorObject
                 }
                 

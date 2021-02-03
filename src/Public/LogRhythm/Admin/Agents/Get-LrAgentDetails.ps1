@@ -212,6 +212,7 @@ Function Get-LrAgentDetails {
             Code                  =   $Null
             Type                  =   $null
             Note                  =   $null
+            Raw                   =   $null
         }
         
         # Verify version
@@ -220,7 +221,6 @@ Function Get-LrAgentDetails {
             $ErrorObject.Code = "404"
             $ErrorObject.Type = "Cmdlet not supported."
             $ErrorObject.Note = "This cmdlet is available in LogRhythm version 7.5.0 and greater."
-
             return $ErrorObject
         }
 
@@ -249,6 +249,7 @@ Function Get-LrAgentDetails {
             $ErrorObject.Type = "System.Net.WebException"
             $ErrorObject.Code = $($Err.statusCode)
             $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
             return $ErrorObject
         }
 

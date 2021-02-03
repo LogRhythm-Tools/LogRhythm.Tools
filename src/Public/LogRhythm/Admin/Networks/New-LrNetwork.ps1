@@ -266,6 +266,7 @@ Function New-LrNetwork {
             Type                  =   $null
             Note                  =   $null
             Value                 =   $Name
+            Raw                   =   $null
         }
 
         # Lookup Entity By ID or Name
@@ -274,11 +275,7 @@ Function New-LrNetwork {
                 Write-Verbose "[$Me]: Validating EntityId: $EntityId"
                 $EntityLookup = Get-LrEntityDetails -Id $Entity
                 if ($EntityLookup.Error -eq $true) {
-                    $ErrorObject.Error = $EntityLookup.Error
-                    $ErrorObject.Type = $EntityLookup.Type
-                    $ErrorObject.Code = $EntityLookup.Code
-                    $ErrorObject.Note = $EntityLookup.Note
-                    return $ErrorObject
+                    return $EntityLookup
                 } else {
                     $_entity = $EntityLookup
                 }
@@ -287,11 +284,7 @@ Function New-LrNetwork {
                     Write-Verbose "[$Me]: Validating Entity as Int32.  EntityId: $Entity"
                     $EntityLookup = Get-LrEntityDetails -Id $Entity
                     if ($EntityLookup.Error -eq $true) {
-                        $ErrorObject.Error = $EntityLookup.Error
-                        $ErrorObject.Type = $EntityLookup.Type
-                        $ErrorObject.Code = $EntityLookup.Code
-                        $ErrorObject.Note = $EntityLookup.Note
-                        return $ErrorObject
+                        return $EntityLookup
                     } else {
                         $_entity = $EntityLookup
                     }
@@ -299,11 +292,7 @@ Function New-LrNetwork {
                     Write-Verbose "[$Me]: Validating Entity as String.  EntityName: $Entity"
                     $EntityLookup = Get-LrEntities -Name $Entity -Exact
                     if ($EntityLookup.Error -eq $true) {
-                        $ErrorObject.Error = $EntityLookup.Error
-                        $ErrorObject.Type = $EntityLookup.Type
-                        $ErrorObject.Code = $EntityLookup.Code
-                        $ErrorObject.Note = $EntityLookup.Note
-                        return $ErrorObject
+                        return $EntityLookup
                     } else {
                         $_entity = $EntityLookup
                     }
@@ -453,6 +442,7 @@ Function New-LrNetwork {
             $ErrorObject.Type = "System.Net.WebException"
             $ErrorObject.Code = $($Err.statusCode)
             $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
             return $ErrorObject
         }
         

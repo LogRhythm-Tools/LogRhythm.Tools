@@ -99,6 +99,7 @@ Function Add-LrIdentityIdentifier {
             IdentityId            =   $IdentityId
             NameFirst             =   $null
             NameLast              =   $null
+            Raw                   =   $null
         }
 
 
@@ -133,6 +134,7 @@ Function Add-LrIdentityIdentifier {
                 $ErrorObject.Note = $($Err.message)
                 $ErrorObject.NameFirst = $IdentifierStatus.NameFirst
                 $ErrorObject.NameLast = $IdentifierStatus.NameLast
+                $ErrorObject.Raw = $_
                 return $ErrorObject
             }
         } else {

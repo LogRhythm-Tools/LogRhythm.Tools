@@ -47,6 +47,7 @@ function Get-LrLogSourceTypes
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
+            Raw                   =   $null
         }
 
         # Verify version
@@ -100,6 +101,7 @@ function Get-LrLogSourceTypes
             $ErrorObject.Type = "System.Net.WebException"
             $ErrorObject.Code = $($Err.statusCode)
             $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
             return $ErrorObject
         }
         
@@ -125,6 +127,7 @@ function Get-LrLogSourceTypes
                     $ErrorObject.Type = "System.Net.WebException"
                     $ErrorObject.Code = $($Err.statusCode)
                     $ErrorObject.Note = $($Err.message)
+                    $ErrorObject.Raw = $_
                     return $ErrorObject
                 }
                 

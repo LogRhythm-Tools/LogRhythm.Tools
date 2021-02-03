@@ -95,6 +95,7 @@ Function Get-LrEntityDetails {
             Type                  =   $null
             Note                  =   $null
             Value                 =   $Id
+            Raw                   =   $null
         }
 
         # Check if ID value is an integer
@@ -130,6 +131,7 @@ Function Get-LrEntityDetails {
                 $ErrorObject.Type = "System.Net.WebException"
                 $ErrorObject.Code = $($Err.statusCode)
                 $ErrorObject.Note = $($Err.message)
+                $ErrorObject.Raw = $_
                 return $ErrorObject
             }
         } else {

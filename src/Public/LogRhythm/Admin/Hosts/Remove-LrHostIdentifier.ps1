@@ -97,6 +97,7 @@ Function Remove-LrHostIdentifier {
             Type                  =   $Type
             Note                  =   $null
             Value                 =   $Value
+            Raw                   =   $null
         }
 
         if ([int]::TryParse($Id, [ref]$_int)) {
@@ -173,6 +174,7 @@ Function Remove-LrHostIdentifier {
             $ErrorObject.Type = "System.Net.WebException"
             $ErrorObject.Code = $($Err.statusCode)
             $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
             return $ErrorObject
         }
 

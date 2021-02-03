@@ -193,8 +193,10 @@ Function Update-LrHost {
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 10)]
         [string] $Location,
 
+
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName=$true, Position = 11)]
         [int32]$LocationId,
+
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 12)]
         [ValidateSet(
@@ -271,6 +273,7 @@ Function Update-LrHost {
             Type                  =   $null
             Note                  =   $null
             Value                 =   $Name
+            Raw                   =   $null
         }
 
         if ([int]::TryParse($Id, [ref]$_int)) {
@@ -343,11 +346,7 @@ Function Update-LrHost {
                 Write-Verbose "[$Me]: Id does not parse as integer.  Performing string lookup."
                 $EntityLookup = Get-LrEntities -Name $Entity -Exact
                 if ($EntityLookup.Error -eq $true) {
-                    $ErrorObject.Error = $EntityLookup.Error
-                    $ErrorObject.Type = $EntityLookup.Type
-                    $ErrorObject.Code = $EntityLookup.Code
-                    $ErrorObject.Note = $EntityLookup.Note
-                    return $ErrorObject
+                    return $EntityLookup
                 } else {
                     $_entity = $EntityLookup
                 }
@@ -577,6 +576,7 @@ Function Update-LrHost {
                 $ErrorObject.Type = "System.Net.WebException"
                 $ErrorObject.Code = $($Err.statusCode)
                 $ErrorObject.Note = $($Err.message)
+                $ErrorObject.Raw = $_
                 return $ErrorObject
             }
         } else {
@@ -589,6 +589,7 @@ Function Update-LrHost {
                 $ErrorObject.Type = "System.Net.WebException"
                 $ErrorObject.Code = $($Err.statusCode)
                 $ErrorObject.Note = $($Err.message)
+                $ErrorObject.Raw = $_
                 return $ErrorObject
             }
         }

@@ -122,6 +122,7 @@ Function Get-LrEntities {
             Type                  =   $null
             Note                  =   $null
             Value                 =   $Id
+            Raw                   =   $null
         }
 
         #region: Process Query Parameters
@@ -198,6 +199,7 @@ Function Get-LrEntities {
             $ErrorObject.Type = "System.Net.WebException"
             $ErrorObject.Code = $($Err.statusCode)
             $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
             return $ErrorObject
         }
 
@@ -222,6 +224,7 @@ Function Get-LrEntities {
                     $ErrorObject.Type = "System.Net.WebException"
                     $ErrorObject.Code = $($Err.statusCode)
                     $ErrorObject.Note = $($Err.message)
+                    $ErrorObject.Raw = $_
                     return $ErrorObject
                 }
                 

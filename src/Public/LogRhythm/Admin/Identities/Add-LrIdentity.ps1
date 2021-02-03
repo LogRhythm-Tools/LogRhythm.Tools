@@ -217,6 +217,7 @@ Function Add-LrIdentity {
             Type                  =   $null
             NameFirst             =   $NameFirst
             NameLast              =   $NameLast
+            Raw                   =   $null
         }
 
         # Create vendorUniqueKey based on SyncName
@@ -391,6 +392,7 @@ Function Add-LrIdentity {
             $ErrorObject.Type = "System.Net.WebException"
             $ErrorObject.Code = $($Err.statusCode)
             $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
             return $ErrorObject
         }
 

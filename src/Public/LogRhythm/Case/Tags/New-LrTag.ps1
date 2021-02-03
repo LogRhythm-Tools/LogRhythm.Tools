@@ -74,8 +74,8 @@ Function New-LrTag {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
-            ResponseUrl           =   $null
             Tag                   =   $Tag
+            Raw                   =   $null
         }
 
         # Request URI
@@ -94,7 +94,6 @@ Function New-LrTag {
             $ErrorObject.Code = "ValueExists"
             $ErrorObject.Type = "Duplicate"
             $ErrorObject.Note = "Tag exists.  ID: $_tagNumber"
-            $ErrorObject.ResponseUrl = "Reference results of: Get-LrTag -number $_tagNumber"
             $ErrorObject.Error = $true
             return $ErrorObject
         }
@@ -114,8 +113,8 @@ Function New-LrTag {
             $ErrorObject.Code = $Err.statusCode
             $ErrorObject.Type = "WebException"
             $ErrorObject.Note = $Err.message
-            $ErrorObject.ResponseUrl = $RequestUrl
             $ErrorObject.Error = $true
+            $ErrorObject.Raw = $_
             return $ErrorObject
         }
         

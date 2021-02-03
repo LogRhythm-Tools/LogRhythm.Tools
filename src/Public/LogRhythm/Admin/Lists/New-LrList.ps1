@@ -208,7 +208,9 @@ Function New-LrList {
             $Guid = $Name.ToString()
         } else {
             $GuidResults = Get-LRListGuidByName -Name $Name -Exact
-            if ($GuidResults) {
+            if ($GuidResults.Error -eq $true) {
+                return $GuidResults
+            } elseif ($GuidResults) {
                 if (($GuidResults.GetType() -eq [System.Guid]) -Or (Test-Guid $GuidResults)) {
                     $Guid = $GuidResults.ToString()
                 }
@@ -272,6 +274,7 @@ Function New-LrList {
             ListGuid              =   $null
             ListName              =   $Name
             FieldType             =   $ListType
+            Raw                   =   $null
         }
       
         #$ExpDate = (Get-Date).AddDays(7).ToString("yyyy-MM-dd")
@@ -315,6 +318,7 @@ Function New-LrList {
             $ErrorObject.Type = "System.Net.WebException"
             $ErrorObject.Code = $($Err.statusCode)
             $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
             return $ErrorObject
         }
         

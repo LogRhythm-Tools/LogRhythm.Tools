@@ -65,6 +65,16 @@ function Get-LrCaseEarliestEvidence {
     }
     
     Process {
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Code                  =   $null
+            Error                 =   $false
+            Type                  =   $null
+            Note                  =   $null
+            Case                  =   $Id
+            Raw                   =   $null
+        }  
+        
         # Test CaseID Format
         $IdStatus = Test-LrCaseIdFormat $Id
         if ($IdStatus.IsValid -eq $true) {
@@ -79,9 +89,13 @@ function Get-LrCaseEarliestEvidence {
         try {
             $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
         } catch [System.Net.WebException] {
-            $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-            Write-Verbose "Exception Message: $ExceptionMessage"
-            return $ExceptionMessage
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Code = $Err.statusCode
+            $ErrorObject.Type = "WebException"
+            $ErrorObject.Note = $Err.message
+            $ErrorObject.Error = $true
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
         $ProcessedCount++
 

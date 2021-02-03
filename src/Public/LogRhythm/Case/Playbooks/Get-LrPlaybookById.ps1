@@ -89,9 +89,10 @@ Function Get-LrPlaybookById {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
-            ResponseUrl           =   $null
-            Value              =   $Name
+            Value                 =   $Name
+            Raw                   =   $null
         }
+        
         # Validate Playbook Id
         if (! (Test-Guid $Id)) {
             $ErrorObject.Error = $true
@@ -113,7 +114,6 @@ Function Get-LrPlaybookById {
             $ErrorObject.Code = $Err.statusCode
             $ErrorObject.Error = $true
             $ErrorObject.Type = "TypeMismatch"
-            $ErrorObject.ResponseUrl = $RequestUrl
             switch ($Err.statusCode) {
                 "404" {
                     $ErrorObject.Type = "KeyNotFoundException"
@@ -129,6 +129,7 @@ Function Get-LrPlaybookById {
                 }
             }
             $ErrorObject.Value = $Id
+            $ErrorObject.Raw = $_
             return $ErrorObject
         }
 

@@ -128,8 +128,8 @@ Function Get-LrPlaybookProcedures {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
-            ResponseUrl           =   $null
             Playbook              =   $Name
+            Raw                   =   $null
         }
 
 
@@ -148,7 +148,6 @@ Function Get-LrPlaybookProcedures {
                 $ErrorObject.Error = $true
                 $ErrorObject.Type = "Null"
                 $ErrorObject.Note = "Playbook does not exist."
-                $ErrorObject.ResponseUrl = "$BaseUrl/playbooks/$($Pb.id)/"
                 return $ErrorObject
             }
         }
@@ -165,8 +164,8 @@ Function Get-LrPlaybookProcedures {
             $ErrorObject.Code = $Err.statusCode
             $ErrorObject.Type = "WebException"
             $ErrorObject.Note = $Err.message
-            $ErrorObject.ResponseUrl = $RequestUrl
             $ErrorObject.Error = $true
+            $ErrorObject.Raw = $_
             return $ErrorObject
         }
         
@@ -191,7 +190,6 @@ Function Get-LrPlaybookProcedures {
             $ErrorObject.Code = 404
             $ErrorObject.Type = "Object not found"
             $ErrorObject.Note = "Playbook not found"
-            $ErrorObject.ResponseUrl = $RequestUrl
             $ErrorObject.Error = $true
             return $ErrorObject
         }

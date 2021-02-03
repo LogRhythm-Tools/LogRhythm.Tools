@@ -71,6 +71,7 @@ Function Get-LrNetworkDetails {
             Type                  =   $null
             Note                  =   $null
             Value                 =   $Id
+            Raw                   =   $null
         }
         
 
@@ -82,11 +83,7 @@ Function Get-LrNetworkDetails {
             Write-Verbose "[$Me]: Id does not parse as integer.  Performing string lookup."
             $NetworkLookup = Get-LrNetworks -Name $Id -Exact
             if ($NetworkLookup.Error -eq $true) {
-                $ErrorObject.Error = $NetworkLookup.Error
-                $ErrorObject.Type = $NetworkLookup.Type
-                $ErrorObject.Code = $NetworkLookup.Code
-                $ErrorObject.Note = $NetworkLookup.Note
-                return $ErrorObject
+                return $NetworkLookup
             } else {
                 $Guid = $NetworkLookup | Select-Object -ExpandProperty id
             }
@@ -107,6 +104,7 @@ Function Get-LrNetworkDetails {
                 $ErrorObject.Type = "System.Net.WebException"
                 $ErrorObject.Code = $($Err.statusCode)
                 $ErrorObject.Note = $($Err.message)
+                $ErrorObject.Raw = $_
                 return $ErrorObject
             }
         } else {

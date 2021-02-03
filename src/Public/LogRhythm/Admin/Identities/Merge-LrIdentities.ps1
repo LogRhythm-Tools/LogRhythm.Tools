@@ -133,6 +133,7 @@ Function Merge-LrIdentities {
             Type                  =   $null
             Note                  =   $null
             Value                 =   $null
+            Raw                   =   $null
         }
 
         # Ensure Identity IDs have been provided.  Handles assigning depreciated paramaters for integration transition.
@@ -242,13 +243,13 @@ Function Merge-LrIdentities {
             # Send Request
             try {
                 $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
-            }
-            catch [System.Net.WebException] {
+            } catch [System.Net.WebException] {
                 $Err = Get-RestErrorMessage $_
                 $ErrorObject.Error = $true
                 $ErrorObject.Type = "System.Net.WebException"
                 $ErrorObject.Code = $($Err.statusCode)
                 $ErrorObject.Note = $($Err.message)
+                $ErrorObject.Raw = $_
                 return $ErrorObject
             }
         }

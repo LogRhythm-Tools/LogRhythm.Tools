@@ -103,8 +103,8 @@ Function Copy-LrPlaybook {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
-            ResponseUrl           =   $null
-            Value              =   $Id
+            Value                 =   $Id
+            Raw                   =   $null
         }
 
         # Validate Playbook Ref
@@ -121,7 +121,6 @@ Function Copy-LrPlaybook {
                 $ErrorObject.Error = $true
                 $ErrorObject.Type = "Null"
                 $ErrorObject.Note = "Playbook does not exist."
-                $ErrorObject.ResponseUrl = "$BaseUrl/playbooks/$($Pb.id)/"
                 return $ErrorObject
             }
         }
@@ -147,8 +146,8 @@ Function Copy-LrPlaybook {
             $ErrorObject.Code = $Err.statusCode
             $ErrorObject.Type = "WebException"
             $ErrorObject.Note = $Err
-            $ErrorObject.ResponseUrl = $RequestUrl
             $ErrorObject.Error = $true
+            $ErrorObject.Raw = $_
             return $ErrorObject
         }
 

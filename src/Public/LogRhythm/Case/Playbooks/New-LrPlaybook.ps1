@@ -129,8 +129,8 @@ Function New-LrPlaybook {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
-            ResponseUrl           =   $null
             Value                 =   $Name
+            Raw                   =   $null
         }
 
         # Validate Playbook Ref
@@ -140,7 +140,6 @@ Function New-LrPlaybook {
             $ErrorObject.Error = $true
             $ErrorObject.Type = "Duplicate"
             $ErrorObject.Note = "Playbook with same name exists."
-            $ErrorObject.ResponseUrl = "$BaseUrl/playbooks/$($Pb.id)/"
             return $ErrorObject
         }
 
@@ -166,7 +165,6 @@ Function New-LrPlaybook {
                             $ErrorObject.Error = $true
                             $ErrorObject.Type = "Type mismatch"
                             $ErrorObject.Note = "Request tag is integer.  New tags must be type String."
-                            $ErrorObject.RequestUrl = "Reference: New-LrTag"
                             $ErrorObject.Value = $Tag
                             return $ErrorObject
                         }
@@ -175,7 +173,6 @@ Function New-LrPlaybook {
                         $ErrorObject.Error = $true
                         $ErrorObject.Type = "Missing tag"
                         $ErrorObject.Note = "Request tag does not exist.  Create tag or re-run with -force."
-                        $ErrorObject.RequestUrl = "get-lrtags -name $tag -exact"
                         $ErrorObject.Value = $Tag
                         return $ErrorObject
                     }
@@ -244,12 +241,12 @@ Function New-LrPlaybook {
         try {
             $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
         } catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
+		    $Err = Get-RestErrorMessage $_
             $ErrorObject.Code = $Err.statusCode
             $ErrorObject.Type = "WebException"
-            $ErrorObject.Note = $Err
-            $ErrorObject.ResponseUrl = $RequestUrl
+            $ErrorObject.Note = $Err.message
             $ErrorObject.Error = $true
+            $ErrorObject.Raw = $_
             return $ErrorObject
         }
 

@@ -86,11 +86,30 @@ Function Update-LrCaseEarliestEvidence {
         $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
+        # Request Headers
+        $Headers = [Dictionary[string,string]]::new()
+        $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
+
+
+        # Request URI
+        $Method = $HttpMethod.Put
+
         $ProcessedCount = 0
     }
 
 
     Process {
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Code                  =   $null
+            Error                 =   $false
+            Type                  =   $null
+            Note                  =   $null
+            Case                  =   $Id
+            Raw                   =   $null
+        }    
+
         # Test CaseID Format
         $IdStatus = Test-LrCaseIdFormat $Id
         if ($IdStatus.IsValid -eq $true) {
@@ -111,10 +130,14 @@ Function Update-LrCaseEarliestEvidence {
         # Set provided EarliestEvidence Date
         Try {
             $RequestedTimestamp = (Get-Date $Timestamp).ToUniversalTime()
-        }
-        Catch {
-            $Err = Get-RestErrorMessage $_
-            throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+        } Catch {
+		    $Err = Get-RestErrorMessage $_
+            $ErrorObject.Code = $Err.statusCode
+            $ErrorObject.Type = "WebException"
+            $ErrorObject.Note = $Err.message
+            $ErrorObject.Error = $true
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
 
         $UpdateEvidence = $false
@@ -150,14 +173,7 @@ Function Update-LrCaseEarliestEvidence {
         # Case note for API action
         $Note = "LogRhythm Tools: Update EarliestEvidence Timestamp"
 
-        # Request Headers
-        $Headers = [Dictionary[string,string]]::new()
-        $Headers.Add("Authorization", "Bearer $Token")
-        $Headers.Add("Content-Type","application/json")
 
-
-        # Request URI
-        $Method = $HttpMethod.Put
         $RequestUrl = $BaseUrl + "/cases/$CaseNumber/metrics/"
 
 
@@ -177,10 +193,15 @@ Function Update-LrCaseEarliestEvidence {
                 $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
             } catch [System.Net.WebException] {
                 $Err = Get-RestErrorMessage $_
-                throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+                $ErrorObject.Code = $Err.statusCode
+                $ErrorObject.Type = "WebException"
+                $ErrorObject.Note = $Err.message
+                $ErrorObject.Error = $true
+                $ErrorObject.Raw = $_
+                return $ErrorObject
             }
         } else {
-            Write-Verbose "[$Me]: UpdateEvidence = $UpdateEvidence"
+		    Write-Verbose "[$Me]: UpdateEvidence = $UpdateEvidence"
             return $null
         }
 

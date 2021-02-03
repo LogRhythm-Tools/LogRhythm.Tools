@@ -241,6 +241,7 @@ Function Get-LrAgentsAccepted {
             Type                  =   $null
             Code                  =   $null
             Note                  =   $null
+            Raw                   =   $null
         }
 
         # Verify version
@@ -286,6 +287,7 @@ Function Get-LrAgentsAccepted {
                     $ErrorObject.Type = $EntityLookup.Type
                     $ErrorObject.Code = $EntityLookup.Code
                     $ErrorObject.Note = $EntityLookup.Note
+                    $ErrorObject.Raw = $_
                     return $ErrorObject
                 } else {
                     $_entity = $EntityLookup
@@ -298,6 +300,7 @@ Function Get-LrAgentsAccepted {
                     $ErrorObject.Type = $EntityLookup.Type
                     $ErrorObject.Code = $EntityLookup.Code
                     $ErrorObject.Note = $EntityLookup.Note
+                    $ErrorObject.Raw = $_
                     return $ErrorObject
                 } else {
                     $_entity = $EntityLookup
@@ -420,6 +423,7 @@ Function Get-LrAgentsAccepted {
             $ErrorObject.Type = "System.Net.WebException"
             $ErrorObject.Code = $($Err.statusCode)
             $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
             return $ErrorObject
         }
 
@@ -444,6 +448,7 @@ Function Get-LrAgentsAccepted {
                     $ErrorObject.Type = "System.Net.WebException"
                     $ErrorObject.Code = $($Err.statusCode)
                     $ErrorObject.Note = $($Err.message)
+                    $ErrorObject.Raw = $_
                     return $ErrorObject
                 }
                 

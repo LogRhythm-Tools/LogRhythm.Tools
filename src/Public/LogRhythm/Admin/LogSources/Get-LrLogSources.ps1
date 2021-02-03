@@ -268,6 +268,7 @@ Function Get-LrLogSources {
             Type                  =   $null
             Code                  =   $null
             Note                  =   $null
+            Raw                   =   $null
         }
 
         # Verify version
@@ -367,7 +368,6 @@ Function Get-LrLogSources {
                     $ErrorObject.Code = "404"
                     $ErrorObject.Type = "Cmdlet not supported."
                     $ErrorObject.Note = "This cmdlet is available in LogRhythm version 7.5.0 and greater."
-        
                     return $ErrorObject
                 }
                 $QueryParams.Add("dir", $_direction)
@@ -408,6 +408,7 @@ Function Get-LrLogSources {
             $ErrorObject.Type = "System.Net.WebException"
             $ErrorObject.Code = $($Err.statusCode)
             $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
             return $ErrorObject
         }
 
@@ -432,6 +433,7 @@ Function Get-LrLogSources {
                     $ErrorObject.Type = "System.Net.WebException"
                     $ErrorObject.Code = $($Err.statusCode)
                     $ErrorObject.Note = $($Err.message)
+                    $ErrorObject.Raw = $_
                     return $ErrorObject
                 }
                 

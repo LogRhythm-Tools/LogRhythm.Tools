@@ -118,6 +118,7 @@ Function Get-LrLocations {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
+            Raw                   =   $null
         }
 
         # Verify version
@@ -139,6 +140,7 @@ Function Get-LrLocations {
             $ErrorObject.Type = "System.Net.WebException"
             $ErrorObject.Code = $($Err.statusCode)
             $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
             return $ErrorObject
         }
 

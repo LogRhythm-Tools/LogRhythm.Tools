@@ -146,6 +146,7 @@ Function Get-LrIdentities {
             Note                  =   $null
             Code                  =   $null
             Type                  =   $null
+            Raw                   =   $null
         }
 
         #region: Process Query Parameters
@@ -245,6 +246,7 @@ Function Get-LrIdentities {
             $ErrorObject.Type = "System.Net.WebException"
             $ErrorObject.Code = $($Err.statusCode)
             $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
             return $ErrorObject
         }
 

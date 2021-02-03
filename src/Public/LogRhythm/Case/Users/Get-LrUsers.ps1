@@ -130,6 +130,7 @@ Function Get-LrUsers {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
+            Raw                   =   $null
         }
 
         # Transform OnlyUsers switch into a boolean
@@ -156,10 +157,11 @@ Function Get-LrUsers {
             $Response = Invoke-RestMethod -Uri $RequestUrl -Headers $Headers -Method $Method
         } catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_
+            $ErrorObject.Code = $Err.statusCode
+            $ErrorObject.Type = "WebException"
+            $ErrorObject.Note = $Err.message
             $ErrorObject.Error = $true
-            $ErrorObject.Type = "System.Net.WebException"
-            $ErrorObject.Code = $($Err.statusCode)
-            $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
             return $ErrorObject
         }
 
@@ -178,10 +180,11 @@ Function Get-LrUsers {
                     $PaginationResults = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
                 } catch [System.Net.WebException] {
                     $Err = Get-RestErrorMessage $_
+                    $ErrorObject.Code = $Err.statusCode
+                    $ErrorObject.Type = "WebException"
+                    $ErrorObject.Note = $Err.message
                     $ErrorObject.Error = $true
-                    $ErrorObject.Type = "System.Net.WebException"
-                    $ErrorObject.Code = $($Err.statusCode)
-                    $ErrorObject.Note = $($Err.message)
+                    $ErrorObject.Raw = $_
                     return $ErrorObject
                 }
                 

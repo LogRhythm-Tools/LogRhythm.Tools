@@ -153,6 +153,7 @@ Function Get-LrLogSourceDetails {
             Type                  =   $null
             Note                  =   $null
             Value                 =   $Id
+            Raw                   =   $null
         }
 
         # Verify version
@@ -173,11 +174,7 @@ Function Get-LrLogSourceDetails {
             Write-Verbose "[$Me]: Id does not parse as integer.  Performing string lookup."
             $LogSourceLookup = Get-LrLogSources -Name $Id -Exact
             if ($NetworkLookup.Error -eq $true) {
-                $ErrorObject.Error = $LogSourceLookup.Error
-                $ErrorObject.Type = $LogSourceLookup.Type
-                $ErrorObject.Code = $LogSourceLookup.Code
-                $ErrorObject.Note = $LogSourceLookup.Note
-                return $ErrorObject
+                return $NetworkLookup
             } else {
                 $Guid = $LogSourceLookup | Select-Object -ExpandProperty id
             }
@@ -197,6 +194,7 @@ Function Get-LrLogSourceDetails {
                 $ErrorObject.Type = "System.Net.WebException"
                 $ErrorObject.Code = $($Err.statusCode)
                 $ErrorObject.Note = $($Err.message)
+                $ErrorObject.Raw = $_
                 return $ErrorObject
             }
         } else {

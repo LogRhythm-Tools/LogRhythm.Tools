@@ -170,8 +170,8 @@ Function Get-LrPlaybooks {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
-            ResponseUrl           =   $null
             Playbook              =   $Name
+            Raw                   =   $null
         }
 
         # Request URI
@@ -186,8 +186,8 @@ Function Get-LrPlaybooks {
             $ErrorObject.Code = $Err.statusCode
             $ErrorObject.Type = "WebException"
             $ErrorObject.Note = $Err.message
-            $ErrorObject.ResponseUrl = $RequestUrl
             $ErrorObject.Error = $true
+            $ErrorObject.Raw = $_
             return $ErrorObject
         }
 
@@ -209,6 +209,7 @@ Function Get-LrPlaybooks {
                     $ErrorObject.Type = "System.Net.WebException"
                     $ErrorObject.Code = $($Err.statusCode)
                     $ErrorObject.Note = $($Err.message)
+                    $ErrorObject.Raw = $_
                     return $ErrorObject
                 }
                 
@@ -238,7 +239,6 @@ Function Get-LrPlaybooks {
             $ErrorObject.Code = 404
             $ErrorObject.Type = "Object not found"
             $ErrorObject.Note = "Playbook not found"
-            $ErrorObject.ResponseUrl = $RequestUrl
             $ErrorObject.Error = $true
             return $ErrorObject
         }

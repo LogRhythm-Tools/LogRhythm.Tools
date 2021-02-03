@@ -80,8 +80,8 @@ Function Remove-LrTag {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
-            ResponseUrl           =   $null
             Tag                   =   $Tag
+            Raw                   =   $null
         }
         #region: Process Tags                                                            
         # Request Body - Tags
@@ -124,8 +124,8 @@ Function Remove-LrTag {
             $ErrorObject.Code = $Err.statusCode
             $ErrorObject.Type = "WebException"
             $ErrorObject.Note = $Err.message
-            $ErrorObject.ResponseUrl = $RequestUrl
             $ErrorObject.Error = $true
+            $ErrorObject.Raw = $_
             return $ErrorObject
         }
         

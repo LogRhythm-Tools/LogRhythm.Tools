@@ -95,6 +95,7 @@ Function Get-LrCaseById {
             Type                  =   $null
             Note                  =   $null
             Value                 =   $Id
+            Raw                   =   $null
         }
 
         # Check if ID value is an integer
@@ -132,6 +133,7 @@ Function Get-LrCaseById {
                     $ErrorObject.Note = $Err.message
                 }
             }
+            $ErrorObject.Raw = $_
             return $ErrorObject
         }
 

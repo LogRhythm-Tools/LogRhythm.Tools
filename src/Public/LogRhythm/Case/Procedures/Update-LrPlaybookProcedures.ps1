@@ -131,8 +131,8 @@ Function Update-LrPlaybookProcedures {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
-            ResponseUrl           =   $null
             Value                 =   $Id
+            Raw                   =   $null
         }
 
         # List of Procedures for Processing
@@ -152,7 +152,6 @@ Function Update-LrPlaybookProcedures {
                 $ErrorObject.Error = $true
                 $ErrorObject.Type = "Null"
                 $ErrorObject.Note = "Playbook does not exist."
-                $ErrorObject.ResponseUrl = "$BaseUrl/playbooks/$($Pb.id)/"
                 return $ErrorObject
             }
         }
@@ -264,7 +263,6 @@ Function Update-LrPlaybookProcedures {
                 $Procedures.Add($Procedure)
             }
         }
-get-
 
         $RequestUrl = $BaseUrl + "/playbooks/$($Pb.id)/procedures/"
         Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
@@ -282,9 +280,9 @@ get-
             $Err = Get-RestErrorMessage $_
             $ErrorObject.Code = $Err.statusCode
             $ErrorObject.Type = "WebException"
-            $ErrorObject.Note = $Err
-            $ErrorObject.ResponseUrl = $RequestUrl
+            $ErrorObject.Note = $Err.message
             $ErrorObject.Error = $true
+            $ErrorObject.Raw = $_
             return $ErrorObject
         }
 

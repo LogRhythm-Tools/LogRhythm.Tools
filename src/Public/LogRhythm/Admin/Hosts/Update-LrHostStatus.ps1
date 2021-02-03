@@ -58,6 +58,7 @@ Function Update-LrHostStatus {
         # Define HTTP Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
 
         # Define HTTP Method
         $Method = $HttpMethod.Put
@@ -75,9 +76,12 @@ Function Update-LrHostStatus {
     Process {
         # Establish General Error object Output
         $ErrorObject = [PSCustomObject]@{
+            Code                  =   $null
             Error                 =   $false
-            Value                 =   $HostId
+            Type                  =   $null
             Note                  =   $null
+            Value                 =   $HostId
+            Raw                   =   $null
         }
 
         # Status
@@ -148,9 +152,13 @@ Function Update-LrHostStatus {
         try {
             $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
         } catch [System.Net.WebException] {
-            $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-            Write-Verbose "Exception Message: $ExceptionMessage"
-            return $ExceptionMessage
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "System.Net.WebException"
+            $ErrorObject.Code = $($Err.statusCode)
+            $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
 
         # Return output object

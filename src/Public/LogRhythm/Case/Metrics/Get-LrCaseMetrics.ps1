@@ -88,11 +88,18 @@ Function Get-LrCaseMetrics {
 
 
     Process {
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Code                  =   $null
+            Error                 =   $false
+            Type                  =   $null
+            Note                  =   $null
+            Case                  =   $Id
+            Raw                   =   $null
+        } 
+
         $_COUNT++
         $RunAgain = $false
-
-
-
 
         # Test CaseID Format
         $Case = Test-LrCaseIdFormat $Id
@@ -110,16 +117,19 @@ Function Get-LrCaseMetrics {
         try {
             $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
         } catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            
-            # Rate limit error
-            if ($Err.statusCode -eq "429") {
+             # Rate limit error
+             if ($Err.statusCode -eq "429") {
                 Write-Verbose "Rate limit exceeded at case $CaseNumber, throttling requests."
                 $RunAgain = $true
                 Start-Sleep -Milliseconds 100
             } else {
-                # other error
-                throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Code = $Err.statusCode
+                $ErrorObject.Type = "WebException"
+                $ErrorObject.Note = $Err.message
+                $ErrorObject.Error = $true
+                $ErrorObject.Raw = $_
+                return $ErrorObject
             }
         }      
         #endregion
@@ -133,7 +143,12 @@ Function Get-LrCaseMetrics {
                 $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
             } catch [System.Net.WebException] {
                 $Err = Get-RestErrorMessage $_
-                throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+                $ErrorObject.Code = $Err.statusCode
+                $ErrorObject.Type = "WebException"
+                $ErrorObject.Note = $Err.message
+                $ErrorObject.Error = $true
+                $ErrorObject.Raw = $_
+                return $ErrorObject
             }
         }
         #endregion

@@ -146,6 +146,7 @@ Function New-LrEntity {
             Type                  =   $null
             Note                  =   $null
             Value                 =   $Name
+            Raw                   =   $null
         }
 
         # Lookup Entity By ID or Name
@@ -161,6 +162,7 @@ Function New-LrEntity {
                     $ErrorObject.Type = $EntityLookup.Type
                     $ErrorObject.Code = $EntityLookup.Code
                     $ErrorObject.Note = $EntityLookup.Note
+                    $ErrorObject.Raw = $_
                     return $ErrorObject
                 } else {
                     $_parentEntity = $EntityLookup
@@ -210,6 +212,7 @@ Function New-LrEntity {
             $ErrorObject.Type = "System.Net.WebException"
             $ErrorObject.Code = $($Err.statusCode)
             $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
             return $ErrorObject
         }
         

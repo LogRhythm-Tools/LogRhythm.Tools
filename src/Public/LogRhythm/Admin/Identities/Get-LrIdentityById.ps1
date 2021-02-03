@@ -106,6 +106,7 @@ Function Get-LrIdentityById {
             Code                  =   $null
             Type                  =   $null
             IdentityId            =   $IdentityId
+            Raw                   =   $null
         }
 
         # Define Query URL
@@ -125,6 +126,7 @@ Function Get-LrIdentityById {
                     return $null
                 }
             }
+            $ErrorObject.Raw = $_
             return $ErrorObject
         }
 

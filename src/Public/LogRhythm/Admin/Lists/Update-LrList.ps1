@@ -222,6 +222,7 @@ Function Update-LrList {
             ListGuid              =   $Guid
             ListName              =   $Name
             FieldType             =   $ListType
+            Raw                   =   $null
         }
         
         # Process Identity Object
@@ -234,16 +235,20 @@ Function Update-LrList {
                 $ErrorObject.Type = "List not found."
                 $ErrorObject.Note = "List not found."
                 return $ErrorObject
+            } elseif ($ExistingList.Error -eq $True) {
+                Return $ExistingList
             }
         } else {
             Write-Verbose "Variable: GUID Processed as String"
-            $ExistingList = Get-LRList -Name $Guid.ToString() -Exact
+            $ExistingList = Get-LRLists -Name $Guid.ToString() -Exact
             if (!$ExistingList) {
                 $ErrorObject.Error = $True
                 $ErrorObject.Code = 404
                 $ErrorObject.Type = "List not found."
                 $ErrorObject.Note = "List not found."
                 return $ErrorObject
+            } elseif ($ExistingList.Error -eq $True) {
+                Return $ExistingList
             }
             
             $Guid = $ExistingList.Guid
@@ -426,6 +431,7 @@ Function Update-LrList {
             $ErrorObject.Type = "System.Net.WebException"
             $ErrorObject.Code = $($Err.statusCode)
             $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
             return $ErrorObject
         }
         

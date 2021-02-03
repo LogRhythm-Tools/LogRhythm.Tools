@@ -149,7 +149,6 @@ Function Add-LrCaseTags {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
-            RequestUrl            =   $null
             Value                 =   $Tags
             Case                  =   $Id
         }
@@ -193,7 +192,6 @@ Function Add-LrCaseTags {
                         $ErrorObject.Error = $true
                         $ErrorObject.Type = "Type mismatch"
                         $ErrorObject.Note = "Request tag is integer.  New tags must be type String."
-                        $ErrorObject.RequestUrl = "Reference: New-LrTag"
                         $ErrorObject.Value = $CaseTag
                         return $ErrorObject
                     }
@@ -202,7 +200,6 @@ Function Add-LrCaseTags {
                     $ErrorObject.Error = $true
                     $ErrorObject.Type = "Missing tag"
                     $ErrorObject.Note = "Request tag does not exist.  Create tag or re-run with -force."
-                    $ErrorObject.RequestUrl = "get-lrtags -name $CaseTag -exact"
                     $ErrorObject.Value = $CaseTag
                     return $ErrorObject
                 }
@@ -237,8 +234,8 @@ Function Add-LrCaseTags {
             $ErrorObject.Code = $Err.statusCode
             $ErrorObject.Type = "WebException"
             $ErrorObject.Note = $Err.message
-            $ErrorObject.RequestUrl = $RequestUrl
             $ErrorObject.Error = $true
+            $ErrorObject.Raw = $_
             return $ErrorObject
         }
         

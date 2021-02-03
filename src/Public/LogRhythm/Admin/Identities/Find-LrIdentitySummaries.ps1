@@ -75,6 +75,15 @@ Function Find-LrIdentitySummaries {
     }
 
     Process {
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Error                 =   $false
+            Note                  =   $null
+            Code                  =   $null
+            Type                  =   $null
+            Raw                   =   $null
+        }
+
         # Define HTTP Body
         $BodyContents = [PSCustomObject]@{
             logins = @($Login)
@@ -88,9 +97,13 @@ Function Find-LrIdentitySummaries {
         try {
             $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
         } catch [System.Net.WebException] {
-            $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-            Write-Verbose "Exception Message: $ExceptionMessage"
-            return $ExceptionMessage
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "System.Net.WebException"
+            $ErrorObject.Code = $($Err.statusCode)
+            $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
         
         return $Response

@@ -281,6 +281,7 @@ Function Update-LrNetwork {
             Type                  =   $null
             Note                  =   $null
             Value                 =   $Name
+            Raw                   =   $null
         }
 
         # Lookup Network ID or Name to find Network ID
@@ -289,11 +290,7 @@ Function Update-LrNetwork {
                 Write-Verbose "[$Me]: Network ID parses as integer. Id: $Id"
                 $NetworkLookup = Get-LrNetworkDetails -Id $Id
                 if ($NetworkLookup.Error -eq $true) {
-                    $ErrorObject.Error = $NetworkLookup.Error
-                    $ErrorObject.Type = $NetworkLookup.Type
-                    $ErrorObject.Code = $NetworkLookup.Code
-                    $ErrorObject.Note = $NetworkLookup.Note
-                    return $ErrorObject  
+                    return $NetworkLookup
                 } else {
                     Write-Verbose "[$Me]: Matched network record: $($NetworkLookup.id)"
                     $_networkId = $NetworkLookup | Select-Object -ExpandProperty id
@@ -301,11 +298,8 @@ Function Update-LrNetwork {
             } else {
                 Write-Verbose "[$Me]: Network ID parses as string.  Performing Network Name lookup.  Id: $Id."
                 $NetworkLookup = Get-LrNetworks -Name $Id -Exact
-                if ($EntityLookup.Error -eq $true) {
-                    $ErrorObject.Error = $NetworkLookup.Error
-                    $ErrorObject.Type = $NetworkLookup.Type
-                    $ErrorObject.Code = $NetworkLookup.Code
-                    $ErrorObject.Note = $NetworkLookup.Note
+                if ($NetworkLookup.Error -eq $true) {
+                    return $NetworkLookup
                 } else {
                     Write-Verbose "[$Me]: Matched network record: $($NetworkLookup.id)"
                     $_networkId = $NetworkLookup | Select-Object -ExpandProperty id
@@ -314,12 +308,8 @@ Function Update-LrNetwork {
         } elseif ($Name) {
             Write-Verbose "[$Me]: Performing Network Name lookup.  Id: $Name."
             $NetworkLookup = Get-LrNetworks -Name $Name -Exact
-            if ($EntityLookup.Error -eq $true) {
-                $ErrorObject.Error = $NetworkLookup.Error
-                $ErrorObject.Type = $NetworkLookup.Type
-                $ErrorObject.Code = $NetworkLookup.Code
-                $ErrorObject.Note = $NetworkLookup.Note
-                return $ErrorObject
+            if ($NetworkLookup.Error -eq $true) {
+                return $NetworkLookup
             } else {
                 Write-Verbose "[$Me]: Matched network record: $($NetworkLookup.id)"
                 $_networkId = $NetworkLookup | Select-Object -ExpandProperty id
@@ -336,11 +326,7 @@ Function Update-LrNetwork {
             Write-Verbose "[$Me]: Validating EntityId: $EntityId"
             $EntityLookup = Get-LrEntityDetails -Id $EntityId
             if ($EntityLookup.Error -eq $true) {
-                $ErrorObject.Error = $EntityLookup.Error
-                $ErrorObject.Type = $EntityLookup.Type
-                $ErrorObject.Code = $EntityLookup.Code
-                $ErrorObject.Note = $EntityLookup.Note
-                return $ErrorObject
+                return $EntityLookup
             } else {
                 $_entity = $EntityLookup
             }
@@ -349,11 +335,7 @@ Function Update-LrNetwork {
                 Write-Verbose "[$Me]: Validating Entity as Int32.  EntityId: $Entity"
                 $EntityLookup = Get-LrEntityDetails -Id $Entity
                 if ($EntityLookup.Error -eq $true) {
-                    $ErrorObject.Error = $EntityLookup.Error
-                    $ErrorObject.Type = $EntityLookup.Type
-                    $ErrorObject.Code = $EntityLookup.Code
-                    $ErrorObject.Note = $EntityLookup.Note
-                    return $ErrorObject
+                    return $EntityLookup
                 } else {
                     $_entity = $EntityLookup
                 }
@@ -361,11 +343,7 @@ Function Update-LrNetwork {
                 Write-Verbose "[$Me]: Validating Entity as String.  EntityName: $Entity"
                 $EntityLookup = Get-LrEntities -Name $Entity -Exact
                 if ($EntityLookup.Error -eq $true) {
-                    $ErrorObject.Error = $EntityLookup.Error
-                    $ErrorObject.Type = $EntityLookup.Type
-                    $ErrorObject.Code = $EntityLookup.Code
-                    $ErrorObject.Note = $EntityLookup.Note
-                    return $ErrorObject
+                    return $EntityLookup
                 } else {
                     $_entity = $EntityLookup
                 }
@@ -563,6 +541,7 @@ Function Update-LrNetwork {
             $ErrorObject.Type = "System.Net.WebException"
             $ErrorObject.Code = $($Err.statusCode)
             $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
             return $ErrorObject
         }
 
