@@ -214,7 +214,6 @@ ForEach ($AZADIdProtSecurityEvent in $AzureADIdentityProtection_SecEvents) {
         }
     }
 }
-
 # End Section - AzureADIdentityProtection
 
 # Begin Section - AzureSentinel
@@ -300,7 +299,7 @@ ForEach ($DefSecurityEvent in $DefenderATP_SecEvents) {
 $AzureSecLogs = Get-ChildItem -Path $RootFolderPath -Filter '*.log' -File
 $LogRemovalList = [list[String]]::new()
 ForEach ($AzureSecLog in $AzureSecLogs) {
-    if ($AzureSecLog.BaseName -Match '(\d{8}).log') {
+    if ($AzureSecLog.BaseName -Match '.*(\d{8})\.log$') {
         $FileDate = [datetime]::ParseExact($Matches[1], 'yyyyMMdd', $null)
         if ($FileDate -lt $CleanupDate) {
             $LogRemovalList.add($AzureSecLog)
