@@ -79,7 +79,11 @@ Function Get-LrIdentities {
         [string] $Entity,
 
 
-        [Parameter(Mandatory = $false, Position = 3)]
+        [Parameter(
+            Mandatory = $false, 
+            ValueFromPipeline = $true, 
+            Position = 3
+        )]
         [string] $Identifier,
 
 
@@ -290,6 +294,8 @@ Function Get-LrIdentities {
                     Write-Verbose "[$Me]: Exact list name match found."
                     $List = $_
                     return $List
+                } else {
+                    Write-Verbose "[$Me]: Exact list name match not found."
                 }
             }
         } else {
