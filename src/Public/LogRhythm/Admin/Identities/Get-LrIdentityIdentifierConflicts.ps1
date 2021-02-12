@@ -111,8 +111,7 @@ Function Get-LrIdentityIdentifierConflicts {
             
             try {
                 $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-            }
-            catch [System.Net.WebException] {
+            } catch [System.Net.WebException] {
                 $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
                 Write-Verbose "Exception Message: $ExceptionMessage"
                 $SearchingIdententities = $False
