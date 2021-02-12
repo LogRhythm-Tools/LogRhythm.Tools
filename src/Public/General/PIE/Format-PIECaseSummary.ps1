@@ -48,12 +48,23 @@ function Format-PIECaseSummary {
         $CaseOutput.Add("Reported On: $($ReportEvidence.ReportSubmission.UtcDate)")
         $CaseOutput.Add("Reported By: $($ReportEvidence.ReportSubmission.Sender)")
         $CaseOutput.Add("Subject: $($ReportEvidence.ReportSubmission.Subject.Original)")
-        $CaseOutput.Add("")
+        if ($ReportEvidence.EvaluationResults.LogRhythmTrueId.Recipient) {
+            $CaseOutput.Add("")
+            $CaseOutput.Add("--- Reported By - TrueIdentity ---")
+            $CaseOutput.add($($ReportEvidence.EvaluationResults.LogRhythmTrueId.Recipient | Format-LrIdentityTextOutput -Type summary))
+        } else {
+            $CaseOutput.Add("")
+        }
         $CaseOutput.Add("--- Evaluated E-mail ---")
         $CaseOutput.Add("Sent On: $($ReportEvidence.EvaluationResults.UtcDate)")
         $SenderString1 = "Sender: $($ReportEvidence.EvaluationResults.Sender)"
         $SenderString2 = "Sender Display Name: $($ReportEvidence.EvaluationResults.SenderDisplayName)"
         $CaseOutput.Add("$SenderString1 $($SenderString2.PadLeft(43-($SenderString1.length)+$($SenderString2.length)))")
+        if ($ReportEvidence.EvaluationResults.LogRhythmTrueId.Sender) {
+            $CaseOutput.Add("")
+            $CaseOutput.Add("--- Sender - TrueIdentity ---")
+            $CaseOutput.add($($ReportEvidence.EvaluationResults.LogRhythmTrueId.Sender | Format-LrIdentityTextOutput -Type summary))
+        }
         $Recipients = ($ReportEvidence.EvaluationResults.Recipient | Select-Object -ExpandProperty To) -join ", "
         if ($Recipients) {
             $CaseOutput.Add("Recipients: $Recipients")
