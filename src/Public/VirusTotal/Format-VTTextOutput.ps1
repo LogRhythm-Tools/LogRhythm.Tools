@@ -141,29 +141,14 @@ function Format-VTTextOutput {
 
             # Detected URL Stats
             if ($($VTData.detected_urls)) {
-                if ($VTData.detected_urls.count -ge 2) {
-                    foreach ($VTUrl in $($VTData.detected_urls)) {
-                        $SplitValues = $VTUrl.scan_date -split " "
-                        $DetectionObject = [PSCustomObject]@{
-                            Value = $VTUrl.url
-                            Detections = $VTUrl.positives
-                            Detectors = $VTUrl.total
-                            Date = $SplitValues[0]
-                            Time = $SplitValues[1]
-                        }
-                        if ($DetectedUrls -notcontains $DetectionObject) {
-                            Write-Verbose "$(Get-Timestamp) - List: DetectedUrls  Adding value for URL: $($DetectionObject.Value)"
-                            $DetectedUrls.add($DetectionObject)
-                        }
-                    }
-                } else {
-                    $SplitValues = $($VTData.detected_urls) -split '\r?\n' -split " "
+                foreach ($VTUrl in $($VTData.detected_urls)) {
+                    $SplitValues = $VTUrl.scan_date -split " "
                     $DetectionObject = [PSCustomObject]@{
-                        Value = $SplitValues[0]
-                        Detections = $SplitValues[1]
-                        Detectors = $SplitValues[2]
-                        Date = $SplitValues[3]
-                        Time = $SplitValues[4]
+                        Value = $VTUrl.url
+                        Detections = $VTUrl.positives
+                        Detectors = $VTUrl.total
+                        Date = $SplitValues[0]
+                        Time = $SplitValues[1]
                     }
                     if ($DetectedUrls -notcontains $DetectionObject) {
                         Write-Verbose "$(Get-Timestamp) - List: DetectedUrls  Adding value for URL: $($DetectionObject.Value)"
@@ -189,24 +174,8 @@ function Format-VTTextOutput {
 
             # Undetected URL Stats
             if ($($VTData.undetected_urls)) {
-                if ($VTData.undetected_urls.count -ge 2) {
-                    foreach ($VTUrl in $VTData.undetected_urls) {
-                        $SplitValues = $VTUrl -split '\r?\n' -split " "
-                        $DetectionObject = [PSCustomObject]@{
-                            Value = $SplitValues[0]
-                            Hash = $SplitValues[1]
-                            Detections = $SplitValues[2]
-                            Detectors = $SplitValues[3]
-                            Date = $SplitValues[4]
-                            Time = $SplitValues[5]
-                        }
-                        if ($UndetectedUrls -notcontains $DetectionObject) {
-                            Write-Verbose "$(Get-Timestamp) - List: UnDetectedUrls   Adding value for URL: $($DetectionObject.Value)"
-                            $UndetectedUrls.add($DetectionObject)
-                        }
-                    }
-                } else {
-                    $SplitValues = $($VTData.undetected_urls) -split '\r?\n' -split " "
+                foreach ($VTUrl in $VTData.undetected_urls) {
+                    $SplitValues = $VTUrl -split '\r?\n' -split " "
                     $DetectionObject = [PSCustomObject]@{
                         Value = $SplitValues[0]
                         Hash = $SplitValues[1]
@@ -220,6 +189,7 @@ function Format-VTTextOutput {
                         $UndetectedUrls.add($DetectionObject)
                     }
                 }
+                
                 $UndetectedUrlCount = $UndetectedUrls.count
                 $UndetectedDetectorsAvg = $UndetectedUrls | Measure-Object -Property Detectors -Average | Select-Object -ExpandProperty Average
                 $UndetectedDetectorsAvg = [Math]::round($UndetectedDetectorsAvg)
@@ -239,27 +209,12 @@ function Format-VTTextOutput {
 
             # Detected Downloaded Samples
             if ($($VTData.detected_downloaded_samples)) {
-                if ($VTData.detected_downloaded_samples.count -ge 2) {
-                    foreach ($VTDLData in $($VTData.detected_downloaded_samples)) {
-                        $SplitValues = $VTDLData.date -split " "
-                        $DetectionObject = [PSCustomObject]@{
-                            Value = $VTDLData.sha256
-                            Detections = $VTDLData.positives
-                            Detectors = $VTDLData.total
-                            Date = $SplitValues[0]
-                            Time = $SplitValues[1]
-                        }
-                        if ($DetectedHashes -notcontains $DetectionObject) {
-                            Write-Verbose "$(Get-Timestamp) - List: DetectedHashes  Adding value for Hash: $($DetectionObject.Value)"
-                            $DetectedHashes.add($DetectionObject)
-                        }
-                    }
-                } else {
-                    $SplitValues = $($VTData.detected_downloaded_samples.date) -split " "
+                foreach ($VTDLData in $($VTData.detected_downloaded_samples)) {
+                    $SplitValues = $VTDLData.date -split " "
                     $DetectionObject = [PSCustomObject]@{
-                        Value = $VTData.detected_downloaded_samples.sha256
-                        Detections = $VTData.detected_downloaded_samples.positives
-                        Detectors = $VTData.detected_downloaded_samples.total
+                        Value = $VTDLData.sha256
+                        Detections = $VTDLData.positives
+                        Detectors = $VTDLData.total
                         Date = $SplitValues[0]
                         Time = $SplitValues[1]
                     }
@@ -288,27 +243,12 @@ function Format-VTTextOutput {
 
             # Undetected Downloaded Samples
             if ($($VTData.undetected_downloaded_samples)) {
-                if ($VTData.undetected_downloaded_samples.count -ge 2) {
-                    foreach ($VTDLData in $($VTData.undetected_downloaded_samples)) {
-                        $SplitValues = $VTDLData.date -split " "
-                        $DetectionObject = [PSCustomObject]@{
-                            Value = $VTDLData.sha256
-                            Detections = $VTDLData.positives
-                            Detectors = $VTDLData.total
-                            Date = $SplitValues[0]
-                            Time = $SplitValues[1]
-                        }
-                        if ($UndetectedHashes -notcontains $DetectionObject) {
-                            Write-Verbose "$(Get-Timestamp) - List: UndetectedHashes  Adding value for Hash: $($DetectionObject.Value)"
-                            $UndetectedHashes.add($DetectionObject)
-                        }
-                    }
-                } else {
-                    $SplitValues = $($VTData.undetected_downloaded_samples.date) -split " "
+                foreach ($VTDLData in $($VTData.undetected_downloaded_samples)) {
+                    $SplitValues = $VTDLData.date -split " "
                     $DetectionObject = [PSCustomObject]@{
-                        Value = $VTData.undetected_downloaded_samples.sha256
-                        Detections = $VTData.undetected_downloaded_samples.positives
-                        Detectors = $VTData.undetected_downloaded_samples.total
+                        Value = $VTDLData.sha256
+                        Detections = $VTDLData.positives
+                        Detectors = $VTDLData.total
                         Date = $SplitValues[0]
                         Time = $SplitValues[1]
                     }
@@ -317,6 +257,7 @@ function Format-VTTextOutput {
                         $UndetectedHashes.add($DetectionObject)
                     }
                 }
+
 
                 $UndetectedHashCount = $UndetectedHashes.count
                 $UndetectedHashDetectorAvg = $UndetectedHashes | Measure-Object -Property Detectors -Average | Select-Object -ExpandProperty Average
