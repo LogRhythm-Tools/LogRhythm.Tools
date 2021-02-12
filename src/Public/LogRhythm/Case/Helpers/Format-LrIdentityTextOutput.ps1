@@ -76,12 +76,12 @@ Function Format-LrIdentityTextOutput {
                     $CaseOutput.Add("Name: $($Identity.nameFirst) $($Identity.nameLast)" )
                 }
                 if ($Identity.displayIdentifier) { $CaseOutput.Add("Display Identifier: $($Identity.displayIdentifier) ")}
-                if ($Identity.company) { $CaseOutput.Add("Company: $($Identity.company) ")}
-                if ($Identity.department) { $CaseOutput.Add("Department: $($Identity.department) ")}
+                if ($Identity.domainName) { $CaseOutput.Add("Domain: $($Identity.domainName) ")}
                 if ($Identity.title) { $CaseOutput.Add("Title: $($Identity.title) ")}
+                if ($Identity.department) { $CaseOutput.Add("Department: $($Identity.department) ")}
                 if ($Identity.manager) { $CaseOutput.Add("Manager: $($Identity.manager) ")}
-                if ($Identity.addressCity) { $CaseOutput.Add("Manager: $($Identity.addressCity) ")}
-                if ($Identity.domainName) { $CaseOutput.Add("Manager: $($Identity.domainName) ")}
+                if ($Identity.company) { $CaseOutput.Add("Company: $($Identity.company) ")}
+                if ($Identity.addressCity) { $CaseOutput.Add("Address: $($Identity.addressCity) ")}
                 if ($Identity.entity.name) { $CaseOutput.Add("LogRhythm Entity: $($Identity.entity.name) ")}
                 if ($Identity.identifiers) { $CaseOutput.Add("`r`n---- Identifiers ----")}
                 $i = 0
@@ -93,16 +93,33 @@ Function Format-LrIdentityTextOutput {
             }
             if ($Type -eq "Summary") {
                 if ($Identity.nameMiddle) {
-                    $CaseOutput.Add("TrueID: $($Identity.identityId) Name: $($Identity.nameFirst) $($Identity.nameMiddle) $($Identity.nameLast)" )
+                    $NoteName = "Name: $($Identity.nameFirst) $($Identity.nameMiddle) $($Identity.nameLast)"
+                    $NoteTrueId = "TrueID: $($Identity.identityId)"
+                    $CaseOutput.Add("$NoteName $($NoteTrueId.PadLeft(47-($NoteName.length)+$($NoteTrueId.length)))")
                 } else {
-                    $CaseOutput.Add("TrueID: $($Identity.identityId) Name: $($Identity.nameFirst) $($Identity.nameLast)" )
+                    $NoteName = "Name: $($Identity.nameFirst) $($Identity.nameLast)"
+                    $NoteTrueId = "TrueID: $($Identity.identityId)"
+                    $CaseOutput.Add("$NoteName $($NoteTrueId.PadLeft(47-($NoteName.length)+$($NoteTrueId.length)))")
                 }
-                
-                if ($Identity.company) { $CaseOutput.Add("Company: $($Identity.company) ")}
-                if ($Identity.department) { $CaseOutput.Add("Department: $($Identity.department) ")}
-                if ($Identity.title) { $CaseOutput.Add("Title: $($Identity.title) ")}
-                if ($Identity.manager) { $CaseOutput.Add("Manager: $($Identity.manager) ")}
-                if ($Identity.addressCity) { $CaseOutput.Add("Manager: $($Identity.addressCity) ")}
+                if ($Identity.title -and $Identity.department) {
+                    $NoteDepartment = "Department: $($Identity.department)"
+                    $NoteTitle = "Title: $($Identity.title)"
+                    $CaseOutput.Add("$NoteDepartment $($NoteTitle.PadLeft(38-($NoteDepartment.length)+$($NoteTitle.length)))")
+                } elseif ($Identity.title) {
+                    $CaseOutput.Add("Title: $($Identity.title)")
+                } elseif ($Identity.department) {
+                    $CaseOutput.Add("Department: $($Identity.department)")
+                }
+                if ($Identity.manager -and $Identity.company) {
+                    $NoteManager = "Manager: $($Identity.manager)"
+                    $NoteCompany = "Company: $($Identity.company)"
+                    $CaseOutput.Add("$NoteCompany $($NoteManager.PadLeft(40-($NoteCompany.length)+$($NoteManager.length)))")
+                } elseif ($Identity.manager) {
+                    $CaseOutput.Add("Manager: $($Identity.manager)")
+                } elseif ($Identity.company) {
+                    $CaseOutput.Add("Company: $($Identity.company)")
+                }
+                if ($Identity.addressCity) { $CaseOutput.Add("Address: $($Identity.addressCity)")}
             }
         } else {
             return $null
