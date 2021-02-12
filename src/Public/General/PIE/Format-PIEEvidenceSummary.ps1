@@ -81,7 +81,7 @@ function Format-PIEEvidenceSummary {
         $CaseOutput.Add("=== E-mail Links & Attachments Summary ===")
         if ($EvaluationResults.Links.Details) {
             $CaseOutput.Add("--- Links Summary ---")
-            $UrlsString1 = "Number of URLs: $($EvaluationResults.Links.Details.ScanTarget.count)"
+            $UrlsString1 = "Number of URLs: $($EvaluationResults.Links.Details | Where-Object -Property Scantarget -ne $null | Measure-Object | Select-Object -ExpandProperty Count)"
             $UrlsString2 = "Rewritten URLs: $($EvaluationResults.Links.Details | Where-Object -Property ReWrite -ne $false | Measure-Object | Select-Object -ExpandProperty Count)"
             $UrlsString3 = "Shortened URLs: $($EvaluationResults.Links.Details | Where-Object -Property Shortlink -ne $false | Measure-Object | Select-Object -ExpandProperty Count)"
             $CaseOutput.Add("$UrlsString1 $($UrlsString2.PadLeft(24-($UrlsString1.length)+$($UrlsString2.length))) $($UrlsString3.PadLeft(24-($UrlsString2.length)+$($UrlsString3.length)))")
