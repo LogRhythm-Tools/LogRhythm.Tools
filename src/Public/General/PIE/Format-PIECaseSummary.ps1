@@ -40,7 +40,7 @@ function Format-PIECaseSummary {
 
     Process {
         $CaseOutput = [list[String]]::new()
-
+        $Recipients = [list[String]]::new()
 
         $CaseOutput.Add("=== PIE Analysis Summary ===")
 
@@ -65,15 +65,28 @@ function Format-PIECaseSummary {
             $CaseOutput.Add("--- Sender - TrueIdentity ---")
             $CaseOutput.add($($ReportEvidence.EvaluationResults.LogRhythmTrueId.Sender | Format-LrIdentityTextOutput -Type summary))
         }
-        $Recipients = ($ReportEvidence.EvaluationResults.Recipient | Select-Object -ExpandProperty To) -join ", "
-        if ($Recipients) {
-            $CaseOutput.Add("Recipients: $Recipients")
+
+        ForEach ($Recipient in $ReportEvidence.EvaluationResults.Recipient.To) {
+            if ($Recipients -notcontains $Recipient) {
+                $Recipients.Add($Recipient)
+            }
         }
-        if ($ReportEvidence.EvaluationResults.Recipient.CC.count -gt 0) {
-            $CCRecipients = ($ReportEvidence.EvaluationResults.Recipient | Select-Object -ExpandProperty CC) -join ", "
-            $CaseOutput.Add("CC Recipients: $CCRecipients")
+        ForEach ($Recipient in $ReportEvidence.EvaluationResults.Recipient.Cc) {
+            if ($Recipients -notcontains $Recipient) {
+                $Recipients.Add($Recipient)
+            }
         }
-        $CaseOutput.Add("Subject: $($ReportEvidence.EvaluationResults.Subject.Original)")
+        if ($ReportEvidence.LogRhythmSearch.Summary.Recipient) {
+            ForEach ($Recipient in $ReportEvidence.LogRhythmSearch.Summary.Recipient) {
+                if ($Recipients -notcontains $Recipient) {
+                    $Recipients.Add($Recipient)
+                }
+            }
+        }
+        $CaseRecipients = ($Recipients) -join ", "
+        $CaseOutput.Add("Recipients: $CaseRecipients")
+        $CaseOutput.Add("")
+        $CaseOutput.Add("Reported Subject: $($ReportEvidence.EvaluationResults.Subject.Original)")
         $CaseOutput.Add("")
         $CaseOutput.Add("--- PIE Metadata ---")
         $PIEVersion = "PIE Version: $($ReportEvidence.Meta.Version.PIE)"
