@@ -27,7 +27,12 @@ function Format-UrlscanTextOutput {
     [CmdLetBinding()]
     param( 
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
-        [object] $UrlscanData
+        [object] $UrlscanData,
+
+
+        [Parameter(Mandatory = $false, Position = 1)]
+        [ValidateSet('detail', 'summary', ignorecase=$true)]
+        [string] $Type = "Detail"
     )
 
     Begin {
@@ -47,16 +52,18 @@ function Format-UrlscanTextOutput {
             if ( $($UrlscanData.verdicts.overall.Malicious.tostring()) ) { $status += "`r`nMalicious: $($UrlscanData.verdicts.overall.Malicious)"}
         }
 
-        if ($UrlscanData.meta.processors.asn.data) {
-            $status += "`r`n`r`n-- Host Assets --"
-            foreach ($AsnEntry in $($UrlscanData.meta.processors.asn.data)) {
-                if ( $($AsnEntry.ip) ) { $status += "`r`nIP: $($AsnEntry.ip)"}
-                if ( $($AsnEntry.asn) ) { $status += "`r`nASN: $($AsnEntry.asn)"}
-                if ( $($AsnEntry.name) ) { $status += "`r`nName: $($AsnEntry.name)"}
-                if ( $($AsnEntry.description) ) { $status += "`r`nDescription: $($AsnEntry.description)"}
-                if ( $($AsnEntry.registrar) ) { $status += "`r`nRegistrar: $($AsnEntry.registrar)"}
-                if ( $($AsnEntry.country) ) { $status += "`r`nCountry: $($AsnEntry.country)"}
-                if ( $($AsnEntry.route) ) { $status += "`r`nNetblock: $($AsnEntry.route)`r`n"}
+        if ($Type -like "Detail") {
+            if ($UrlscanData.meta.processors.asn.data) {
+                $status += "`r`n`r`n-- Host Assets --"
+                foreach ($AsnEntry in $($UrlscanData.meta.processors.asn.data)) {
+                    if ( $($AsnEntry.ip) ) { $status += "`r`nIP: $($AsnEntry.ip)"}
+                    if ( $($AsnEntry.asn) ) { $status += "`r`nASN: $($AsnEntry.asn)"}
+                    if ( $($AsnEntry.name) ) { $status += "`r`nName: $($AsnEntry.name)"}
+                    if ( $($AsnEntry.description) ) { $status += "`r`nDescription: $($AsnEntry.description)"}
+                    if ( $($AsnEntry.registrar) ) { $status += "`r`nRegistrar: $($AsnEntry.registrar)"}
+                    if ( $($AsnEntry.country) ) { $status += "`r`nCountry: $($AsnEntry.country)"}
+                    if ( $($AsnEntry.route) ) { $status += "`r`nNetblock: $($AsnEntry.route)`r`n"}
+                }
             }
         }
 
