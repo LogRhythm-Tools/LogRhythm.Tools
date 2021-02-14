@@ -68,7 +68,7 @@ Function Format-LrIdentityTextOutput {
     Process {
         $CaseOutput = [list[String]]::new()
         if ($Identity.identityId) {
-            if ($Type -eq "Detail") {
+            if ($Type -like "Detail") {
                 $CaseOutput.Add("-==- TrueIdentity Summary -==-")
                 if ($Identity.nameMiddle) {
                     $CaseOutput.Add("Name: $($Identity.nameFirst) $($Identity.nameMiddle) $($Identity.nameLast)" )
@@ -91,7 +91,7 @@ Function Format-LrIdentityTextOutput {
                 }
                 if ($Identity.dateUpdated) { $CaseOutput.Add("`r`nRecord ID: $($Identity.identityID)      Record last updated: $($Identity.dateUpdated)")}
             }
-            if ($Type -eq "Summary") {
+            if ($Type -like "Summary") {
                 if ($Identity.nameMiddle) {
                     $NoteName = "Name: $($Identity.nameFirst) $($Identity.nameMiddle) $($Identity.nameLast)"
                     $NoteTrueId = "TrueID: $($Identity.identityId)"
