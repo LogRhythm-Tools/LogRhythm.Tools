@@ -56,12 +56,13 @@ function Format-PIEHeaderSummary {
         $CaseOutput.Add("=== E-mail Header Summary ===")
         $CaseOutput.Add("--- General Header Information ---")
         $CaseOutput.Add("Message Id: $($MsgHeaders.'message-id')")
+        $CaseOutput.Add("")
         $MsgTo = "To: $($MsgHeaders.to)"
         $MsgFrom = "From: $($MsgHeaders.from)"
         $CaseOutput.Add("$MsgTo $($MsgFrom.PadLeft(45-($MsgTo.length)+$($MsgFrom.length)))")
         $MimeVersion = "MIME Version: $($MsgHeaders.mimeversion)"
         $MsgSubject = "Subject: $($MsgHeaders.Subject)"
-        $CaseOutput.Add("$MsgSubject $($MimeVersion.PadLeft(45-($MsgSubject.length)+$($MimeVersion.length)))")
+        $CaseOutput.Add("$MimeVersion $($MsgSubject.PadLeft(45-($MimeVersion.length)+$($MsgSubject.length)))")
         $CaseOutput.Add("")
         $MsgHeaders = $($ReportEvidence.EvaluationResults.Headers.Details)
         if ($MsgHeaders.received.count -ge 1) {
