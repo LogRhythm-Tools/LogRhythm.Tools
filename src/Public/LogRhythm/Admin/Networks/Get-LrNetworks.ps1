@@ -112,11 +112,11 @@ Function Get-LrNetworks {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
-        [int] $PageValuesCount = 1000,
+        [string] $Name,
 
 
         [Parameter(Mandatory = $false, Position = 1)]
-        [int] $PageCount = 1,
+        [string] $Entity,
 
 
         [Parameter(Mandatory = $false, Position = 2)]
@@ -125,33 +125,33 @@ Function Get-LrNetworks {
 
 
         [Parameter(Mandatory = $false, Position = 3)]
-        [string] $Name,
-
-
-        [Parameter(Mandatory = $false, Position = 4)]
         [ValidateSet('all','active','retired', ignorecase=$true)]
         [string] $RecordStatus = "active",
 
 
-        [Parameter(Mandatory = $false, Position = 5)]
+        [Parameter(Mandatory = $false, Position = 4)]
         [string] $BIP,
 
 
-        [Parameter(Mandatory = $false, Position = 6)]
+        [Parameter(Mandatory = $false, Position = 5)]
         [string] $EIP,
 
 
-        [Parameter(Mandatory = $false, Position = 7)]
-        [string] $Entity,
-
-
-        [Parameter(Mandatory = $false, Position = 8)]
+        [Parameter(Mandatory = $false, Position = 6)]
         [ValidateSet('name','bip','eip','entity', ignorecase=$true)]
         [string] $OrderBy = "Entity",
 
         
-        [Parameter(Mandatory = $false, Position = 9)]
+        [Parameter(Mandatory = $false, Position = 7)]
         [switch] $Exact,
+
+
+        [Parameter(Mandatory = $false, Position = 8)]
+        [int] $PageValuesCount = 1000,
+
+
+        [Parameter(Mandatory = $false, Position = 9)]
+        [int] $PageCount = 1,
 
 
         [Parameter(Mandatory = $false, Position = 10)]
@@ -167,6 +167,7 @@ Function Get-LrNetworks {
         # Define HTTP Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
 
         # Define HTTP Method
         $Method = $HttpMethod.Get
@@ -185,6 +186,7 @@ Function Get-LrNetworks {
             Type                  =   $null
             Code                  =   $null
             Note                  =   $null
+            Raw                   =   $null
         }
 
         #region: Process Query Parameters____________________________________________________
@@ -200,7 +202,7 @@ Function Get-LrNetworks {
         $QueryParams.Add("count", $_pageValueCount)
 
         # Query Offset - PageCount
-        $Offset = ($PageCount -1) * $_pageValueCount
+        $Offset = $PageCount - 1
         $QueryParams.Add("offset", $Offset)
 
         # Filter by Object Name
@@ -216,11 +218,7 @@ Function Get-LrNetworks {
                 Write-Verbose "[$Me]: Validating Entity as Int32.  EntityId: $Entity"
                 $EntityLookup = Get-LrEntityDetails -Id $Entity
                 if ($EntityLookup.Error -eq $true) {
-                    $ErrorObject.Error = $EntityLookup.Error
-                    $ErrorObject.Type = $EntityLookup.Type
-                    $ErrorObject.Code = $EntityLookup.Code
-                    $ErrorObject.Note = $EntityLookup.Note
-                    return $ErrorObject
+                    return $EntityLookup
                 } else {
                     $_entity = $EntityLookup
                 }
@@ -228,11 +226,7 @@ Function Get-LrNetworks {
                 Write-Verbose "[$Me]: Validating Entity as String.  EntityName: $Entity"
                 $EntityLookup = Get-LrEntities -Name $Entity -Exact
                 if ($EntityLookup.Error -eq $true) {
-                    $ErrorObject.Error = $EntityLookup.Error
-                    $ErrorObject.Type = $EntityLookup.Type
-                    $ErrorObject.Code = $EntityLookup.Code
-                    $ErrorObject.Note = $EntityLookup.Note
-                    return $ErrorObject
+                    return $EntityLookup
                 } else {
                     $_entity = $EntityLookup
                 }
@@ -245,7 +239,7 @@ Function Get-LrNetworks {
         # Return results direction, ascending or descending
         if ($Direction) {
             # Apply formatting based on Lr Version
-            if ($LrtConfig.LogRhythm.Version -match '7.5.\d') {
+            if ($LrtConfig.LogRhythm.Version -match '7\.[5-9]\.\d+') {
                 if($Direction.ToUpper() -eq "ASC") {
                     $_direction = "ascending"
                 } else {
@@ -285,40 +279,49 @@ Function Get-LrNetworks {
         $RequestUrl = $BaseUrl + "/networks/" + $QueryString
 
         # Send Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
-            }
-            catch {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                return $ErrorObject
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                return $ErrorObject
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "System.Net.WebException"
+            $ErrorObject.Code = $($Err.statusCode)
+            $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
-    }
 
-    End {
-        if ($Response.Count -eq $_pageValueCount) {
-            # Need to get next page results
-            $CurrentPage = $PageCount + 1
-            #return 
-            Return $Response + (Get-LrNetworks -PageCount $CurrentPage) 
+        # Check if pagination is required, if so - paginate!
+        if ($Response.Count -eq $PageValuesCount) {
+            DO {
+                # Increment Page Count / Offset
+                #$PageCount = $PageCount + 1
+                $Offset = $Offset + 1
+                # Update Query Paramater
+                $QueryParams.offset = $Offset
+                # Apply to Query String
+                $QueryString = $QueryParams | ConvertTo-QueryString
+                # Update Query URL
+                $RequestUrl = $BaseUrl + "/networks/" + $QueryString
+                # Retrieve Query Results
+                try {
+                    $PaginationResults = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+                } catch [System.Net.WebException] {
+                    $Err = Get-RestErrorMessage $_
+                    $ErrorObject.Error = $true
+                    $ErrorObject.Type = "System.Net.WebException"
+                    $ErrorObject.Code = $($Err.statusCode)
+                    $ErrorObject.Note = $($Err.message)
+                    $ErrorObject.Raw = $_
+                    return $ErrorObject
+                }
+                
+                # Append results to Response
+                $Response = $Response + $PaginationResults
+            } While ($($PaginationResults.Count) -eq $PageValuesCount)
+            $Response = $Response | Sort-Object -Property Id -Unique
         }
+
         # [Exact] Parameter
         # Search "Malware" normally returns both "Malware" and "Malware Options"
         # This would only return "Malware"
@@ -376,5 +379,8 @@ Function Get-LrNetworks {
         } else {
             return $Response
         }
+    }
+
+    End {
     }
 }

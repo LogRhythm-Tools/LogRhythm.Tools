@@ -8,15 +8,19 @@ Function Add-LrCaseTags {
         Add tags to a LogRhythm case.
     .DESCRIPTION
         The Add-LrTagsToCase cmdlet adds tags to an existing case.
+    .PARAMETER Id
+        Unique identifier for the case, either as an RFC 4122 formatted string, or as a number.
+    .PARAMETER Tags
+        List of numeric tag identifiers.
+    .PARAMETER Force
+        Switch paramater that will force the creation of tags that have not been created before attempting to add to case.
+    .PARAMETER PassThru
+        Switch paramater that will enable the return of the output object from the cmdlet.
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
         Note: You can bypass the need to provide a Credential by setting
         the preference variable $LrtConfig.LogRhythm.ApiKey
         with a valid Api Token.
-    .PARAMETER Id
-        Unique identifier for the case, either as an RFC 4122 formatted string, or as a number.
-    .PARAMETER Tags
-        List of numeric tag identifiers.
     .INPUTS
         [System.Object]     ->  Id
         [System.Int32[]]  ->  TagNumbers
@@ -76,7 +80,7 @@ Function Add-LrCaseTags {
         Error       : True
         Type        : WebException
         Note        : Not Found
-        ResponseUrl : https://127.0.0.1:8501/lr-case-api/cases//actions/addTags/
+        RequestUrl : https://127.0.0.1:8501/lr-case-api/cases//actions/addTags/
         Tags        : {Alpha}
         Case        : 5
     .NOTES
@@ -101,12 +105,17 @@ Function Add-LrCaseTags {
         [ValidateNotNullOrEmpty()]
         [string[]] $Tags,
 
-        
+
         [Parameter(Mandatory = $false, Position = 2)]
+        [ValidateNotNullOrEmpty()]
+        [switch] $Force,
+        
+
+        [Parameter(Mandatory = $false, Position = 3)]
         [switch] $PassThru,
 
 
-        [Parameter(Mandatory = $false, Position = 3)]
+        [Parameter(Mandatory = $false, Position = 4)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -126,6 +135,7 @@ Function Add-LrCaseTags {
         $Headers.Add("Authorization", "Bearer $Token")
         $Headers.Add("Content-Type","application/json")
 
+        $_int = 1
 
         # Request URI
         $Method = $HttpMethod.Put
@@ -139,8 +149,7 @@ Function Add-LrCaseTags {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
-            ResponseUrl           =   $null
-            Tags                  =   $Tags
+            Value                 =   $Tags
             Case                  =   $Id
         }
         Write-Verbose "[$Me]: Case Id: $Id"
@@ -162,17 +171,50 @@ Function Add-LrCaseTags {
         #region: Process Tags                                                            
         # Request Body - Tags
         Write-Verbose "[$Me]: Validating Tags"
-
+        $_tagNumbers = [list[int]]::new()
         # Convert / Validate Tags to Tag Numbers array
-        $_tagNumbers = $Tags | Get-LrTagNumber
-        if ($_tagNumbers.Error -eq $true) {
-            return $_tagNumbers
+        ForEach ($CaseTag in $Tags) {
+            $TagStatus = Get-LrTagNumber -Tag $CaseTag
+            if (($Null -eq $TagStatus) -or ($TagStatus.Error -eq $true)) {
+                # If force is enabled, create the tag
+                if ($Force) {
+                    Write-Verbose "$(Get-TimeStamp) Force Set - Creating Tag"
+                    if (!([int]::TryParse($CaseTag, [ref]$_int))) {
+                        $NewTagResults = New-LrTag -Tag $CaseTag -PassThru
+                        if (($null -eq $NewTagResults.Error) -or ($NewTagResults.Error -eq "")) {
+                            Write-Verbose "$(Get-TimeStamp) Adding new tag number: $($NewTagResults.number) to variable: _tags"
+                            if ($_tagNumbers -notcontains $NewTagResults.number) {
+                                $_tagNumbers.add($NewTagResults.number)
+                            }
+                        }
+                    } else {
+                        $ErrorObject.Code = "Value"
+                        $ErrorObject.Error = $true
+                        $ErrorObject.Type = "Type mismatch"
+                        $ErrorObject.Note = "Request tag is integer.  New tags must be type String."
+                        $ErrorObject.Value = $CaseTag
+                        return $ErrorObject
+                    }
+                } else {
+                    $ErrorObject.Code = "Value"
+                    $ErrorObject.Error = $true
+                    $ErrorObject.Type = "Missing tag"
+                    $ErrorObject.Note = "Request tag does not exist.  Create tag or re-run with -force."
+                    $ErrorObject.Value = $CaseTag
+                    return $ErrorObject
+                }
+            } else {
+                if ($_tagNumbers -notcontains $NewTagResults.number) {
+                    $_tagNumbers.add($TagStatus)
+                }
+            }
         }
+        
 
         # Create request body with tag numbers
         if (! ($_tagNumbers -Is [System.Array])) {
             # only one tag, use simple json
-            $Body = "{ `"numbers`": [$_tagNumbers] }"
+            $Body = ([PSCustomObject]@{ numbers = @($_tagNumbers) }) | ConvertTo-Json
         } else {
             # multiple values, create an object
             $Body = ([PSCustomObject]@{ numbers = $_tagNumbers }) | ConvertTo-Json
@@ -185,32 +227,16 @@ Function Add-LrCaseTags {
         Write-Verbose "[$Me]: request body is:`n$Body"
 
         # Make Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
-            }
-            catch {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Code = $Err.statusCode
-                $ErrorObject.Type = "WebException"
-                $ErrorObject.Note = $Err.message
-                $ErrorObject.ResponseUrl = $RequestUrl
-                $ErrorObject.Error = $true
-                return $ErrorObject
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Code = $Err.statusCode
-                $ErrorObject.Type = "WebException"
-                $ErrorObject.Note = $Err.message
-                $ErrorObject.ResponseUrl = $RequestUrl
-                $ErrorObject.Error = $true
-                return $ErrorObject
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Code = $Err.statusCode
+            $ErrorObject.Type = "WebException"
+            $ErrorObject.Note = $Err.message
+            $ErrorObject.Error = $true
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
         
         # Only return the case if PassThru was requested.

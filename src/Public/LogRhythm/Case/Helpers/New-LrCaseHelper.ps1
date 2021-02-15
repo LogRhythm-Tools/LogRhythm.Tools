@@ -21,7 +21,7 @@ Function New-LrCaseHelper {
     .OUTPUTS
         PSCustomObject representing the (new|modified) LogRhythm object.
     .EXAMPLE
-        PS C:\> New-LrCaseHelper -AlarmID 1 -CaseSummary "Someone broke in.. who could it have been?" -DefaultCaseTag "Tech_PhysicalSecurity" -TagOriginUsers -BindAlarmToExistingCase "userorigin" -Playbook "Unauthorized Access" -TagImpactedHosts -PassThru
+        PS C:\> New-LrCaseHelper -AlarmID 1 -CaseSummary "Someone broke in.. who could it have been?" -CaseCollaborators "Hart, Eric; Smith, Alice" -DefaultCaseTag "Tech_PhysicalSecurity" -TagOriginUsers "true" -BindAlarmToExistingCase "userorigin" -Playbook "Unauthorized Access" -TagImpactedHosts "true" -PassThru
         ---
         AlarmID         : 1
         DrilldownStatus : True
@@ -54,39 +54,43 @@ Function New-LrCaseHelper {
 
 
         [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 2)]
+        [string]$CaseCollaborators,
+
+
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 3)]
         [int32]$CaseDefaultPriority = 3,
 
 
-        [Parameter(Mandatory = $false, Position = 3)]
+        [Parameter(Mandatory = $false, Position = 4)]
         [string]$DefaultCaseTag,
 
 
-        [Parameter(Mandatory = $false, Position = 4)]
-        [switch]$TagOriginUsers,
-
-
         [Parameter(Mandatory = $false, Position = 5)]
-        [switch]$TagImpactedUsers,
+        [string]$TagOriginUsers,
 
 
         [Parameter(Mandatory = $false, Position = 6)]
-        [switch]$TagOriginHosts,
+        [string]$TagImpactedUsers,
 
 
         [Parameter(Mandatory = $false, Position = 7)]
-        [switch]$TagImpactedHosts,
+        [string]$TagOriginHosts,
 
 
         [Parameter(Mandatory = $false, Position = 8)]
-        [ValidateSet('userorigin', 'userimpacted', 'impactedhost','originhost', ignorecase=$true)]
-        [String]$BindAlarmToExistingCase="userorigin",
+        [string]$TagImpactedHosts,
 
 
         [Parameter(Mandatory = $false, Position = 9)]
-        [String]$Playbook,
+        [ValidateSet('userorigin', 'userimpacted', 'impactedhost','originhost', 'none', ignorecase=$true)]
+        [String]$BindAlarmToExistingCase="none",
 
 
         [Parameter(Mandatory = $false, Position = 10)]
+        [String]$Playbook,
+
+
+        [Parameter(Mandatory = $false, Position = 11)]
         [switch]$PassThru
     )
 
@@ -318,209 +322,261 @@ Function New-LrCaseHelper {
                 }
 
                 # Origin Resources
-                if ($Log.originZoneName -eq "Internal") {
+                if ($Log.originZoneName -like "Internal") {
+                    Write-Host "$(Get-Timestamp) - Debug - LogParse -  Origin Zone Internal"
                     # originHostId = If the originHostID is in the KnownHost Record
-                    if ($Log.originHostId -ne -1) {
+                    if ($Log.originHostId -and ($Log.originHostId -ne -1)) {
+                        Write-Host "$(Get-Timestamp) - Debug - LogParse -  originHostId: $($Log.originHostId)"
                         if ($OriginInternalIDs -notcontains $Log.originHostId) {
                             # Internal OriginKnownHosts
                             $OriginInternalIDs.add($Log.originHostId)
+                            Write-Host "$(Get-Timestamp) - Debug - LogParse -  Adding $($Log.originHostId) to List: OriginInternalIDs"
                         }
                         # If there is no knownHost record data associated with the log, proceed to parse the originHost data
                     } else {
                         # Add unique origin Hostnames
                         if ($Log.originHostname) {
+                            Write-Host "$(Get-Timestamp) - Debug - LogParse -  originHostname: $($Log.originHostname)"
                             # Verify if hostname parses as ValidIPv4Address
                             $HostnameIPv4Status = Test-ValidIPv4Address -IP $($Log.originhostname)
+                            Write-Host "$(Get-Timestamp) - Debug - LogParse -  Hostname IPv4 Check: $($HostnameIPv4Status.isValid)"
                             # Test if the OriginHostname value is an IPv4 Address, if it is, add the IPAddress to the InternalIPs list
                             if ($HostnameIPv4Status.IsValid -eq $true) {
                                 if ($OriginInternalIPs -notcontains $Log.originhostname) {
                                     # Hostname Validates as IPv4 Address, adding entry to Origin IPv4 list
                                     $OriginInternalIPs.add($Log.originhostname)
+                                    Write-Host "$(Get-Timestamp) - Debug - LogParse -  Adding $($Log.originhostname) to List: OriginInternalIPs"
                                 }
                             } else {
                                 if ($OriginInternalHosts -notcontains $Log.originhostname) {
                                     # Add Hostname to InternalHosts list
-                                    $OriginInternalHosts.add($Log.originhostname)                        
+                                    $OriginInternalHosts.add($Log.originhostname)
+                                    Write-Host "$(Get-Timestamp) - Debug - LogParse -  Adding $($Log.originhostname) to List: OriginInternalHosts"                       
                                 }
                             }
                         }
 
                         # Add unique origin IP Addresses
                         if ($Log.originIp) {
+                            Write-Host "$(Get-Timestamp) - Debug - LogParse -  originIp: $($Log.originIp)"
                             if ($OriginInternalIPs -notcontains $Log.originIp) {
                                 # Hostname Validates as IPv4 Address, adding entry to Origin IPv4 list
                                 $OriginInternalIPs.add($Log.originIp)
+                                Write-Host "$(Get-Timestamp) - Debug - LogParse -  Adding $($Log.originIp) to List: OriginInternalIPs"
                             }
                         }
                     }
-                } elseif ($Log.originZoneName -eq "External") {
+                } elseif ($Log.originZoneName -like "External") {
+                    Write-Host "$(Get-Timestamp) - Debug - LogParse -  Origin Zone External"
                     # originHostId = If the originHostID is in the KnownHost Record
-                    if ($Log.originHostId -ne -1) {
+                    if ($Log.originHostId -and ($Log.originHostId -ne -1)) {
+                        Write-Host "$(Get-Timestamp) - Debug - LogParse -  originHostId: $($Log.originHostId)"
                         if ($OriginExternalIDs -notcontains $Log.originHostId) {
                             # External OriginKnownHosts
                             $OriginExternalIDs.add($Log.originHostId)
+                            Write-Host "$(Get-Timestamp) - Debug - LogParse -  Adding $($Log.originHostId) to List: OriginExternalIDs"
                         }
                         # If there is no knownHost record data associated with the log, proceed to parse the originHost data
                     } else {
                         if ($Log.originHostname) {
+                            Write-Host "$(Get-Timestamp) - Debug - LogParse -  originHostname: $($Log.originHostname)"
                             # Verify if hostname parses as ValidIPv4Address
                             $HostnameIPv4Status = Test-ValidIPv4Address -IP $($Log.originhostname)
+                            Write-Host "$(Get-Timestamp) - Debug - LogParse -  Hostname IPv4 Check: $($HostnameIPv4Status.isValid)"
                             # Test if the OriginHostname value is an IPv4 Address, if it is, add the IPAddress to the ExternalIPs list
                             if ($HostnameIPv4Status.IsValid -eq $true) {
                                 if ($OriginExternalIPs -notcontains $Log.originhostname) {
                                     # Hostname Validates as IPv4 Address, adding entry to Origin IPv4 list
                                     $OriginExternalIPs.add($Log.originhostname)
+                                    Write-Host "$(Get-Timestamp) - Debug - LogParse -  Adding $($Log.impactedhostname) to List: impactedExternalIPs"
                                 }
                             } else {
                                 if ($OriginExternalHosts -notcontains $Log.originhostname) {
                                     # Add Hostname to InternalHosts list
-                                    $OriginExternalHosts.add($Log.originhostname)                        
+                                    $OriginExternalHosts.add($Log.originhostname)
+                                    Write-Host "$(Get-Timestamp) - Debug - LogParse -  Adding $($Log.impactedhostname) to List: impactedExternalIPs"                     
                                 }
                             }
                         }
 
                         # Add unique impacted IP Addresses
                         if ($Log.originIp) {
+                            Write-Host "$(Get-Timestamp) - Debug - LogParse -  OriginIp: $($Log.originIp)"
                             if ($OriginExternalIPs -notcontains $Log.originIp) {
                                 # Hostname Validates as IPv4 Address, adding entry to Origin IPv4 list
                                 $OriginExternalIPs.add($Log.originIp)
+                                Write-Host "$(Get-Timestamp) - Debug - LogParse -  Adding $($Log.originIp) to List: OriginExternalIPs"
                             }
                         }
                     }
                 } else {
+                    Write-Host "$(Get-Timestamp) - Debug - LogParse -  Origin Zone Unknown"
                     # originHostId = If the originHostID is in the KnownHost Record
-                    if ($Log.originHostId -ne -1) {
+                    if ($Log.originHostId -and ($Log.originHostId -ne -1)) {
+                        Write-Host "$(Get-Timestamp) - Debug - LogParse -  originHostId: $($Log.originHostId)"
                         if ($OriginHostIds -notcontains $Log.originHostId) {
                             # External OriginKnownHosts
                             $OriginHostIds.add($Log.originHostId)
+                            Write-Host "$(Get-Timestamp) - Debug - LogParse -  Adding $($Log.originHostId) to List: OriginHostIds"
                         }
                         # If there is no knownHost record data associated with the log, proceed to parse the originHost data
                     } else {
                         if ($Log.originHostname) {
+                            Write-Host "$(Get-Timestamp) - Debug - LogParse -  originHostname: $($Log.originHostname)"
                             # Verify if hostname parses as ValidIPv4Address
                             $HostnameIPv4Status = Test-ValidIPv4Address -IP $($Log.originhostname)
+                            Write-Host "$(Get-Timestamp) - Debug - LogParse -  Hostname IPv4 Check: $($HostnameIPv4Status.isValid)"
                             # Test if the OriginHostname value is an IPv4 Address, if it is, add the IPAddress to the ExternalIPs list
                             if ($HostnameIPv4Status.IsValid -eq $true) {
                                 if ($OriginHostIPs -notcontains $Log.originhostname) {
                                     # Hostname Validates as IPv4 Address, adding entry to Origin IPv4 list
                                     $OriginHostIPs.add($Log.originhostname)
+                                    Write-Host "$(Get-Timestamp) - Debug - LogParse -  Adding $($Log.originhostname) to List: OriginHostIPs"
                                 }
                             } else {
                                 if ($OriginHostNames -notcontains $Log.originhostname) {
                                     # Add Hostname to InternalHosts list
-                                    $OriginHostNames.add($Log.originhostname)                        
+                                    $OriginHostNames.add($Log.originhostname)
+                                    Write-Host "$(Get-Timestamp) - Debug - LogParse -  Adding $($Log.originhostname) to List: OriginHostNames"                    
                                 }
                             }
                         }
 
                         # Add unique impacted IP Addresses
                         if ($Log.originIp) {
+                            Write-Host "$(Get-Timestamp) - Debug - LogParse -  OriginIp: $($Log.originIp)"
                             if ($OriginHostIPs -notcontains $Log.originIp) {
                                 # Hostname Validates as IPv4 Address, adding entry to Origin IPv4 list
                                 $OriginHostIPs.add($Log.originIp)
+                                Write-Host "$(Get-Timestamp) - Debug - LogParse -  Adding $($Log.originIp) to List: OriginHostIPs"
                             }
                         }
-
                     } 
                 }
 
                 # Impacted Resources
-                if ($Log.impactedZoneName -eq "Internal") {
+                if ($Log.impactedZoneName -like "Internal") {
+                    Write-Host "$(Get-Timestamp) - Debug - LogParse -  Impacted Zone Internal"
                     # ImpactedHostId = If the ImpactedHostId is in the KnownHost Record
-                    if ($Log.impactedHostId -ne -1) {
+                    if ($Log.impactedHostId -and ($Log.impactedHostId -ne -1)) {
+                        Write-Host "$(Get-Timestamp) - Debug - LogParse -  impactedHostId: $($Log.impactedHostId)"
                         if ($ImpactedInternalIDs -notcontains $Log.impactedHostId) {
                             # Internal OriginKnownHosts
                             $ImpactedInternalIDs.add($Log.impactedHostId)
+                            Write-Host "$(Get-Timestamp) - Debug - LogParse -  Adding $($Log.impactedHostId) to List: ImpactedInternalIDs"
                         }
                         # If there is no knownHost record data associated with the log, proceed to parse the originHost data
                     } else {
-                        if ($Log.impactedHostname) {
+                        if ($Log.impactedHostname.length -gt 0) {
+                            Write-Host "$(Get-Timestamp) - Debug - LogParse -  impactedHostname: $($Log.impactedHostname)"
                             # Verify if hostname parses as ValidIPv4Address
                             $HostnameIPv4Status = Test-ValidIPv4Address -IP $($Log.impactedhostname)
+                            Write-Host "$(Get-Timestamp) - Debug - LogParse -  Hostname IPv4 Check: $($HostnameIPv4Status.isValid)"
                             # Test if the impactedHostname value is an IPv4 Address, if it is, add the IPAddress to the InternalIPs list
                             if ($HostnameIPv4Status.IsValid -eq $true) {
                                 if ($impactedInternalIPs -notcontains $Log.impactedhostname) {
                                     # Hostname Validates as IPv4 Address, adding entry to impacted IPv4 list
                                     $impactedInternalIPs.add($Log.impactedhostname)
+                                    Write-Host "$(Get-Timestamp) - Debug - LogParse -  Adding $($Log.impactedhostname) to List: impactedInternalIPs"   
                                 }
                             } else {
                                 if ($impactedInternalHosts -notcontains $Log.impactedhostname) {
                                     # Add Hostname to InternalHosts list
-                                    $impactedInternalHosts.add($Log.impactedhostname)                        
+                                    $impactedInternalHosts.add($Log.impactedhostname)
+                                    Write-Host "$(Get-Timestamp) - Debug - LogParse -  Adding $($Log.impactedhostname) to List: impactedInternalHosts"                   
                                 }
                             }
                         }
 
                         # Add unique origin IP Addresses
                         if ($Log.impactedIp) {
+                            Write-Host "$(Get-Timestamp) - Debug - LogParse -  ImpactedIP: $($Log.impactedIP)"
                             if ($ImpactedInternalIPs -notcontains $Log.impactedIp) {
                                 # Hostname Validates as IPv4 Address, adding entry to Origin IPv4 list
                                 $ImpactedInternalIPs.add($Log.impactedIp)
+                                Write-Host "$(Get-Timestamp) - Debug - LogParse -  Adding $($Log.impactedIp) to List: ImpactedInternalIPs"  
                             }
                         }
                     }
-                } elseif ($Log.impactedZoneName -eq "External") {
+                } elseif ($Log.impactedZoneName -like "External") {
+                    Write-Host "$(Get-Timestamp) - Debug - LogParse -  Impacted Zone External"
                     # impactedHostId = If the impactedHostID is in the KnownHost Record
-                    if ($Log.impactedHostId -ne -1) {
+                    if ($Log.impactedHostId -and ($Log.impactedHostId -ne -1)) {
+                        Write-Host "$(Get-Timestamp) - Debug - LogParse -  ImpactedHostId: $($Log.impactedHostId)"
                         if ($impactedExternalIDs -notcontains $Log.impactedHostId) {
                             # External impactedKnownHosts
                             $impactedExternalIDs.add($Log.impactedHostId)
+                            Write-Host "$(Get-Timestamp) - Debug - LogParse -  Adding $($Log.impactedHostId) to List: impactedExternalIDs"
                         }
                         # If there is no knownHost record data associated with the log, proceed to parse the impactedHost data
                     } else {
-                        if ($Log.impactedHostname) {
+                        if ($Log.impactedHostname.length -gt 0) {
+                            Write-Host "$(Get-Timestamp) - Debug - LogParse -  impactedHostname: $($Log.impactedHostname)"
                             # Verify if hostname parses as ValidIPv4Address
                             $HostnameIPv4Status = Test-ValidIPv4Address -IP $($Log.impactedhostname)
+                            Write-Host "$(Get-Timestamp) - Debug - LogParse -  Hostname IPv4 Check: $($HostnameIPv4Status.isValid)"
                             # Test if the impactedHostname value is an IPv4 Address, if it is, add the IPAddress to the ExternalIPs list
                             if ($HostnameIPv4Status.IsValid -eq $true) {
                                 if ($impactedExternalIPs -notcontains $Log.impactedhostname) {
                                     # Hostname Validates as IPv4 Address, adding entry to impacted IPv4 list
                                     $impactedExternalIPs.add($Log.impactedhostname)
+                                    Write-Host "$(Get-Timestamp) - Debug - LogParse -  Adding $($Log.impactedhostname) to List: impactedExternalIPs"
                                 }
                             } else {
                                 if ($impactedExternalHosts -notcontains $Log.impactedhostname) {
                                     # Add Hostname to InternalHosts list
-                                    $impactedExternalHosts.add($Log.impactedhostname)                        
+                                    $impactedExternalHosts.add($Log.impactedhostname)  
+                                    Write-Host "$(Get-Timestamp) - Debug - LogParse -  Adding $($Log.impactedhostname) to List: impactedExternalHosts"                      
                                 }
                             }
                         }
 
                         # Add unique origin IP Addresses
                         if ($Log.impactedIp) {
+                            Write-Host "$(Get-Timestamp) - Debug - LogParse -  ImpactedIP: $($Log.impactedIP)"
                             if ($impactedExternalIPs -notcontains $Log.impactedIp) {
                                 # Hostname Validates as IPv4 Address, adding entry to Origin IPv4 list
                                 $impactedExternalIPs.add($Log.impactedIp)
+                                Write-Host "$(Get-Timestamp) - Debug - LogParse -  Adding $($Log.impactedIp) to List: impactedExternalIPs"     
                             }
                         }
                     }
                 } else {
+                    Write-Host "$(Get-Timestamp) - Debug - LogParse -  Impacted Zone Unknown"
                     # impactedHostId = If the impactedHostID is in the KnownHost Record
-                    if ($Log.impactedHostId -ne -1) {
+                    if ($Log.impactedHostId -and ($Log.impactedHostId -ne -1)) {
+                        Write-Host "$(Get-Timestamp) - Debug - LogParse -  impactedHostId: $($Log.impactedHostId)"
                         if ($ImpactedHostIds -notcontains $Log.impactedHostId) {
                             # Unknown impactedKnownHosts
                             $ImpactedHostIds.add($Log.impactedHostId)
+                            Write-Host "$(Get-Timestamp) - Debug - LogParse -  Adding $($Log.impactedHostId) to List: ImpactedHostIds" 
                         }
                         # If there is no knownHost record data associated with the log, proceed to parse the impactedHost data
                     } else {
-                        if ($Log.impactedHostname) {
+                        if ($Log.impactedHostname.length -gt 0) {
+                            Write-Host "$(Get-Timestamp) - Debug - LogParse -  impactedHostname: $($Log.impactedHostname)"
                             # Verify if hostname parses as ValidIPv4Address
                             $HostnameIPv4Status = Test-ValidIPv4Address -IP $($Log.impactedhostname)
+                            Write-Host "$(Get-Timestamp) - Debug - LogParse -  Hostname IPv4 Check: $($HostnameIPv4Status.isValid)"
                             # Test if the impactedHostname value is an IPv4 Address, if it is, add the IPAddress to the ExternalIPs list
                             if ($HostnameIPv4Status.IsValid -eq $true) {
                                 if ($ImpactedHostIPs -notcontains $Log.impactedhostname) {
                                     # Hostname Validates as IPv4 Address, adding entry to impacted IPv4 list
                                     $ImpactedHostIPs.add($Log.impactedhostname)
+                                    Write-Host "$(Get-Timestamp) - Debug - LogParse -  Adding $($Log.impactedhostname) to List: ImpactedHostIPs" 
                                 }
                             } else {
                                 if ($ImpactedHostNames -notcontains $Log.impactedhostname) {
                                     # Add Hostname to InternalHosts list
-                                    $ImpactedHostNames.add($Log.impactedhostname)                        
+                                    $ImpactedHostNames.add($Log.impactedhostname)       
+                                    Write-Host "$(Get-Timestamp) - Debug - LogParse -  Adding $($Log.impactedhostname) to List: ImpactedHostNames"                  
                                 }
                             }
                         }
 
                         # Add unique impacted IP Addresses
                         if ($Log.impactedIp) {
+                            Write-Host "$(Get-Timestamp) - Debug - LogParse -  impactedIp: $($Log.impactedIp)"
                             if ($ImpactedHostIPs -notcontains $Log.impactedIp) {
                                 # Hostname Validates as IPv4 Address, adding entry to impacted IPv4 list
                                 $ImpactedHostIPs.add($Log.impactedIp)
@@ -531,19 +587,29 @@ Function New-LrCaseHelper {
 
                 # Internal Resources - City & Country
                 if ($Log.originCity) {
+                    Write-Host "$(Get-Timestamp) - Debug - LogParse -  OriginCity: $($Log.originCity)"
                     if ($OriginCities -notcontains $Log.originCity) {
                         $OriginCities.add($Log.originCity)
                     }
+                }
+
+                if ($Log.OriginCountry) {
+                    Write-Host "$(Get-Timestamp) - Debug - LogParse -  OriginCountry: $($Log.OriginCountry)"
                     if ($OriginCountries -notcontains $Log.OriginCountry) {
                         $OriginCountries.add($Log.OriginCountry)
                     }
                 }
 
-                # External Resources - City & Country
-                if ($Log.impactedCountry) {
+                if ($Log.impactedCity) {
+                    Write-Host "$(Get-Timestamp) - Debug - LogParse -  ImpactedCities: $($Log.impactedCity)"
                     if ($ImpactedCities -notcontains $Log.impactedCity) {
                         $ImpactedCities.add($Log.impactedCity)
                     }
+                }
+
+                # External Resources - City & Country
+                if ($Log.impactedCountry) {
+                    Write-Host "$(Get-Timestamp) - Debug - LogParse -  ImpactedCountries: $($Log.ImpactedCountry)"
                     if ($ImpactedCountries -notcontains $Log.impactedCountry) {
                         $ImpactedCountries.add($Log.impactedCountry)
                     }
@@ -551,6 +617,7 @@ Function New-LrCaseHelper {
 
                 # Establish unique Common Events
                 if ($CommonEvents -notcontains $Log.commonEventName) {
+                    Write-Host "$(Get-Timestamp) - Debug - LogParse -  commonEventName: $($Log.commonEventName)"
                     $CommonEvents.add($Log.commoneventname)
                 }
             }
@@ -1085,159 +1152,165 @@ Function New-LrCaseHelper {
 
         # Check if BindAlarmToExistingCase is enabled for User Case association
         Write-Verbose "$(Get-Timestamp) - Begin - Bind Alarm to Existing Case - User"
-        if (($TagOriginUsers -or $TagImpactedUsers) -and ($BindAlarmToExistingCase -like "userorigin"-or $BindAlarmToExistingCase -like "userimpacted")) {
+        if ((($TagOriginUsers -like "true") -or ($TagImpactedUsers -like "true")) -and (($BindAlarmToExistingCase -like "userorigin") -or ($BindAlarmToExistingCase -like "userimpacted"))) {
             # Build array of pending Tags associated with primary TAG:USER
             if ($BindAlarmToExistingCase -like "userorigin") {
-                Write-Verbose "$(Get-Timestamp) - Info - Bind Alarm - User Origin"
-                $UserTags = $($CaseTags | Where-Object -Property Primary -eq "USER" | Where-Object -Property Note -eq "Origin" | Select-Object -ExpandProperty Tag)
+                Write-Verbose "$(Get-Timestamp) - Info - Bind Alarm - User Origin / User Sender"
+                $UserTags = $($CaseTags | Where-Object -Property Primary -eq "USER" | Where-Object -Property Note -match 'Sender|Origin' | Select-Object -ExpandProperty Tag)
             }
 
             if ($BindAlarmToExistingCase -like "userimpacted") {
-                Write-Verbose "$(Get-Timestamp) - Info - Bind Alarm - User Impacted"
-                $UserTags = $($CaseTags | Where-Object -Property Primary -eq "USER" | Where-Object -Property Note -eq "Impacted" | Select-Object -ExpandProperty Tag)
+                Write-Verbose "$(Get-Timestamp) - Info - Bind Alarm - User Impacted / User Recipient"
+                $UserTags = $($CaseTags | Where-Object -Property Primary -eq "USER" | Where-Object -Property Note -match 'Recipient|Impacted' | Select-Object -ExpandProperty Tag)
             }
-
+            Write-host "UserTags: $UserTags"
 
             # Screen for existing case, if so add new details to existing case and halt
             ForEach ($UserTag in $UserTags) {
                 Write-Verbose "$(Get-Timestamp) - Info - UserTag: $($UserTag)"
                 # Identify if an open case exists involving same AIE Alarm and User exists.  Valid case status:  Created, Incident, Mitigated
-                $ScreenCases = Get-LrCases -Name $AlarmDetails.AIERuleName -Exact -Tags $UserTag -Status @("1", "3", "4")
+                $ScreenCases = Get-LrCases -Name $AlarmDetails.AIERuleName -Tags $UserTag -Status @("1", "3", "4")
                 Start-Sleep $APISleep
                 if ($ScreenCases) {
                     if ($ScreenCases.count -gt 1) {
                         # Update most recent case
                         $ScreenCases = $ScreenCases | Sort-Object -Property dateUpdated -Descending | Select-Object -First 1
                     }
-                    # Add alarm to case
-                    Add-LrAlarmToCase -Id $ScreenCases.number -AlarmNumbers $AlarmDetails.AlarmId
-                    Start-Sleep $APISleep
-
-                    # Update output Object
-                    $OutObject.CaseNumber = $ScreenCases.number
-                    $OutObject.Case.CaseObject = $ScreenCases
-                    $OutObject.Case.Note = "Existing case updated due to matched user association with Alarm."
-
-                    # User Tags
-                    $CurUserTags = $ScreenCases.tags | Where-Object -Property text -match "User_.*" | Select-Object -ExpandProperty text
-
-                    # Generate User Origin Tags
-                    if ($TagOriginUsers) {
-                        Write-Verbose "$(Get-Timestamp) - Begin - Add User Origin Tags to Case"
-                        $OriginUserTags = $CaseTags | Where-Object -Property Primary -in "User" | Where-Object -Property Note -in "Origin", "Sender"
-
-                        # Iterate through Origin Host tags
-                        ForEach ($OriginUserTag in $OriginUserTags) {
-                            # If the Curent Case Host Tags does not include the Origin Host Tag, add it
-                            if ($CurUserTags -notcontains $OriginUserTag.Tag) {
-                                $TagStatus = Get-LrTags -Name $OriginUserTag.Tag -Exact
-                                if ($null -eq $TagStatus) {
-                                    Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($OriginUserTag.tag)"
-                                    New-LrTag -Tag $OriginUserTag.Tag
-                                    Start-Sleep $APISleep
-                                }
-                                Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($OriginUserTag.tag) to Case: $($OutObject.CaseNumber)"
-                                Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $OriginUserTag.Tag
-                                $ScreenNewTags.add($OriginUserTag)
-                                Start-Sleep $APISleep
-                            }
-                        }
-                        Write-Verbose "$(Get-Timestamp) - End - Add User Origin Tags to Case"
-                    }
-
-                    # General User Impacted Tags
-                    if ($TagImpactedUsers) {
-                        Write-Verbose "$(Get-Timestamp) - Begin - Add User Impacted Tags to Case"
-                        $ImpactUserTags = $CaseTags | Where-Object -Property Primary -in "User" | Where-Object -Property Note -in "Impacted", "Recipient"
-
-                        # Iterate through Impacted User tags
-                        ForEach ($ImpactUserTag in $ImpactUserTags) {
-                            # If the Curent Case User Tags does not include the Impacted User Tag, add it
-                            if ($CurUserTags -notcontains $ImpactUserTag.Tag) {
-                                $TagStatus = Get-LrTags -Name $ImpactUserTag.Tag -Exact
-                                if ($null -eq $TagStatus) {
-                                    Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($ImpactUserTag.tag)"
-                                    New-LrTag -Tag $ImpactUserTag.Tag
-                                    Start-Sleep $APISleep
-                                }
-                                Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($ImpactUserTag.tag) to Case: $($OutObject.CaseNumber)"
-                                Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $ImpactUserTag.Tag
-                                $ScreenNewTags.add($ImpactUserTag)
-                                Start-Sleep $APISleep
-                            }
-                        }
-                        Write-Verbose "$(Get-Timestamp) - End - Add User Impacted Tags to Case"
-                    }
-
-
-                    # Host Tags
-                    $CurHostTags = $ScreenCases.tags | Where-Object -Property text -Match "(HOST|IP|DNS)_.*" | Select-Object -ExpandProperty text
-                    
-                    # If CaseTagOriginHosts is enabled, add new CaseTagOriginHosts to Case
-                    if ($TagOriginHosts -eq $true) {
-                        Write-Verbose "$(Get-Timestamp) - Begin - Add Host Origin Tags to Case"
-                        $OriginHostTags = $CaseTags | Where-Object -Property Primary -in "HOST","IP","DNS" | Where-Object -Property Note -eq "Origin"
-
-                        # Iterate through Origin Host tags
-                        ForEach ($OriginHostTag in $OriginHostTags) {
-                            # If the Curent Case Host Tags does not include the Origin Host Tag, add it
-                            if ($CurHostTags -notcontains $OriginHostTag.Tag) {
-                                $TagStatus = Get-LrTags -Name $OriginHostTag.Tag -Exact
-                                if ($null -eq $TagStatus) {
-                                    Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($OriginHostTag.tag)"
-                                    New-LrTag -Tag $OriginHostTag.Tag
-                                    Start-Sleep $APISleep
-                                }
-                                Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($OriginHostTag.tag) to Case: $($OutObject.CaseNumber)"
-                                Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $OriginHostTag.Tag
-                                $ScreenNewTags.add($OriginHostTag)
-                                Start-Sleep $APISleep
-                            }
-                        }
-                        Write-Verbose "$(Get-Timestamp) - End - Add Host Origin Tags to Case"
-                    }
-
-                    if ($TagImpactedHosts -eq $true) {
-                        Write-Verbose "$(Get-Timestamp) - Begin - Add Host Impacted Tags to Case"
-                        $ImpactedHostTags = $CaseTags | Where-Object -Property Primary -in "HOST","IP","DNS" | Where-Object -Property Note -eq "Impacted"
-
-                        # Iterate through Origin Host tags
-                        ForEach ($ImpactedHostTag in $ImpactedHostTags) {
-                            # If the Curent Case Host Tags does not include the Origin Host Tag, add it
-                            if ($CurHostTags -notcontains $ImpactedHostTag.Tag) {
-                                $TagStatus = Get-LrTags -Name $ImpactedHostTag.Tag -Exact
-                                if ($null -eq $TagStatus) {
-                                    Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($ImpactedHostTag.Tag)"
-                                    New-LrTag -Tag $ImpactedHostTag.Tag
-                                    Start-Sleep $APISleep
-                                }
-                                Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($ImpactedHostTag.tag) to Case: $($OutObject.CaseNumber)"
-                                Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $ImpactedHostTag.Tag
-                                $ScreenNewTags.add($ImpactedHostTag)
-                                Start-Sleep $APISleep
-                            }
-                        }
-                        Write-Verbose "$(Get-Timestamp) - End - Add Host Origin Tags to Case"
-                    }
-
-                    if ($ScreenNewTags) {
-                        $ScreenTagNote += "-==- Updated Case Taxonomy Tags -==-`r`nIdenified new resources from Alarm: $($AlarmDetails.AlarmId).`r`n`r`nNew Tags:`r`n"
-                        ForEach ($ScreenTag in $ScreenNewTags) {
-                        # Apply Regex match approach to support future modifications to case tag listing and prevent adding non-taxonomy tags to note.
-                            Switch -regex ($ScreenTag) {
-                                'tech_.*' {$ScreenTagNote +="$($ScreenTag.tag)`r`n"}
-                                'user_.*' {$ScreenTagNote +="$($ScreenTag.tag)`r`n"}
-                                'host_.*' {$ScreenTagNote +="$($ScreenTag.tag)`r`n"}
-                                'ip_*' {$ScreenTagNote +="$($ScreenTag.tag)`r`n"}
-                                'dns_*' {$ScreenTagNote +="$($ScreenTag.tag)`r`n"}
-                            }
-                        }
-                        Add-LrNoteToCase -Id $OutObject.CaseNumber -Text $ScreenTagNote
+                    # Verify ScreenCases contains the associated UserTag.
+                    if ($ScreenCases.tags.text.Contains($UserTag)) {
+                        # Add alarm to case
+                        Add-LrAlarmToCase -Id $ScreenCases.number -AlarmNumbers $AlarmDetails.AlarmId
                         Start-Sleep $APISleep
-                        $OutObject.Case.CaseTags = $ScreenNewTags
-                    }
 
-                    return $OutObject
+                        # Update output Object
+                        $OutObject.CaseNumber = $ScreenCases.number
+                        $OutObject.Case.CaseObject = $ScreenCases
+                        $OutObject.Case.Note = "Existing case updated due to matched user association with Alarm."
+
+                        # User Tags
+                        $CurUserTags = $ScreenCases.tags | Where-Object -Property text -match "User_.*" | Select-Object -ExpandProperty text
+
+                        # Generate User Origin Tags
+                        if ($TagOriginUsers -like "true") {
+                            Write-Verbose "$(Get-Timestamp) - Begin - Add User Origin Tags to Case"
+                            $OriginUserTags = $CaseTags | Where-Object -Property Primary -in "User" | Where-Object -Property Note -match 'Sender|Origin'
+
+                            # Iterate through Origin Host tags
+                            ForEach ($OriginUserTag in $OriginUserTags) {
+                                # If the Curent Case Host Tags does not include the Origin Host Tag, add it
+                                if ($CurUserTags -notcontains $OriginUserTag.Tag) {
+                                    $TagStatus = Get-LrTags -Name $OriginUserTag.Tag -Exact
+                                    if ($null -eq $TagStatus) {
+                                        Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($OriginUserTag.tag)"
+                                        New-LrTag -Tag $OriginUserTag.Tag
+                                        Start-Sleep $APISleep
+                                    }
+                                    Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($OriginUserTag.tag) to Case: $($OutObject.CaseNumber)"
+                                    Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $OriginUserTag.Tag
+                                    $ScreenNewTags.add($OriginUserTag)
+                                    Start-Sleep $APISleep
+                                }
+                            }
+                            Write-Verbose "$(Get-Timestamp) - End - Add User Origin Tags to Case"
+                        }
+
+                        # General User Impacted Tags
+                        if ($TagImpactedUsers -like "true" ) {
+                            Write-Verbose "$(Get-Timestamp) - Begin - Add User Impacted Tags to Case"
+                            $ImpactUserTags = $CaseTags | Where-Object -Property Primary -in "User" | Where-Object -Property Note -match 'Recipient|Impacted'
+
+                            # Iterate through Impacted User tags
+                            ForEach ($ImpactUserTag in $ImpactUserTags) {
+                                # If the Curent Case User Tags does not include the Impacted User Tag, add it
+                                if ($CurUserTags -notcontains $ImpactUserTag.Tag) {
+                                    $TagStatus = Get-LrTags -Name $ImpactUserTag.Tag -Exact
+                                    if ($null -eq $TagStatus) {
+                                        Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($ImpactUserTag.tag)"
+                                        New-LrTag -Tag $ImpactUserTag.Tag
+                                        Start-Sleep $APISleep
+                                    }
+                                    Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($ImpactUserTag.tag) to Case: $($OutObject.CaseNumber)"
+                                    Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $ImpactUserTag.Tag
+                                    $ScreenNewTags.add($ImpactUserTag)
+                                    Start-Sleep $APISleep
+                                }
+                            }
+                            Write-Verbose "$(Get-Timestamp) - End - Add User Impacted Tags to Case"
+                        }
+
+
+                        # Host Tags
+                        $CurHostTags = $ScreenCases.tags | Where-Object -Property text -Match "(HOST|IP|DNS)_.*" | Select-Object -ExpandProperty text
+                        
+                        # If CaseTagOriginHosts is enabled, add new CaseTagOriginHosts to Case
+                        if ($TagOriginHosts -like "true" ) {
+                            Write-Verbose "$(Get-Timestamp) - Begin - Add Host Origin Tags to Case"
+                            $OriginHostTags = $CaseTags | Where-Object -Property Primary -in "HOST","IP","DNS" | Where-Object -Property Note -eq "Origin"
+
+                            # Iterate through Origin Host tags
+                            ForEach ($OriginHostTag in $OriginHostTags) {
+                                # If the Curent Case Host Tags does not include the Origin Host Tag, add it
+                                if ($CurHostTags -notcontains $OriginHostTag.Tag) {
+                                    $TagStatus = Get-LrTags -Name $OriginHostTag.Tag -Exact
+                                    if ($null -eq $TagStatus) {
+                                        Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($OriginHostTag.tag)"
+                                        New-LrTag -Tag $OriginHostTag.Tag
+                                        Start-Sleep $APISleep
+                                    }
+                                    Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($OriginHostTag.tag) to Case: $($OutObject.CaseNumber)"
+                                    Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $OriginHostTag.Tag
+                                    $ScreenNewTags.add($OriginHostTag)
+                                    Start-Sleep $APISleep
+                                }
+                            }
+                            Write-Verbose "$(Get-Timestamp) - End - Add Host Origin Tags to Case"
+                        }
+
+                        if ($TagImpactedHosts -like "true" ) {
+                            Write-Verbose "$(Get-Timestamp) - Begin - Add Host Impacted Tags to Case"
+                            $ImpactedHostTags = $CaseTags | Where-Object -Property Primary -in "HOST","IP","DNS" | Where-Object -Property Note -eq "Impacted"
+
+                            # Iterate through Origin Host tags
+                            ForEach ($ImpactedHostTag in $ImpactedHostTags) {
+                                # If the Curent Case Host Tags does not include the Origin Host Tag, add it
+                                if ($CurHostTags -notcontains $ImpactedHostTag.Tag) {
+                                    $TagStatus = Get-LrTags -Name $ImpactedHostTag.Tag -Exact
+                                    if ($null -eq $TagStatus) {
+                                        Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($ImpactedHostTag.Tag)"
+                                        New-LrTag -Tag $ImpactedHostTag.Tag
+                                        Start-Sleep $APISleep
+                                    }
+                                    Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($ImpactedHostTag.tag) to Case: $($OutObject.CaseNumber)"
+                                    Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $ImpactedHostTag.Tag
+                                    $ScreenNewTags.add($ImpactedHostTag)
+                                    Start-Sleep $APISleep
+                                }
+                            }
+                            Write-Verbose "$(Get-Timestamp) - End - Add Host Origin Tags to Case"
+                        }
+
+                        if ($ScreenNewTags) {
+                            $ScreenTagNote += "-==- Updated Case Taxonomy Tags -==-`r`nIdenified new resources from Alarm: $($AlarmDetails.AlarmId).`r`n`r`nNew Tags:`r`n"
+                            ForEach ($ScreenTag in $ScreenNewTags) {
+                            # Apply Regex match approach to support future modifications to case tag listing and prevent adding non-taxonomy tags to note.
+                                Switch -regex ($ScreenTag) {
+                                    'tech_.*' {$ScreenTagNote +="$($ScreenTag.tag)`r`n"}
+                                    'user_.*' {$ScreenTagNote +="$($ScreenTag.tag)`r`n"}
+                                    'host_.*' {$ScreenTagNote +="$($ScreenTag.tag)`r`n"}
+                                    'ip_*' {$ScreenTagNote +="$($ScreenTag.tag)`r`n"}
+                                    'dns_*' {$ScreenTagNote +="$($ScreenTag.tag)`r`n"}
+                                }
+                            }
+                            Add-LrNoteToCase -Id $OutObject.CaseNumber -Text $ScreenTagNote
+                            Start-Sleep $APISleep
+                            $OutObject.Case.CaseTags = $ScreenNewTags
+                        }
+
+                        return $OutObject
+                    } else {
+                        # Continue to next UserTag
+                        continue
+                    }
                 }
             }
         }
@@ -1245,7 +1318,7 @@ Function New-LrCaseHelper {
 
 
         # Check if BindAlarmToExistingCase is enabled for User Case association
-        if ($CaseTagImpactedHosts -eq $true) {
+        if ($TagImpactedHosts -like "true" ) {
             Write-Verbose "$(Get-Timestamp) - Begin - Bind Alarm to Existing Case - Host Impacted"
             if ($BindAlarmToExistingCase -like "impactedhost") {
                 # Build array of pending Tags associated with primary TAG:USER
@@ -1256,141 +1329,147 @@ Function New-LrCaseHelper {
                 # Screen for existing case, if so add new details to existing case and halt
                 ForEach ($HostTag in $HostTags) {
                     # Identify if an open case exists involving same AIE Alarm and Host exists.  Valid case status:  Created, Incident, Mitigated
-                    $ScreenCases = Get-LrCases -Name $AlarmDetails.AIERuleName -Exact -Tags $HostTag -Status @("1", "3", "4")
+                    $ScreenCases = Get-LrCases -Name $AlarmDetails.AIERuleName -Tags $HostTag -Status @("1", "3", "4")
                     Start-Sleep $APISleep
                     if ($ScreenCases) {
                         if ($ScreenCases.count -gt 1) {
                             # Update most recent case
                             $ScreenCases = $ScreenCases | Sort-Object -Property dateUpdated -Descending | Select-Object -First 1
                         }
-                        # Add alarm to case
-                        Add-LrAlarmToCase -Id $ScreenCases.number -AlarmNumbers $AlarmDetails.AlarmId
-                        Start-Sleep $APISleep
-
-                        $OutObject.CaseNumber = $ScreenCases.number
-                        $OutObject.Case.CaseObject = $ScreenCases
-                        $OutObject.Case.Note = "Existing case updated due to matched Host Impacted association with Alarm."
-
-
-                        # User Tags
-                        $CurUserTags = $ScreenCases.tags | Where-Object -Property text -match "User_.*" | Select-Object -ExpandProperty text
-
-                        # Generate User Origin Tags
-                        if ($TagOriginUsers) {
-                            Write-Verbose "$(Get-Timestamp) - Begin - Add User Origin Tags to Case"
-                            $OriginUserTags = $CaseTags | Where-Object -Property Primary -in "User" | Where-Object -Property Note -in "Origin", "Sender"
-
-                            # Iterate through Origin Host tags
-                            ForEach ($OriginUserTag in $OriginUserTags) {
-                                # If the Curent Case Host Tags does not include the Origin Host Tag, add it
-                                if ($CurUserTags -notcontains $OriginUserTag.Tag) {
-                                    $TagStatus = Get-LrTags -Name $OriginUserTag.Tag -Exact
-                                    if ($null -eq $TagStatus) {
-                                        Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($OriginUserTag.tag)"
-                                        New-LrTag -Tag $OriginUserTag.Tag
-                                        Start-Sleep $APISleep
-                                    }
-                                    Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($OriginUserTag.tag) to Case: $($OutObject.CaseNumber)"
-                                    Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $OriginUserTag.Tag
-                                    $ScreenNewTags.add($OriginUserTag)
-                                    Start-Sleep $APISleep
-                                }
-                            }
-                            Write-Verbose "$(Get-Timestamp) - End - Add User Origin Tags to Case"
-                        }
-
-                        # General User Impacted Tags
-                        if ($TagImpactedUsers) {
-                            Write-Verbose "$(Get-Timestamp) - Begin - Add User Impacted Tags to Case"
-                            $ImpactUserTags = $CaseTags | Where-Object -Property Primary -in "User" | Where-Object -Property Note -in "Impacted", "Recipient"
-
-                            # Iterate through Impacted User tags
-                            ForEach ($ImpactUserTag in $ImpactUserTags) {
-                                # If the Curent Case User Tags does not include the Impacted User Tag, add it
-                                if ($CurUserTags -notcontains $ImpactUserTag.Tag) {
-                                    $TagStatus = Get-LrTags -Name $ImpactUserTag.Tag -Exact
-                                    if ($null -eq $TagStatus) {
-                                        Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($ImpactUserTag.tag)"
-                                        New-LrTag -Tag $ImpactUserTag.Tag
-                                        Start-Sleep $APISleep
-                                    }
-                                    Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($ImpactUserTag.tag) to Case: $($OutObject.CaseNumber)"
-                                    Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $ImpactUserTag.Tag
-                                    $ScreenNewTags.add($ImpactUserTag)
-                                    Start-Sleep $APISleep
-                                }
-                            }
-                            Write-Verbose "$(Get-Timestamp) - End - Add User Impacted Tags to Case"
-                        }
-
-
-                        # Host Tags
-                        $CurHostTags = $ScreenCases.tags | Where-Object -Property text -Match "(HOST|IP|DNS)_.*" | Select-Object -ExpandProperty text
-                        
-                        # If CaseTagOriginHosts is enabled, add new CaseTagOriginHosts to Case
-                        if ($TagOriginHosts -eq $true) {
-                            Write-Verbose "$(Get-Timestamp) - Begin - Add Host Origin Tags to Case"
-                            $OriginHostTags = $CaseTags | Where-Object -Property Primary -in "HOST","IP","DNS" | Where-Object -Property Note -eq "Origin"
-
-                            # Iterate through Origin Host tags
-                            ForEach ($OriginHostTag in $OriginHostTags) {
-                                # If the Curent Case Host Tags does not include the Origin Host Tag, add it
-                                if ($CurHostTags -notcontains $OriginHostTag.Tag) {
-                                    $TagStatus = Get-LrTags -Name $OriginHostTag.Tag -Exact
-                                    if ($null -eq $TagStatus) {
-                                        Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($OriginHostTag.tag)"
-                                        New-LrTag -Tag $OriginHostTag.Tag
-                                        Start-Sleep $APISleep
-                                    }
-                                    Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($OriginHostTag.tag) to Case: $($OutObject.CaseNumber)"
-                                    Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $OriginHostTag.Tag
-                                    $ScreenNewTags.add($OriginHostTag)
-                                    Start-Sleep $APISleep
-                                }
-                            }
-                            Write-Verbose "$(Get-Timestamp) - End - Add Host Origin Tags to Case"
-                        }
-
-                        if ($TagImpactedHosts -eq $true) {
-                            Write-Verbose "$(Get-Timestamp) - Begin - Add Host Impacted Tags to Case"
-                            $ImpactedHostTags = $CaseTags | Where-Object -Property Primary -in "HOST","IP","DNS" | Where-Object -Property Note -eq "Impacted"
-
-                            # Iterate through Origin Host tags
-                            ForEach ($ImpactedHostTag in $ImpactedHostTags) {
-                                # If the Curent Case Host Tags does not include the Origin Host Tag, add it
-                                if ($CurHostTags -notcontains $ImpactedHostTag.Tag) {
-                                    $TagStatus = Get-LrTags -Name $ImpactedHostTag.Tag -Exact
-                                    if ($null -eq $TagStatus) {
-                                        Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($ImpactedHostTag.Tag)"
-                                        New-LrTag -Tag $ImpactedHostTag.Tag
-                                        Start-Sleep $APISleep
-                                    }
-                                    Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($ImpactedHostTag.tag) to Case: $($OutObject.CaseNumber)"
-                                    Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $ImpactedHostTag.Tag
-                                    $ScreenNewTags.add($ImpactedHostTag)
-                                    Start-Sleep $APISleep
-                                }
-                            }
-                            Write-Verbose "$(Get-Timestamp) - End - Add Host Origin Tags to Case"
-                        }
-
-                        if ($ScreenNewTags) {
-                            $ScreenTagNote += "-==- Updated Case Taxonomy Tags -==-`r`nIdenified new resources from Alarm: $($AlarmDetails.AlarmId).`r`n`r`nNew Tags:`r`n"
-                            ForEach ($ScreenTag in $ScreenNewTags) {
-                            # Apply Regex match approach to support future modifications to case tag listing and prevent adding non-taxonomy tags to note.
-                                Switch -regex ($ScreenTag) {
-                                    'tech_.*' {$ScreenTagNote +="$($ScreenTag.tag)`r`n"}
-                                    'user_.*' {$ScreenTagNote +="$($ScreenTag.tag)`r`n"}
-                                    'host_.*' {$ScreenTagNote +="$($ScreenTag.tag)`r`n"}
-                                    'ip_*' {$ScreenTagNote +="$($ScreenTag.tag)`r`n"}
-                                    'dns_*' {$ScreenTagNote +="$($ScreenTag.tag)`r`n"}
-                                }
-                            }
-                            Add-LrNoteToCase -Id $ScreenCases.Number -Text $ScreenTagNote
+                        # Verify ScreenCases contains the associated HostTag.
+                        if ($ScreenCases.tags.text.Contains($HostTag)) { 
+                            # Add alarm to case
+                            Add-LrAlarmToCase -Id $ScreenCases.number -AlarmNumbers $AlarmDetails.AlarmId
                             Start-Sleep $APISleep
-                        }
 
-                        return $OutObject
+                            $OutObject.CaseNumber = $ScreenCases.number
+                            $OutObject.Case.CaseObject = $ScreenCases
+                            $OutObject.Case.Note = "Existing case updated due to matched Host Impacted association with Alarm."
+
+
+                            # User Tags
+                            $CurUserTags = $ScreenCases.tags | Where-Object -Property text -match "User_.*" | Select-Object -ExpandProperty text
+
+                            # Generate User Origin Tags
+                            if ($TagOriginUsers -like "true") {
+                                Write-Verbose "$(Get-Timestamp) - Begin - Add User Origin Tags to Case"
+                                $OriginUserTags = $CaseTags | Where-Object -Property Primary -in "User" | Where-Object -Property Note -match 'Origin|Sender'
+
+                                # Iterate through Origin Host tags
+                                ForEach ($OriginUserTag in $OriginUserTags) {
+                                    # If the Curent Case Host Tags does not include the Origin Host Tag, add it
+                                    if ($CurUserTags -notcontains $OriginUserTag.Tag) {
+                                        $TagStatus = Get-LrTags -Name $OriginUserTag.Tag -Exact
+                                        if ($null -eq $TagStatus) {
+                                            Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($OriginUserTag.tag)"
+                                            New-LrTag -Tag $OriginUserTag.Tag
+                                            Start-Sleep $APISleep
+                                        }
+                                        Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($OriginUserTag.tag) to Case: $($OutObject.CaseNumber)"
+                                        Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $OriginUserTag.Tag
+                                        $ScreenNewTags.add($OriginUserTag)
+                                        Start-Sleep $APISleep
+                                    }
+                                }
+                                Write-Verbose "$(Get-Timestamp) - End - Add User Origin Tags to Case"
+                            }
+
+                            # General User Impacted Tags
+                            if ($TagImpactedUsers  -like "true" ) {
+                                Write-Verbose "$(Get-Timestamp) - Begin - Add User Impacted Tags to Case"
+                                $ImpactUserTags = $CaseTags | Where-Object -Property Primary -in "User" | Where-Object -Property Note -match 'Recipient|Impacted'
+
+                                # Iterate through Impacted User tags
+                                ForEach ($ImpactUserTag in $ImpactUserTags) {
+                                    # If the Curent Case User Tags does not include the Impacted User Tag, add it
+                                    if ($CurUserTags -notcontains $ImpactUserTag.Tag) {
+                                        $TagStatus = Get-LrTags -Name $ImpactUserTag.Tag -Exact
+                                        if ($null -eq $TagStatus) {
+                                            Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($ImpactUserTag.tag)"
+                                            New-LrTag -Tag $ImpactUserTag.Tag
+                                            Start-Sleep $APISleep
+                                        }
+                                        Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($ImpactUserTag.tag) to Case: $($OutObject.CaseNumber)"
+                                        Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $ImpactUserTag.Tag
+                                        $ScreenNewTags.add($ImpactUserTag)
+                                        Start-Sleep $APISleep
+                                    }
+                                }
+                                Write-Verbose "$(Get-Timestamp) - End - Add User Impacted Tags to Case"
+                            }
+
+
+                            # Host Tags
+                            $CurHostTags = $ScreenCases.tags | Where-Object -Property text -Match "(HOST|IP|DNS)_.*" | Select-Object -ExpandProperty text
+
+                            # If CaseTagOriginHosts is enabled, add new CaseTagOriginHosts to Case
+                            if ($TagOriginHosts -like "true" ) {
+                                Write-Verbose "$(Get-Timestamp) - Begin - Add Host Origin Tags to Case"
+                                $OriginHostTags = $CaseTags | Where-Object -Property Primary -in "HOST","IP","DNS" | Where-Object -Property Note -eq "Origin"
+
+                                # Iterate through Origin Host tags
+                                ForEach ($OriginHostTag in $OriginHostTags) {
+                                    # If the Curent Case Host Tags does not include the Origin Host Tag, add it
+                                    if ($CurHostTags -notcontains $OriginHostTag.Tag) {
+                                        $TagStatus = Get-LrTags -Name $OriginHostTag.Tag -Exact
+                                        if ($null -eq $TagStatus) {
+                                            Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($OriginHostTag.tag)"
+                                            New-LrTag -Tag $OriginHostTag.Tag
+                                            Start-Sleep $APISleep
+                                        }
+                                        Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($OriginHostTag.tag) to Case: $($OutObject.CaseNumber)"
+                                        Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $OriginHostTag.Tag
+                                        $ScreenNewTags.add($OriginHostTag)
+                                        Start-Sleep $APISleep
+                                    }
+                                }
+                                Write-Verbose "$(Get-Timestamp) - End - Add Host Origin Tags to Case"
+                            }
+
+                            if ($TagImpactedHosts -like "true" ) {
+                                Write-Verbose "$(Get-Timestamp) - Begin - Add Host Impacted Tags to Case"
+                                $ImpactedHostTags = $CaseTags | Where-Object -Property Primary -in "HOST","IP","DNS" | Where-Object -Property Note -eq "Impacted"
+
+                                # Iterate through Origin Host tags
+                                ForEach ($ImpactedHostTag in $ImpactedHostTags) {
+                                    # If the Curent Case Host Tags does not include the Origin Host Tag, add it
+                                    if ($CurHostTags -notcontains $ImpactedHostTag.Tag) {
+                                        $TagStatus = Get-LrTags -Name $ImpactedHostTag.Tag -Exact
+                                        if ($null -eq $TagStatus) {
+                                            Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($ImpactedHostTag.Tag)"
+                                            New-LrTag -Tag $ImpactedHostTag.Tag
+                                            Start-Sleep $APISleep
+                                        }
+                                        Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($ImpactedHostTag.tag) to Case: $($OutObject.CaseNumber)"
+                                        Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $ImpactedHostTag.Tag
+                                        $ScreenNewTags.add($ImpactedHostTag)
+                                        Start-Sleep $APISleep
+                                    }
+                                }
+                                Write-Verbose "$(Get-Timestamp) - End - Add Host Origin Tags to Case"
+                            }
+
+                            if ($ScreenNewTags) {
+                                $ScreenTagNote += "-==- Updated Case Taxonomy Tags -==-`r`nIdenified new resources from Alarm: $($AlarmDetails.AlarmId).`r`n`r`nNew Tags:`r`n"
+                                ForEach ($ScreenTag in $ScreenNewTags) {
+                                # Apply Regex match approach to support future modifications to case tag listing and prevent adding non-taxonomy tags to note.
+                                    Switch -regex ($ScreenTag) {
+                                        'tech_.*' {$ScreenTagNote +="$($ScreenTag.tag)`r`n"}
+                                        'user_.*' {$ScreenTagNote +="$($ScreenTag.tag)`r`n"}
+                                        'host_.*' {$ScreenTagNote +="$($ScreenTag.tag)`r`n"}
+                                        'ip_*' {$ScreenTagNote +="$($ScreenTag.tag)`r`n"}
+                                        'dns_*' {$ScreenTagNote +="$($ScreenTag.tag)`r`n"}
+                                    }
+                                }
+                                Add-LrNoteToCase -Id $ScreenCases.Number -Text $ScreenTagNote
+                                Start-Sleep $APISleep
+                            }
+
+                            return $OutObject
+                        } else {
+                            # Continue to next HostTag
+                            continue
+                        } 
                     }
                 }
             }
@@ -1398,7 +1477,7 @@ Function New-LrCaseHelper {
         }
 
         # Check if BindAlarmToExistingCase is enabled for User Case association
-        if ($CaseTagImpactedHosts -eq $true) {
+        if ($TagImpactedHosts -like "true") {
             Write-Verbose "$(Get-Timestamp) - Begin - Bind Alarm to Existing Case - Host Origin"
             if ($BindAlarmToExistingCase -like "originhost") {
                 # Build array of pending Tags associated with primary TAG:USER
@@ -1409,142 +1488,148 @@ Function New-LrCaseHelper {
                 # Screen for existing case, if so add new details to existing case and halt
                 ForEach ($HostTag in $HostTags) {
                     # Identify if an open case exists involving same AIE Alarm and Host exists.  Valid case status:  Created, Incident, Mitigated
-                    $ScreenCases = Get-LrCases -Name $AlarmDetails.AIERuleName -Exact -Tags $HostTag -Status @("1", "3", "4")
+                    $ScreenCases = Get-LrCases -Name $AlarmDetails.AIERuleName -Tags $HostTag -Status @("1", "3", "4")
                     Start-Sleep $APISleep
                     if ($ScreenCases) {
                         if ($ScreenCases.count -gt 1) {
                             # Update most recent case
                             $ScreenCases = $ScreenCases | Sort-Object -Property dateUpdated -Descending | Select-Object -First 1
                         }
-                        # Add alarm to case
-                        Add-LrAlarmToCase -Id $ScreenCases.number -AlarmNumbers $AlarmDetails.AlarmId
-                        Start-Sleep $APISleep
-
-                        $OutObject.CaseNumber = $ScreenCases.number
-                        $OutObject.Case.CaseObject = $ScreenCases
-                        $OutObject.Case.Note = "Existing case updated due to matched Host Origin association with Alarm."
-
-
-                        # User Tags
-                        $CurUserTags = $ScreenCases.tags | Where-Object -Property text -match "User_.*" | Select-Object -ExpandProperty text
-
-                        # Generate User Origin Tags
-                        if ($TagOriginUsers) {
-                            Write-Verbose "$(Get-Timestamp) - Begin - Add User Origin Tags to Case"
-                            $OriginUserTags = $CaseTags | Where-Object -Property Primary -in "User" | Where-Object -Property Note -in "Origin", "Sender"
-
-                            # Iterate through Origin Host tags
-                            ForEach ($OriginUserTag in $OriginUserTags) {
-                                # If the Curent Case Host Tags does not include the Origin Host Tag, add it
-                                if ($CurUserTags -notcontains $OriginUserTag.Tag) {
-                                    $TagStatus = Get-LrTags -Name $OriginUserTag.Tag -Exact
-                                    if ($null -eq $TagStatus) {
-                                        Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($OriginUserTag.tag)"
-                                        New-LrTag -Tag $OriginUserTag.Tag
-                                        Start-Sleep $APISleep
-                                    }
-                                    Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($OriginUserTag.tag) to Case: $($OutObject.CaseNumber)"
-                                    Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $OriginUserTag.Tag
-                                    $ScreenNewTags.add($OriginUserTag)
-                                    Start-Sleep $APISleep
-                                }
-                            }
-                            Write-Verbose "$(Get-Timestamp) - End - Add User Origin Tags to Case"
-                        }
-
-                        # General User Impacted Tags
-                        if ($TagImpactedUsers) {
-                            Write-Verbose "$(Get-Timestamp) - Begin - Add User Impacted Tags to Case"
-                            $ImpactUserTags = $CaseTags | Where-Object -Property Primary -in "User" | Where-Object -Property Note -in "Impacted", "Recipient"
-
-                            # Iterate through Impacted User tags
-                            ForEach ($ImpactUserTag in $ImpactUserTags) {
-                                # If the Curent Case User Tags does not include the Impacted User Tag, add it
-                                if ($CurUserTags -notcontains $ImpactUserTag.Tag) {
-                                    $TagStatus = Get-LrTags -Name $ImpactUserTag.Tag -Exact
-                                    if ($null -eq $TagStatus) {
-                                        Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($ImpactUserTag.tag)"
-                                        New-LrTag -Tag $ImpactUserTag.Tag
-                                        Start-Sleep $APISleep
-                                    }
-                                    Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($ImpactUserTag.tag) to Case: $($OutObject.CaseNumber)"
-                                    Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $ImpactUserTag.Tag
-                                    $ScreenNewTags.add($ImpactUserTag)
-                                    Start-Sleep $APISleep
-                                }
-                            }
-                            Write-Verbose "$(Get-Timestamp) - End - Add User Impacted Tags to Case"
-                        }
-
-                        # Host Tags
-                        $CurHostTags = $ScreenCases.tags | Where-Object -Property text -Match "(HOST|IP|DNS)_.*" | Select-Object -ExpandProperty text
-                        
-                        # If CaseTagOriginHosts is enabled, add new CaseTagOriginHosts to Case
-                        if ($TagOriginHosts -eq $true) {
-                            Write-Verbose "$(Get-Timestamp) - Begin - Add Host Origin Tags to Case"
-                            $OriginHostTags = $CaseTags | Where-Object -Property Primary -in "HOST","IP","DNS" | Where-Object -Property Note -eq "Origin"
-
-                            # Iterate through Origin Host tags
-                            ForEach ($OriginHostTag in $OriginHostTags) {
-                                # If the Curent Case Host Tags does not include the Origin Host Tag, add it
-                                if ($CurHostTags -notcontains $OriginHostTag.Tag) {
-                                    $TagStatus = Get-LrTags -Name $OriginHostTag.Tag -Exact
-                                    if ($null -eq $TagStatus) {
-                                        Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($OriginHostTag.tag)"
-                                        New-LrTag -Tag $OriginHostTag.Tag
-                                        Start-Sleep $APISleep
-                                    }
-                                    Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($OriginHostTag.tag) to Case: $($OutObject.CaseNumber)"
-                                    Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $OriginHostTag.Tag
-                                    $ScreenNewTags.add($OriginHostTag)
-                                    Start-Sleep $APISleep
-                                }
-                            }
-                            Write-Verbose "$(Get-Timestamp) - End - Add Host Origin Tags to Case"
-                        }
-
-                        if ($TagImpactedHosts -eq $true) {
-                            Write-Verbose "$(Get-Timestamp) - Begin - Add Host Impacted Tags to Case"
-                            $ImpactedHostTags = $CaseTags | Where-Object -Property Primary -in "HOST","IP","DNS" | Where-Object -Property Note -eq "Impacted"
-
-                            # Iterate through Origin Host tags
-                            ForEach ($ImpactedHostTag in $ImpactedHostTags) {
-                                # If the Curent Case Host Tags does not include the Origin Host Tag, add it
-                                if ($CurHostTags -notcontains $ImpactedHostTag.Tag) {
-                                    $TagStatus = Get-LrTags -Name $ImpactedHostTag.Tag -Exact
-                                    if ($null -eq $TagStatus) {
-                                        Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($ImpactedHostTag.Tag)"
-                                        New-LrTag -Tag $ImpactedHostTag.Tag
-                                        Start-Sleep $APISleep
-                                    }
-                                    Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($ImpactedHostTag.tag) to Case: $($OutObject.CaseNumber)"
-                                    Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $ImpactedHostTag.Tag
-                                    $ScreenNewTags.add($ImpactedHostTag)
-                                    Start-Sleep $APISleep
-                                }
-                            }
-                            Write-Verbose "$(Get-Timestamp) - End - Add Host Origin Tags to Case"
-                        }
-
-                        if ($ScreenNewTags) {
-                            Write-Verbose "$(Get-Timestamp) - Begin - Add Updated Case Taxonomy to Case"
-                            $ScreenTagNote += "-==- Updated Case Taxonomy Tags -==-`r`nIdenified new resources from Alarm: $($AlarmDetails.AlarmId).`r`n`r`nNew Tags:`r`n"
-                            ForEach ($ScreenTag in $ScreenNewTags) {
-                            # Apply Regex match approach to support future modifications to case tag listing and prevent adding non-taxonomy tags to note.
-                                Switch -regex ($ScreenTag) {
-                                    'tech_.*' {$ScreenTagNote +="$($ScreenTag.tag)`r`n"}
-                                    'user_.*' {$ScreenTagNote +="$($ScreenTag.tag)`r`n"}
-                                    'host_.*' {$ScreenTagNote +="$($ScreenTag.tag)`r`n"}
-                                    'ip_*' {$ScreenTagNote +="$($ScreenTag.tag)`r`n"}
-                                    'dns_*' {$ScreenTagNote +="$($ScreenTag.tag)`r`n"}
-                                }
-                            }
-                            Add-LrNoteToCase -Id $ScreenCases.Number -Text $ScreenTagNote
+                        # Verify ScreenCases contains the associated HostTag.
+                        if ($ScreenCases.tags.text.Contains($HostTag)) { 
+                            # Add alarm to case
+                            Add-LrAlarmToCase -Id $ScreenCases.number -AlarmNumbers $AlarmDetails.AlarmId
                             Start-Sleep $APISleep
-                            Write-Verbose "$(Get-Timestamp) - End - Add Updated Case Taxonomy to Case"
-                        }
 
-                        return $OutObject
+                            $OutObject.CaseNumber = $ScreenCases.number
+                            $OutObject.Case.CaseObject = $ScreenCases
+                            $OutObject.Case.Note = "Existing case updated due to matched Host Origin association with Alarm."
+
+
+                            # User Tags
+                            $CurUserTags = $ScreenCases.tags | Where-Object -Property text -match "User_.*" | Select-Object -ExpandProperty text
+
+                            # Generate User Origin Tags
+                            if ($TagOriginUsers -like "true") {
+                                Write-Verbose "$(Get-Timestamp) - Begin - Add User Origin Tags to Case"
+                                $OriginUserTags = $CaseTags | Where-Object -Property Primary -in "User" | Where-Object -Property Note -match 'Origin|Sender'
+
+                                # Iterate through Origin Host tags
+                                ForEach ($OriginUserTag in $OriginUserTags) {
+                                    # If the Curent Case Host Tags does not include the Origin Host Tag, add it
+                                    if ($CurUserTags -notcontains $OriginUserTag.Tag) {
+                                        $TagStatus = Get-LrTags -Name $OriginUserTag.Tag -Exact
+                                        if ($null -eq $TagStatus) {
+                                            Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($OriginUserTag.tag)"
+                                            New-LrTag -Tag $OriginUserTag.Tag
+                                            Start-Sleep $APISleep
+                                        }
+                                        Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($OriginUserTag.tag) to Case: $($OutObject.CaseNumber)"
+                                        Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $OriginUserTag.Tag
+                                        $ScreenNewTags.add($OriginUserTag)
+                                        Start-Sleep $APISleep
+                                    }
+                                }
+                                Write-Verbose "$(Get-Timestamp) - End - Add User Origin Tags to Case"
+                            }
+
+                            # General User Impacted Tags
+                            if ($TagImpactedUsers  -like "true") {
+                                Write-Verbose "$(Get-Timestamp) - Begin - Add User Impacted Tags to Case"
+                                $ImpactUserTags = $CaseTags | Where-Object -Property Primary -in "User" | Where-Object -Property Note -match 'Recipient|Impacted'
+
+                                # Iterate through Impacted User tags
+                                ForEach ($ImpactUserTag in $ImpactUserTags) {
+                                    # If the Curent Case User Tags does not include the Impacted User Tag, add it
+                                    if ($CurUserTags -notcontains $ImpactUserTag.Tag) {
+                                        $TagStatus = Get-LrTags -Name $ImpactUserTag.Tag -Exact
+                                        if ($null -eq $TagStatus) {
+                                            Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($ImpactUserTag.tag)"
+                                            New-LrTag -Tag $ImpactUserTag.Tag
+                                            Start-Sleep $APISleep
+                                        }
+                                        Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($ImpactUserTag.tag) to Case: $($OutObject.CaseNumber)"
+                                        Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $ImpactUserTag.Tag
+                                        $ScreenNewTags.add($ImpactUserTag)
+                                        Start-Sleep $APISleep
+                                    }
+                                }
+                                Write-Verbose "$(Get-Timestamp) - End - Add User Impacted Tags to Case"
+                            }
+
+                            # Host Tags
+                            $CurHostTags = $ScreenCases.tags | Where-Object -Property text -Match "(HOST|IP|DNS)_.*" | Select-Object -ExpandProperty text
+
+                            # If CaseTagOriginHosts is enabled, add new CaseTagOriginHosts to Case
+                            if ($TagOriginHosts -like "true" ) {
+                                Write-Verbose "$(Get-Timestamp) - Begin - Add Host Origin Tags to Case"
+                                $OriginHostTags = $CaseTags | Where-Object -Property Primary -in "HOST","IP","DNS" | Where-Object -Property Note -eq "Origin"
+
+                                # Iterate through Origin Host tags
+                                ForEach ($OriginHostTag in $OriginHostTags) {
+                                    # If the Curent Case Host Tags does not include the Origin Host Tag, add it
+                                    if ($CurHostTags -notcontains $OriginHostTag.Tag) {
+                                        $TagStatus = Get-LrTags -Name $OriginHostTag.Tag -Exact
+                                        if ($null -eq $TagStatus) {
+                                            Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($OriginHostTag.tag)"
+                                            New-LrTag -Tag $OriginHostTag.Tag
+                                            Start-Sleep $APISleep
+                                        }
+                                        Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($OriginHostTag.tag) to Case: $($OutObject.CaseNumber)"
+                                        Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $OriginHostTag.Tag
+                                        $ScreenNewTags.add($OriginHostTag)
+                                        Start-Sleep $APISleep
+                                    }
+                                }
+                                Write-Verbose "$(Get-Timestamp) - End - Add Host Origin Tags to Case"
+                            }
+
+                            if ($TagImpactedHosts -like "true") {
+                                Write-Verbose "$(Get-Timestamp) - Begin - Add Host Impacted Tags to Case"
+                                $ImpactedHostTags = $CaseTags | Where-Object -Property Primary -in "HOST","IP","DNS" | Where-Object -Property Note -eq "Impacted"
+
+                                # Iterate through Origin Host tags
+                                ForEach ($ImpactedHostTag in $ImpactedHostTags) {
+                                    # If the Curent Case Host Tags does not include the Origin Host Tag, add it
+                                    if ($CurHostTags -notcontains $ImpactedHostTag.Tag) {
+                                        $TagStatus = Get-LrTags -Name $ImpactedHostTag.Tag -Exact
+                                        if ($null -eq $TagStatus) {
+                                            Write-Verbose "$(Get-Timestamp) - Info - Creating new tag: $($ImpactedHostTag.Tag)"
+                                            New-LrTag -Tag $ImpactedHostTag.Tag
+                                            Start-Sleep $APISleep
+                                        }
+                                        Write-Verbose "$(Get-Timestamp) - Info - Adding tag: $($ImpactedHostTag.tag) to Case: $($OutObject.CaseNumber)"
+                                        Add-LrCaseTags -Id $OutObject.CaseNumber -Tags $ImpactedHostTag.Tag
+                                        $ScreenNewTags.add($ImpactedHostTag)
+                                        Start-Sleep $APISleep
+                                    }
+                                }
+                                Write-Verbose "$(Get-Timestamp) - End - Add Host Origin Tags to Case"
+                            }
+
+                            if ($ScreenNewTags) {
+                                Write-Verbose "$(Get-Timestamp) - Begin - Add Updated Case Taxonomy to Case"
+                                $ScreenTagNote += "-==- Updated Case Taxonomy Tags -==-`r`nIdenified new resources from Alarm: $($AlarmDetails.AlarmId).`r`n`r`nNew Tags:`r`n"
+                                ForEach ($ScreenTag in $ScreenNewTags) {
+                                # Apply Regex match approach to support future modifications to case tag listing and prevent adding non-taxonomy tags to note.
+                                    Switch -regex ($ScreenTag) {
+                                        'tech_.*' {$ScreenTagNote +="$($ScreenTag.tag)`r`n"}
+                                        'user_.*' {$ScreenTagNote +="$($ScreenTag.tag)`r`n"}
+                                        'host_.*' {$ScreenTagNote +="$($ScreenTag.tag)`r`n"}
+                                        'ip_*' {$ScreenTagNote +="$($ScreenTag.tag)`r`n"}
+                                        'dns_*' {$ScreenTagNote +="$($ScreenTag.tag)`r`n"}
+                                    }
+                                }
+                                Add-LrNoteToCase -Id $ScreenCases.Number -Text $ScreenTagNote
+                                Start-Sleep $APISleep
+                                Write-Verbose "$(Get-Timestamp) - End - Add Updated Case Taxonomy to Case"
+                            }
+
+                            return $OutObject
+                        } else {
+                            # Continue to next HostTag
+                            continue
+                        }
                     }
                 }
             }
@@ -1591,7 +1676,7 @@ Function New-LrCaseHelper {
 
         # Create and assign HOST Tags
         # HostOrigin
-        if ($TagOriginHosts -eq $true) {
+        if ($TagOriginHosts -like "true" ) {
             Write-Verbose "$(Get-Timestamp) - Begin - Add Host Origin Tags to Case"
             $HostTags = $CaseTags | Where-Object -Property Primary -in "HOST","IP","DNS" | Where-Object -Property Note -eq "Origin"
             ForEach ($HostTag in $HostTags) {
@@ -1610,7 +1695,7 @@ Function New-LrCaseHelper {
         }
 
         # HostImpacted
-        if ($TagImpactedHosts -eq $true) {
+        if ($TagImpactedHosts -like "true") {
             Write-Verbose "$(Get-Timestamp) - Begin - Add Host Impacted Tags to Case"
             $HostTags = $CaseTags | Where-Object -Property Primary -in "HOST","IP","DNS" | Where-Object -Property Note -eq "Impacted"
             ForEach ($HostTag in $HostTags) {
@@ -1629,9 +1714,9 @@ Function New-LrCaseHelper {
         }
 
         # Generate User Origin Tags
-        if ($TagOriginUsers) {
+        if ($TagOriginUsers -like "true") {
             Write-Verbose "$(Get-Timestamp) - Begin - Add User Origin Tags to Case"
-            $OriginUserTags = $CaseTags | Where-Object -Property Primary -in "User" | Where-Object -Property Note -in "Origin", "Sender"
+            $OriginUserTags = $CaseTags | Where-Object -Property Primary -in "User" | Where-Object -Property Note -match 'Origin|Sender'
 
             # Iterate through Origin Host tags
             ForEach ($OriginUserTag in $OriginUserTags) {
@@ -1653,9 +1738,9 @@ Function New-LrCaseHelper {
         }
 
         # General User Impacted Tags
-        if ($TagImpactedUsers) {
+        if ($TagImpactedUsers -like "true") {
             Write-Verbose "$(Get-Timestamp) - Begin - Add User Impacted Tags to Case"
-            $ImpactUserTags = $CaseTags | Where-Object -Property Primary -eq "User" | Where-Object -Property Note -in "Impacted", "Recipient"
+            $ImpactUserTags = $CaseTags | Where-Object -Property Primary -eq "User" | Where-Object -Property Note -match 'Recipient|Impacted'
             ForEach ($ImpactUserTag in $ImpactUserTags) {
                 # If the Curent Case User Tags does not include the Impacted User Tag, add it
                 if ($CurUserTags -notcontains $ImpactUserTag.Tag) {
@@ -1707,6 +1792,16 @@ Function New-LrCaseHelper {
             Start-Sleep $APISleep
             Write-Verbose "$(Get-Timestamp) - End - Add CaseTagTaxonomy"
         }
+
+        if ($Collaborators) {
+            Write-Verbose "$(Get-Timestamp) - Begin - Add Collaborators"
+            $CollaboratorsArray=@()
+            $Collaborators = $Collaborators.TrimEnd(";")
+            $CollaboratorsArray = $Collaborators.split(";")
+            Write-Verbose "Collaborators: $CollaboratorsArray"
+            Add-LrCaseCollaborators -Id $OutObject.CaseNumber -Names $CollaboratorsArray
+            Write-Verbose "$(Get-Timestamp) - Begin - End Collaborators"
+        }  
 
         Write-Verbose "$(Get-Timestamp) - End New-LrCaseHelper"
         if ($PassThru) {

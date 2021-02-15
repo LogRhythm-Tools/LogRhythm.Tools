@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<remv1:Remediation-Plugin xmlns:remv1="RemediationVersion1.xsd" Name="LRT: Case Management" Guid="00000000-0000-0000-0000-000000000011" Version="1" IsLogRhythmPlugin="false">
+  <remv1:Action Name="Create Case" Command="C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe">
+    <remv1:ConstantParameter Name="Script" Switch="-file lrt_newcasehelper.ps1 " Order="1" />
+    <remv1:StringParameter Name="Alarm ID" Switch="-AlarmId " Order="2" />
+	<remv1:StringParameter Name="Case Summary" Switch="-CaseSummary " Order="3" />
+	<remv1:StringParameter Name="Case Tag" Switch="-DefaultCaseTag " Order="4" />
+	<remv1:StringParameter Name="Case Playbook" Switch="-Playbook " Order="5" />
+	<remv1:StringParameter Name="Tag Origin Users" Switch="-TagOriginUsers " Order="6" >
+		<remv1:DefaultInput>
+			<remv1:StaticInput Value="$false" />
+		</remv1:DefaultInput>
+	</remv1:StringParameter>
+	<remv1:StringParameter Name="Tag Impacted Users" Switch="-TagImpactedUsers " Order="7" >
+		<remv1:DefaultInput>
+			<remv1:StaticInput Value="$false" />
+		</remv1:DefaultInput>
+	</remv1:StringParameter>
+	<remv1:StringParameter Name="Tag Origin Hosts" Switch="-TagOriginHosts " Order="8" >
+		<remv1:DefaultInput>
+			<remv1:StaticInput Value="$false" />
+		</remv1:DefaultInput>
+	</remv1:StringParameter>
+	<remv1:StringParameter Name="Tag Impacted Hosts" Switch="-TagImpactedHosts " Order="9" >
+		<remv1:DefaultInput>
+			<remv1:StaticInput Value="$false" />
+		</remv1:DefaultInput>
+	</remv1:StringParameter>
+	<remv1:StringParameter Name="Alarm to Case Bind" Switch="-BindAlarmToExistingCase " Order="10" >
+		<remv1:DefaultInput>
+			<remv1:StaticInput Value="userorigin" />
+		</remv1:DefaultInput>
+	</remv1:StringParameter>
+  </remv1:Action>
+</remv1:Remediation-Plugin>

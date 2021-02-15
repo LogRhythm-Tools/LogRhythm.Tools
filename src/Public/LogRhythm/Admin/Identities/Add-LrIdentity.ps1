@@ -85,7 +85,7 @@ Function Add-LrIdentity {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $true, ValueFromPipeline = $false, Position = 0)]
+        [Parameter(Mandatory = $true, valuefrompipelinebypropertyname = $true, Position = 0)]
         [int] $EntityId,
 
 
@@ -93,35 +93,35 @@ Function Add-LrIdentity {
         [string] $SyncName,
 
 
-        [Parameter(Mandatory = $true, ValueFromPipeline = $false, Position = 2)]
+        [Parameter(Mandatory = $true, valuefrompipelinebypropertyname = $true, Position = 2)]
         [string] $NameFirst,
 
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 3)]
+        [Parameter(Mandatory = $false, valuefrompipelinebypropertyname = $true, Position = 3)]
         [string] $NameMiddle,
 
 
-        [Parameter(Mandatory = $true, ValueFromPipeline = $false, Position = 4)]
+        [Parameter(Mandatory = $true, valuefrompipelinebypropertyname = $true, Position = 4)]
         [string] $NameLast,
 
 
-        [Parameter(Mandatory = $true, ValueFromPipeline = $false, Position = 5)]
+        [Parameter(Mandatory = $true, valuefrompipelinebypropertyname = $true, Position = 5)]
         [string] $DisplayIdentifier,
 
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 6)]
+        [Parameter(Mandatory = $false, valuefrompipelinebypropertyname = $true, Position = 6)]
         [string] $Department,
 
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 7)]
+        [Parameter(Mandatory = $false, valuefrompipelinebypropertyname = $true, Position = 7)]
         [string] $Manager,
 
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 8)]
+        [Parameter(Mandatory = $false, valuefrompipelinebypropertyname = $true, Position = 8)]
         [string] $Company,
 
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 9)]
+        [Parameter(Mandatory = $false, valuefrompipelinebypropertyname = $true, Position = 9)]
         [string] $Title,
 
 
@@ -129,47 +129,47 @@ Function Add-LrIdentity {
         [Byte] $PhotoThumbnail,
 
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 11)]
+        [Parameter(Mandatory = $false, valuefrompipelinebypropertyname = $true, Position = 11)]
         [string] $Identifier1Value,
 
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 12)]
+        [Parameter(Mandatory = $false, valuefrompipelinebypropertyname = $true, Position = 12)]
         [ValidateSet('both','login', 'email', ignorecase=$true)]
         [string] $Identifier1Type = "both",
         
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 13)]
+        [Parameter(Mandatory = $false, valuefrompipelinebypropertyname = $true, Position = 13)]
         [string] $Identifier2Value,
 
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 14)]
+        [Parameter(Mandatory = $false, valuefrompipelinebypropertyname = $true, Position = 14)]
         [ValidateSet('both','login', 'email', ignorecase=$true)]
         [string] $Identifier2Type = "both",
 
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 15)]
+        [Parameter(Mandatory = $false, valuefrompipelinebypropertyname = $true, Position = 15)]
         [string] $Identifier3Value,
 
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 16)]
+        [Parameter(Mandatory = $false, valuefrompipelinebypropertyname = $true, Position = 16)]
         [ValidateSet('both','login', 'email', ignorecase=$true)]
         [string] $Identifier3Type = "both",
 
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 17)]
+        [Parameter(Mandatory = $false, valuefrompipelinebypropertyname = $true, Position = 17)]
         [string] $Identifier4Value,
 
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 18)]
+        [Parameter(Mandatory = $false, valuefrompipelinebypropertyname = $true, Position = 18)]
         [ValidateSet('both','login', 'email', ignorecase=$true)]
         [string] $Identifier4Type = "both",
 
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 19)]
+        [Parameter(Mandatory = $false, valuefrompipelinebypropertyname = $true, Position = 19)]
         [string] $Identifier5Value,
 
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $false, Position = 20)]
+        [Parameter(Mandatory = $false, valuefrompipelinebypropertyname = $true, Position = 20)]
         [ValidateSet('both','login', 'email', ignorecase=$true)]
         [string] $Identifier5Type = "both",
 
@@ -201,16 +201,11 @@ Function Add-LrIdentity {
             $SyncName = "LRT-"+(-join (((65..90)+(97..122)) | Get-Random -Count 10 | ForEach-Object {[char]$_}))
         }
 
-
-        # Create vendorUniqueKey based on SyncName
-        $StringBuilder = New-Object System.Text.StringBuilder
-        [System.Security.Cryptography.HashAlgorithm]::Create("SHA1").ComputeHash([System.Text.Encoding]::UTF8.GetBytes($SyncName + "-" + (-join (((65..90)+(97..122)) | Get-Random -Count 10 | ForEach-Object {[char]$_})) )) | ForEach-Object {
-            [Void]$StringBuilder.Append($_.ToString("x2"))
-        }
-        $VendorUniqueKey = $StringBuilder.ToString()
-
         # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
         Enable-TrustAllCertsPolicy
+
+        # Establish Object for new TrueIdentity records
+        $NewIdentities = [list[object]]::new()
     }
 
     Process {
@@ -222,131 +217,165 @@ Function Add-LrIdentity {
             Type                  =   $null
             NameFirst             =   $NameFirst
             NameLast              =   $NameLast
+            Raw                   =   $null
         }
+
+        # Create vendorUniqueKey based on SyncName
+        $StringBuilder = New-Object System.Text.StringBuilder
+        [System.Security.Cryptography.HashAlgorithm]::Create("SHA1").ComputeHash([System.Text.Encoding]::UTF8.GetBytes($SyncName + "-" + (-join (((65..90)+(97..122)) | Get-Random -Count 10 | ForEach-Object {[char]$_})) )) | ForEach-Object {
+            [Void]$StringBuilder.Append($_.ToString("x2"))
+        }
+        $VendorUniqueKey = $StringBuilder.ToString()
 
          # Section - Build JSON Body - Begin
-        $Accounts = [PSCustomObject]@{}
+        $Identity = [PSCustomObject]@{}
         # Photo Thumbnail - Optional - Add in ContentType validation
-        if ($PhotoThumbnail) {$Accounts | Add-Member -NotePropertyName thumbnailPhoto -NotePropertyValue $PhotoThumbnail}
+        if ($PhotoThumbnail) {$Identity | Add-Member -NotePropertyName thumbnailPhoto -NotePropertyValue $PhotoThumbnail}
         # VendorUniqueKey - Required
-        $Accounts | Add-Member -NotePropertyName vendorUniqueKey -NotePropertyValue $VendorUniqueKey
+        $Identity | Add-Member -NotePropertyName vendorUniqueKey -NotePropertyValue $VendorUniqueKey
 
-        <#  This section requires some testingto identify value/impact
-        $Accounts | Add-Member -NotePropertyName hasOwnerIdentity -NotePropertyValue $true
-        $Accounts | Add-Member -NotePropertyName hasSameRootEntityAsTarget -NotePropertyValue $true
-        $Accounts | Add-Member -NotePropertyName isPrimary -NotePropertyValue $true
-        
-        if ($AccountType) {
-            $Accounts | Add-Member -NotePropertyName accountType -NotePropertyValue "Custom"
-        } else {
-            $Accounts | Add-Member -NotePropertyName accountType -NotePropertyValue "AD"
-        }
-        #>
+
 
         # NameFirst - Required
-        $Accounts | Add-Member -NotePropertyName nameFirst -NotePropertyValue $NameFirst
+        $Identity | Add-Member -NotePropertyName nameFirst -NotePropertyValue $NameFirst
         # NameMiddle - Optional
-        if ($NameMiddle) {$Accounts | Add-Member -NotePropertyName nameMiddle -NotePropertyValue $NameMiddle}
+        if ($NameMiddle) {$Identity | Add-Member -NotePropertyName nameMiddle -NotePropertyValue $NameMiddle}
         # NameLast - Required
-        $Accounts | Add-Member -NotePropertyName nameLast -NotePropertyValue $NameLast
+        $Identity | Add-Member -NotePropertyName nameLast -NotePropertyValue $NameLast
         # DisplayIdentifier - Required
-        $Accounts | Add-Member -NotePropertyName displayIdentifier -NotePropertyValue $DisplayIdentifier
+        $Identity | Add-Member -NotePropertyName displayIdentifier -NotePropertyValue $DisplayIdentifier
         # Company, Department, Title, Manager, AddressCity, DomainNAme - Optional
-        if ($Company) {$Accounts | Add-Member -NotePropertyName company -NotePropertyValue $Company}
-        if ($Department) {$Accounts | Add-Member -NotePropertyName department -NotePropertyValue $Department}
-        if ($Title) {$Accounts | Add-Member -NotePropertyName title -NotePropertyValue $Title}
-        if ($Manager) {$Accounts | Add-Member -NotePropertyName manager -NotePropertyValue $Manager}
-        if ($AddressCity) {$Accounts | Add-Member -NotePropertyName addressCity -NotePropertyValue $AddressCity}
-        if ($DomainName) {$Accounts | Add-Member -NotePropertyName domainName -NotePropertyValue $DomainName}
+        if ($Company) {$Identity | Add-Member -NotePropertyName company -NotePropertyValue $Company}
+        if ($Department) {$Identity | Add-Member -NotePropertyName department -NotePropertyValue $Department}
+        if ($Title) {$Identity | Add-Member -NotePropertyName title -NotePropertyValue $Title}
+        if ($Manager) {$Identity | Add-Member -NotePropertyName manager -NotePropertyValue $Manager}
+        if ($AddressCity) {$Identity | Add-Member -NotePropertyName addressCity -NotePropertyValue $AddressCity}
+        if ($DomainName) {$Identity | Add-Member -NotePropertyName domainName -NotePropertyValue $DomainName}
 
         # Build out Identifiers
         # Logic - If not Email set to Login.  If not Login set to Email.  Any entry, including Both, sets both identifiers. 
         # Add validation for Login/Email/Both input and accept case insensitive.
-        $Identifiers = @()
+        $Identifiers = [list[object]]::new()
+        #$Identifiers = @()
         if ($Identifier1Value) {
             if ($Identifier1Type -ne "Email") {
-                $Identifiers += @{
+                $Identifier = @{
                     identifierType = "Login"
                     value = $Identifier1Value
                 } 
+                if ($Identifiers -notcontains $Identifier) {
+                    $Identifiers.add($Identifier)
+                }
             }
             if ($Identifier1Type -ne "Login") {
-                $Identifiers += @{
+                $Identifier = @{
                     identifierType = "Email"
                     value = $Identifier1Value
-                } 
+                }
+                if ($Identifiers -notcontains $Identifier) {
+                    $Identifiers.add($Identifier)
+                }
             }
         }
         if ($Identifier2Value) {
             if ($Identifier2Type -ne "Email") {
-                $Identifiers += @{
+                $Identifier = @{
                     identifierType = "Login"
                     value = $Identifier2Value
                 } 
+                if ($Identifiers -notcontains $Identifier) {
+                    $Identifiers.add($Identifier)
+                }
             }
             if ($Identifier2Type -ne "Login") {
-                $Identifiers += @{
+                $Identifier = @{
                     identifierType = "Email"
                     value = $Identifier2Value
                 } 
+                if ($Identifiers -notcontains $Identifier) {
+                    $Identifiers.add($Identifier)
+                }
             }
         }
         if ($Identifier3Value) {
             if ($Identifier3Type -ne "Email") {
-                $Identifiers += @{
+                $Identifier = @{
                     identifierType = "Login"
                     value = $Identifier3Value
                 } 
+                if ($Identifiers -notcontains $Identifier) {
+                    $Identifiers.add($Identifier)
+                }
             }
             if ($Identifier3Type -ne "Login") {
-                $Identifiers += @{
+                $Identifier = @{
                     identifierType = "Email"
                     value = $Identifier3Value
                 } 
+                if ($Identifiers -notcontains $Identifier) {
+                    $Identifiers.add($Identifier)
+                }
             }
         }
         if ($Identifier4Value) {
             if ($Identifier4Type -ne "Email") {
-                $Identifiers += @{
+                $Identifier = @{
                     identifierType = "Login"
                     value = $Identifier4Value
                 } 
+                if ($Identifiers -notcontains $Identifier) {
+                    $Identifiers.add($Identifier)
+                }
             }
             if ($Identifier4Type -ne "Login") {
-                $Identifiers += @{
+                $Identifier = @{
                     identifierType = "Email"
                     value = $Identifier4Value
                 } 
+                if ($Identifiers -notcontains $Identifier) {
+                    $Identifiers.add($Identifier)
+                }
             }
         }
         if ($Identifier5Value) {
             if ($Identifier5Type -ne "Email") {
-                $Identifiers += @{
+                $Identifier = @{
                     identifierType = "Login"
                     value = $Identifier2Value
                 } 
+                if ($Identifiers -notcontains $Identifier) {
+                    $Identifiers.add($Identifier)
+                }
             }
             if ($Identifier5Type -ne "Login") {
-                $Identifiers += @{
+                $Identifier = @{
                     identifierType = "Email"
                     value = $Identifier5Value
                 } 
+                if ($Identifiers -notcontains $Identifier) {
+                    $Identifiers.add($Identifier)
+                }
             }
         }
 
         # Add identifiers to PSCustom Object
         if ($Identifiers) {
-            $Accounts | Add-Member -NotePropertyName identifiers -NotePropertyValue $Identifiers
+            $Identity | Add-Member -NotePropertyName identifiers -NotePropertyValue $Identifiers
         }
         # Section - Build JSON Body - End
 
 
+        if ($NewIdentities -notcontains $Identity) {
+            $NewIdentities.add($Identity)
+        }
+
+    }
+
+    End { 
         # Establish Body Contents
         $BodyContents = [PSCustomObject]@{
             friendlyName = $SyncName
-            accounts = @(
-                $Accounts
-            )
+            accounts = $NewIdentities
         } | ConvertTo-Json -Depth 5
         
         Write-Verbose $BodyContents
@@ -355,36 +384,21 @@ Function Add-LrIdentity {
         $RequestUrl = $BaseUrl + "/identities/bulk/?entityID=" + $EntityId
 
         # Send Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents -SkipCertificateCheck
-            }
-            catch {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                return $ErrorObject
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                return $ErrorObject
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "System.Net.WebException"
+            $ErrorObject.Code = $($Err.statusCode)
+            $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
+
 
         if ($PassThru) {
             return $Response
         }
     }
-
-    End { }
 }

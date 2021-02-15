@@ -54,9 +54,7 @@ Function Get-InputCredential {
     # Determine the filename and save location for this key
     if ($UserCredential) {
         $KeyFileName = $AppId + ".Credential.xml"
-    }
-    else
-    {
+    } else {
         $KeyFileName = $AppId + ".ApiKey.xml"
     }
     $KeyPath = Join-Path -Path $ConfigDirPath -ChildPath $KeyFileName
@@ -74,9 +72,7 @@ Function Get-InputCredential {
     $Key = ""
     if ($UserCredential) {
             $Key = Read-Host -AsSecureString -Prompt "  > Password for $AppName"
-    }
-    else
-    {
+    } else {
         while ($Key.Length -lt 10) {
             $Key = Read-Host -AsSecureString -Prompt "  > API Key for $AppName"
             if ($Key.Length -lt 10) {
@@ -93,5 +89,17 @@ Function Get-InputCredential {
         $_cred = [PSCredential]::new($AppId, $Key)
     }
     
-    Export-Clixml -Path $ConfigDirPath\$KeyFileName -InputObject $_cred
+    $OutObject = [PSCustomObject]@{
+        Valid = $null
+        Value = $null
+    }
+    
+    Try {
+        Export-Clixml -Path $ConfigDirPath\$KeyFileName -InputObject $_cred
+        $OutObject.Valid = $true
+    } Catch {
+        $OutObject.Valid = $false
+    }
+
+    return $OutObject
 }

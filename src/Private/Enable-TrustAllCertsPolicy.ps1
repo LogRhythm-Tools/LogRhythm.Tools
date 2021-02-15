@@ -28,17 +28,28 @@ Function Enable-TrustAllCertsPolicy {
 
     if ($LrtConfig.General.CertPolicyRequired) {
         if ($PSEdition -ne 'Core'){
-            Write-Verbose "[Enable-TrustAllCertsPolicy]: Cert Policy is not enabled. Enabling."
-            Add-Type $PSDesktopException
-            try {
-                [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
-            }
-            catch {
-                throw [Exception] `
-                    "[Enable-TrustAllCertsPolicy]: Failed to update System.Net.ServicePointManager::CertificatePolicy to new TrustAllCertsPolicy"
+            if (-Not ("TrustAllCertsPolicy" -as [type])) {
+                Write-Verbose "[Enable-TrustAllCertsPolicy]: Cert Policy is not enabled. Enabling."
+                Add-Type $PSDesktopException
+                try {
+                    [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
+                } catch {
+                    throw [Exception] `
+                        "[Enable-TrustAllCertsPolicy]: Failed to update System.Net.ServicePointManager::CertificatePolicy to new TrustAllCertsPolicy"
+                }
             }
         } else {
-            Write-Verbose "[Enable-TrustAllCertsPolicy]: No centralized mechanism for certificate verification bypass for PSCore.  Utilizing local -SkipCertificateCheck"
+            # Set session default for Invoke-RestMethod and Invoke-WebRequest to SkipCertificateCheck
+            if (-Not $PSDefaultParameterValues.ContainsKey('Invoke-RestMethod:SkipCertificateCheck')) {
+                Write-Verbose "[Enable-TrustAllCertsPolicy]: PowerShell Core - Invoke-RestMethod SkipCertificateCheck set to true"
+                Try {
+                    $PSDefaultParameterValues.Add("Invoke-RestMethod:SkipCertificateCheck",$true)
+                } Catch {
+                    throw [Exception] `
+                    "[Enable-TrustAllCertsPolicy]: Failed to update PSDefaultParameterValues Invoke-RestMethod:SkipCertificateCheck to value true"
+                }
+                
+            }
         }
     } else {
         Write-Verbose "[Enable-TrustAllCertsPolicy]: Cert Policy set as Not Required."

@@ -142,6 +142,7 @@ Function Add-LrListItem {
             ListGuid              =   $null
             ListName              =   $null
             FieldType             =   $null
+            Raw                   =   $null
         }
 
         # Process Name
@@ -161,13 +162,10 @@ Function Add-LrListItem {
                 $ErrorObject.ListName = $Name.ToString()
                 $ErrorObject.ListGuid = $Guid
                 $ErrorObject.Note = "List lookup returned an array of values.  Ensure the list referenced is unique."
+                $ErrorObject.Raw = $TargetList
                 return $ErrorObject
             } elseif ($TargetList.Error -eq $true) {
-                $ErrorObject.Error = $true
-                $ErrorObject.ListName = $TargetList.Name
-                $ErrorObject.ListGuid = $TargetList.Guid
-                $ErrorObject.Note = $TargetList.Note
-                return $ErrorObject
+                return $TargetList
             }
         }
 
@@ -471,7 +469,7 @@ Function Add-LrListItem {
             $ItemValues = [PSCustomObject]@{}
             ForEach ($Entry in $Value) {
                 $ItemValue = [PSCustomObject]@{
-                        displayValue = 'List'
+                        displayValue = $Entry
                         expirationDate = $ExpDate
                         isExpired =  $false
                         isListItem = $false
@@ -497,7 +495,7 @@ Function Add-LrListItem {
             # Request Body
             $BodyContents = [PSCustomObject]@{
                 items = @([PSCustomObject]@{
-                        displayValue = 'List'
+                        displayValue = $Value
                         expirationDate = $ExpDate
                         isExpired =  $false
                         isListItem = $false
@@ -510,7 +508,6 @@ Function Add-LrListItem {
                 )
             }
         }
-        
 
         $Body = $BodyContents | ConvertTo-Json -Depth 5 -Compress
         Write-Verbose "[$Me] Request Body:`n$Body"
@@ -521,48 +518,32 @@ Function Add-LrListItem {
         } elseif ($Value -is [array]) {
             # No Duplicate checking for array of items
             # Send Request
-            if ($PSEdition -eq 'Core'){
-                try {
-                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
-                }
-                catch {
-                    $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                    Write-Verbose "Exception Message: $ExceptionMessage"
-                    return $ExceptionMessage
-                }
-            } else {
-                try {
-                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
-                }
-                catch [System.Net.WebException] {
-                    $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                    Write-Verbose "Exception Message: $ExceptionMessage"
-                    return $ExceptionMessage
-                }
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
+            } catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Error = $true
+                $ErrorObject.Type = "System.Net.WebException"
+                $ErrorObject.Code = $($Err.statusCode)
+                $ErrorObject.Note = $($Err.message)
+                $ErrorObject.Raw = $_
+                return $ErrorObject
             }
         } else {
             # Check for Duplicates for single items
             $ExistingValue = Test-LrListValue -Name $Guid -Value $Value
             if (($ExistingValue.IsPresent -eq $false) -and ($ExistingValue.ListValid -eq $true)) {
                 # Send Request
-                if ($PSEdition -eq 'Core'){
-                    try {
-                        $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
-                    }
-                    catch [System.Net.WebException] {
-                        $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                        Write-Verbose "Exception Message: $ExceptionMessage"
-                        return $ExceptionMessage
-                    }
-                } else {
-                    try {
-                        $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
-                    }
-                    catch [System.Net.WebException] {
-                        $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                        Write-Verbose "Exception Message: $ExceptionMessage"
-                        return $ExceptionMessage
-                    }
+                try {
+                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
+                } catch [System.Net.WebException] {
+                    $Err = Get-RestErrorMessage $_
+                    $ErrorObject.Error = $true
+                    $ErrorObject.Type = "System.Net.WebException"
+                    $ErrorObject.Code = $($Err.statusCode)
+                    $ErrorObject.Note = $($Err.message)
+                    $ErrorObject.Raw = $_
+                    return $ErrorObject
                 }
             } else {
                 $ErrorObject.Error = $true

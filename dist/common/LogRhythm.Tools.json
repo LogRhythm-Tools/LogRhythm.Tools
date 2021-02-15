@@ -12,7 +12,7 @@
     },
 
     "LogRhythm": {
-        "Version":"7.5.0",
+        "Version":"7.6.0",
         "DataIndexerIP": "127.0.0.1",
         "AdminBaseUrl": "https://[NOT_SET]:8501/lr-admin-api",
         "CaseBaseUrl": "https://[NOT_SET]:8501/lr-case-api",
@@ -53,6 +53,13 @@
             "EU": "https://wdatp-alertexporter-eu.windows.com/api/alerts",
             "UK": "https://wdatp-alertexporter-uk.windows.com/api/alerts"
         }
+    },
+
+    "Mimecast": {
+        "BaseUrl": "https://us-api.mimecast.com",
+        "Region": "US",
+        "ApiKey": "",
+        "Credential": ""
     },
 
     "RecordedFuture": {

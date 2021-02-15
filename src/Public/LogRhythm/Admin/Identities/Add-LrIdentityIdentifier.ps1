@@ -99,6 +99,7 @@ Function Add-LrIdentityIdentifier {
             IdentityId            =   $IdentityId
             NameFirst             =   $null
             NameLast              =   $null
+            Raw                   =   $null
         }
 
 
@@ -123,34 +124,18 @@ Function Add-LrIdentityIdentifier {
         # Send Request if Identifier is Not Present
         if ($IdentifierStatus.IsPresent -eq $False) {
             # Send Request
-            if ($PSEdition -eq 'Core'){
-                try {
-                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents -SkipCertificateCheck
-                }
-                catch {
-                    $Err = Get-RestErrorMessage $_
-                    $ErrorObject.Error = $true
-                    $ErrorObject.Type = "System.Net.WebException"
-                    $ErrorObject.Code = $($Err.statusCode)
-                    $ErrorObject.Note = $($Err.message)
-                    $ErrorObject.NameFirst = $IdentifierStatus.NameFirst
-                    $ErrorObject.NameLast = $IdentifierStatus.NameLast
-                    return $ErrorObject
-                }
-            } else {
-                try {
-                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
-                }
-                catch [System.Net.WebException] {
-                    $Err = Get-RestErrorMessage $_
-                    $ErrorObject.Error = $true
-                    $ErrorObject.Type = "System.Net.WebException"
-                    $ErrorObject.Code = $($Err.statusCode)
-                    $ErrorObject.Note = $($Err.message)
-                    $ErrorObject.NameFirst = $IdentifierStatus.NameFirst
-                    $ErrorObject.NameLast = $IdentifierStatus.NameLast
-                    return $ErrorObject
-                }
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
+            } catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Error = $true
+                $ErrorObject.Type = "System.Net.WebException"
+                $ErrorObject.Code = $($Err.statusCode)
+                $ErrorObject.Note = $($Err.message)
+                $ErrorObject.NameFirst = $IdentifierStatus.NameFirst
+                $ErrorObject.NameLast = $IdentifierStatus.NameLast
+                $ErrorObject.Raw = $_
+                return $ErrorObject
             }
         } else {
             $Response = $IdentifierStatus

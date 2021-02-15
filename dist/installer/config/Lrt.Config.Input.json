@@ -17,7 +17,7 @@
 
     "Proxy": {
         "Name": "Proxy",
-        "Optional": false,
+        "Optional": true,
         "Message": "",
         "HasCredential": true,
 
@@ -70,7 +70,7 @@
             "DataIndexerIP": {
                 "Prompt": "LogRhythm Data Indexer",
                 "Hint": "Hostname or IP (x.x.x.x)",
-                "InputCmd": "Get-InputApiUrl",
+                "InputCmd": "Get-InputHostname",
                 "FallThru": false
             },
     
@@ -197,6 +197,26 @@
         }
     },
 
+    "Mimecast": {
+        "Name": "Mimecast",
+        "Optional": true,
+        "Message": "Provides acaccess to Mimecast API. \nNOTE: Mimecast requires for key components for authentication.\nFollow the mapping below to identify where each value should be entered.\nClient/AppID: Application Id\nAPI Key for Mimecast: Access Key \nEnter Username: Application Key\nPassword: Secret Key.",
+        "HasKey": true,
+        "HasClientId": true,
+        "HasCredential": true,
+        "Fields": {
+            "Region": {
+                "Prompt": "Enter your region. Default: US",
+                "Hint": "US, EU or UK",
+                "InputCmd": "Get-StringPattern",
+                "FallThru": false,
+                "InputPattern": {
+                    "Pattern": "^[uU][sS]|[uU][kK]|[eE][uU]$",
+                    "AllowChars": ""
+                }
+            }
+        }
+    },
 
     "RecordedFuture": {
         "Name": "Recorded Future",

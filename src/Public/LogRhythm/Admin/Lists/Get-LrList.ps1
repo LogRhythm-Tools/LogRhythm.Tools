@@ -71,6 +71,7 @@ Function Get-LrList {
         # Define HTTP Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
         $Headers.Add("maxItemsThreshold", $MaxItemsThreshold)
 
         # Define HTTP Method
@@ -78,6 +79,15 @@ Function Get-LrList {
     }
 
     Process {
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Code                  =   $null
+            Error                 =   $false
+            Value                 =   $Value
+            Note                  =   $null
+            Raw                   =   $null
+        }
+
         # Process Name Object
         if (($Name.GetType() -eq [System.Guid]) -Or (Test-Guid $Name)) {
             $Guid = $Name.ToString()
@@ -89,6 +99,11 @@ Function Get-LrList {
             }
             if ($null -eq $Guid) {
                 Return $null
+            } elseif ($Guid.count -ge 2) {
+                $ErrorObject.Error = $true
+                $ErrorObject.Note = "List lookup returned an array of values.  Ensure the list referenced is unique."
+                $ErrorObject.Raw = $Guid
+                return $ErrorObject
             }
         }
 
@@ -97,24 +112,16 @@ Function Get-LrList {
 
 
         # Send Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
-            }
-            catch {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                return $ExceptionMessage
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-            }
-            catch [System.Net.WebException] {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                return $ExceptionMessage
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "System.Net.WebException"
+            $ErrorObject.Code = $($Err.statusCode)
+            $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
 
 

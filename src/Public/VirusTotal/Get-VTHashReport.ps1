@@ -75,11 +75,14 @@ Function Get-VTHashReport {
         catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_
             throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
-        }        
+        }
+
+        # Add value for scan type and value
+        $vtResponse | Add-Member -MemberType NoteProperty -Name 'Hash' -Value $Hash
+
+        Return $vtResponse
     }
  
 
-    End {
-        Return $vtResponse
-    }
+    End {}
 }

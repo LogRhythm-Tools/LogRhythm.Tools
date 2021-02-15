@@ -49,18 +49,15 @@ Function Get-LrListGuidByName {
 
     Process {
 
-        try {
-            if ($Exact) {
-                $Response = Get-LrLists -Name $Name -Exact
-            } else {
-                $Response = Get-LrLists -Name $Name
-            }
-        }
-        catch [System.Net.WebException] {
-            $PSCmdlet.ThrowTerminatingError($PSItem)
+        if ($Exact) {
+            $Response = Get-LrLists -Name $Name -Exact
+        } else {
+            $Response = Get-LrLists -Name $Name
         }
 
-        if ($Response) {
+        if ($Response.Error -eq $true ) {
+            return $Response
+        } elseif ($Response) {
             return $Response.Guid
         }
         return $null

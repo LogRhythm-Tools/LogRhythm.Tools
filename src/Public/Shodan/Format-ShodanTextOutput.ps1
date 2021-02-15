@@ -73,7 +73,7 @@ function Format-ShodanTextOutput {
         #Break out and report on Shodan data
         for($i=0; $i -le ($ShodanData.data.Length-1); $i++){
             $status += "`r`n`r`n--- Service $($ShodanData.data[$i]._shodan.module) ---"
-            $status += "`r`nService Summary: $shodanIP`:$($ShodanData.data[$i].port) $($ShodanData.data[$i].transport.ToUpper())"
+            $status += "`r`nService Summary: $($ShodanData.ip_str)`:$($ShodanData.data[$i].port) $($ShodanData.data[$i].transport.ToUpper())"
             if ( $($ShodanData.data[$i].tags) ) { $status += "`r`nReported Tags: $($ShodanData.data[$i].tags)" }
             if ( $($ShodanData.data[$i].product) ) { $status += "`r`nDetected Product: $($ShodanData.data[$i].product)" }
             if ( $($ShodanData.data[$i].http.server) ) { $status += "`r`nHTTP Server: $($ShodanData.data[$i].http.server)" }

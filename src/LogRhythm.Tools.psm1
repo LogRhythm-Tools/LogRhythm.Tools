@@ -96,7 +96,7 @@ foreach($ConfigCategory in $LrtConfig.PSObject.Properties) {
     # Import API Keys
     if($ConfigCategory.Value.PSObject.Properties.Name -eq "ApiKey") {
         $KeyFileName = $ConfigCategory.Name + ".ApiKey.xml"
-        $KeyFile = [System.IO.FileInfo]::new("$ConfigDirPath\$KeyFileName")
+        $KeyFile = [System.IO.FileInfo]::new((Join-Path -Path $ConfigDirPath -ChildPath $KeyFileName))
         if ($KeyFile.Exists) {
             $LrtConfig.($ConfigCategory.Name).ApiKey = Import-Clixml -Path $KeyFile.FullName
             Write-Verbose "[$($ConfigCategory.Name)]: Loaded API Key"
@@ -108,7 +108,7 @@ foreach($ConfigCategory in $LrtConfig.PSObject.Properties) {
     # Credential
     if($ConfigCategory.Value.PSObject.Properties.Name -eq "Credential") {
         $KeyFileName = $ConfigCategory.Name + ".Credential.xml"
-        $KeyFile = [System.IO.FileInfo]::new("$ConfigDirPath\$KeyFileName")
+        $KeyFile = [System.IO.FileInfo]::new((Join-Path -Path $ConfigDirPath -ChildPath $KeyFileName))
         if ($KeyFile.Exists) {
             $LrtConfig.($ConfigCategory.Name).Credential = Import-Clixml -Path $KeyFile.FullName
             Write-Verbose "[$($ConfigCategory.Name)]: Loaded Credential"

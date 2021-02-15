@@ -88,7 +88,7 @@ Function Get-LrTags {
         
         [Parameter(Mandatory = $false, Position = 1)]
         [ValidateSet('asc','desc')]
-        [string] $Sort = "asc",
+        [string] $Direction = "asc",
 
         
         [Parameter(Mandatory = $false, Position = 2)]
@@ -96,6 +96,14 @@ Function Get-LrTags {
 
 
         [Parameter(Mandatory = $false, Position = 3)]
+        [int] $Count = 500,
+
+
+        [Parameter(Mandatory = $false, Position = 4)]
+        [int] $PageNumber = 1,
+
+
+        [Parameter(Mandatory = $false, Position = 5)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -110,9 +118,27 @@ Function Get-LrTags {
         # Request Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
-        $Headers.Add("count", 500)
-        $Headers.Add("direction", $Sort)
+        $Headers.Add("Content-Type","application/json")
+
+        # Maximum results returned per API call before pagination required
+        if ($Count) {
+            $Headers.Add("count", $Count)
+        } else {
+            $Headers.Add("count", 500)
+        }
         
+        # Page requested via Offset for Results from API
+        if ($PageNumber) {
+            $Offset = ($PageNumber -1) * $Count
+            $Headers.Add("offset", $Offset)
+        }
+
+        if ($Direction) {
+            $Headers.Add("direction", $Direction)
+        }
+        
+        
+
 
         # Request Method
         $Method = $HttpMethod.Get
@@ -126,41 +152,53 @@ Function Get-LrTags {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
-            ResponseUrl           =   $null
             Tag                   =   $Name
+            Raw                   =   $null
         }
 
         # Request URI
         $RequestUrl = $BaseUrl + "/tags/?tag=$Name"
 
         # Make Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
-            }
-            catch {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Code = $Err.statusCode
-                $ErrorObject.Type = "WebException"
-                $ErrorObject.Note = $Err.message
-                $ErrorObject.ResponseUrl = $RequestUrl
-                $ErrorObject.Error = $true
-                return $ErrorObject
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Code = $Err.statusCode
-                $ErrorObject.Type = "WebException"
-                $ErrorObject.Note = $Err.message
-                $ErrorObject.ResponseUrl = $RequestUrl
-                $ErrorObject.Error = $true
-                return $ErrorObject
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Code = $Err.statusCode
+            $ErrorObject.Type = "System.Net.WebException"
+            $ErrorObject.Note = $Err.message
+            $ErrorObject.Error = $true
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
+
+
+        # Pagination
+        if ($Response.Count -eq $Count) {
+            DO {
+                # Increment Page Count / Offset
+                $PageNumber = $PageNumber + 1
+                $Offset = ($PageNumber -1) * $Count
+                # Update Header Pagination Paramater
+                $Headers.offset = $Offset
+                
+                # Retrieve Query Results
+                try {
+                    $PaginationResults = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+                } catch [System.Net.WebException] {
+                    $Err = Get-RestErrorMessage $_
+                    $ErrorObject.Error = $true
+                    $ErrorObject.Type = "System.Net.WebException"
+                    $ErrorObject.Code = $($Err.statusCode)
+                    $ErrorObject.Note = $($Err.message)
+                    return $ErrorObject
+                }
+                
+                # Append results to Response
+                $Response = $Response + $PaginationResults
+            } While ($($PaginationResults.Count) -eq $Count)
+        }
+
 
         # [Exact] Parameter
         # Search "Malware" normally returns both "Malware" and "Malware 2"

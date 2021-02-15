@@ -84,9 +84,11 @@ Function Add-LrAlarmToCase {
         [ValidateNotNull()]
         [int[]] $AlarmNumbers,
 
+
         [Parameter(Mandatory = $false, Position = 2)]
         [switch] $PassThru,
 
+        
         [Parameter(Mandatory = $false, Position = 3)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
@@ -114,6 +116,17 @@ Function Add-LrAlarmToCase {
     #endregion
 
     Process {
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Case                  =   $Id
+            Code                  =   $null
+            Error                 =   $false
+            Note                  =   $null
+            Type                  =   $null
+            Raw                   =   $null
+        }
+
+
         # Test CaseID Format
         $IdStatus = Test-LrCaseIdFormat $Id
         if ($IdStatus.IsValid -eq $true) {
@@ -141,24 +154,16 @@ Function Add-LrAlarmToCase {
 
 
         #region: Send Request                                                            
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
-            }
-            catch {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                return $ExceptionMessage
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
-            }
-            catch [System.Net.WebException] {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                return $ExceptionMessage
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Code = $Err.statusCode
+            $ErrorObject.Type = "WebException"
+            $ErrorObject.Note = $Err.message
+            $ErrorObject.Error = $true
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
 
         # The response is an array of alarms added to the case
@@ -171,13 +176,7 @@ Function Add-LrAlarmToCase {
         if ($PassThru) {
             #region: Get Updated Case                                                        
             Write-Verbose "[$Me] Getting Updated Case"
-            try {
-                $UpdatedCase = Get-LrCaseById -Id $CaseNumber    
-            }
-            catch {
-                Write-Verbose "Encountered error while retrieving updated case $CaseNumber."
-                $PSCmdlet.ThrowTerminatingError($PSItem)
-            }
+            $UpdatedCase = Get-LrCaseById -Id $CaseNumber    
 
             return $UpdatedCase
         }

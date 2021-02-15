@@ -103,7 +103,7 @@ Function Merge-LrIdentities {
 
     Begin {
         # Set migration to leverage 7.5. or 7.4 API endpoints
-        if ($LrtConfig.LogRhythm.Version -match '7.5.\d{1,2}') {
+        if ($LrtConfig.LogRhythm.Version -match '7\.[5-9]\.\d+') {
             $Mode = "7.5"
             # Request Setup
             $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
@@ -133,6 +133,7 @@ Function Merge-LrIdentities {
             Type                  =   $null
             Note                  =   $null
             Value                 =   $null
+            Raw                   =   $null
         }
 
         # Ensure Identity IDs have been provided.  Handles assigning depreciated paramaters for integration transition.
@@ -240,30 +241,16 @@ Function Merge-LrIdentities {
 
 
             # Send Request
-            if ($PSEdition -eq 'Core'){
-                try {
-                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents -SkipCertificateCheck
-                }
-                catch {
-                    $Err = Get-RestErrorMessage $_
-                    $ErrorObject.Error = $true
-                    $ErrorObject.Type = "System.Net.WebException"
-                    $ErrorObject.Code = $($Err.statusCode)
-                    $ErrorObject.Note = $($Err.message)
-                    return $ErrorObject
-                }
-            } else {
-                try {
-                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
-                }
-                catch [System.Net.WebException] {
-                    $Err = Get-RestErrorMessage $_
-                    $ErrorObject.Error = $true
-                    $ErrorObject.Type = "System.Net.WebException"
-                    $ErrorObject.Code = $($Err.statusCode)
-                    $ErrorObject.Note = $($Err.message)
-                    return $ErrorObject
-                }
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
+            } catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Error = $true
+                $ErrorObject.Type = "System.Net.WebException"
+                $ErrorObject.Code = $($Err.statusCode)
+                $ErrorObject.Note = $($Err.message)
+                $ErrorObject.Raw = $_
+                return $ErrorObject
             }
         }
 

@@ -147,52 +147,65 @@ Function Get-LrAgentsAccepted {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
-        [int] $PageValuesCount = 1000,
+        [string] $Name,
+
 
         [Parameter(Mandatory = $false, Position = 1)]
-        [int] $PageCount = 1,
+        [string] $Entity,
+
 
         [Parameter(Mandatory = $false, Position = 2)]
         [ValidateSet('asc','desc', ignorecase=$true)]
         [string] $Direction = "asc",
 
+
         [Parameter(Mandatory = $false, Position = 3)]
         [ValidateSet('name','id', ignorecase=$true)]
         [string] $OrderBy = "name",
 
-        [Parameter(Mandatory = $false, Position = 4)]
-        [string] $Name,
 
-        [Parameter(Mandatory = $false, Position = 5)]
+        [Parameter(Mandatory = $false, Position = 4)]
         [ValidateSet('all','active','retired', ignorecase=$true)]
         [string] $RecordStatus = "all",
 
-        [Parameter(Mandatory = $false, Position = 6)]
+
+        [Parameter(Mandatory = $false, Position = 5)]
         [ValidateSet('none','systemmonitorbasic', 'systemmonitor', ignorecase=$true)]
         [string] $AgentLicenseType,
 
-        [Parameter(Mandatory = $false, Position = 7)]
+
+        [Parameter(Mandatory = $false, Position = 6)]
         [ValidateSet('systemmonitorsearch','parententitysearch', 'globalsearch', ignorecase=$true)]
         [string] $SearchScope,
 
-        [Parameter(Mandatory = $false, Position = 8)]
-        [string] $Entity,
 
-        [Parameter(Mandatory = $false, Position = 9)]
+        [Parameter(Mandatory = $false, Position = 7)]
         [string] $Version,
 
-        [Parameter(Mandatory = $false, Position = 10)]
+
+        [Parameter(Mandatory = $false, Position = 8)]
         [ValidateSet('none','windows', 'linux', 'solaris', 'aix', 'hpux', 'all', ignorecase=$true)]
         [string] $AgentType,
         
-        [Parameter(Mandatory = $false, Position = 11)]
+
+        [Parameter(Mandatory = $false, Position = 9)]
         [bool] $LoadBalanced,
 
-        [Parameter(Mandatory = $false, Position = 12)]
+
+        [Parameter(Mandatory = $false, Position = 10)]
         [bool] $FetchAIERecords,
 
-        [Parameter(Mandatory = $false, Position = 13)]
+
+        [Parameter(Mandatory = $false, Position = 11)]
         [switch] $Exact,
+
+                
+        [Parameter(Mandatory = $false, Position = 12)]
+        [int] $PageValuesCount = 1000,
+
+        [Parameter(Mandatory = $false, Position = 13)]
+        [int] $PageCount = 1,
+
 
         [Parameter(Mandatory = $false, Position = 14)]
         [ValidateNotNull()]
@@ -228,10 +241,11 @@ Function Get-LrAgentsAccepted {
             Type                  =   $null
             Code                  =   $null
             Note                  =   $null
+            Raw                   =   $null
         }
 
         # Verify version
-        if ($LrtConfig.LogRhythm.Version -notmatch '7.5.\d') {
+        if ($LrtConfig.LogRhythm.Version -notmatch '7.[5-9].\d') {
             $ErrorObject.Error = $true
             $ErrorObject.Code = "404"
             $ErrorObject.Type = "Cmdlet not supported."
@@ -273,6 +287,7 @@ Function Get-LrAgentsAccepted {
                     $ErrorObject.Type = $EntityLookup.Type
                     $ErrorObject.Code = $EntityLookup.Code
                     $ErrorObject.Note = $EntityLookup.Note
+                    $ErrorObject.Raw = $_
                     return $ErrorObject
                 } else {
                     $_entity = $EntityLookup
@@ -285,6 +300,7 @@ Function Get-LrAgentsAccepted {
                     $ErrorObject.Type = $EntityLookup.Type
                     $ErrorObject.Code = $EntityLookup.Code
                     $ErrorObject.Note = $EntityLookup.Note
+                    $ErrorObject.Raw = $_
                     return $ErrorObject
                 } else {
                     $_entity = $EntityLookup
@@ -297,14 +313,14 @@ Function Get-LrAgentsAccepted {
         if ($Direction) {
             $ValidStatus = "ASC", "DESC"
             if ($ValidStatus.Contains($($Direction.ToUpper()))) {
-                if ($LrVersion -like "7.5.*") {
+                if ($LrVersion -like "7.4.*") {
+                    return "$(Get-Timestamp) Function Get-LrLogSources requires LogRhythm version 7.5.0+.  Set LogRhythm version in LR Tools Preferences."
+                } else {
                     if($Direction.ToUpper() -eq "ASC") {
                         $_direction = "ascending"
                     } else {
                         $_direction = "descending"
                     }
-                } else {
-                    return "$(Get-Timestamp) Function Get-LrLogSources requires LogRhythm version 7.5.0+.  Set LogRhythm version in LR Tools Preferences."
                 }
                 $QueryParams.Add("dir", $_direction)
             } else {
@@ -399,40 +415,49 @@ Function Get-LrAgentsAccepted {
         $RequestUrl = $BaseUrl + "/agents/" + $QueryString
 
         # Send Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
-            }
-            catch {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                return $ErrorObject
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                return $ErrorObject
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "System.Net.WebException"
+            $ErrorObject.Code = $($Err.statusCode)
+            $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
-    }
 
-    End {
-        if ($Response.Count -eq $_pageValueCount) {
-            # Need to get next page results
-            $CurrentPage = $PageCount + 1
-            #return 
-            Return $Response + (Get-LrLogSources -PageCount $CurrentPage) 
+        # Check if pagination is required, if so - paginate!
+        if ($Response.Count -eq $PageValuesCount) {
+            DO {
+                # Increment Page Count / Offset
+                $PageCount = $PageCount + 1
+                $Offset = ($PageCount -1) * $PageValuesCount
+                # Update Query Paramater
+                $QueryParams.offset = $Offset
+                # Apply to Query String
+                $QueryString = $QueryParams | ConvertTo-QueryString
+                # Update Query URL
+                $RequestUrl = $BaseUrl + "/agents/" + $QueryString
+                # Retrieve Query Results
+                try {
+                    $PaginationResults = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+                } catch [System.Net.WebException] {
+                    $Err = Get-RestErrorMessage $_
+                    $ErrorObject.Error = $true
+                    $ErrorObject.Type = "System.Net.WebException"
+                    $ErrorObject.Code = $($Err.statusCode)
+                    $ErrorObject.Note = $($Err.message)
+                    $ErrorObject.Raw = $_
+                    return $ErrorObject
+                }
+                
+                # Append results to Response
+                $Response = $Response + $PaginationResults
+            } While ($($PaginationResults.Count) -eq $PageValuesCount)
+            $Response = $Response | Sort-Object -Property Id -Unique
         }
+
         # [Exact] Parameter
         # Search "Malware" normally returns both "Malware" and "Malware Options"
         # This would only return "Malware"
@@ -448,5 +473,8 @@ Function Get-LrAgentsAccepted {
         } else {
             return $Response
         }
+    }
+
+    End {
     }
 }

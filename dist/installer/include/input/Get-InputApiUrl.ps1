@@ -24,8 +24,8 @@ Function Get-InputApiUrl {
 
     # Accept Hostname or IPAddress
     $ValidRegex = [regex]::new("^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$")
-    # Parses hostname and optionally port from URL.  Named groups produced: Address, Port
-    $Extract = [regex]::new("^(?<prefix>^http(s)?:\/\/)?(((?<address>[^:]+):(?<port>\d+))|(?<address>\S+[^\/])?$|((?<address>[^\/]+)\/)).*?$")
+    # Parses hostname from a URL in group 4 (with port) or 6 (without port)
+    $Extract = [regex]::new("^http(s)?:\/\/((([^:]+):)|(([^\/]+)\/)).*?$")
 
 
     # Return object
@@ -36,11 +36,9 @@ Function Get-InputApiUrl {
     }
 
 
-    # Parse the old value so we can find the hostname and port parts
+    # Parse the old value so we can find the hostname part
     $ExtractResult = $Extract.Match($OldValue)
 
-    # Parse the new value so we can find the hostname and port parts
-    $ExtractInputValue = $Extract.Match($Value)
 
     # If OldValue wasn't a valid match for https://host/ or https://host:9999/ then we have a source data problem
     if (! $ExtractResult.Success) {
@@ -52,50 +50,31 @@ Function Get-InputApiUrl {
     }
 
 
-    # Check if OldValue contains a Port group match
-    if ($ExtractResult.Groups["port"].Success) {
-        $ExistingPort = $ExtractResult.Groups["port"].Value
-        Write-Verbose "Current Port extraction.  Port: $ExistingPort"
-    } 
-    
-    # Verify if OldValue contains an Address group match
-    if ($ExtractResult.Groups["address"].Success) {
-        $ExistingAddress = $ExtractResult.Groups["address"].Value
-        Write-Verbose "Current Address extraction. Address: $ExistingAddress"
+    # Our $Find will either be in group 4 or 6.
+    # 4: Hosts with a port definition (https://host.com:8080/blah)
+    # 6: Hosts without a port (https://host.com/blah)
+    if ($ExtractResult.Groups[4].Success) {
+        $Find = $ExtractResult.Groups[4].Value
+        Write-Verbose "Extraction with port."
     }
 
-    # Check if Value contains a Port group match
-    if ($ExtractInputValue.Groups["port"].Success) {
-        $InputPort = $ExtractInputValue.Groups["port"].Value
-        Write-Verbose "Input Port extraction.  Port: $InputPort"
-    } 
-    
-    # Verify if Value contains an Address group match
-    if ($ExtractInputValue.Groups["address"].Success) {
-        $InputAddress = $ExtractInputValue.Groups["address"].Value
-        Write-Verbose "Input Address extraction. Address: $InputAddress"
+    if ($ExtractResult.Groups[6].Success) {
+        $Find = $ExtractResult.Groups[6].Value
+        Write-Verbose "Extraction without port."
+    }
+    # If we couldn't find a host to replace:
+    if ([string]::IsNullOrEmpty($Find)) {
+        Write-Verbose "No extraction point found in existing Api Url."
+        Write-Verbose "Old Value: $OldValue | New Value: $NewValue"
     }
 
     # We need a valid hostname to use for replacement
-    if ($InputAddress -match $ValidRegex) {
+    if ($Value -match $ValidRegex) {
         $Return.Valid = $true
     }
 
     # Create URL from OldValue
-    $Return.Value = $OldValue.Replace($ExistingAddress, $InputAddress)
-
-    if ($InputPort) {
-        # Replace current port address string
-        if ($ExistingPort) {
-            Write-Verbose "Updating Port.  Old Value: $ExistingPort  New Value: $InputPort"
-            $Return.Value = $Return.Value.Replace($ExistingPort, $InputPort)
-        } else {
-            $Return.Value = $Return.Value + ":$InputPort"
-        }
-
-    }
-
-    Write-Verbose "Value: $($Return.Value)"
+    $Return.Value = $OldValue.Replace($Find, $Value)
 
 
     if ($Return.Value -ne $OldValue) {

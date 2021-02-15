@@ -98,6 +98,7 @@ Function Update-LrHostIdentifier {
             Type                  =   $Type
             Note                  =   $null
             Value                 =   $Value
+            Raw                   =   $null
         }
 
         if ([int]::TryParse($Id, [ref]$_int)) {
@@ -146,14 +147,24 @@ Function Update-LrHostIdentifier {
             }
         }
 
-
-        # Establish JSON Body contents
-        $BodyContents = [PSCustomObject]@{
-            hostIdentifiers = @([PSCustomObject]@{
-                type = $_type
-                value = $Value
+        if ($LrtConfig.LogRhythm.Version -match '7\.4\.[0-6]') {
+            # Establish JSON Body contents
+            $BodyContents = @([PSCustomObject]@{
+                hostIdentifiers = @([PSCustomObject]@{
+                    type = $_type
+                    value = $Value
+                })
             })
+        } else {
+            # Establish JSON Body contents
+            $BodyContents = [PSCustomObject]@{
+                hostIdentifiers = @([PSCustomObject]@{
+                    type = $_type
+                    value = $Value
+                })
+            }
         }
+
 
         # Establish Body Contents
         $Body = $BodyContents | ConvertTo-Json
@@ -164,30 +175,16 @@ Function Update-LrHostIdentifier {
         $RequestUrl = $BaseUrl + "/hosts/$Guid/identifiers/"
 
         # Send Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
-            }
-            catch {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                return $ErrorObject
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body 
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                return $ErrorObject
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body 
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "System.Net.WebException"
+            $ErrorObject.Code = $($Err.statusCode)
+            $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
         
         # Return output object

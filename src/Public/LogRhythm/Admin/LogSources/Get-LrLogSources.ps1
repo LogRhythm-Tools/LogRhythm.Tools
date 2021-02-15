@@ -210,15 +210,13 @@ Function Get-LrLogSources {
         [string] $Description,
 
 
-        [Parameter(Mandatory = $false, Position = 8)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 8)]
         [string] $MessageSourceTypeId,
-        
 
 
         [Parameter(Mandatory = $false, Position = 9)]
         [ValidateSet('true','false', ignorecase=$true)]
         [string] $Virtual,
-
 
 
         [Parameter(Mandatory = $false, Position = 10)]
@@ -251,6 +249,7 @@ Function Get-LrLogSources {
         # Define HTTP Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
 
         # Define HTTP Method
         $Method = $HttpMethod.Get
@@ -269,6 +268,17 @@ Function Get-LrLogSources {
             Type                  =   $null
             Code                  =   $null
             Note                  =   $null
+            Raw                   =   $null
+        }
+
+        # Verify version
+        if ($LrtConfig.LogRhythm.Version -notmatch '7\.[5-9]\.\d+') {
+            $ErrorObject.Error = $true
+            $ErrorObject.Code = "404"
+            $ErrorObject.Type = "Cmdlet not supported."
+            $ErrorObject.Note = "This cmdlet is available in LogRhythm version 7.5.0 and greater."
+
+            return $ErrorObject
         }
 
         #region: Process Query Parameters____________________________________________________
@@ -347,14 +357,18 @@ Function Get-LrLogSources {
         if ($Direction) {
             $ValidStatus = "ASC", "DESC"
             if ($ValidStatus.Contains($($Direction.ToUpper()))) {
-                if ($LrVersion -like "7.5.*") {
+                if ($LrVersion -match '7\.[5-9]\.\d+') {
                     if($Direction.ToUpper() -eq "ASC") {
                         $_direction = "ascending"
                     } else {
                         $_direction = "descending"
                     }
                 } else {
-                    return "$(Get-Timestamp) Function Get-LrLogSources requires LogRhythm version 7.5.0+.  Set LogRhythm version in LR Tools Preferences."
+                    $ErrorObject.Error = $true
+                    $ErrorObject.Code = "404"
+                    $ErrorObject.Type = "Cmdlet not supported."
+                    $ErrorObject.Note = "This cmdlet is available in LogRhythm version 7.5.0 and greater."
+                    return $ErrorObject
                 }
                 $QueryParams.Add("dir", $_direction)
             } else {
@@ -386,40 +400,48 @@ Function Get-LrLogSources {
         $RequestUrl = $BaseUrl + "/logsources/" + $QueryString
 
         # Send Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
-            }
-            catch {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                return $ErrorObject
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                return $ErrorObject
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "System.Net.WebException"
+            $ErrorObject.Code = $($Err.statusCode)
+            $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
-    }
 
-    End {
-        if ($Response.Count -eq $_pageValueCount) {
-            # Need to get next page results
-            $CurrentPage = $PageCount + 1
-            #return 
-            Return $Response + (Get-LrLogSources -PageCount $CurrentPage) 
+        # Check if pagination is required, if so - paginate!
+        if ($Response.Count -eq $PageValuesCount) {
+            DO {
+                # Increment Page Count / Offset
+                $PageCount = $PageCount + 1
+                $Offset = ($PageCount -1) * $PageValuesCount
+                # Update Query Paramater
+                $QueryParams.offset = $Offset
+                # Apply to Query String
+                $QueryString = $QueryParams | ConvertTo-QueryString
+                # Update Query URL
+                $RequestUrl = $BaseUrl + "/logsources/" + $QueryString
+                # Retrieve Query Results
+                try {
+                    $PaginationResults = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+                } catch [System.Net.WebException] {
+                    $Err = Get-RestErrorMessage $_
+                    $ErrorObject.Error = $true
+                    $ErrorObject.Type = "System.Net.WebException"
+                    $ErrorObject.Code = $($Err.statusCode)
+                    $ErrorObject.Note = $($Err.message)
+                    $ErrorObject.Raw = $_
+                    return $ErrorObject
+                }
+                
+                # Append results to Response
+                $Response = $Response + $PaginationResults
+            } While ($($PaginationResults.Count) -eq $PageValuesCount)
         }
+
         # [Exact] Parameter
         # Search "Malware" normally returns both "Malware" and "Malware Options"
         # This would only return "Malware"
@@ -435,5 +457,8 @@ Function Get-LrLogSources {
         } else {
             return $Response
         }
+    }
+
+    End {
     }
 }
