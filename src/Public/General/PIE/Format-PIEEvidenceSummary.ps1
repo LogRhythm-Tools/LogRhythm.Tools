@@ -77,7 +77,6 @@ function Format-PIEEvidenceSummary {
     Process {
         $CaseOutput = [list[String]]::new()
 
-
         $CaseOutput.Add("=== E-mail Links & Attachments Summary ===")
         if ($EvaluationResults.Links.Details) {
             $CaseOutput.Add("--- Links Summary ---")
@@ -139,35 +138,96 @@ function Format-PIEEvidenceSummary {
                     $CaseOutput.Add("$PluginSummary`r`n`r`n")
                 }
             }
-            if ($EvaluationResults.Attachments) {
-                $CaseOutput.Add("--- Attachments Summary ---")
-                $CaseOutput.Add("Number of Attachments: $($EvaluationResults.Attachments | Measure-Object | Select-Object -ExpandProperty Count)")
-                $AttachmentTypes = $($EvaluationResults.Attachments | Select-Object -ExpandProperty Type -Unique) -join ", "
-                $CaseOutput.Add("Attachment Extensions: $AttachmentTypes`r`n")
+        }
+        if ($EvaluationResults.Attachments) {
+            $CaseOutput.Add("--- Attachments Summary ---")
+            $CaseOutput.Add("Number of Attachments: $($EvaluationResults.Attachments | Measure-Object | Select-Object -ExpandProperty Count)")
+            $AttachmentTypes = $($EvaluationResults.Attachments | Select-Object -ExpandProperty Type -Unique) -join ", "
+            $CaseOutput.Add("Attachment Extensions: $AttachmentTypes`r`n")
 
-                $Attachments = $EvaluationResults.Attachments
-                ForEach ($Attachment in $Attachments) {
-                    $FileCounter += 1 
-                    $CaseOutput.Add("-- Attachment $FileCounter --")
-                    $CaseOutput.Add("Filename: $($Attachment.Name)")
-                    $CaseOutput.Add("Extension: $($Attachment.Type)")
-                    $CaseOutput.Add("Hash: $($Attachment.Hash.Hash)")
-                    $CaseOutput.Add("Hash Type: $($Attachment.Hash.Algorithm)")
-                    if (($LrtConfig.VirusTotal.Apikey)) {
-                        $PluginSummary = "- Plugin Status -`r`n"
-                        if ($Attachment.Plugins.VirusTotal) {
-                            $PluginSummary += "VirusTotal: True   "
-                        } else {
-                            $PluginSummary += "VirusTotal: False   "
-                        }
-                        $CaseOutput.Add("$PluginSummary`r`n`r`n")
+
+            ForEach ($Attachment in $EvaluationResults.Attachments) {
+                $FileCounter += 1 
+                $CaseOutput.Add("-- Attachment $FileCounter --")
+                $CaseOutput.Add("Filename: $($Attachment.Name)")
+                $CaseOutput.Add("Extension: $($Attachment.Type)")
+                $CaseOutput.Add("Hash: $($Attachment.Hash.Hash)")
+                $CaseOutput.Add("Hash Type: $($Attachment.Hash.Algorithm)")
+                if (($LrtConfig.VirusTotal.Apikey)) {
+                    $PluginSummary = "- File Plugin Status -`r`n"
+                    if ($Attachment.Plugins.VirusTotal) {
+                        $PluginSummary += "VirusTotal: True   "
                     } else {
-                        $CaseOutput.Add("")
+                        $PluginSummary += "VirusTotal: False   "
+                    }
+                    $CaseOutput.Add("$PluginSummary`r`n`r`n")
+                } else {
+                    $CaseOutput.Add("")
+                }
+                if ($Attachment.Links.Details) {
+                    $CaseOutput.Add("- Embedded Attachment Links Summary -")
+                    $UrlsString1 = "Number of URLs: $($Attachment.Links.Details | Where-Object -Property Scantarget -ne $null | Measure-Object | Select-Object -ExpandProperty Count)"
+                    $UrlsString2 = "Rewritten URLs: $($Attachment.Links.Details | Where-Object -Property ReWrite -ne $false | Measure-Object | Select-Object -ExpandProperty Count)"
+                    $UrlsString3 = "Shortened URLs: $($Attachment.Links.Details | Where-Object -Property Shortlink -ne $false | Measure-Object | Select-Object -ExpandProperty Count)"
+                    $CaseOutput.Add("$UrlsString1 $($UrlsString2.PadLeft(24-($UrlsString1.length)+$($UrlsString2.length))) $($UrlsString3.PadLeft(24-($UrlsString2.length)+$($UrlsString3.length)))")
+                    $CaseOutput.Add("Unique Domains: $($Attachment.Links.Details.ScanTarget | Select-Object -Property Domain -Unique | Measure-Object | Select-Object -ExpandProperty Count)")
+                    $CaseOutput.Add("`r`n")
+                    $Urls = $Attachment.Links.Details
+                    ForEach ($Url in $Urls) {
+                        $UrlCounter += 1 
+                        $CaseOutput.Add("-- Link $UrlCounter --")
+                        $CaseOutput.Add("Url: $($Url.ScanTarget.Defang)")
+                        $CaseOutput.Add("Domain: $($Url.ScanTarget.Domain)")
+                        if ($Url.ScanTarget.Dns.Status -eq $true) {
+                            $IPv4DNS = ($Url.ScanTarget.DNS.IPv4) -join ", "
+                            if ($IPv4DNS) {
+                                $CaseOutput.Add("DNS IPv4: $IPv4DNS")
+                            }
+                            $IPv6DNS = ($Url.ScanTarget.DNS.IPv6) -join ", "
+                            if ($IPv6DNS) {
+                                $CaseOutput.Add("DNS IPv6: $IPv6DNS")
+                            }
+                        }
+                        if ($Url.ReWrite) {
+                            $CaseOutput.Add("Rewritten: $($Url.ReWrite.Status)")
+                            $CaseOutput.Add("Encoded URL: $(($Url.ReWrite.Before | Select-Object -ExpandProperty AbsoluteUri).Replace('http','hxxp'))")
+                        }
+                        if ($Url.Shortlink) {
+                            $CaseOutput.Add("Shortlink: $($Url.Shortlink.Status)")
+                            $CaseOutput.Add("Shortlink URL: $($Url.Shortlink.Before.Replace('http','hxxp'))")  
+                        }
+                        # Populate Plugin Status
+                        if (($LrtConfig.Shodan.Apikey) -or ($LrtConfig.VirusTotal.Apikey) -or ($LrtConfig.UrlScan.Apikey)) {
+                            $PluginSummary = "- Plugin Status -`r`n"
+                            if ($LrtConfig.Shodan.Apikey) {
+                                if ($Url.Plugins.Shodan) {
+                                    $PluginSummary += "Shodan: True   "
+                                } else {
+                                    $PluginSummary += "Shodan: False   "
+                                }
+                            }
+                            if ($LrtConfig.UrlScan.Apikey) {
+                                if ($Url.Plugins.UrlScan) {
+                                    $PluginSummary += "UrlScan: True   "
+                                } else {
+                                    $PluginSummary += "UrlScan: False   "
+                                }
+                            }
+                            if ($LrtConfig.VirusTotal.Apikey) {
+                                if ($Url.Plugins.VirusTotal) {
+                                    $PluginSummary += "VirusTotal: True   "
+                                } else {
+                                    $PluginSummary += "VirusTotal: False   "
+                                }
+                            }
+        
+                            $CaseOutput.Add("$PluginSummary`r`n`r`n")
+                        }
                     }
                 }
+
             }
         }
-
         return $CaseOutput | Out-String
     }
 }
