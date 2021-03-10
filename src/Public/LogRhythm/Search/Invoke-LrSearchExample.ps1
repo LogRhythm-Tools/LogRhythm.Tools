@@ -103,10 +103,10 @@ Function Invoke-LrSearchExample {
 
         #Update search paramater values for Hostname1 and Hostname2
         # Hostname1 - Value followed by DisplayValue
-        $JSON.queryFilter.filterGroup.filterItems[0].values[0].value = $Hostname1.ToLower()
+        $JSON.queryFilter.filterGroup.filterItems[0].values[0].value.value = $Hostname1.ToLower()
         $JSON.queryFilter.filterGroup.filterItems[0].values[0].displayValue = $Hostname1.ToLower()
         # Hostname2 - Value followed by DisplayValue
-        $JSON.queryFilter.filterGroup.filterItems[0].values[1].value = $Hostname2.ToLower()       
+        $JSON.queryFilter.filterGroup.filterItems[0].values[1].value.value = $Hostname2.ToLower()       
         $JSON.queryFilter.filterGroup.filterItems[0].values[1].displayValue = $Hostname2.ToLower()
 
        
