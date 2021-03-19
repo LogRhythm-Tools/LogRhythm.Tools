@@ -18,6 +18,8 @@ $AzureUsers = Get-LrtAzUsers
 # Retrieve Organization details from Azure Graph API
 $AzureOrgDetails = Get-LrtAzOrganization
 
+$PrimaryDomain = $AzureOrgDetails.verifiedDomains | Where-Object -Property isDefault -eq $true | Select-Object -ExpandProperty name
+
 # Create optimized objects for data and action management
 # MatchedIdentities contains the TrueID data for AzureUsers that are identified as existing TrueID Users based on their userPrincipalName
 $MatchedIdentities = [list[object]]::new()
@@ -44,11 +46,11 @@ ForEach ($AzureUser in $AzureUsers) {
         $NewIdentifiers = [list[object]]::new()
 
         # Since we have the UserDetails currently, lets perform a lookup for the user's manager for TrueID metadata enrichment
-        $AzureUserManager = Get-LrtAzUserManager -userPrincipalName $AzureUser.userPrincipalName
-        if ($AzureUserManager) {
-            $_azureUserManager = $AzureUserManager.userPrincipalName
-        } else {
+        $AzureUserManager = Get-LrtAzUserManager -userPrincipalName $AzureUser.userPrincipalName 
+        if ($AzureUserManager.Error -eq $true) {
             $_azureUserManager = ""
+        } else {
+            $_azureUserManager = $AzureUserManager.userPrincipalName
         }
 
         # This section goes into creating the TrueIdentity Identifier values for population into TrueID
@@ -97,7 +99,7 @@ ForEach ($AzureUser in $AzureUsers) {
                     DisplayIdentifier = $AzureUser.userPrincipalName
                     Title = $AzureUser.jobtitle
                     Manager = $_azureUserManager
-                    Company = $AzureOrgDetails.displayName
+                    Company = $PrimaryDomain
                     Identifier1Value = $NewIdentifiers[0].Value
                     Identifier1Type = $NewIdentifiers[0].Type
                 }
@@ -114,7 +116,7 @@ ForEach ($AzureUser in $AzureUsers) {
                     DisplayIdentifier = $AzureUser.userPrincipalName
                     Title = $AzureUser.jobtitle
                     Manager = $_azureUserManager
-                    Company = $AzureOrgDetails.displayName
+                    Company = $PrimaryDomain
                     Identifier1Value = $NewIdentifiers[0].Value
                     Identifier1Type = $NewIdentifiers[0].Type
                     Identifier2Value = $NewIdentifiers[1].Value
@@ -133,7 +135,7 @@ ForEach ($AzureUser in $AzureUsers) {
                     DisplayIdentifier = $AzureUser.userPrincipalName
                     Title = $AzureUser.jobtitle
                     Manager = $_azureUserManager
-                    Company = $AzureOrgDetails.displayName
+                    Company = $PrimaryDomain
                     Identifier1Value = $NewIdentifiers[0].Value
                     Identifier1Type = $NewIdentifiers[0].Type
                     Identifier2Value = $NewIdentifiers[1].Value
@@ -149,4 +151,14 @@ ForEach ($AzureUser in $AzureUsers) {
             Default {;break}
         }
     }
+}
+
+ForEach ($NewIdentity in $NewIdentities) {
+    $NewIdentityStatus = $NewIdentity | Add-LrIdentity -PassThru
+    if ($NewIdentityStatus.error -eq $true) {
+        Write-Host "$(Get-Timestamp) - New Identity - Unable to create new Identity."
+    } else {
+        Write-Host "$(Get-Timestamp) - New Identity - New Identity: $($NewIdentityStatus.identityId)  DisplayName: $($NewIdentity.DisplayIdentifier)"
+    }
+    Start-Sleep 0.2
 }
