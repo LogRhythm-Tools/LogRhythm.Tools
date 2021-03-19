@@ -35,7 +35,7 @@ Function Get-LrIdentities {
         
         Defaults to returning only active Identities.
     .PARAMETER Exact
-        Switch used to specify Name is explicit.
+        Switch used to specify Name and Identifier fields, if submitted, are explicit.
     .OUTPUTS
         PSCustomObject representing LogRhythm TrueIdentity Identities and their contents.
     .EXAMPLE
@@ -288,14 +288,24 @@ Function Get-LrIdentities {
         # Search "Malware" normally returns both "Malware" and "Malware Options"
         # This would only return "Malware"
         if ($Exact) {
-            $Pattern = "^$Name$"
-            $Response | ForEach-Object {
-                if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
-                    Write-Verbose "[$Me]: Exact list name match found."
-                    $List = $_
-                    return $List
-                } else {
-                    Write-Verbose "[$Me]: Exact list name match not found."
+            if ($Name) {
+                $Pattern = "^$Name$"
+                $Response | ForEach-Object {
+                    if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
+                        Write-Verbose "[$Me]: Exact name match found."
+                        return $_
+                    }
+                }
+            }
+            if ($Identifier) {
+                $Pattern = "^$Identifier$"
+                $Response | ForEach-Object {
+                    ForEach ($IdIdentifier in $_.identifiers) {
+                        if(($IdIdentifier.value -match $Pattern) -or ($IdIdentifier.value -eq $Identifier)) {
+                            Write-Verbose "[$Me]: Exact identifier match found."
+                            return $_
+                        }
+                    } 
                 }
             }
         } else {
