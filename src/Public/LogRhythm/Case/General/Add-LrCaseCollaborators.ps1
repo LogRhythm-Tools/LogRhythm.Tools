@@ -98,7 +98,6 @@ Function Add-LrCaseCollaborators {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
-            Tags                  =   $Tags
             Case                  =   $Id
             Raw                   =   $null
         }
