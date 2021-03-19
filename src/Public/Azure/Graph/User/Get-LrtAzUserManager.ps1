@@ -42,16 +42,24 @@ Function Get-LrtAzUserManager {
 
         $AccessToken = Get-LrtAzToken -ResourceName AzureAd | Select-Object -ExpandProperty access_token
         
+        # Request Headers
+        $Headers = [Dictionary[string,string]]::new()
+        $Headers.Add("Authorization", "Bearer $AccessToken")
+
+
         # Enable self-signed certificates and Tls1.2
         Enable-TrustAllCertsPolicy
     }
 
 
     Process {
-        # Request Headers
-        $Headers = [Dictionary[string,string]]::new()
-        $Headers.Add("Authorization", "Bearer $AccessToken")
-
+        $ErrorObject = [PSCustomObject]@{
+            Error                 =   $false
+            Type                  =   $null
+            Code                  =   $null
+            Note                  =   $null
+            Raw                   =   $null
+        }
 
         # Request URI
         # https://docs.microsoft.com/en-us/graph/api/signin-list?view=graph-rest-1.0&tabs=http
@@ -64,11 +72,15 @@ Function Get-LrtAzUserManager {
             $Response = Invoke-RestMethod `
                 -Uri $RequestUri `
                 -Headers $Headers `
-                -Method $Method `
-        }
-        catch [System.Net.WebException] {
+                -Method $Method
+        } catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_
-            throw [Exception] "[$Me] [$($Err.error.code)]: $($Err.error.message)`n"
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "System.Net.WebException"
+            $ErrorObject.Code = $($Err.statusCode)
+            $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
 
         
