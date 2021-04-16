@@ -33,6 +33,8 @@ Function Get-LrAlarms {
         Valid Values: AlarmRuleName, AlarmStatus, DateInserted and EntityName
     .PARAMETER Exact
         Switch used to specify Name search for Entity Host record is explicit.
+    .PARAMETER ResultsOnly
+        Switch used to specify return only alarmSearchDetails results.
     .PARAMETER PageCount
         Integer representing number of pages to return.  Default is maximum, 1000.
     .PARAMETER Credential
@@ -87,18 +89,22 @@ Function Get-LrAlarms {
     
 
         [Parameter(Mandatory = $false, Position = 6)]
-        [switch] $Exact,
+        [switch] $ResultsOnly,
 
 
         [Parameter(Mandatory = $false, Position = 7)]
-        [int] $PageValuesCount = 1000,
+        [switch] $Exact,
 
 
         [Parameter(Mandatory = $false, Position = 8)]
-        [int] $PageCount = 1,
+        [int] $PageValuesCount = 1000,
 
 
         [Parameter(Mandatory = $false, Position = 9)]
+        [int] $PageCount = 1,
+
+
+        [Parameter(Mandatory = $false, Position = 10)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -214,7 +220,6 @@ Function Get-LrAlarms {
             $ErrorObject.Raw = $_
             return $ErrorObject
         }
-        write-host $Response
 
 
         if ($Response.alarmsCount -eq $PageValuesCount) {
@@ -266,6 +271,11 @@ Function Get-LrAlarms {
             }
         }
 
+        # If ResultsOnly flag is provided, return only the alarmSearchDetails.
+        if ($ResultsOnly) {
+            $Response = $Response.alarmsSearchDetails
+        }
+
 
         # [Exact] Parameter
         # Search "Malware" normally returns both "Malware" and "Malware Options"
@@ -275,8 +285,7 @@ Function Get-LrAlarms {
             $Response | ForEach-Object {
                 if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
                     Write-Verbose "[$Me]: Exact list name match found."
-                    $List = $_
-                    return $List
+                    return $_
                 }
             }
         } else {
