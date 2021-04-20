@@ -29,9 +29,7 @@ Function Test-LrAlarmStatus {
         [ValidateNotNull()]
         [string] $Id
     )
-    Begin {
-
-    }
+    Begin { }
     
     Process {
         $OutObject = [PSCustomObject]@{
