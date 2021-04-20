@@ -9,20 +9,30 @@ Function Get-LrAlarm {
         Get-LrAlarm returns a detailed LogRhythm Alarm object.
     .PARAMETER AlarmId
         Intiger representing the Alarm required for detail retrieval.
+    .PARAMETER ResultsOnly
+        Switch used to specify return only alarmDetails results.
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
     .INPUTS
-        [System.Int]           -> PageCount
-        [System.String]        -> Name
-        [System.String]        -> Entity
-        [System.String]        -> RecordStatus
-        [System.String[array]] -> HostIdentifier
-        [System.Switch]        -> Exact
+        [System.Int]          -> AlarmId
+        [System.Switch]       -> ResultsOnly
+        [PSCredential]        -> Credential
     .OUTPUTS
         PSCustomObject representing LogRhythm Alarms and their contents.
     .EXAMPLE
-        PS C:\> Get-LrAlarm -AlarmId 185 -Verbose
-        --- 
+        PS C:\> Get-LrAlarm -AlarmId 185
+         
+
+        alarmDetails    : @{alarmRuleID=1000000007; alarmId=185; personId=6; alarmDate=3/31/2021 8:54:01 PM; alarmStatus=1; alarmStatusName=Opened; entityId=-100; entityName=Global Entity; alarmRuleName=AIE: MAC Address
+                  Observed; lastUpdatedID=6; lastUpdatedName=Hart, Eric AD; dateInserted=3/31/2021 8:54:01 PM; dateUpdated=4/20/2021 12:16:26 PM; associatedCases=System.Object[]; lastPersonID=6; eventCount=1;
+                  eventDateFirst=3/31/2021 8:54:33 PM; eventDateLast=3/31/2021 8:54:33 PM; rbpMax=35; rbpAvg=35; smartResponseActions=; alarmDataCached=Y}
+        statusCode      : 200
+        statusMessage   : OK
+        responseMessage : Success
+
+    .EXAMPLE
+        PS C:\> Get-LrAlarm -AlarmId 185 -ResultsOnly
+        
 
         alarmRuleID          : 1000000007
         alarmId              : 185
@@ -56,6 +66,11 @@ Function Get-LrAlarm {
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
         [Int32] $AlarmId,
+
+
+        [Parameter(Mandatory = $false, Position = 1)]
+        [switch] $ResultsOnly,
+
 
         [Parameter(Mandatory = $false, Position = 1)]
         [ValidateNotNull()]
@@ -91,8 +106,6 @@ Function Get-LrAlarm {
             Raw                   =   $null
         }
 
-
-
         $RequestUrl = $BaseUrl + "/alarms/" + $AlarmId
 
         # Send Request
@@ -108,7 +121,7 @@ Function Get-LrAlarm {
             return $ErrorObject
         }
 
-        if ($Response.alarmDetails) {
+        if ($ResultsOnly) {
             return $Response.alarmDetails
         } else {
             return $Response
@@ -116,6 +129,5 @@ Function Get-LrAlarm {
         
     }
 
-    End {
-    }
+    End {}
 }
