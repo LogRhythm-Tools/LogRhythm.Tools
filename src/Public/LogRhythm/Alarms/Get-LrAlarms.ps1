@@ -27,12 +27,21 @@ Function Get-LrAlarms {
         String used to restrict results based on Notification Groups.
 
         Valid entries: 
+            4/19/2021 13:00:00
+            4/19/2021
+            4/19/2021 3:30
     .PARAMETER OrderBy
         Field name on which the results can be sorted.
 
         Valid Values: AlarmRuleName, AlarmStatus, DateInserted and EntityName
+    .PARAMETER Direction
+        Paramater to control the results sort order direction.
+
+        Valid Values: Asc, Desc, Ascending, Descending
     .PARAMETER Exact
-        Switch used to specify Name search for Entity Host record is explicit.
+        Switch used to specify Name search for Alarm Name record is explicit.  
+        
+        This flag can return an array of Alarms that match the exact name condition, in conjunction with any other filter criteria specified.
     .PARAMETER ResultsOnly
         Switch used to specify return only alarmSearchDetails results.
     .PARAMETER PageCount
@@ -40,22 +49,66 @@ Function Get-LrAlarms {
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
     .INPUTS
-        [System.Int]           -> PageCount
-        [System.String]        -> Name
-        [System.String]        -> Entity
-        [System.String]        -> RecordStatus
-        [System.String[array]] -> HostIdentifier
-        [System.Switch]        -> Exact
+        [System.String]       -> Name
+        [System.String]       -> Entity
+        [System.String]       -> AlarmStatus
+        [System.String]       -> Notification
+        [System.String]       -> CaseAssociation
+        [System.DateTime]     -> DateInserted
+        [System.String]       -> OrderBy
+        [System.String]       -> Direction
+        [System.Switch]       -> Exact
+        [System.Switch]       -> ResultsOnly
+        [PSCredential]        -> Credential
     .OUTPUTS
         PSCustomObject representing LogRhythm Alarms and their contents.
     .EXAMPLE
-        PS C:\> Get-LrAlarms
-        ---
-
+        Get-LrAlarms
+        
+        alarmsSearchDetails : {@{alarmId=181; alarmRuleName=AIE: Test Rule - Calc.exe; alarmStatus=1; alarmDataCached=Y; associatedCases=System.Object[]; entityName=Global Entity; dateInserted=1/20/2021 6:26:41 PM},
+                            @{alarmId=182; alarmRuleName=AIE: MAC Address Observed; alarmStatus=1; alarmDataCached=Y; associatedCases=System.Object[]; entityName=Global Entity; dateInserted=3/30/2021 3:33:36 PM},
+                            @{alarmId=183; alarmRuleName=AIE: MAC Address Observed; alarmStatus=1; alarmDataCached=Y; associatedCases=System.Object[]; entityName=Global Entity; dateInserted=3/30/2021 5:56:42 PM},
+                            @{alarmId=184; alarmRuleName=AIE: MAC Address Observed; alarmStatus=1; alarmDataCached=Y; associatedCases=System.Object[]; entityName=Global Entity; dateInserted=3/31/2021 8:44:00 PM}…}
+        alarmsCount         : 6
+        statusCode          : 200
+        statusMessage       : OK
+        responseMessage     : Success
     .EXAMPLE
-        Get-LrHosts -name "windows"
-        ---
+        PS C:\> Get-LrAlarms -OrderBy AlarmRuleName -Direction desc -ResultsOnly
+        
+        alarmId         : 181
+        alarmRuleName   : AIE: Test Rule - Calc.exe
+        alarmStatus     : 1
+        alarmDataCached : Y
+        associatedCases : {36968FA0-C046-4B98-B0AF-03989DC63F8F}
+        entityName      : Global Entity
+        dateInserted    : 1/20/2021 6:26:41 PM
 
+        alarmId         : 182
+        alarmRuleName   : AIE: MAC Address Observed
+        alarmStatus     : 1
+        alarmDataCached : Y
+        associatedCases : {B5F10081-9F85-4DEA-94A7-1668F536623B,  598BA826-0321-4B17-A45E-BB2343151AC3}
+        entityName      : Global Entity
+        dateInserted    : 3/30/2021 3:33:36 PM
+
+        alarmId         : 183
+        alarmRuleName   : AIE: MAC Address Observed
+        alarmStatus     : 1
+        alarmDataCached : Y
+        associatedCases : {5E5E9EE0-EF92-4280-89F8-E64F37798B67}
+        entityName      : Global Entity
+        dateInserted    : 3/30/2021 5:56:42 PM
+    .EXAMPLE 
+        Get-LrAlarms -Name "AIE: Test Rule - Calc.exe" -ResultsOnly
+        
+        alarmId         : 181
+        alarmRuleName   : AIE: Test Rule - Calc.exe
+        alarmStatus     : 1
+        alarmDataCached : Y
+        associatedCases : {36968FA0-C046-4B98-B0AF-03989DC63F8F}
+        entityName      : Global Entity
+        dateInserted    : 1/20/2021 6:26:41 PM
     .NOTES
         LogRhythm-API        
     .LINK
@@ -85,26 +138,36 @@ Function Get-LrAlarms {
 
 
         [Parameter(Mandatory = $false, Position = 5)]
-        [datetime] $DateInserted,
-    
+        [ValidateSet('AlarmRuleName', 'AlarmStatus','DateInserted ', 'entityName', ignorecase=$true)]
+        [string] $OrderBy = 'DateInserted',
+
 
         [Parameter(Mandatory = $false, Position = 6)]
-        [switch] $ResultsOnly,
+        [ValidateSet('asc','desc', 'ascending', 'descending', ignorecase=$true)]
+        [string] $Direction = "asc",
 
 
         [Parameter(Mandatory = $false, Position = 7)]
-        [switch] $Exact,
-
+        [datetime] $DateInserted,
+    
 
         [Parameter(Mandatory = $false, Position = 8)]
-        [int] $PageValuesCount = 1000,
+        [switch] $ResultsOnly,
 
 
         [Parameter(Mandatory = $false, Position = 9)]
-        [int] $PageCount = 1,
+        [switch] $Exact,
 
 
         [Parameter(Mandatory = $false, Position = 10)]
+        [int] $PageValuesCount = 1000,
+
+
+        [Parameter(Mandatory = $false, Position = 11)]
+        [int] $PageCount = 1,
+
+
+        [Parameter(Mandatory = $false, Position = 12)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -192,6 +255,28 @@ Function Get-LrAlarms {
             }
         }
 
+
+        # Return results direction, ascending or descending
+        if ($Direction) {
+            switch ($Direction) {
+                'ascending' {$_direction = 'ascending'}
+                'descending' {$_direction = 'descending'}
+                'asc' {$_direction = 'ascending'}
+                'desc' {$_direction = 'descending'}
+            }
+            $QueryParams.Add("dir", $_direction)
+        }
+
+        # Order By
+        if ($OrderBy) {
+            switch ($OrderBy) {
+                'alarmrulename' {$_orderBy = 'AlarmRuleName'}
+                'alarmstatus' {$_orderBy = 'AlarmStatus'}
+                'dateinserted' {$_orderBy = 'DateInserted'}
+                'entityname' {$_orderBy = 'EntityName'}
+            }
+            $QueryParams.Add("orderby", $_orderBy)
+        }
 
         # RecordStatus
         if ($AlarmStatus) {
@@ -282,12 +367,31 @@ Function Get-LrAlarms {
         # This would only return "Malware"
         if ($Exact) {
             $Pattern = "^$Name$"
-            $Response | ForEach-Object {
-                if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
-                    Write-Verbose "[$Me]: Exact list name match found."
-                    return $_
+            $ExactResults = [list[object]]::new()
+            if ($ResultsOnly) {
+                $Response | ForEach-Object {
+                    write-host $_
+                    if(($_.alarmRuleName -match $Pattern) -or ($_.alarmRuleName -eq $Name)) {
+                        Write-Verbose "[$Me]: Exact list name match found."
+                        $ExactResults.Add($_)
+                    }
+                }
+                if ($ExactResults) {
+                    return $ExactResults
+                } 
+            } else {
+                $Response.alarmsSearchDetails | ForEach-Object {
+                    if(($_.alarmRuleName -match $Pattern) -or ($_.alarmRuleName -eq $Name)) {
+                        Write-Verbose "[$Me]: Exact list name match found."
+                        $ExactResults.Add($_)
+                    }
+                }
+                if ($ExactResults) {
+                    $Response.alarmsSearchDetails = $ExactResults
+                    return $Response
                 }
             }
+
         } else {
             return $Response
         }
