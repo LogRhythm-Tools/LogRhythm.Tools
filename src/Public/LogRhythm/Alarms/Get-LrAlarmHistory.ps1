@@ -118,9 +118,6 @@ Function Get-LrAlarmHistory {
         # Define HTTP Method
         $Method = $HttpMethod.Get
 
-        # Define LogRhythm Version
-        $LrVersion = $LrtConfig.LogRhythm.Version
-
         # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
         Enable-TrustAllCertsPolicy        
     }
@@ -132,6 +129,15 @@ Function Get-LrAlarmHistory {
             Type                  =   $null
             Note                  =   $null
             Raw                   =   $null
+        }
+
+        # Verify version
+        if ([int]$LrtConfig.LogRhythm.Version.split(".")[1] -le 6) {
+            $ErrorObject.Error = $true
+            $ErrorObject.Code = "404"
+            $ErrorObject.Type = "Cmdlet not supported."
+            $ErrorObject.Note = "This cmdlet is available in LogRhythm version 7.7.0 and greater."
+            return $ErrorObject
         }
 
         #region: Process Query Parameters____________________________________________________
