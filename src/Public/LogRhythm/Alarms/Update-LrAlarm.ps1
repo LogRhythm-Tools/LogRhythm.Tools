@@ -14,49 +14,45 @@ Function Update-LrAlarm {
 
         Valid entries: New, Opened, Working, Escalated, Closed, Closed_FalseAlarm, Closed_Resolved
                        Closed_Unresolved, Closed_Reported, Closed_Monitor
+                       1, 2, 3, 4, 5, 6, 7, 8, 9
     .PARAMETER RBP
         Intiger value applied as a new value for the Alarm's Risk Based Priority score.
 
         If not provided the RBP will remain unchanged.
 
         Valid range: 0-100
+    .PARAMETER PassThru
+        Switch paramater that will enable the return of the output object from the cmdlet.
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
     .INPUTS
-        [System.Int]           -> PageCount
-        [System.String]        -> Name
-        [System.String]        -> Entity
-        [System.String]        -> RecordStatus
-        [System.String[array]] -> HostIdentifier
-        [System.Switch]        -> Exact
+        [System.Int]          -> AlarmId
+        [System.String]       -> AlarmStatus
+        [System.Int]          -> RBP
+        [System.Switch]       -> PassThru
+        [PSCredential]        -> Credential
     .OUTPUTS
-        PSCustomObject representing LogRhythm Alarms and their contents.
+        By defaul the output is null unless an error is generated.
+        
+        With the PassThru switch a PSCustomObject representing LogRhythm Alarms and their contents.
     .EXAMPLE
-        PS C:\> Get-LrAlarm -AlarmId 185 -Verbose
-        --- 
+        PS C:\> Update-LrAlarm -AlarmId 185 -AlarmStatus New
+         
+    .EXAMPLE
+        PS C:\> Update-LrAlarm -AlarmId 185 -AlarmStatus opened -RBP 35
+        
+    .EXAMPLE
+        PS C:\> Update-LrAlarm -AlarmId 185 -AlarmStatus New -PassThru 
 
-        alarmRuleID          : 1000000007
-        alarmId              : 185
-        personId             : 6
-        alarmDate            : 3/31/2021 8:54:01 PM
-        alarmStatus          : 7
-        alarmStatusName      : Closed: Unresolved
-        entityId             : -100
-        entityName           : Global Entity
-        alarmRuleName        : AIE: MAC Address Observed
-        lastUpdatedID        : 6
-        lastUpdatedName      : Hart, Eric AD
-        dateInserted         : 3/31/2021 8:54:01 PM
-        dateUpdated          : 4/16/2021 1:14:02 PM
-        associatedCases      : {13277FFF-B723-42E7-8D10-D7464646E6B7,  5E5E9EE0-EF92-4280-89F8-E64F37798B67}
-        lastPersonID         : 6
-        eventCount           : 1
-        eventDateFirst       : 3/31/2021 8:54:33 PM
-        eventDateLast        : 3/31/2021 8:54:33 PM
-        rbpMax               : 0
-        rbpAvg               : 0
-        smartResponseActions :
-        alarmDataCached      : Y
+        statusCode statusMessage responseMessage
+        ---------- ------------- ---------------
+            200 OK            Success
+    .EXAMPLE
+        PS C:\> Update-LrAlarm -AlarmId 185 -AlarmStatus opened -RBP 35 -PassThru
+
+        statusCode statusMessage responseMessage
+        ---------- ------------- ---------------
+            200 OK            Success
     .NOTES
         LogRhythm-API        
     .LINK
@@ -93,6 +89,10 @@ Function Update-LrAlarm {
 
 
         [Parameter(Mandatory = $false, Position = 3)]
+        [switch] $PassThru,
+
+
+        [Parameter(Mandatory = $false, Position = 4)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -181,12 +181,13 @@ Function Update-LrAlarm {
             return $ErrorObject
         }
 
-        if ($Response.alarmDetails) {
-            return $Response.alarmDetails
-        } else {
-            return $Response
+        if ($PassThru) {
+            if ($Response.alarmDetails) {
+                return $Response.alarmDetails
+            } else {
+                return $Response
+            }
         }
-        
     }
 
     End {
