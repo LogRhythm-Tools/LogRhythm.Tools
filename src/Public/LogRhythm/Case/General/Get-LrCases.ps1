@@ -569,9 +569,9 @@ Function Get-LrCases {
                 if ($ExactCaseMatches[0]) {
                     $_metrics = $ExactCaseMatches[0] | Get-LrCaseMetrics    
                     $ExactCaseMatches[0] | Add-Member -MemberType NoteProperty -Name "Metrics" -Value $_metrics
-                }
-                return $ExactCaseMatches[0]
+                } 
             }
+            return $ExactCaseMatches[0]
             
         # [Name Match] - return one or more resuls based on partial name match
         } elseif ($Name) {
