@@ -1,5 +1,5 @@
 using namespace System.Collections.Generic
-
+Import-Module LogRhythm.Tools
 # Set home folder for Sync to read/write content to.
 $RootFolderPath = "/opt/logrhythm/lrtools_azure_securityevents"
 #$RootFolderPath = "C:\Users\eric\Documents\GitHub\LogRhythm.Tools"
