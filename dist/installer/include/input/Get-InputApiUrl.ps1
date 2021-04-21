@@ -25,8 +25,7 @@ Function Get-InputApiUrl {
     # Accept Hostname or IPAddress
     $ValidRegex = [regex]::new("^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$")
     # Parses hostname from a URL in group 4 (with port) or 6 (without port)
-    $Extract = [regex]::new("^http(s)?:\/\/((([^:]+):)|(([^\/]+)\/)).*?$")
-
+    $Extract = [regex]::new("^(http(?:s)?:\/\/)?((?<host>[^:\/]+)(((:)?(?<port>\d{2,4})?)))(?:\/?.*?)$")
 
     # Return object
     $Return = [PSCustomObject]@{
@@ -51,15 +50,13 @@ Function Get-InputApiUrl {
 
 
     # Our $Find will either be in group 4 or 6.
-    # 4: Hosts with a port definition (https://host.com:8080/blah)
-    # 6: Hosts without a port (https://host.com/blah)
-    if ($ExtractResult.Groups[4].Success) {
-        $Find = $ExtractResult.Groups[4].Value
+    # First condition: Hosts with a port definition (https://host.com:8080/blah)
+    # Second condition: Hosts without a port (https://host.com/blah)
+    if ($ExtractResult.Groups["port"].Success -and $ExtractResult.Groups["host"].Success) {
+        $Find = $ExtractResult.Groups["host"].Value + ':' + $ExtractResult.Groups["port"].Value
         Write-Verbose "Extraction with port."
-    }
-
-    if ($ExtractResult.Groups[6].Success) {
-        $Find = $ExtractResult.Groups[6].Value
+    } elseif ($ExtractResult.Groups["host"].Success) {
+        $Find = $ExtractResult.Groups["host"].Value
         Write-Verbose "Extraction without port."
     }
     # If we couldn't find a host to replace:
@@ -68,15 +65,50 @@ Function Get-InputApiUrl {
         Write-Verbose "Old Value: $OldValue | New Value: $NewValue"
     }
 
+
+    # Extract the parsed details for the user submitted value
+    $ExtractValue = $Extract.Match($Value)
+    
+    # If Value wasn't a valid match for https://host/ or https://host:9999/ then we have a source data problem
+    if (! $ExtractValue.Success) {
+        Write-Host "    [!] Warning: Value found in current configuration file is invalid, so it cannot be updated." -ForegroundColor Red
+        Write-Host "    Update this field directly in the configuration." -ForegroundColor Red
+        # set valid to true because user input won't help change it.
+        $Return.Valid = $false
+        return $Return
+    }
+
     # We need a valid hostname to use for replacement
-    if ($Value -match $ValidRegex) {
+    if ($ExtractValue.Groups["host"].Success -match $ValidRegex) {
         $Return.Valid = $true
+        if ($ExtractValue.Groups["port"].Success -and $ExtractValue.Groups["host"].Success) {
+            $Replace = $ExtractValue.Groups["host"].Value + ':' + $ExtractValue.Groups["port"].Value
+            Write-Verbose "Extraction with port."
+        } elseif ($ExtractValue.Groups["host"].Success) {
+            Write-Verbose "Extraction without port."
+            if ($ExtractValue.Groups["host"] -like "*.cloud") {
+                Write-Verbose "LogRhythm Cloud Host."
+                $Replace = $ExtractValue.Groups["host"].Value
+                $Return.Valid = $true
+            } else {
+                # If the User Value does not contain Port and the Old Value does contain Port, retain Old Value Port
+                if ($ExtractResult.Groups["port"].Success) {
+                    Write-Verbose "Retaining Old Value Port"
+                    $Replace = $ExtractValue.Groups["host"].Value + ':' + $ExtractResult.Groups["port"].Value
+                    $Return.Valid = $true
+                } else {
+                    # Default to setting Find = Value Host
+                    $Replace = $ExtractValue.Groups["host"].Value
+                    $Return.Valid = $true
+                }
+            }
+        }
     }
 
     # Create URL from OldValue
-    $Return.Value = $OldValue.Replace($Find, $Value)
+    $Return.Value = $OldValue.Replace($Find, $Replace)
 
-
+    # Update URL if Return.Value is not equal to OldValue
     if ($Return.Value -ne $OldValue) {
         $Return.Changed = $true
     }
