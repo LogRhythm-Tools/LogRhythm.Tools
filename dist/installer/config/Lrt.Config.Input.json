@@ -67,13 +67,6 @@
                 "FallThru": false
             },
     
-            "DataIndexerIP": {
-                "Prompt": "LogRhythm Data Indexer",
-                "Hint": "Hostname or IP (x.x.x.x)",
-                "InputCmd": "Get-InputHostname",
-                "FallThru": false
-            },
-    
             "AdminBaseUrl": {
                 "Prompt": "LogRhythm Platform Manager",
                 "Hint": "Hostname or IP (x.x.x.x)",
@@ -96,6 +89,13 @@
             },
     
             "SearchBaseUrl": {
+                "Prompt": "",
+                "Hint": "",
+                "InputCmd": "Get-InputApiUrl",
+                "FallThru": true
+            },
+
+            "AlarmBaseUrl": {
                 "Prompt": "",
                 "Hint": "",
                 "InputCmd": "Get-InputApiUrl",
