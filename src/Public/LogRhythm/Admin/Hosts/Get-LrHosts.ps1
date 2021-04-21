@@ -22,7 +22,7 @@ Function Get-LrHosts {
         Array of strings used to search for Host records based on Identifiers.
 
         Common Identifiers: IP Address, DNS Name, Hostname
-    .PARAMETER Exact,
+    .PARAMETER Exact
         Switch used to specify Name search for Entity Host record is explicit.
     .INPUTS
         [System.Int]           -> PageCount
@@ -32,7 +32,7 @@ Function Get-LrHosts {
         [System.String[array]] -> HostIdentifier
         [System.Switch]        -> Exact
     .OUTPUTS
-        PSCustomObject representing LogRhythm TrueIdentity Identities and their contents.
+        PSCustomObject representing LogRhythm Host records and their contents.
     .EXAMPLE
         PS C:\> Get-LrHosts
         ---
@@ -142,9 +142,6 @@ Function Get-LrHosts {
 
         # Define HTTP Method
         $Method = $HttpMethod.Get
-
-        # Define LogRhythm Version
-        $LrVersion = $LrtConfig.LogRhythm.Version
 
         # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
         Enable-TrustAllCertsPolicy        
