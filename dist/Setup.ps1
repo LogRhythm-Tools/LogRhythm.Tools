@@ -223,6 +223,7 @@ foreach($ConfigCategory in $LrtConfigInput.PSObject.Properties) {
                 $LrtConfig.($ConfigCategory.Name).($ConfigField.Name) = $Result.Value
             # Input BAD - provide hint
             } else {
+                Write-Verbose "Validation: `n$Result"
                 Write-Host "    hint: [$($ConfigField.Value.Hint)]" -ForegroundColor Magenta
             }
         }
