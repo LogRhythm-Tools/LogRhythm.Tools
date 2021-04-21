@@ -109,7 +109,7 @@ Function Get-LrCasePlaybookProcedures {
             $CaseNumber = $IdStatus.CaseNumber
         } else {
             return $IdStatus
-        }   
+        }
         
 
         # Populate list of Case Playbooks
