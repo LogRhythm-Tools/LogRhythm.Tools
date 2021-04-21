@@ -12,12 +12,12 @@
     },
 
     "LogRhythm": {
-        "Version":"7.6.0",
-        "DataIndexerIP": "127.0.0.1",
+        "Version":"7.7.0",
         "AdminBaseUrl": "https://[NOT_SET]:8501/lr-admin-api",
         "CaseBaseUrl": "https://[NOT_SET]:8501/lr-case-api",
         "AieBaseUrl": "https://[NOT_SET]:8501/lr-drilldown-cache-api",
         "SearchBaseUrl": "https://[NOT_SET]:8501/lr-search-api",
+        "AlarmBaseUrl": "https://[NOT_SET]:8501/lr-alarm-api",
         "ApiKey": ""
     },
 
