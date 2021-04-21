@@ -9,13 +9,16 @@ LogRhythm.Tools is a PowerShell module for interacting with LogRhythm APIs. The 
 - Admin (Agents, Entities, Hosts, Identities, lists, Locations, LogSources, Networks, Users)
 - AI Engine Drilldown for Alarms
 - Cases (Evidence, Metrics, Playbooks, Tags)
-- LogRhythm Search (LR version 7.5 required)
+- Search (LR version 7.5 required)
+- Alarms (LR version 7.7 required)
 - LogRhythm Echo
 
 **Third Party Integrations:**
 
 LogRhythm.Tools supports API access to various third party vendors.  Access to these services requires authorization keys provided by the third party and is not granted as a part of the LogRhythm.Tools module.  
 
+- Microsoft Graph API
+- Microsoft Defender API
 - Virus Total
 - Recorded Future
 - Shodan
@@ -60,11 +63,11 @@ Each command included in the LogRhythm.Tools module is deigned to be modular and
 
 ***Optional***
 
+- Microsoft Azure App Registration
 - Recorded Future API Key
 - Shodan API Key
 - Urlscan API Key
 - VirusTotal API Key
-
 
 
 > NOTE: For specific Cmdlet requirements reference the section [Cmdlet Version Requirements](#Cmdlet-Version-Requirements)
@@ -259,6 +262,41 @@ This example begins to show some of the flexibility and capability of the LogRhy
 
 ## [Cmdlet Version Requirements](#Cmdlet-Version-Requirements)
 LogRhythm.Tools was developed and has undergone testing leveraging LogRhythm SIEM versions 7.4.X and 7.5.X.  Validate the SIEM version with the Minimum Version specification below prior to submitting Cmdlet issues.
+
+### Version: 1.2.0
+
+|Cmdlet|API Endpoint|Category|Minimum Version|
+|------|------------|--------|---------------|
+|Add-LrAlarmComment|Alarms|Alarms|7.7.0|
+|Get-LrAlarm|Alarms|Alarms|7.7.0|
+|Get-LrAlarmEvents|Alarms|Alarms|7.7.0|
+|Get-LrAlarmHistory|Alarms|Alarms|7.7.0|
+|Get-LrAlarms|Alarms|Alarms|7.7.0|
+|Get-LrAlarmSummary|Alarms|Alarms|7.7.0|
+|Test-LrAlarmStatus|Alarms|Alarms|7.7.0|
+|Update-LrAlarm|Alarms|Alarms|7.7.0|
+
+### Version: 1.1.0
+
+|Cmdlet|API Endpoint|Category|Minimum Version|
+|------|------------|--------|---------------|
+|Add-LrLogsToCase|Case|Evidence|7.5.0|
+|Get-LrCaseEvidence|Case|Evidence|7.5.0|
+|Get-LrCaseLogsIndex|Case|Evidence|7.5.0|
+|Format-LrHostTextOutput|Case|Helpers|7.5.0|
+|Format-LrIdentityTextOutput|Case|Helpers|7.5.0|
+|New-LrCaseHelper|Case|Helpers|7.5.0|
+|New-LrTagTaxObject|Case|Helpers|7.5.0|
+|Get-LrtAzSecurityAlert|AzureGraph|Security|-|
+|Get-LrtAzSecurityAlerts|AzureGraph|Security|-|
+|Update-LrtAzSecurityAlert|AzureGraph|Security|-|
+|Get-LrtAzUserManager|AzureGraph|Users|-|
+|Get-LrtAzUsers|AzureGraph|Users|-|
+|Get-LrtAzMe|AzureGraph|General|-|
+|Get-LrtAzOrganization|AzureGraph|General|-|
+|New-LrtAzMailMessage|AzureGraph|Mail|-|
+
+### Version: 1.0.0
 
 |Cmdlet|API Endpoint|Category|Minimum Version|
 |------|------------|--------|---------------|
