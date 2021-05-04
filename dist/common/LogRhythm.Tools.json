@@ -18,6 +18,7 @@
         "AieBaseUrl": "https://[NOT_SET]:8501/lr-drilldown-cache-api",
         "SearchBaseUrl": "https://[NOT_SET]:8501/lr-search-api",
         "AlarmBaseUrl": "https://[NOT_SET]:8501/lr-alarm-api",
+        "ThreatIntelligenceBaseUrl": "https://[NOT SET]:8501/lr-threat-intelligence-api",
         "ApiKey": ""
     },
 
