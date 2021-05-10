@@ -57,7 +57,7 @@ Function Invoke-PIELrMsgSearch {
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.SearchBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
         
         # Define HTTP Headers
@@ -115,7 +115,7 @@ Function Invoke-PIELrMsgSearch {
 
 
         # Define Query URL
-        $RequestUrl = $BaseUrl + "/actions/search-task"
+        $RequestUrl = $BaseUrl + "/lr-search-api/actions/search-task"
 
         # Send Request
         try {
@@ -131,22 +131,7 @@ Function Invoke-PIELrMsgSearch {
         }
 
 
-        #>
-        # [Exact] Parameter
-        # Search "Malware" normally returns both "Malware" and "Malware Options"
-        # This would only return "Malware"
-        if ($Exact) {
-            $Pattern = "^$Name$"
-            $Response | ForEach-Object {
-                if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
-                    Write-Verbose "[$Me]: Exact list name match found."
-                    $List = $_
-                    return $List
-                }
-            }
-        } else {
-            return $Response
-        }
+        return $Response
     }
 
     End { 
