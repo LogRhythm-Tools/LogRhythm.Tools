@@ -46,6 +46,10 @@ Function Remove-LrTag {
 
 
         [Parameter(Mandatory = $false, Position = 1)]
+        [switch] $PassThru,
+
+
+        [Parameter(Mandatory = $false, Position = 2)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -54,7 +58,7 @@ Function Remove-LrTag {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
         
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Enable self-signed certificates and Tls1.2
@@ -105,20 +109,13 @@ Function Remove-LrTag {
             Return $_tagNumber
         }
 
-        # Create Body
-        $Body = ([PSCustomObject]@{ number = $_tagNumber }) | ConvertTo-Json
-
         # Request URI
-        $RequestUrl = $BaseUrl + "/tags/$_tagNumber/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/tags/$_tagNumber/"
         Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
         
-
-        #region: Make Request                                                            
-        Write-Verbose "[$Me]: request body is:`n$Body"
-
         # Make Request
         try {
-            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
         } catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_
             $ErrorObject.Code = $Err.statusCode
@@ -129,8 +126,9 @@ Function Remove-LrTag {
             return $ErrorObject
         }
         
-        return $Response
-        #endregion
+        if ($PassThru) {
+            return $Response
+        }
     }
 
     End { }
