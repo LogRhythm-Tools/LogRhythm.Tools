@@ -113,7 +113,7 @@ Function Remove-LrListItem {
     Begin {
         # Request Setup
         $Me = $MyInvocation.MyCommand.Name
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Define HTTP Headers
@@ -500,7 +500,7 @@ Function Remove-LrListItem {
         Write-Verbose "[$Me] Request Body:`n$Body"
 
         # Set HTTP Request URL
-        $RequestUrl = $BaseUrl + "/lists/$ListGuid/items/"
+        $RequestUrl = $BaseUrl + "/lr-admin-api/lists/$ListGuid/items/"
 
 
         # Check for Object Errors

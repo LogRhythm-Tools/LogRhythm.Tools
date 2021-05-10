@@ -124,7 +124,7 @@ Function Add-LrCaseTags {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
         
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Enable self-signed certificates and Tls1.2
@@ -162,7 +162,7 @@ Function Add-LrCaseTags {
             return $IdStatus
         }                                                   
 
-        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/actions/addTags/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/actions/addTags/"
         Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
         #endregion
 

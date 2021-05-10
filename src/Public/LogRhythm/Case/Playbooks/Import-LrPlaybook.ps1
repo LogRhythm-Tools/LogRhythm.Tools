@@ -40,7 +40,7 @@ Function Import-LrPlaybook {
 
     Begin {
         $Me = $MyInvocation.MyCommand.Name
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Request Headers
@@ -76,7 +76,7 @@ Function Import-LrPlaybook {
             return $ErrorObject
         }
 
-        $RequestUrl = $BaseUrl + "/playbooks/import"
+        $RequestUrl = $BaseUrl + "/lr-case-api/playbooks/import"
         Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
 

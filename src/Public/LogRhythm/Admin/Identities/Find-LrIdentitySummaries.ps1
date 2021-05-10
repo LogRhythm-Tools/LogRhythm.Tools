@@ -56,7 +56,7 @@ Function Find-LrIdentitySummaries {
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Define HTTP Headers
@@ -68,7 +68,7 @@ Function Find-LrIdentitySummaries {
         $Method = $HttpMethod.Post
 
         # Define HTTP Destination URI
-        $RequestUrl = $BaseUrl + "/identities/summaries/query/"
+        $RequestUrl = $BaseUrl + "/lr-admin-api/identities/summaries/query/"
 
         # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
         Enable-TrustAllCertsPolicy

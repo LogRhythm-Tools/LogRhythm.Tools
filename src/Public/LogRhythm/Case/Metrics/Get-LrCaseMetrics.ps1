@@ -69,7 +69,7 @@ Function Get-LrCaseMetrics {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
         
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Request Headers
@@ -110,7 +110,7 @@ Function Get-LrCaseMetrics {
         }
      
         # Request URI
-        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/metrics"
+        $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/metrics"
 
 
         #region: Send Request - First Attempt                                                      

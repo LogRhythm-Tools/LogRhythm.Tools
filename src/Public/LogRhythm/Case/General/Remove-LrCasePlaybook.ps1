@@ -68,7 +68,7 @@ Function Remove-LrCasePlaybook {
 
     Begin {
         $Me = $MyInvocation.MyCommand.Name
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Request Headers
@@ -142,7 +142,7 @@ Function Remove-LrCasePlaybook {
             return $ErrorObject
         }
 
-        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/playbooks/$PlaybookId/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/playbooks/$PlaybookId/"
         Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
 

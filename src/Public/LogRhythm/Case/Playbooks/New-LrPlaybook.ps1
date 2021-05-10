@@ -106,7 +106,7 @@ Function New-LrPlaybook {
 
     Begin {
         $Me = $MyInvocation.MyCommand.Name
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Request Headers
@@ -215,7 +215,7 @@ Function New-LrPlaybook {
 
 
 
-        $RequestUrl = $BaseUrl + "/playbooks/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/playbooks/"
         Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         # Request Body

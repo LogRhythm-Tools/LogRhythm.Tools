@@ -101,7 +101,7 @@ Function Get-LrPlaybookProcedures {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
         
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Enable self-signed certificates and Tls1.2
@@ -153,7 +153,7 @@ Function Get-LrPlaybookProcedures {
         }
 
         # Request URI
-        $RequestUrl = $BaseUrl + "/playbooks/$($Pb.id)/procedures/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/playbooks/$($Pb.id)/procedures/"
 
 
         # REQUEST

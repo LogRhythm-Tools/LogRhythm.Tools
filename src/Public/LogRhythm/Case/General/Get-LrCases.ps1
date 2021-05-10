@@ -296,7 +296,7 @@ Function Get-LrCases {
         #region: Setup_______________________________________________________________________
         $Me = $MyInvocation.MyCommand.Name
 
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         #region: Process Request Headers_____________________________________________________
@@ -458,7 +458,7 @@ Function Get-LrCases {
 
         #region: Send RequestHeaders_________________________________________________________
         # Request URI
-        $RequestUrl = $BaseUrl + "/cases/" + $QueryString
+        $RequestUrl = $BaseUrl + "/lr-case-api/cases/" + $QueryString
 
         # REQUEST
         try {

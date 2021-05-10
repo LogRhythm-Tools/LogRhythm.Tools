@@ -161,7 +161,7 @@ Function Get-LrNetworks {
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
         
         # Define HTTP Headers
@@ -276,7 +276,7 @@ Function Get-LrNetworks {
         }
 
         # Request URL
-        $RequestUrl = $BaseUrl + "/networks/" + $QueryString
+        $RequestUrl = $BaseUrl + "/lr-admin-api/networks/" + $QueryString
 
         # Send Request
         try {
@@ -302,7 +302,7 @@ Function Get-LrNetworks {
                 # Apply to Query String
                 $QueryString = $QueryParams | ConvertTo-QueryString
                 # Update Query URL
-                $RequestUrl = $BaseUrl + "/networks/" + $QueryString
+                $RequestUrl = $BaseUrl + "/lr-admin-api/networks/" + $QueryString
                 # Retrieve Query Results
                 try {
                     $PaginationResults = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method

@@ -61,7 +61,7 @@ Function Add-LrAlarmComment {
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AlarmBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
         
         # Define HTTP Headers
@@ -106,7 +106,7 @@ Function Add-LrAlarmComment {
         Write-Verbose "$Body"
 
 
-        $RequestUrl = $BaseUrl + "/alarms/" + $AlarmId + "/comment"
+        $RequestUrl = $BaseUrl + "/lr-alarm-api/alarms/" + $AlarmId + "/comment"
 
         # Send Request
         try {

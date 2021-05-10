@@ -110,7 +110,7 @@ Function Add-LrListItem {
     Begin {
         # Request Setup
         $Me = $MyInvocation.MyCommand.Name
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Define HTTP Headers
@@ -176,7 +176,7 @@ Function Add-LrListItem {
         $ListGuid = $TargetList.Guid
 
         # Set HTTP Request URL
-        $RequestUrl = $BaseUrl + "/lists/$ListGuid/items/"
+        $RequestUrl = $BaseUrl + "/lr-admin-api/lists/$ListGuid/items/"
 
         # Map listItemDataType
         switch ($LrListType) {

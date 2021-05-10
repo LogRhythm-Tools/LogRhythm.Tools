@@ -62,7 +62,7 @@ Function Enable-LrIdentity {
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
         
         # Define HTTP Headers
@@ -95,7 +95,7 @@ Function Enable-LrIdentity {
         } | ConvertTo-Json
         
         # Define Query URL
-        $RequestUrl = $BaseUrl + "/identities/" + $IdentityId + "/status"
+        $RequestUrl = $BaseUrl + "/lr-admin-api/identities/" + $IdentityId + "/status"
 
         # Send Request
         try {

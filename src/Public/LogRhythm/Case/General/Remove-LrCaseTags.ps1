@@ -99,7 +99,7 @@ Function Remove-LrCaseTags {
 
 
     Begin {
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Enable self-signed certificates and Tls1.2
@@ -137,7 +137,7 @@ Function Remove-LrCaseTags {
             return $IdStatus
         }                                                  
 
-        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/actions/removeTags/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/actions/removeTags/"
         Write-Verbose "[$($MyInvocation.MyCommand.Name)]: RequestUrl: $RequestUrl"
         #endregion
 

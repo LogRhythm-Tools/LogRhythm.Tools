@@ -75,7 +75,7 @@ Function Get-LrCasePlaybookProcedures {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
         
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Request Headers
@@ -151,7 +151,7 @@ Function Get-LrCasePlaybookProcedures {
         }
         
 
-        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/playbooks/$PlaybookGuid/procedures/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/playbooks/$PlaybookGuid/procedures/"
         Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         # REQUEST

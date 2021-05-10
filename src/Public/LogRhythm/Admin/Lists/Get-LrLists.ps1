@@ -107,7 +107,7 @@ Function Get-LrLists {
     Begin {
         # Request Setup
         $Me = $MyInvocation.MyCommand.Name
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Validate ListType
@@ -143,7 +143,7 @@ Function Get-LrLists {
         $Method = $HttpMethod.Get
         
         # Define HTTP URI
-        $RequestUrl = $BaseUrl + "/lists/"
+        $RequestUrl = $BaseUrl + "/lr-admin-api/lists/"
 
         # Check preference requirements for self-signed certificates and set enforcement for Tls1.2
         Enable-TrustAllCertsPolicy

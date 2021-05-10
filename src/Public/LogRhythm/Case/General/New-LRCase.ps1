@@ -107,7 +107,7 @@ Function New-LrCase {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
 
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
         
         # Enable self-signed certificates and Tls1.2
@@ -117,7 +117,7 @@ Function New-LrCase {
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
         $Headers.Add("Content-Type","application/json")
-        $RequestUrl = $BaseUrl + "/cases/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/cases/"
 
         # Request Method
         $Method = $HttpMethod.Post

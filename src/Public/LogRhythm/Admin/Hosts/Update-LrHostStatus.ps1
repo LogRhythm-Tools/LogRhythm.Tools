@@ -52,7 +52,7 @@ Function Update-LrHostStatus {
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
         
         # Define HTTP Headers
@@ -146,7 +146,7 @@ Function Update-LrHostStatus {
         Write-Verbose $Body
 
         # Request URL
-        $RequestUrl = $BaseUrl + "/hosts/status/"
+        $RequestUrl = $BaseUrl + "/lr-admin-api/hosts/status/"
 
         # Send Request
         try {

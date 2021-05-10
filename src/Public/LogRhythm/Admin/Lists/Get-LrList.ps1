@@ -65,7 +65,7 @@ Function Get-LrList {
 
     Begin {
         # Request Setup 
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Define HTTP Headers
@@ -108,7 +108,7 @@ Function Get-LrList {
         }
 
         # Define HTTP URI
-        $RequestUrl = $BaseUrl + "/lists/$Guid/"
+        $RequestUrl = $BaseUrl + "/lr-admin-api/lists/$Guid/"
 
 
         # Send Request

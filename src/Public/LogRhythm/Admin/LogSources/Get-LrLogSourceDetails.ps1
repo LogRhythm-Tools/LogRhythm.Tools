@@ -127,7 +127,7 @@ Function Get-LrLogSourceDetails {
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Define HTTP Headers
@@ -181,7 +181,7 @@ Function Get-LrLogSourceDetails {
         }
 
         
-        $RequestUrl = $BaseUrl + "/logsources/" + $Guid + "/"
+        $RequestUrl = $BaseUrl + "/lr-admin-api/logsources/" + $Guid + "/"
         # Error Output - Used to support Pipeline Paramater ID
         Write-Verbose "[$Me]: Id: $Id - Guid: $Guid - ErrorStatus: $($ErrorObject.Error)"
         if ($ErrorObject.Error -eq $false) {

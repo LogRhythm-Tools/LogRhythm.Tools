@@ -99,7 +99,7 @@ Function Update-LrAlarm {
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AlarmBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
         
         # Define HTTP Headers
@@ -172,7 +172,7 @@ Function Update-LrAlarm {
         Write-Verbose "$Body"
 
 
-        $RequestUrl = $BaseUrl + "/alarms/" + $AlarmId
+        $RequestUrl = $BaseUrl + "/lr-alarm-api/alarms/" + $AlarmId
 
         # Send Request
         try {

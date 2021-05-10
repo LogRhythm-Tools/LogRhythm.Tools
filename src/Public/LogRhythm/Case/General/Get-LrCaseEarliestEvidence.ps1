@@ -50,7 +50,7 @@ function Get-LrCaseEarliestEvidence {
 	)
     
     Begin {
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         $ProcessedCount = 0
@@ -83,7 +83,7 @@ function Get-LrCaseEarliestEvidence {
             return $IdStatus
         }   
 
-        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/metrics/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/metrics/"
 
         # Send Request
         try {

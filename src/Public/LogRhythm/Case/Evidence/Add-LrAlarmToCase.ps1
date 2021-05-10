@@ -99,7 +99,7 @@ Function Add-LrAlarmToCase {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
         
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Enable self-signed certificates and Tls1.2
@@ -136,7 +136,7 @@ Function Add-LrAlarmToCase {
         }
 
 
-        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/evidence/alarms/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/evidence/alarms/"
         #endregion
 
         #region: Request Body                                                            

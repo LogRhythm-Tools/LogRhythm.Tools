@@ -22,7 +22,7 @@ function Get-LrLogSourceTypes
     Begin {
         # Request Setup
         $Me = $MyInvocation.MyCommand.Name
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
 
@@ -89,7 +89,7 @@ function Get-LrLogSourceTypes
         }
 
         # Request URL
-        $RequestUrl = $BaseUrl + "/messagesourcetypes/" + $QueryString
+        $RequestUrl = $BaseUrl + "/lr-admin-api/messagesourcetypes/" + $QueryString
 
 
         # Send Request
@@ -117,7 +117,7 @@ function Get-LrLogSourceTypes
                 # Apply to Query String
                 $QueryString = $QueryParams | ConvertTo-QueryString
                 # Update Query URL
-                $RequestUrl = $BaseUrl + "/messagesourcetypes/" + $QueryString
+                $RequestUrl = $BaseUrl + "/lr-admin-api/messagesourcetypes/" + $QueryString
                 # Retrieve Query Results
                 try {
                     $PaginationResults = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method

@@ -187,7 +187,7 @@ Function Get-LrAgentDetails {
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Define HTTP Headers
@@ -239,7 +239,7 @@ Function Get-LrAgentDetails {
         }
 
         
-        $RequestUrl = $BaseUrl + "/agents/" + $Guid + "/"
+        $RequestUrl = $BaseUrl + "/lr-admin-api/agents/" + $Guid + "/"
         # Send Request
         try {
             $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method

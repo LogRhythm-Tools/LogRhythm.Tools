@@ -174,7 +174,7 @@ Function Get-LrAlarms {
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AlarmBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
         
         # Define HTTP Headers
@@ -297,7 +297,7 @@ Function Get-LrAlarms {
         }
         #endregion
 
-        $RequestUrl = $BaseUrl + "/alarms" + $QueryString
+        $RequestUrl = $BaseUrl + "/lr-alarm-api/alarms" + $QueryString
 
         # Send Request
         try {
@@ -330,7 +330,7 @@ Function Get-LrAlarms {
                 # Apply to Query String
                 $QueryString = $QueryParams | ConvertTo-QueryString
                 # Update Query URL
-                $RequestUrl = $BaseUrl + "/alarms" + $QueryString
+                $RequestUrl = $BaseUrl + "/lr-alarm-api/alarms" + $QueryString
                 # Retrieve Query Results
                 try {
                     $PaginationResults = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method

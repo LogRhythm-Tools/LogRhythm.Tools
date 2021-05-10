@@ -185,7 +185,7 @@ Function Add-LrIdentity {
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Define HTTP Headers
@@ -381,7 +381,7 @@ Function Add-LrIdentity {
         Write-Verbose $BodyContents
 
         # Define Query URL
-        $RequestUrl = $BaseUrl + "/identities/bulk/?entityID=" + $EntityId
+        $RequestUrl = $BaseUrl + "/lr-admin-api/identities/bulk/?entityID=" + $EntityId
 
         # Send Request
         try {

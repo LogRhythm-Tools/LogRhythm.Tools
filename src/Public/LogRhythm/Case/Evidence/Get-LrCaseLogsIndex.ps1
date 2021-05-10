@@ -53,7 +53,7 @@ Function Get-LrCaseLogsIndex {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
         
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Enable self-signed certificates and Tls1.2
@@ -81,7 +81,7 @@ Function Get-LrCaseLogsIndex {
         }
 
         # Request URI
-        $RequestUrl = $BaseUrl + "/cases/$Id/logs-index/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/cases/$Id/logs-index/"
 
 
         # Submit request

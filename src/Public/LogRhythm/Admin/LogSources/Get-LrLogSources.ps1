@@ -243,7 +243,7 @@ Function Get-LrLogSources {
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
         
         # Define HTTP Headers
@@ -397,7 +397,7 @@ Function Get-LrLogSources {
         }
 
         # Request URL
-        $RequestUrl = $BaseUrl + "/logsources/" + $QueryString
+        $RequestUrl = $BaseUrl + "/lr-admin-api/logsources/" + $QueryString
 
         # Send Request
         try {
@@ -423,7 +423,7 @@ Function Get-LrLogSources {
                 # Apply to Query String
                 $QueryString = $QueryParams | ConvertTo-QueryString
                 # Update Query URL
-                $RequestUrl = $BaseUrl + "/logsources/" + $QueryString
+                $RequestUrl = $BaseUrl + "/lr-admin-api/logsources/" + $QueryString
                 # Retrieve Query Results
                 try {
                     $PaginationResults = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method

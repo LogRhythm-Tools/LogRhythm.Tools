@@ -113,7 +113,7 @@ Function Get-LrCaseEvidence {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
         
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Enable self-signed certificates and Tls1.2
@@ -159,7 +159,7 @@ Function Get-LrCaseEvidence {
         }
 
         # Request URI
-        $RequestUrl = $BaseUrl + "/cases/$Id/evidence/" + $QueryString
+        $RequestUrl = $BaseUrl + "/lr-case-api/cases/$Id/evidence/" + $QueryString
 
 
         # REQUEST

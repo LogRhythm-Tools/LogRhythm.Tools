@@ -68,7 +68,7 @@ Function Get-LrCaseById {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
         
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Enable self-signed certificates and Tls1.2
@@ -110,7 +110,7 @@ Function Get-LrCaseById {
             return $ErrorObject
         }
         
-        $RequestUrl = $BaseUrl + "/cases/$Id/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/cases/$Id/"
 
         try {
             $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method

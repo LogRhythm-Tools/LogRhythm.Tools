@@ -109,7 +109,7 @@ Function Get-LrTags {
     )
 
     Begin {
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Enable self-signed certificates and Tls1.2
@@ -157,7 +157,7 @@ Function Get-LrTags {
         }
 
         # Request URI
-        $RequestUrl = $BaseUrl + "/tags/?tag=$Name"
+        $RequestUrl = $BaseUrl + "/lr-case-api/tags/?tag=$Name"
 
         # Make Request
         try {

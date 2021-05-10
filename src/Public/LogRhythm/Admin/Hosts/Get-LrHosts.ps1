@@ -132,7 +132,7 @@ Function Get-LrHosts {
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
         
         # Define HTTP Headers
@@ -210,7 +210,7 @@ Function Get-LrHosts {
         }
         #endregion
 
-        $RequestUrl = $BaseUrl + "/hosts/" + $QueryString
+        $RequestUrl = $BaseUrl + "/lr-admin-api/hosts/" + $QueryString
 
         # Send Request
         try {
@@ -236,7 +236,7 @@ Function Get-LrHosts {
                 # Apply to Query String
                 $QueryString = $QueryParams | ConvertTo-QueryString
                 # Update Query URL
-                $RequestUrl = $BaseUrl + "/hosts/" + $QueryString
+                $RequestUrl = $BaseUrl + "/lr-admin-api/hosts/" + $QueryString
                 # Retrieve Query Results
                 try {
                     $PaginationResults = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method

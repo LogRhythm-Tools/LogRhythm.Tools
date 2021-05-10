@@ -57,7 +57,7 @@ Function Get-LrCaseAssociatedCases {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
         
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Enable self-signed certificates and Tls1.2
@@ -93,7 +93,7 @@ Function Get-LrCaseAssociatedCases {
         }  
 
         
-        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/associated/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/associated/"
         Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         # REQUEST

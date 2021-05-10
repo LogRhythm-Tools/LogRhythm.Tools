@@ -103,7 +103,7 @@ Function Update-LrCaseStatus {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
         
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Enable self-signed certificates and Tls1.2
@@ -148,7 +148,7 @@ Function Update-LrCaseStatus {
         }
 
         # Request URI
-        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/actions/changeStatus/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/actions/changeStatus/"
 
 
         # Request Body

@@ -240,7 +240,7 @@ Function New-LrNetwork {
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
         
         # Define HTTP Headers
@@ -431,7 +431,7 @@ Function New-LrNetwork {
         Write-Verbose "$Body"
 
         # Define Query URL
-        $RequestUrl = $BaseUrl + "/networks/"
+        $RequestUrl = $BaseUrl + "/lr-admin-api/networks/"
 
         # Send Request
         try {

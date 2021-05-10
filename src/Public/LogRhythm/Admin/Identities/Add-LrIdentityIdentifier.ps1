@@ -74,7 +74,7 @@ Function Add-LrIdentityIdentifier {
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Define HTTP Headers
@@ -116,7 +116,7 @@ Function Add-LrIdentityIdentifier {
          } | ConvertTo-Json
         
         # Define Endpoint URL
-        $RequestUrl = $BaseUrl + "/identities/" + $IdentityId + "/identifiers"
+        $RequestUrl = $BaseUrl + "/lr-admin-api/identities/" + $IdentityId + "/identifiers"
 
         # Test if Identifier exists
         $IdentifierStatus = Test-LrIdentityIdentifierValue -IdentityId $IdentityId -IdentifierType $IdentifierType -Value $IdentifierValue

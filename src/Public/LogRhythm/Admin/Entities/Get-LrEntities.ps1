@@ -97,7 +97,7 @@ Function Get-LrEntities {
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Define HTTP Header
@@ -185,7 +185,7 @@ Function Get-LrEntities {
 
 
         # Define Search URL
-        $RequestUrl = $BaseUrl + "/entities/" + $QueryString
+        $RequestUrl = $BaseUrl + "/lr-admin-api/entities/" + $QueryString
 
 
 
@@ -214,7 +214,7 @@ Function Get-LrEntities {
                 # Apply to Query String
                 $QueryString = $QueryParams | ConvertTo-QueryString
                 # Update Query URL
-                $RequestUrl = $BaseUrl + "/entities/" + $QueryString
+                $RequestUrl = $BaseUrl + "/lr-admin-api/entities/" + $QueryString
                 # Retrieve Query Results
                 try {
                     $PaginationResults = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method

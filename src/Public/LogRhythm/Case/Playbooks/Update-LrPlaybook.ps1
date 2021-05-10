@@ -125,7 +125,7 @@ Function Update-LrPlaybook {
 
     Begin {
         $Me = $MyInvocation.MyCommand.Name
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Request Headers
@@ -264,7 +264,7 @@ Function Update-LrPlaybook {
             $_writePermission = $Pb.permissions.write
         }
 
-        $RequestUrl = $BaseUrl + "/playbooks/$($Pb.id)/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/playbooks/$($Pb.id)/"
         Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         # Request Body

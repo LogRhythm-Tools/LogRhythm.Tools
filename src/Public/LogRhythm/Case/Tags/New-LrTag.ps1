@@ -50,7 +50,7 @@ Function New-LrTag {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
         
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Enable self-signed certificates and Tls1.2
@@ -79,7 +79,7 @@ Function New-LrTag {
         }
 
         # Request URI
-        $RequestUrl = $BaseUrl + "/tags/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/tags/"
         Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
 

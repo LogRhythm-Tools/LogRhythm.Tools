@@ -74,7 +74,7 @@ Function Add-LrCaseCollaborators {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
         
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Enable self-signed certificates and Tls1.2
@@ -111,7 +111,7 @@ Function Add-LrCaseCollaborators {
             return $IdStatus
         }                                                      
 
-        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/actions/addCollaborators/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/actions/addCollaborators/"
         Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
         #endregion
 

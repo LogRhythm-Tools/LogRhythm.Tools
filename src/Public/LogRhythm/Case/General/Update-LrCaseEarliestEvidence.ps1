@@ -83,7 +83,7 @@ Function Update-LrCaseEarliestEvidence {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
         
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Request Headers
@@ -174,7 +174,7 @@ Function Update-LrCaseEarliestEvidence {
         $Note = "LogRhythm Tools: Update EarliestEvidence Timestamp"
 
 
-        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/metrics/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/metrics/"
 
 
         # Request Body

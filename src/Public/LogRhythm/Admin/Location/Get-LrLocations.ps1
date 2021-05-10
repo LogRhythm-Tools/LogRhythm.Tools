@@ -90,7 +90,7 @@ Function Get-LrLocations {
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Define HTTP Header
@@ -108,7 +108,7 @@ Function Get-LrLocations {
         Enable-TrustAllCertsPolicy
 
         # Define Search URL
-        $RequestUrl = $BaseUrl + "/locations/"
+        $RequestUrl = $BaseUrl + "/lr-admin-api/locations/"
     }
 
     Process {

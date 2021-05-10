@@ -120,7 +120,7 @@ Function Update-LrEntity {
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
         
         # Define HTTP Headers
@@ -267,7 +267,7 @@ Function Update-LrEntity {
         Write-Verbose "$Body"
 
         # Define Query URL
-        $RequestUrl = $BaseUrl + "/entities/"
+        $RequestUrl = $BaseUrl + "/lr-admin-api/entities/"
 
         # Send Request
         try {

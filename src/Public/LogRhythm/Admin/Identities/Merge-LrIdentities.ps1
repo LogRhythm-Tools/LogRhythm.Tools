@@ -106,7 +106,7 @@ Function Merge-LrIdentities {
         if ($LrtConfig.LogRhythm.Version -match '7\.[5-9]\.\d+') {
             $Mode = "7.5"
             # Request Setup
-            $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+            $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
             $Token = $Credential.GetNetworkCredential().Password
 
             # Define HTTP Headers
@@ -232,7 +232,7 @@ Function Merge-LrIdentities {
         if ($Mode -like "7.5") {
 
             # Define URL
-            $RequestUrl = $BaseUrl + "/identities/$DestinationIdentityId/merge/"
+            $RequestUrl = $BaseUrl + "/lr-admin-api/identities/$DestinationIdentityId/merge/"
 
             # Define request body
             $BodyContents = [PSCustomObject]@{

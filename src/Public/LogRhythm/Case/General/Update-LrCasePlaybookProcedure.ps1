@@ -142,7 +142,7 @@ Function Update-LrCasePlaybookProcedure {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
         
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Enable self-signed certificates and Tls1.2
@@ -263,7 +263,7 @@ Function Update-LrCasePlaybookProcedure {
         
 
         # Request URI
-        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/playbooks/$($UpdatePlaybook.Id)/procedures/$($UpdateProcedure.Id)/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/playbooks/$($UpdatePlaybook.Id)/procedures/$($UpdateProcedure.Id)/"
         Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
 

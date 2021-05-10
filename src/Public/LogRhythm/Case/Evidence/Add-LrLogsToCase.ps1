@@ -86,7 +86,7 @@ Function Add-LrLogsToCase {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
 
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Enable self-signed certificates and Tls1.2
@@ -121,7 +121,7 @@ Function Add-LrLogsToCase {
             return $IdStatus
         }
 
-        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/evidence/log/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/evidence/log/"
 
 
         # Request Body

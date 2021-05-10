@@ -191,7 +191,7 @@ Function Update-LrList {
     Begin {
         # Request Setup
         $Me = $MyInvocation.MyCommand.Name
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Define HTTP Headers
@@ -201,7 +201,7 @@ Function Update-LrList {
 
         # Request Setup
         $Method = $HttpMethod.Post
-        $RequestUrl = $BaseUrl + "/lists/"
+        $RequestUrl = $BaseUrl + "/lr-admin-api/lists/"
 
         # Define HTTP Method
         $Method = $HttpMethod.Post

@@ -107,7 +107,7 @@ Function Get-LrAlarmHistory {
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AlarmBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
         
         # Define HTTP Headers
@@ -210,7 +210,7 @@ Function Get-LrAlarmHistory {
         }
 
 
-        $RequestUrl = $BaseUrl + "/alarms/" + $AlarmId + "/history" + $QueryString
+        $RequestUrl = $BaseUrl + "/lr-alarm-api/alarms/" + $AlarmId + "/history" + $QueryString
 
         # Send Request
         try {
@@ -242,7 +242,7 @@ Function Get-LrAlarmHistory {
                 # Apply to Query String
                 $QueryString = $QueryParams | ConvertTo-QueryString
                 # Update Query URL
-                $RequestUrl = $BaseUrl + "/alarms/" + $AlarmId + "/history" + $QueryString
+                $RequestUrl = $BaseUrl + "/lr-alarm-api/alarms/" + $AlarmId + "/history" + $QueryString
                 # Retrieve Query Results
                 try {
                     $PaginationResults = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method

@@ -79,7 +79,7 @@ Function Get-LrHostDetails {
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Define HTTP Headers
@@ -123,7 +123,7 @@ Function Get-LrHostDetails {
         }
 
         
-        $RequestUrl = $BaseUrl + "/hosts/" + $Guid + "/"
+        $RequestUrl = $BaseUrl + "/lr-admin-api/hosts/" + $Guid + "/"
         # Error Output - Used to support Pipeline Paramater ID
         Write-Verbose "[$Me]: Id: $Id - Guid: $Guid - ErrorStatus: $($ErrorObject.Error)"
         if ($ErrorObject.Error -eq $false) {

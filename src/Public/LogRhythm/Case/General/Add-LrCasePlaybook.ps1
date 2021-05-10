@@ -72,7 +72,7 @@ Function Add-LrCasePlaybook {
 
     Begin {
         $Me = $MyInvocation.MyCommand.Name
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Request Headers
@@ -122,7 +122,7 @@ Function Add-LrCasePlaybook {
             } 
         }
 
-        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/playbooks/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/playbooks/"
         Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         # Request Body

@@ -244,7 +244,7 @@ Function Update-LrHost {
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
         
         # Define HTTP Headers
@@ -563,7 +563,7 @@ Function Update-LrHost {
         Write-Verbose "$Body"
 
         # Define Query URL
-        $RequestUrl = $BaseUrl + "/hosts/$Guid/"
+        $RequestUrl = $BaseUrl + "/lr-admin-api/hosts/$Guid/"
 
         # Send Request
         if ($PSEdition -eq 'Core'){

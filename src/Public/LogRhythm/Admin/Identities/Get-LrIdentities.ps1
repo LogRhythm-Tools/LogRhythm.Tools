@@ -128,7 +128,7 @@ Function Get-LrIdentities {
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Define HTTP Header
@@ -238,7 +238,7 @@ Function Get-LrIdentities {
 
 
         # Define Search URL
-        $RequestUrl = $BaseUrl + "/identities/" + $QueryString
+        $RequestUrl = $BaseUrl + "/lr-admin-api/identities/" + $QueryString
 
         # Send Request
         try {
@@ -266,7 +266,7 @@ Function Get-LrIdentities {
                 # Apply to Query String
                 $QueryString = $QueryParams | ConvertTo-QueryString
                 # Update Query URL
-                $RequestUrl = $BaseUrl + "/identities/" + $QueryString
+                $RequestUrl = $BaseUrl + "/lr-admin-api/identities/" + $QueryString
                 # Retrieve Query Results
                 try {
                     $PaginationResults = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method

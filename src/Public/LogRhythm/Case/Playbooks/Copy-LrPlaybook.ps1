@@ -80,7 +80,7 @@ Function Copy-LrPlaybook {
 
     Begin {
         $Me = $MyInvocation.MyCommand.Name
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Request Headers
@@ -126,7 +126,7 @@ Function Copy-LrPlaybook {
         }
 
 
-        $RequestUrl = $BaseUrl + "/playbooks/clone/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/playbooks/clone/"
         Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         # Request Body

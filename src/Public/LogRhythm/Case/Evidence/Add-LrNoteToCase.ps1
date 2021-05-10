@@ -82,7 +82,7 @@ Function Add-LrNoteToCase {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
 
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Enable self-signed certificates and Tls1.2
@@ -117,7 +117,7 @@ Function Add-LrNoteToCase {
             return $IdStatus
         }
 
-        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/evidence/note/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/evidence/note/"
 
 
         # Request Body

@@ -214,7 +214,7 @@ Function Get-LrAgentsAccepted {
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
         
         # Define HTTP Headers
@@ -412,7 +412,7 @@ Function Get-LrAgentsAccepted {
         }
 
         # Request URL
-        $RequestUrl = $BaseUrl + "/agents/" + $QueryString
+        $RequestUrl = $BaseUrl + "/lr-admin-api/agents/" + $QueryString
 
         # Send Request
         try {
@@ -438,7 +438,7 @@ Function Get-LrAgentsAccepted {
                 # Apply to Query String
                 $QueryString = $QueryParams | ConvertTo-QueryString
                 # Update Query URL
-                $RequestUrl = $BaseUrl + "/agents/" + $QueryString
+                $RequestUrl = $BaseUrl + "/lr-admin-api/agents/" + $QueryString
                 # Retrieve Query Results
                 try {
                     $PaginationResults = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method

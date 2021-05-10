@@ -89,7 +89,7 @@ Function Get-LrUsers {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
         
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Enable self-signed certificates and Tls1.2
@@ -150,7 +150,7 @@ Function Get-LrUsers {
 
 
         # Request URI
-        $RequestUrl = $BaseUrl + "/persons/" + $Params
+        $RequestUrl = $BaseUrl + "/lr-case-api/persons/" + $Params
 
         # REQUEST
         try {

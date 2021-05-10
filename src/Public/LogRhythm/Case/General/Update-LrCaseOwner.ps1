@@ -53,7 +53,7 @@ Function Update-LrCaseOwner {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
     
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
         
         # Enable self-signed certificates and Tls1.2
@@ -128,7 +128,7 @@ Function Update-LrCaseOwner {
 
         #region: Send Request                                                                      
         # Request URI
-        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/actions/changeOwner/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/actions/changeOwner/"
 
         # Request Body
         $Body = [PSCustomObject]@{ number = $UserNumber } | ConvertTo-Json

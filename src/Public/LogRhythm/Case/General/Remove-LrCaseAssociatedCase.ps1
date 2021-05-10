@@ -61,7 +61,7 @@ Function Remove-LrCaseAssociatedCase {
 
     Begin {
         $Me = $MyInvocation.MyCommand.Name
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Request Headers
@@ -113,7 +113,7 @@ Function Remove-LrCaseAssociatedCase {
 
         Write-Verbose "Body: $Body"
         
-        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/associated/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/associated/"
         Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         # Request

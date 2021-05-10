@@ -94,7 +94,7 @@ Function Get-LrAieSummary {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
 
-        $BaseUrl = $LrtConfig.LogRhythm.AieBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Enable self-signed certificates and Tls1.2
@@ -114,7 +114,7 @@ Function Get-LrAieSummary {
 
         # Request URI   
         $Method = $HttpMethod.Get
-        $RequestUrl = $BaseUrl + "/drilldown/$AlarmId/summary"
+        $RequestUrl = $BaseUrl + "/lr-drilldown-cache-api/drilldown/$AlarmId/summary"
 
 
 
