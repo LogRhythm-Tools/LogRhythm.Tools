@@ -36,7 +36,6 @@
         "Token": ""
     },
 
-
     "DefenderATP": {
         "Resource": "https://graph.windows.net",
         "OAuth2Url": "https://login.windows.net/00000000-0000-0000-0000-000000000000/oauth2/token",
@@ -68,6 +67,7 @@
         "ApiKey": "",
         "Commercial": "False"
     },
+    
     "UrlScan": {
         "BaseUrl": "https://urlscan.io/api/v1",
         "ScreenshotUrl": "https://urlscan.io/screenshots/",
