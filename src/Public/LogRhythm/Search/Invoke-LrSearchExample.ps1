@@ -69,7 +69,7 @@ Function Invoke-LrSearchExample {
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.SearchBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
         
         # Define HTTP Headers
@@ -136,12 +136,12 @@ Function Invoke-LrSearchExample {
         Write-Verbose $BodyContents
 
         # Define Query URL
-        $RequestUrl = $BaseUrl + "/actions/search-task"
+        $RequestUrl = $BaseUrl + "/lr-search-api/actions/search-task"
 
         # Send Request
         try {
             $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
-        } catch [System.Net.WebException] {
+        } catch {
             $Err = Get-RestErrorMessage $_
             $ErrorObject.Code = $Err.statusCode
             $ErrorObject.Type = "WebException"
