@@ -48,7 +48,7 @@ Function Get-LrAieDrilldown {
         AIERuleName       : Brute Force Login Attempts
         Status            : 4
         Logs              : [System.Object]
-        SummaryFields     : System.Collections.Generic.Dictionary[string,string]
+        SummaryFields     : [System.Object]
         NotificationSent  : System.Boolean
         EventID           : 1955438337
         NormalMessageDate : System.Date
@@ -89,7 +89,7 @@ Function Get-LrAieDrilldown {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
 
-        $BaseUrl = $LrtConfig.LogRhythm.AieBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Request Headers
@@ -108,7 +108,7 @@ Function Get-LrAieDrilldown {
     Process { 
         # Request URI   
         $Method = $HttpMethod.Get
-        $RequestUrl = $BaseUrl + "/drilldown/$AlarmId/"
+        $RequestUrl = $BaseUrl + "/lr-drilldown-cache-api/drilldown/$AlarmId/"
 
 
 
@@ -163,6 +163,7 @@ Function Get-LrAieDrilldown {
                 #endregion
             }
 
+
             # Wait X seconds if no result
             if (! $Response.Data.DrillDownResults) {
                 Write-Verbose "Drilldown not found, waiting $RetryWaitSeconds seconds."
@@ -189,16 +190,17 @@ Function Get-LrAieDrilldown {
         }
 
         # Get Summary Fields
-        $SummaryFields = [List[Dictionary[string,string]]]::new()
+        $SummaryFields = [List[object]]::new()
         foreach ($ruleBlock in $_dd.RuleBlocks) {
-            $fields = [Dictionary[string,string]]::new()
-
             foreach ($field in $ruleBlock.DDSummaries) {
-                $FieldName = $field.PIFType | Get-PIFTypeName
-                $FieldValue = ($field.DrillDownSummaryLogs | ConvertFrom-Json).field
-                $fields.Add($FieldName, $FieldValue)
+                $fields = [PSCustomObject]@{
+                    FieldName = $($field.PIFType | Get-PIFTypeName)
+                    FieldValue = ($field.DrillDownSummaryLogs | ConvertFrom-Json).field
+                    FieldCount = ($field.DrillDownSummaryLogs | ConvertFrom-Json).value
+                }
+                $SummaryFields.Add($fields)
             }
-            $SummaryFields.Add($fields)
+
         }
 
         # Create Output Object
@@ -207,8 +209,11 @@ Function Get-LrAieDrilldown {
             AlarmGuid = $_dd.AlarmGuid
             Priority = $_dd.Priority
             AIERuleName = $_dd.AIERuleName
+            AIERuleID = $_dd.AIERuleID
+            AIEDrilldownRetryCount = $_dd.RetryCount
             Status = $_dd.Status
             Logs = $Logs
+            LogCount = $Logs.count
             SummaryFields = $SummaryFields
             NotificationSent = $_dd.NotificationSent
             EventID = $_dd.EventID
