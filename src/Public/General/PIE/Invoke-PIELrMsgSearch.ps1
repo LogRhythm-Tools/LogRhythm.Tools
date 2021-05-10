@@ -125,7 +125,7 @@ Function Invoke-PIELrMsgSearch {
             $ErrorObject.Code = $Err.statusCode
             $ErrorObject.Type = "WebException"
             $ErrorObject.Note = $Err.message
-            $ErrorObject.ResponseUrl = $RequestUrl
+            $ErrorObject.Raw = $_
             $ErrorObject.Error = $true
             return $ErrorObject
         }
