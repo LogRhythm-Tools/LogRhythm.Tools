@@ -966,7 +966,7 @@ Function Invoke-RfSync {
                     Update-LrList -Guid $VulnerabilityConfHiStatus.Guid -Name $VulnerabilityConfHiList -ListType "generalvalue" -UseContext "cve" -ShortDescription "Recorded Future list of Vulnerabilitys for $ThreatListVulnerability.  Confidence score between $RiskCutoffVulnerability and 100.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId 
                 } else {
                     Write-Host "$(Get-TimeStamp) - Creating List: $VulnerabilityConfHiList"
-                    New-LrList -Name $VulnerabilityConfHiList -ListType "generalvalue" -UseContext "cve" -ShortDescription "Recorded Future list of Vulnerabilitys for $ThreatListVulnerability.  Confidence score between $RiskCutoffVulnerability and 100.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId 
+                    New-LrList -Name $VulnerabilityConfHiList -ListType "generalvalue" -UseContext "cve" -ShortDescription "Recorded Future list of Vulnerabilitys for $ThreatListVulnerability.  Confidence score between $RiskCutoffVulnerability and 100.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId -EntityName $EntityName
                 }
 
                 # Suspicious Risk
