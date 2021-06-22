@@ -288,7 +288,6 @@ Function New-LrList {
             guid = $Guid
             shortDescription = $ShortDescription
             longDescription = $LongDescription
-            useContext = @($FinalContext)
             autoImportOption = [PSCustomObject]@{
                 enabled = $AutoImport
                 usePatterns = $AutoImportPatterns
@@ -303,7 +302,10 @@ Function New-LrList {
             doesExpire = $DoesExpire
             owner = $Owner
         }
- 
+
+        if ($ListType -eq "GeneralValue") {
+            $BodyContents.Add("useContext", @($FinalContext))
+        }
 
         $Body = $BodyContents | ConvertTo-Json -Depth 5 -Compress
         Write-Verbose "[$Me] Request Body:`n$Body"
