@@ -38,7 +38,7 @@ function Invoke-PIEUrlDNSLookup {
         }
 
         Try {
-            $DNSResults = Resolve-DnsName -Name $($Url.Host) -DnsOnly -NoHostsFile
+            $DNSResults = Resolve-DnsName -Name $($Url.Host) -DnsOnly -NoHostsFile -ErrorAction SilentlyContinue
         } Catch { 
             
         }
@@ -80,5 +80,3 @@ function Invoke-PIEUrlDNSLookup {
         return $DNSOutput
     }    
 }
-
-
