@@ -64,113 +64,83 @@ function Get-PIEURLsFromHTML {
         [string] $HTMLSource
     )
     Begin {
-        $HTMLObject = New-Object -Com "HTMLFile"
         $URLList = [list[object]]::new()
+        $RegExHtmlTags = '<(.*?)>'
     }
 
     Process {
-        write-verbose "HTML Source Length: $($HtmlSource.Length)"
-        $HTMLObject.IHTMLDocument2_write($HTMLSource)
-        $IMGArray = $HTMLObject.all.tags("img")
-        $URLArray = $HTMLObject.all.tags("a")
-        ForEach ($URL in $URLArray ) {
+        $matchedItems = [regex]::matches($HTMLSource, $RegExHtmlTags, [system.Text.RegularExpressions.RegexOptions]::Singleline)
+        foreach ($Match in $matchedItems) {
             $URLValue = [PSCustomObject]@{
                 Type = $null
+                Base = $false
             }
-
-            
-            Switch ($($URL.protocol)) {
-                "mailto:" {
-                    $URLValue.Type = "Email"
-                    $URLValue | Add-Member -MemberType NoteProperty -Name 'Email' -Value $($URL.pathname)
-                    $URLValue | Add-Member -MemberType NoteProperty -Name 'IsValid' -Value $(Test-ValidEmailAddress -Address $URL.pathname)                    
-                    break
-                }
-                "file:" {
-                    $URLValue.Type = "File"
-                    $URLValue | Add-Member -MemberType NoteProperty -Name 'Name' -Value $($URL.nameProp)
-                    $FileExtension = [System.IO.Path]::GetExtension($($URL.nameProp))
-                    $URLValue | Add-Member -MemberType NoteProperty -Name 'Extension' -Value $FileExtension
-                    $URLValue | Add-Member -MemberType NoteProperty -Name 'Path' -Value $($URL.pathname)
-                    break
-                }
-                default {
-                    $URLValue.Type = "URL"
-                    $URLValue | Add-Member -MemberType NoteProperty -Name 'URL' -Value $($URL.href)
-                    $URLValue | Add-Member -MemberType NoteProperty -Name 'Host' -Value $($URL.host)
-                    $URLValue | Add-Member -MemberType NoteProperty -Name 'Hostname' -Value $($URL.hostname)
-                    $URLValue | Add-Member -MemberType NoteProperty -Name 'PathName' -Value $($URL.pathname)
-                    $URLValue | Add-Member -MemberType NoteProperty -Name 'Port' -Value $($URL.port)
-                    $URLValue | Add-Member -MemberType NoteProperty -Name 'Protocol' -Value $($($URL.protocol).replace(':',''))
-                    $URLValue | Add-Member -MemberType NoteProperty -Name 'Location' -Value $($URL.nameProp)                    
-                    break
-                }
-            }
-
-            if ($URLList -notcontains $URLValue) {
-                if ($URLValue.Type -like "URL" -And $URLValue.Url) {
-                    $URLList.Add($URLValue)
-                } 
-                if ($URLValue.Type -like "File" -Or $URLValue.Type -like "Email" ) {
-                    $URLList.Add($URLValue)
-                }
-                
-            }
-        }
-
-        ForEach ($ImgUrl in $IMGArray) {
-            $URLValue = [PSCustomObject]@{
-                Type = $null
-            }
-
-            if ($($ImgUrl.href) -like "http*") {
-                $URLValue.Type = "Image"
-                $URLValue | Add-Member -MemberType NoteProperty -Name 'URL' -Value $($ImgUrl.href)
-                
-
-                [System.Uri]$URLDetails = $($ImgUrl.href)
-                $URLValue | Add-Member -MemberType NoteProperty -Name 'AbsolutePath' -Value $($URLDetails.AbsolutePath)
-                $URLValue | Add-Member -MemberType NoteProperty -Name 'Host' -Value $($URLDetails.host+':'+$URLDetails.port)
-                $URLValue | Add-Member -MemberType NoteProperty -Name 'HostName' -Value $($URLDetails.host)
-                $URLValue | Add-Member -MemberType NoteProperty -Name 'Port' -Value $($URLDetails.Port)
-                $URLValue | Add-Member -MemberType NoteProperty -Name 'Protocol' -Value $($URLDetails.Scheme)
-                $URLValue | Add-Member -MemberType NoteProperty -Name 'Name' -Value $($UrlDetails.segments[-1])
-                $FileExtension = [System.IO.Path]::GetExtension($($UrlDetails.segments[-1]))
-                $URLValue | Add-Member -MemberType NoteProperty -Name 'Extension' -Value $FileExtension
-                
-                if ($UrlDetails.HostNameType -Like "IPv6") {
-                    If (($URLValue.PSobject.Properties.name -contains "IP")) {
-                        $URLValue.IP = $URLDetails.Host
-                    } else {
-                        $URLValue | Add-Member -MemberType NoteProperty -Name 'IP' -Value $($URLDetails.Host)
+            if (!$Match.Value.StartsWith("</")) {
+                try {
+                    if ($Match.Value.StartsWith("<base ", [System.StringComparison]::InvariantCultureIgnoreCase)) {  
+                        $Attributes = $Match.Value.Split(" ")
+                        foreach ($Attribute in $Attributes) {
+                            if ($Attribute.Length -gt 10) {
+                                $URLValue.Base = $true
+                                if ($Attribute.StartsWith('href=', [System.StringComparison]::InvariantCultureIgnoreCase)) {   
+                                    $URLValue | Add-Member -MemberType NoteProperty -Name 'URL' -Value ([URI]($Attribute.Substring(6, $Attribute.Length - 7).Replace("`"", "").Replace("'", "").Replace("`r`n", ""))) -Force
+                                    $URLValue.Type = 'URL'
+                                }   
+                            }                                
+                        }                                  
                     }
-                }
-                if ($URLDetails.HostNameType -like "IPv4") {
-                    $IPStatus = Test-ValidIPv4Address -IP $URLDetails.Host
-                    # IP Address was resolved via Test-ValidIPv4Address.  Origin URL is IP Address
-                    if ($IPStatus.IsValid -eq $True) { 
-                        If (($URLValue.PSobject.Properties.name -contains "IP")) {
-                            $URLValue.IP = $IPStatus.Value
-                        } else {
-                            $URLValue | Add-Member -MemberType NoteProperty -Name 'IP' -Value $($IPStatus.Value)
-                        }
+
+                    if ($Match.Value.StartsWith("<a ", [System.StringComparison]::InvariantCultureIgnoreCase)) {
+                        $Attributes = $Match.Value.Split(" ")
+                        foreach ($Attribute in $Attributes) {
+                            if ($Attribute.StartsWith('href=', [System.StringComparison]::InvariantCultureIgnoreCase)) {    
+                                if ($Attribute.Length -gt 10) { 
+                                    $hrefVal = ([URI]($Attribute.Substring(6, $Attribute.Length - 7).Replace("`"", "").Replace("'", "").Replace("`r`n", "`n")))
+                                    if ($URLList.Base -contains $True) {
+                                        if ([String]::IsNullOrEmpty($hrefVal.DnsSafeHost)) {
+                                            $newHost = ($URLList | Where-Object -Property 'Base' -eq $True | Select-Object -First 1 -ExpandProperty 'URL' | Select-Object -ExpandProperty OriginalString) + $hrefVal.OriginalString
+                                            $hrefVal = ([URI]($newHost))
+                                        }
+                                    }
+                                    $URLValue.Type = "URL"
+                                    $URLValue | Add-Member -MemberType NoteProperty -Name 'URL' -Value $hrefVal -Force
+                                }                         
                         
-                        $URLValue | Add-Member -MemberType NoteProperty -Name 'IsIP' -Value $($IPStatus.IsValid)
-                        $URLValue | Add-Member -MemberType NoteProperty -Name 'IsPrivate' -Value $($IPStatus.IsPrivate)
+                            }                                 
+                        }                               
                     }
+
+                    if ($Match.Value.StartsWith("<img ", [System.StringComparison]::InvariantCultureIgnoreCase)) {
+                        $Attributes = $Match.Value.Split(" ")
+                        foreach ($Attribute in $Attributes) {
+                            if ($Attribute.Length -gt 7) {
+                                if ($Attribute.StartsWith('src=', [System.StringComparison]::InvariantCultureIgnoreCase)) {                                        
+                                    $URLValue.Type = "IMG"
+                                    $URLValue | Add-Member -MemberType NoteProperty -Name 'URL' -Value ([URI]($Attribute.Substring(5, $Attribute.Length - 6).Replace("`"", "").Replace("'", "").Replace("`r`n", "`n"))) -Force
+                                }
+                            }                                 
+                        }
+                    }
+
+                } catch {
+                    Write-host ("Parse exception " + $_.Exception.Message + " on Message " + $Item.Subject)
+                    $Error.Clear()
                 }
 
+                if ($null -ne $URLValue.URL) {
+                    $URLValue | Add-Member -MemberType NoteProperty -Name 'Port' -Value $($UrlValue.URL.Port) -Force
+                    $URLValue | Add-Member -MemberType NoteProperty -Name 'Protocol' -Value $($UrlValue.URL.Scheme) -Force
+                    $URLValue | Add-Member -MemberType NoteProperty -Name 'Hostname' -Value $($UrlValue.URL.host) -Force
+                    $URLValue | Add-Member -MemberType NoteProperty -Name 'Host' -Value ($($UrlValue.URL.host) + ':' + $($UrlValue.URL.Port.ToString())) -Force
+                    $URLValue | Add-Member -MemberType NoteProperty -Name 'PathName' -Value $($UrlValue.URL.PathAndQuery) -Force
+                    $URLValue | Add-Member -MemberType NoteProperty -Name 'Location' -Value $($UrlValue.URL.Fragment) -Force
 
-                if ($URLDetails.HostNameType -like "Dns") {
-                    # IsIP - If URL is not direct link to IP address, IsIP = False
-                    $URLValue | Add-Member -MemberType NoteProperty -Name 'IsIP' -Value $False
-                }
-                if ($URLList -notcontains $URLValue) {
-                    $URLList.Add($URLValue)
-                }
+                    if ($URLList -notcontains $URLValue) {
+                        $URLList.add($URLValue)
+                    }
+                }                   
             }
         }
-        
         return $URLList
     }
 }
