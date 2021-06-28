@@ -288,7 +288,6 @@ Function New-LrList {
             guid = $Guid
             shortDescription = $ShortDescription
             longDescription = $LongDescription
-            useContext = @($FinalContext)
             autoImportOption = [PSCustomObject]@{
                 enabled = $AutoImport
                 usePatterns = $AutoImportPatterns
@@ -302,6 +301,10 @@ Function New-LrList {
             needToNotify = $NeedToNotify
             doesExpire = $DoesExpire
             owner = $Owner
+        }
+
+        if ($ListType -eq "GeneralValue") {
+            $BodyContents | Add-Member -MemberType NoteProperty -Name 'useContext' -Value @($FinalContext)
         }
  
 
