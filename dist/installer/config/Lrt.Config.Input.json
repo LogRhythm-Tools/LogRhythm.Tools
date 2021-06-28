@@ -2,7 +2,7 @@
     "General": {
         "Name": "General",
         "Optional": false,
-        "Message": "",
+        "Message": "The Trust Self-Signed SSL Certificates policy is applied to LogRhythm API endpoints.",
         "HasKey": false,
 
         "Fields": {
