@@ -6,7 +6,7 @@ function ConvertTo-Base64 {
             The plain text or Unicode string.
         .INPUT
             System.String. You can pipe a string into ConvertTo-Base64.
-         .OUTPUT
+        .OUTPUT
             System.String. ConvertTo-Base64 returns a base64 encoded string.
         .EXAMPLE
             PS C:\> ConvertTo-Base64 -String "Michael"
@@ -17,12 +17,49 @@ function ConvertTo-Base64 {
         .NOTES
             Author:
             Michael West
+
+            Updated By:
+            Eric Hart
     #>
     [OutputType('System.String')]
     param(
         [Parameter(ValueFromPipeline=$true)]
-        [string]$String
-    )
+        [string]$String,
 
-    [System.Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($String))
+        [Parameter(ValueFromPipeline=$false)]
+        [ValidateSet(
+            'BigEndianUnicode',
+            'unicode',
+            'utf7',
+            'utf8', 
+            'utf32', 
+            ignorecase=$true
+        )]
+        [string]$Encoding
+    )
+    Begin {        
+    }
+
+    Process {
+        switch ($Encoding) {
+            unicode {
+                [System.Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($String))
+            }
+            utf7 {
+                [System.Convert]::ToBase64String([System.Text.Encoding]::UTF7.GetBytes($String))
+            }
+            utf8 {
+                [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($String))
+            }
+            utf32 {
+                [System.Convert]::ToBase64String([System.Text.Encoding]::UT32.GetBytes($String))
+            }
+            bigendianunicode {
+                [System.Convert]::ToBase64String([System.Text.Encoding]::BigEndianUnicode.GetBytes($String))
+            }
+            Default {
+                [System.Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($String))
+            }
+        }
+    }    
 }
