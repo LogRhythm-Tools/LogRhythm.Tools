@@ -114,6 +114,9 @@ Function Update-LrPlaybookProcedures {
         $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
+        # Enable self-signed certificates and Tls1.2
+        Enable-TrustAllCertsPolicy
+
         # Request Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
