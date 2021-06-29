@@ -2,7 +2,7 @@ using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
 
-function Get-LRThreatIntelligence
+function Get-LrThreatIntelligence
 {
     <#
     .SYNOPSIS
@@ -53,10 +53,10 @@ function Get-LRThreatIntelligence
 
     [CmdletBinding()]
     Param(
-		[Parameter(Mandatory = $true, Position = 0)] 
+	[Parameter(Mandatory = $true, Position = 0)] 
         [string] $IoC,
 
-		[Parameter(Mandatory=$false, Position = 1)] 
+	[Parameter(Mandatory=$false, Position = 1)] 
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
 	)
@@ -88,45 +88,28 @@ function Get-LRThreatIntelligence
         }
 
         # Search for the IoC
-        $IoCItem = [PSCustomObject]@{
+        $BodyContents = [PSCustomObject]@{
             value = $IoC
-        }
-
-        $BodyContents = $IoCItem | ConvertTo-Json -Depth 8
+        } | ConvertTo-Json -Depth 8
 
         Write-Verbose $BodyContents
 
         # Define Query URL
         $RequestUrl = $BaseUrl + "/Observables/actions/search"
 
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod -uri $RequestUrl -headers $Headers -Method $Method -Body $BodyContents -SkipCertificateCheck
-            } catch {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Code = $Err.statusCode
-                $ErrorObject.Type = "WebException"
-                $ErrorObject.Note = $Err.message
-                $ErrorObject.ResponseUrl = $RequestUrl
-                $ErrorObject.Error = $true
-                return $ErrorObject
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod -uri $RequestUrl -headers $Headers -Method $Method -Body $BodyContents
-            } catch {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Code = $Err.statusCode
-                $ErrorObject.Type = "WebException"
-                $ErrorObject.Note = $Err.message
-                $ErrorObject.ResponseUrl = $RequestUrl
-                $ErrorObject.Error = $true
-                return $ErrorObject
-            }
-        }
+	try {
+            $Response = Invoke-RestMethod -uri $RequestUrl -headers $Headers -Method $Method -Body $BodyContents
+	} catch {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Code = $Err.statusCode
+            $ErrorObject.Type = "WebException"
+            $ErrorObject.Note = $Err.message
+            $ErrorObject.ResponseUrl = $RequestUrl
+            $ErrorObject.Error = $true
+            return $ErrorObject
+	}
 
-        if ($Response -and $Response.observables -and $Response.observables.length -gt 0)
-        {
+        if ($Response -and $Response.observables -and $Response.observables.length -gt 0) {
             return $Response.observables.providers
         } else {
             return $null
