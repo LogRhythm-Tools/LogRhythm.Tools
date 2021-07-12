@@ -14,12 +14,14 @@ Function Enable-LrIdentityIdentifier {
         Unique Identifier ID # for a TrueID record.
     .PARAMETER IdentifierId
         Unique Identifier ID # for an Identifier record.
+    .PARAMETER PassThru
+        Switch paramater that will enable the return of the output object from the cmdlet.
     .OUTPUTS
         PSCustomObject representing LogRhythm TrueIdentity Identity and its status.
     .EXAMPLE
         Identity exists and Identitystatus Retired prior to cmdlet execution:
 
-        PS C:\> Enable-LrIdentityIdentifier -IdentityId 11 -IdentifierId 50
+        PS C:\> Enable-LrIdentityIdentifier -IdentityId 11 -IdentifierId 50 -PassThru
         ---
         identifierID identifierType value                      recordStatus
         ------------ -------------- -----                      ------------
@@ -28,7 +30,7 @@ Function Enable-LrIdentityIdentifier {
     .EXAMPLE
         Identity exists and IdentityStatus Active prior to cmdlet execution:
 
-        PS C:\> Enable-LrIdentityIdentifier -IdentityId 11 -IdentifierId 50
+        PS C:\> Enable-LrIdentityIdentifier -IdentityId 11 -IdentifierId 50 -PassThru
         ---
         IsPresent           : True
         IdentifierId        : 50
@@ -42,7 +44,7 @@ Function Enable-LrIdentityIdentifier {
     .EXAMPLE
         Identity does not exist:
 
-        PS C:\> Enable-LrIdentityIdentifier -IdentityId 77 -IdentifierId 50
+        PS C:\> Enable-LrIdentityIdentifier -IdentityId 77 -IdentifierId 50 -PassThru
         ---
         IsPresent           : False
         IdentifierId        : 50
@@ -57,7 +59,7 @@ Function Enable-LrIdentityIdentifier {
     .EXAMPLE
         IdentifierId does not exist:
 
-        PS C:\> Enable-LrIdentityIdentifier -IdentityId 1 -IdentifierId 55
+        PS C:\> Enable-LrIdentityIdentifier -IdentityId 1 -IdentifierId 55 -PassThru
         ---
         IsPresent           : False
         IdentifierId        : 55
@@ -68,6 +70,9 @@ Function Enable-LrIdentityIdentifier {
         IdentityValid       : True
         IdentityStatus      : Active
         IdentityDisplayName : marcus.burnett@fabrikam.com
+    .EXAMPLE
+        PS C:\> Enable-LrIdentityIdentifier -IdentityId 1 -IdentifierId 55
+
     .NOTES
         LogRhythm-API        
     .LINK
@@ -85,18 +90,23 @@ Function Enable-LrIdentityIdentifier {
 
 
         [Parameter(Mandatory = $false, Position = 2)]
+        [switch] $PassThru,
+
+
+        [Parameter(Mandatory = $false, Position = 3)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
         
         # Define HTTP Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
         
         # Define HTTP Method
         $Method = $HttpMethod.Put
@@ -106,13 +116,24 @@ Function Enable-LrIdentityIdentifier {
     }
 
     Process {
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Error                 =   $false
+            Note                  =   $null
+            Code                  =   $null
+            Type                  =   $null
+            NameFirst             =   $NameFirst
+            NameLast              =   $NameLast
+            Raw                   =   $null
+        }
+
         # Establish Body Contents
         $BodyContents = [PSCustomObject]@{
             recordStatus = "Active"
         } | ConvertTo-Json
         
         # Define Query URL
-        $RequestUrl = $BaseUrl + "/identities/" + $IdentityId + "/identifiers/" + $IdentifierId + "/status/"
+        $RequestUrl = $BaseUrl + "/lr-admin-api/identities/" + $IdentityId + "/identifiers/" + $IdentifierId + "/status/"
 
         # Test if Identifier exists
         $IdentifierStatus = Test-LrIdentityIdentifierId -IdentityId $IdentityId -Id $IdentifierId
@@ -120,30 +141,25 @@ Function Enable-LrIdentityIdentifier {
         # Send Request and proceed if Identifier is Present
         if ($IdentifierStatus.IsPresent -eq $True -and $IdentifierStatus.RecordStatus -eq "Retired") {
             # Send Request
-            if ($PSEdition -eq 'Core'){
-                try {
-                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents -SkipCertificateCheck
-                }
-                catch {
-                    $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                    Write-Verbose "Exception Message: $ExceptionMessage"
-                    return $false
-                }
-            } else {
-                try {
-                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
-                }
-                catch [System.Net.WebException] {
-                    $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                    Write-Verbose "Exception Message: $ExceptionMessage"
-                    return $false
-                }
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
+            }
+            catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Error = $true
+                $ErrorObject.Type = "System.Net.WebException"
+                $ErrorObject.Code = $($Err.statusCode)
+                $ErrorObject.Note = $($Err.message)
+                $ErrorObject.Raw = $_
+                return $ErrorObject
             }
         } else {
             return $IdentifierStatus
         }
 
-        return $Response
+        if ($PassThru) {
+            return $Response
+        }
     }
 
     End { }

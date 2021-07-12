@@ -11,15 +11,15 @@ Function Get-LrCasePlaybookProcedures {
         with a playbook that has been assigned to a specific case.
 
         If no Id is specified and only one playbook is assigned, that playbook's procedures will be returned.
+    .PARAMETER CaseId
+        Unique identifier for the case, either as an RFC 4122 formatted string, or as a number.
+    .PARAMETER Id
+        (Optional) Unique identifier for the playbook, either as an RFC 4122 formatted string, or as a string.
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
         Note: You can bypass the need to provide a Credential by setting
         the preference variable $LrtConfig.LogRhythm.ApiKey
         with a valid Api Token.
-    .PARAMETER CaseId
-        Unique identifier for the case, either as an RFC 4122 formatted string, or as a number.
-    .PARAMETER Id
-        (Optional) Unique identifier for the playbook, either as an RFC 4122 formatted string, or as a string.
     .INPUTS
         [System.Object]   ->  CaseId
         [System.Object]   ->  Id
@@ -75,8 +75,17 @@ Function Get-LrCasePlaybookProcedures {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
         
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
+
+        # Request Headers
+        $Headers = [Dictionary[string,string]]::new()
+        $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
+        
+
+        # Request Method
+        $Method = $HttpMethod.Get
 
         # Enable self-signed certificates and Tls1.2
         Enable-TrustAllCertsPolicy        
@@ -84,13 +93,23 @@ Function Get-LrCasePlaybookProcedures {
 
 
     Process {
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Code                  =   $null
+            Error                 =   $false
+            Type                  =   $null
+            Note                  =   $null
+            Case                  =   $Id
+            Raw                   =   $null
+        }
+        
         # Test CaseID Format
         $IdStatus = Test-LrCaseIdFormat $CaseId
         if ($IdStatus.IsValid -eq $true) {
             $CaseNumber = $IdStatus.CaseNumber
         } else {
             return $IdStatus
-        }   
+        }
         
 
         # Populate list of Case Playbooks
@@ -131,59 +150,21 @@ Function Get-LrCasePlaybookProcedures {
             }
         }
         
-        # Request Headers
-        $Headers = [Dictionary[string,string]]::new()
-        $Headers.Add("Authorization", "Bearer $Token")
-        
 
-        # Request URI
-        $Method = $HttpMethod.Get
-        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/playbooks/$PlaybookGuid/procedures/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/playbooks/$PlaybookGuid/procedures/"
         Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         # REQUEST
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
-            }
-            catch {
-                $Err = Get-RestErrorMessage $_
-
-                switch ($Err.statusCode) {
-                    "404" {
-                        throw [KeyNotFoundException] `
-                            "[404]: Case ID $CaseNumber or Playbook ID $Id not found, or you do not have permission to view it."
-                     }
-                     "401" {
-                         throw [UnauthorizedAccessException] `
-                            "[401]: Credential '$($Credential.UserName)' is unauthorized to access 'lr-case-api'"
-                     }
-                    Default {
-                        throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) - $($Err.details) - $($Err.validationErrors)"
-                    }
-                }
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-
-                switch ($Err.statusCode) {
-                    "404" {
-                        throw [KeyNotFoundException] `
-                            "[404]: Case ID $CaseNumber or Playbook ID $Id not found, or you do not have permission to view it."
-                     }
-                     "401" {
-                         throw [UnauthorizedAccessException] `
-                            "[401]: Credential '$($Credential.UserName)' is unauthorized to access 'lr-case-api'"
-                     }
-                    Default {
-                        throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) - $($Err.details) - $($Err.validationErrors)"
-                    }
-                }
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Code = $Err.statusCode
+            $ErrorObject.Type = "WebException"
+            $ErrorObject.Note = $Err.message
+            $ErrorObject.Error = $true
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
 
         # Return all responses.

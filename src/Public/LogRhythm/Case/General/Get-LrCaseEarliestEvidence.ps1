@@ -50,7 +50,7 @@ function Get-LrCaseEarliestEvidence {
 	)
     
     Begin {
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         $ProcessedCount = 0
@@ -65,6 +65,16 @@ function Get-LrCaseEarliestEvidence {
     }
     
     Process {
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Code                  =   $null
+            Error                 =   $false
+            Type                  =   $null
+            Note                  =   $null
+            Case                  =   $Id
+            Raw                   =   $null
+        }  
+        
         # Test CaseID Format
         $IdStatus = Test-LrCaseIdFormat $Id
         if ($IdStatus.IsValid -eq $true) {
@@ -73,27 +83,19 @@ function Get-LrCaseEarliestEvidence {
             return $IdStatus
         }   
 
-        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/metrics/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/metrics/"
 
         # Send Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
-            }
-            catch {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                return $ExceptionMessage
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-            }
-            catch [System.Net.WebException] {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                return $ExceptionMessage
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Code = $Err.statusCode
+            $ErrorObject.Type = "WebException"
+            $ErrorObject.Note = $Err.message
+            $ErrorObject.Error = $true
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
         $ProcessedCount++
 

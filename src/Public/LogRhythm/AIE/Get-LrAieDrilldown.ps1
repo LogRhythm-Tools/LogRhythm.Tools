@@ -48,7 +48,7 @@ Function Get-LrAieDrilldown {
         AIERuleName       : Brute Force Login Attempts
         Status            : 4
         Logs              : [System.Object]
-        SummaryFields     : System.Collections.Generic.Dictionary[string,string]
+        SummaryFields     : [System.Object]
         NotificationSent  : System.Boolean
         EventID           : 1955438337
         NormalMessageDate : System.Date
@@ -89,7 +89,7 @@ Function Get-LrAieDrilldown {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
 
-        $BaseUrl = $LrtConfig.LogRhythm.AieBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Request Headers
@@ -108,7 +108,7 @@ Function Get-LrAieDrilldown {
     Process { 
         # Request URI   
         $Method = $HttpMethod.Get
-        $RequestUrl = $BaseUrl + "/drilldown/$AlarmId/"
+        $RequestUrl = $BaseUrl + "/lr-drilldown-cache-api/drilldown/$AlarmId/"
 
 
 
@@ -130,75 +130,39 @@ Function Get-LrAieDrilldown {
             }
 
             # REST Request
-            if ($PSEdition -eq 'Core'){
-                try {
-                    $Response = Invoke-RestMethod -Uri $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
-                }
-                catch {
-                    #region Exception Handling                                               
-                    $Err = Get-RestErrorMessage $_
-                    $ExceptionMsg = $_.Exception.message
+            try {
+                $Response = Invoke-RestMethod -Uri $RequestUrl -Headers $Headers -Method $Method
+            } catch [System.Net.WebException] {
+                #region Exception Handling                                               
+                $Err = Get-RestErrorMessage $_
+                $ExceptionMsg = $_.Exception.message
 
-                    # Catch specific error corresponding to classic alarms
-                    # These errors throw a WebException including a message with text:
-                    # "The remote server returned an error: (404) Not Found."
-                    # $Err in this case will have the proper container for data, but
-                    # the results will be null. Part of the validation of this type
-                    # of error is to check that the DrillDownResults property exists.
-                    if (($Err.data).PSObject.Properties.name -match "DrillDownResults") {
-                        if ($Err.data.DrillDownResults.Count -eq 0) {
-                            $Msg = "[$Me]: (LogRhythm API) "
-                            $Msg += $ExceptionMsg
-                            $Msg += " When a 404 error is specified, ensure that the requested"
-                            $Msg += " alarm is from an AI Engine rule and not a diagnostic alarm."
-                            throw [Exception] $Msg
-                        }
+                # Catch specific error corresponding to classic alarms
+                # These errors throw a WebException including a message with text:
+                # "The remote server returned an error: (404) Not Found."
+                # $Err in this case will have the proper container for data, but
+                # the results will be null. Part of the validation of this type
+                # of error is to check that the DrillDownResults property exists.
+                if (($Err.data).PSObject.Properties.name -match "DrillDownResults") {
+                    if ($Err.data.DrillDownResults.Count -eq 0) {
+                        $Msg = "[$Me]: (LogRhythm API) "
+                        $Msg += $ExceptionMsg
+                        $Msg += " When a 404 error is specified, ensure that the requested"
+                        $Msg += " alarm is from an AI Engine rule and not a diagnostic alarm."
+                        throw [Exception] $Msg
                     }
-                    if (! $Err) {
-                        # Unable to parse Rest Error, re-throw our error.
-                        $PSCmdlet.ThrowTerminatingError($PSItem)
-                    }
-                    # We could parse the Rest Error, throw a custom error based on fields.
-                    $Msg = "[$Me] [$($Err.statusCode)]: $($Err.message) | "
-                    $Msg += "$($Err.details)`n$($Err.validationErrors)`n"
-                    throw [Exception] $Msg                
-                    #endregion
                 }
-            } else {
-                try {
-                    $Response = Invoke-RestMethod -Uri $RequestUrl -Headers $Headers -Method $Method
+                if (! $Err) {
+                    # Unable to parse Rest Error, re-throw our error.
+                    $PSCmdlet.ThrowTerminatingError($PSItem)
                 }
-                catch [System.Net.WebException] {
-                    #region Exception Handling                                               
-                    $Err = Get-RestErrorMessage $_
-                    $ExceptionMsg = $_.Exception.message
-
-                    # Catch specific error corresponding to classic alarms
-                    # These errors throw a WebException including a message with text:
-                    # "The remote server returned an error: (404) Not Found."
-                    # $Err in this case will have the proper container for data, but
-                    # the results will be null. Part of the validation of this type
-                    # of error is to check that the DrillDownResults property exists.
-                    if (($Err.data).PSObject.Properties.name -match "DrillDownResults") {
-                        if ($Err.data.DrillDownResults.Count -eq 0) {
-                            $Msg = "[$Me]: (LogRhythm API) "
-                            $Msg += $ExceptionMsg
-                            $Msg += " When a 404 error is specified, ensure that the requested"
-                            $Msg += " alarm is from an AI Engine rule and not a diagnostic alarm."
-                            throw [Exception] $Msg
-                        }
-                    }
-                    if (! $Err) {
-                        # Unable to parse Rest Error, re-throw our error.
-                        $PSCmdlet.ThrowTerminatingError($PSItem)
-                    }
-                    # We could parse the Rest Error, throw a custom error based on fields.
-                    $Msg = "[$Me] [$($Err.statusCode)]: $($Err.message) | "
-                    $Msg += "$($Err.details)`n$($Err.validationErrors)`n"
-                    throw [Exception] $Msg                
-                    #endregion
-                }
+                # We could parse the Rest Error, throw a custom error based on fields.
+                $Msg = "[$Me] [$($Err.statusCode)]: $($Err.message) | "
+                $Msg += "$($Err.details)`n$($Err.validationErrors)`n"
+                throw [Exception] $Msg                
+                #endregion
             }
+
 
             # Wait X seconds if no result
             if (! $Response.Data.DrillDownResults) {
@@ -226,16 +190,17 @@ Function Get-LrAieDrilldown {
         }
 
         # Get Summary Fields
-        $SummaryFields = [List[Dictionary[string,string]]]::new()
+        $SummaryFields = [List[object]]::new()
         foreach ($ruleBlock in $_dd.RuleBlocks) {
-            $fields = [Dictionary[string,string]]::new()
-
             foreach ($field in $ruleBlock.DDSummaries) {
-                $FieldName = $field.PIFType | Get-PIFTypeName
-                $FieldValue = ($field.DrillDownSummaryLogs | ConvertFrom-Json).field
-                $fields.Add($FieldName, $FieldValue)
+                $fields = [PSCustomObject]@{
+                    FieldName = $($field.PIFType | Get-PIFTypeName)
+                    FieldValue = ($field.DrillDownSummaryLogs | ConvertFrom-Json).field
+                    FieldCount = ($field.DrillDownSummaryLogs | ConvertFrom-Json).value
+                }
+                $SummaryFields.Add($fields)
             }
-            $SummaryFields.Add($fields)
+
         }
 
         # Create Output Object
@@ -244,8 +209,11 @@ Function Get-LrAieDrilldown {
             AlarmGuid = $_dd.AlarmGuid
             Priority = $_dd.Priority
             AIERuleName = $_dd.AIERuleName
+            AIERuleID = $_dd.AIERuleID
+            AIEDrilldownRetryCount = $_dd.RetryCount
             Status = $_dd.Status
             Logs = $Logs
+            LogCount = $Logs.count
             SummaryFields = $SummaryFields
             NotificationSent = $_dd.NotificationSent
             EventID = $_dd.EventID

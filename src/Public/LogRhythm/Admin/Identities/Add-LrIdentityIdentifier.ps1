@@ -16,10 +16,12 @@ Function Add-LrIdentityIdentifier {
         Valid options: Email, Login
     .PARAMETER IdentifierValue
         Value for the new Identifier
+    .PARAMETER PassThru
+        Switch paramater that will enable the return of the output object from the cmdlet.
     .OUTPUTS
         PSCustomObject representing LogRhythm TrueIdentity Identity and its status.
     .EXAMPLE
-        PS C:\> Add-LrIdentityIdentifier -IdentityId 8 -IdentifierType "email" -IdentifierValue "mynewid@example.com"
+        PS C:\> Add-LrIdentityIdentifier -IdentityId 8 -IdentifierType "email" -IdentifierValue "mynewid@example.com" -PassThru
         ---
         identifierID    identifierType value                    recordStatus
         ------------    -------------- -----                    ------------
@@ -27,7 +29,7 @@ Function Add-LrIdentityIdentifier {
     .EXAMPLE
         Attempting to add an identifier to a TrueIdentity where the identifier exists
 
-        PS C:\> Add-LrIdentityIdentifier -IdentityId 8 -IdentifierType "email" -IdentifierValue "mynewid@example.com"
+        PS C:\> Add-LrIdentityIdentifier -IdentityId 8 -IdentifierType "email" -IdentifierValue "mynewid@example.com" -PassThru
         ---
         IsPresent           : True
         IdentifierId        : 8
@@ -38,6 +40,8 @@ Function Add-LrIdentityIdentifier {
         IdentityValid       : True
         IdentityStatus      : Active
         IdentityDisplayName : Eric.Hart
+    .EXAMPLE
+        PS C:\> Add-LrIdentityIdentifier -IdentityId 8 -IdentifierType "email" -IdentifierValue "myverynewid@example.com"
     .NOTES
         LogRhythm-API        
     .LINK
@@ -58,15 +62,19 @@ Function Add-LrIdentityIdentifier {
         [Parameter(Mandatory = $true, ValueFromPipeline = $false, Position = 2)]
         [string] $IdentifierValue,
 
-
+                
         [Parameter(Mandatory = $false, Position = 3)]
+        [switch] $PassThru,
+
+
+        [Parameter(Mandatory = $false, Position = 4)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Define HTTP Headers
@@ -82,6 +90,19 @@ Function Add-LrIdentityIdentifier {
     }
 
     Process {
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Error                 =   $false
+            Note                  =   $null
+            Code                  =   $null
+            Type                  =   $IdentifierType
+            IdentityId            =   $IdentityId
+            NameFirst             =   $null
+            NameLast              =   $null
+            Raw                   =   $null
+        }
+
+
         $ValidStatus = @("login", "email")
         if ($ValidStatus.Contains($($IdentifierType.ToLower()))) {
             $_identifierType = (Get-Culture).TextInfo.ToTitleCase($IdentifierType)
@@ -95,7 +116,7 @@ Function Add-LrIdentityIdentifier {
          } | ConvertTo-Json
         
         # Define Endpoint URL
-        $RequestUrl = $BaseUrl + "/identities/" + $IdentityId + "/identifiers"
+        $RequestUrl = $BaseUrl + "/lr-admin-api/identities/" + $IdentityId + "/identifiers"
 
         # Test if Identifier exists
         $IdentifierStatus = Test-LrIdentityIdentifierValue -IdentityId $IdentityId -IdentifierType $IdentifierType -Value $IdentifierValue
@@ -103,30 +124,26 @@ Function Add-LrIdentityIdentifier {
         # Send Request if Identifier is Not Present
         if ($IdentifierStatus.IsPresent -eq $False) {
             # Send Request
-            if ($PSEdition -eq 'Core'){
-                try {
-                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents -SkipCertificateCheck
-                }
-                catch {
-                    $Err = Get-RestErrorMessage $_
-                    Write-Verbose "Exception Message: $Err"
-                    return $Err
-                }
-            } else {
-                try {
-                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
-                }
-                catch {
-                    $Err = Get-RestErrorMessage $_
-                    Write-Verbose "Exception Message: $Err"
-                    return $Err
-                }
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
+            } catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Error = $true
+                $ErrorObject.Type = "System.Net.WebException"
+                $ErrorObject.Code = $($Err.statusCode)
+                $ErrorObject.Note = $($Err.message)
+                $ErrorObject.NameFirst = $IdentifierStatus.NameFirst
+                $ErrorObject.NameLast = $IdentifierStatus.NameLast
+                $ErrorObject.Raw = $_
+                return $ErrorObject
             }
         } else {
             $Response = $IdentifierStatus
         }
         
-        return $Response
+        if ($PassThru) {
+            return $Response
+        }
     }
 
     End { }

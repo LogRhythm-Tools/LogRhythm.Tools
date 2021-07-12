@@ -38,8 +38,7 @@ Function Get-RestErrorMessage {
             }
             return $ResponseBody
         }
-    }
-    else {
+    } else {
         return $Error.ErrorDetails.Message
     }
 }

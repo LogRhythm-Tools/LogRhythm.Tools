@@ -94,7 +94,11 @@ Function Update-LrPlaybook {
 
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 3)]
-        [string] $Permissions,
+        [string] $ReadPermission,
+
+
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 3)]
+        [string] $WritePermission,
 
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 4)]
@@ -110,6 +114,10 @@ Function Update-LrPlaybook {
 
 
         [Parameter(Mandatory = $false, Position = 7)]
+        [switch] $PassThru,
+
+
+        [Parameter(Mandatory = $false, Position = 8)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -117,7 +125,7 @@ Function Update-LrPlaybook {
 
     Begin {
         $Me = $MyInvocation.MyCommand.Name
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Request Headers
@@ -140,8 +148,8 @@ Function Update-LrPlaybook {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
-            ResponseUrl           =   $null
             Value                 =   $Id
+            Raw                   =   $null
         }
 
         # Validate Playbook Ref
@@ -158,7 +166,6 @@ Function Update-LrPlaybook {
                 $ErrorObject.Error = $true
                 $ErrorObject.Type = "Null"
                 $ErrorObject.Note = "Playbook does not exist."
-                $ErrorObject.ResponseUrl = "$BaseUrl/playbooks/$($Pb.id)/"
                 return $ErrorObject
             }
         }
@@ -175,7 +182,7 @@ Function Update-LrPlaybook {
                     if ($Force) {
                         Write-Verbose "$(Get-TimeStamp) Force Set - Creating Tag"
                         if (!([int]::TryParse($Tag, [ref]$_int))) {
-                            $NewTagResults = New-LrTag -Tag $Tag
+                            $NewTagResults = New-LrTag -Tag $Tag -PassThru
                             if (($null -eq $NewTagResults.Error) -or ($NewTagResults.Error -eq "")) {
                                 Write-Verbose "$(Get-TimeStamp) Adding new tag number: $($NewTagResults.number) to variable: _tags"
                                 $_tags += $NewTagResults.number
@@ -185,7 +192,6 @@ Function Update-LrPlaybook {
                             $ErrorObject.Error = $true
                             $ErrorObject.Type = "Type mismatch"
                             $ErrorObject.Note = "Request tag is integer.  New tags must be type String."
-                            $ErrorObject.ResponseUrl = "Reference: New-LrTag"
                             $ErrorObject.Value = $Tag
                             return $ErrorObject
                         }
@@ -194,7 +200,6 @@ Function Update-LrPlaybook {
                         $ErrorObject.Error = $true
                         $ErrorObject.Type = "Missing tag"
                         $ErrorObject.Note = "Request tag does not exist.  Create tag or re-run with -force."
-                        $ErrorObject.ResponseUrl = "get-lrtags -name $tag -exact"
                         $ErrorObject.Value = $Tag
                         return $ErrorObject
                     }
@@ -230,21 +235,36 @@ Function Update-LrPlaybook {
             $_name = $Pb.Name
         }
 
+
         # New new value set, apply new value.  Otherwise keep existing value.
         if ($ReadPermission) {
-            $_readPermission = $ReadPermission
+            Switch ($ReadPermission) {
+                "publicGlobalAdmin" {$_readPermission = "publicGlobalAdmin";break}
+                "publicGlobalAnalyst" {$_readPermission = "publicGlobalAnalyst";break}
+                "publicRestrictedAdmin" {$_readPermission = "publicRestrictedAdmin";break}
+                "publicRestrictedAnalyst" {$_readPermission = "publicRestrictedAnalyst";break}
+                "privateOwnerOnly" {$_readPermission = "privateOwnerOnly";break}
+                default {$_readPermission = "publicGlobalAnalyst"}
+            }
         } else {
             $_readPermission = $Pb.permissions.read
         }
 
         # New new value set, apply new value.  Otherwise keep existing value.
         if ($WritePermission) {
-            $_writePermission = $WritePermission
+            Switch ($WritePermission) {
+                "publicGlobalAdmin" {$_writePermission = "publicGlobalAdmin";break}
+                "publicGlobalAnalyst" {$_writePermission = "publicGlobalAnalyst";break}
+                "publicRestrictedAdmin" {$_writePermission = "publicRestrictedAdmin";break}
+                "publicRestrictedAnalyst" {$_writePermission = "publicRestrictedAnalyst";break}
+                "privateOwnerOnly" {$_writePermission = "privateOwnerOnly";break}
+                default {$_writePermission = "publicGlobalAnalyst"}
+            }
         } else {
             $_writePermission = $Pb.permissions.write
         }
 
-        $RequestUrl = $BaseUrl + "/playbooks/$($Pb.id)/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/playbooks/$($Pb.id)/"
         Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         # Request Body
@@ -262,41 +282,26 @@ Function Update-LrPlaybook {
             tags = @(
                 $_tags
             )
-        }
-        $Body = $Body | ConvertTo-Json
+        } | ConvertTo-Json
         Write-Verbose "[$Me]: Body: $Body"
 
 
         # Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
-            }
-            catch {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Code = $Err.statusCode
-                $ErrorObject.Type = "WebException"
-                $ErrorObject.Note = $Err
-                $ErrorObject.ResponseUrl = $RequestUrl
-                $ErrorObject.Error = $true
-                return $ErrorObject
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Code = $Err.statusCode
-                $ErrorObject.Type = "WebException"
-                $ErrorObject.Note = $Err
-                $ErrorObject.ResponseUrl = $RequestUrl
-                $ErrorObject.Error = $true
-                return $ErrorObject
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Code = $Err.statusCode
+            $ErrorObject.Type = "WebException"
+            $ErrorObject.Note = $Err.message
+            $ErrorObject.Error = $true
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
 
-        return $Response
+        if ($PassThru) {
+            return $Response
+        }
     }
 
 

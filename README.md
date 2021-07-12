@@ -9,17 +9,24 @@ LogRhythm.Tools is a PowerShell module for interacting with LogRhythm APIs. The 
 - Admin (Agents, Entities, Hosts, Identities, lists, Locations, LogSources, Networks, Users)
 - AI Engine Drilldown for Alarms
 - Cases (Evidence, Metrics, Playbooks, Tags)
-- LogRhythm Search (LR version 7.5 required)
+- Search (LR version 7.5 required)
+- Alarms (LR version 7.7 required)
 - LogRhythm Echo
 
 **Third Party Integrations:**
 
 LogRhythm.Tools supports API access to various third party vendors.  Access to these services requires authorization keys provided by the third party and is not granted as a part of the LogRhythm.Tools module.  
 
-- Virus Total
+- Microsoft Active Directory
+- Microsoft Graph API
+- Microsoft Defender API
+- Mimecast
+- MACVendors
+- Proofpoint
 - Recorded Future
 - Shodan
 - Urlscan
+- Virus Total
 
 ---------
 
@@ -60,11 +67,11 @@ Each command included in the LogRhythm.Tools module is deigned to be modular and
 
 ***Optional***
 
+- Microsoft Azure App Registration
 - Recorded Future API Key
 - Shodan API Key
 - Urlscan API Key
 - VirusTotal API Key
-
 
 
 > NOTE: For specific Cmdlet requirements reference the section [Cmdlet Version Requirements](#Cmdlet-Version-Requirements)
@@ -98,6 +105,35 @@ Contributions are welcome. Please review the [Contributing](CONTRIBUTING.md) gui
 ---------
 
 # Additional Details
+## Change Log
+### 1.2.1
+* Invoke-RfSync: Allow Entity to be specified for established and managed lists.
+* New-LrList: Removed defect where UseContext was supplied on all requests.
+* ConvertTo-Base64: Expanded to support additional encoding types.
+* ConvertFrom-Base64: Expanded to support additional encoding types.
+* Lrt.Config.Input.json: Added descriptor to the SSL Certification policy section.
+
+### 1.2.0
+* All Cmdlets: Reduced code complexity for Windows PowerShell and PowerShell Core Invoke-RestMethod calls.
+* All Cmdlets: Implement PowerShell cmdlet standard for -PassThru switch paramater for any cmdlet that applies a add/delete/update operation.
+* All LogRhythm API Cmdlets: Reduce configuration management complexity by converting AdminBaseUrl, CaseBaseUrl, AieBaseUrl, SearchBaseUrl, AlarmBaseUrl into BaseUrl.
+* Invoke-PIEUrlDNSLookup:  Removed error output when no DNS results are found.
+* Get-PIEURLsFromHTML: Updated URL scrape method to review each HTML Tag.  Now able to detect baseStriker URLs.
+* Remove-LrTag: Removed unneccisary JSON Body from cmdlet.
+* Get-LrAieDrilldown: Changed data type from Systems.Collection.Generic.Dictionary[string,string] to System.Object for Summary Fields.
+* Get-LrAieDrilldown: Added Log Count, AIERuleID, and AIEDrilldownRetryCount to returned data results.
+* Show-LrLocations: Removed this cmdlet from LogRhythm.Tools.  This cmdlet was a stop-gap to provide location data in pre-7.5 Deployments.
+* Get-LrThreatIntelligence: Retrieve the associated Threat Providers and Categories from the Threat Intelligence API.
+* Get-LrCases: Fix defect that would prevent return of exact case matches to not return if the submitted request did not include a metrics summary.
+* Get-InputApiUrl: Update the working logic of the Get-InputApiUrl to support LogRhythm Cloud operating over port 443 in place of the pre-configured 8501.
+* Initial release for LogRhythm Alarms API: Get-LrAlarm, Get-LrAlarmComment, Get-LrAlarmEvents, Get-LrAlarms, Get-LrAlarmSummary, Get-LrAlarmHistory, Test-LrAlarmStatus, Update-LrAlarm
+* Get-LrIdentities: Updated -exact to function for Name and Identifier property fields.
+* Get-LrtAzUserManager: Updated Error handler for Get-LrtAzUserManager cmdlet.
+* Invoke-LrSearchExample: Example to serve as a reference to perform searches for Hostname (Origin/Impacted) OR IP Address (Origin/Impacted) over a given time frame with a maximum of 30,000 logs returned.
+* Proxy Support: Enables all Invoke-RestMethod/HTTP requests to go through a configured Proxy.
+* Add-LrIdentity: Added support for TrueIdentity data element Title.
+
+
 
 ## [Examples](#examples)
 
@@ -259,6 +295,52 @@ This example begins to show some of the flexibility and capability of the LogRhy
 
 ## [Cmdlet Version Requirements](#Cmdlet-Version-Requirements)
 LogRhythm.Tools was developed and has undergone testing leveraging LogRhythm SIEM versions 7.4.X and 7.5.X.  Validate the SIEM version with the Minimum Version specification below prior to submitting Cmdlet issues.
+
+### Version: 1.2.0
+
+|Cmdlet|API Endpoint|Category|Minimum Version|
+|------|------------|--------|---------------|
+|Add-LrAlarmComment|Alarms|Alarms|7.7.0|
+|Format-ShodanTextOutput|Shodan|General|-|
+|Format-UrlscanTextOutput|Urlscan|General|-|
+|Format-VTTextOutput|VirusTotal|General|-|
+|Get-LrAlarm|Alarms|Alarms|7.7.0|
+|Get-LrAlarmEvents|Alarms|Alarms|7.7.0|
+|Get-LrAlarmHistory|Alarms|Alarms|7.7.0|
+|Get-LrAlarms|Alarms|Alarms|7.7.0|
+|Get-LrAlarmSummary|Alarms|Alarms|7.7.0|
+|Get-LrCollaborators|Case|Collaborators|7.5.0|
+|Get-LrLogSourceTypes|Admin|Admin|7.5.0|
+|Get-LrNotificationGroups|Admin|Notification|7.5.0|
+|Get-LrNotificationGroupUsers|Admin|Notification|7.5.0|
+|New-LrEntity|Admin|Entity|7.5.0|
+|Test-LrAlarmStatus|Alarms|Alarms|7.7.0|
+|Update-LrAlarm|Alarms|Alarms|7.7.0|
+|Update-LrEntity|Admin|Entity|7.5.0|
+
+
+
+### Version: 1.1.0
+
+|Cmdlet|API Endpoint|Category|Minimum Version|
+|------|------------|--------|---------------|
+|Add-LrLogsToCase|Case|Evidence|7.5.0|
+|Get-LrCaseEvidence|Case|Evidence|7.5.0|
+|Get-LrCaseLogsIndex|Case|Evidence|7.5.0|
+|Format-LrHostTextOutput|Case|Helpers|7.5.0|
+|Format-LrIdentityTextOutput|Case|Helpers|7.5.0|
+|New-LrCaseHelper|Case|Helpers|7.5.0|
+|New-LrTagTaxObject|Case|Helpers|7.5.0|
+|Get-LrtAzSecurityAlert|AzureGraph|Security|-|
+|Get-LrtAzSecurityAlerts|AzureGraph|Security|-|
+|Update-LrtAzSecurityAlert|AzureGraph|Security|-|
+|Get-LrtAzUserManager|AzureGraph|Users|-|
+|Get-LrtAzUsers|AzureGraph|Users|-|
+|Get-LrtAzMe|AzureGraph|General|-|
+|Get-LrtAzOrganization|AzureGraph|General|-|
+|New-LrtAzMailMessage|AzureGraph|Mail|-|
+
+### Version: 1.0.0
 
 |Cmdlet|API Endpoint|Category|Minimum Version|
 |------|------------|--------|---------------|

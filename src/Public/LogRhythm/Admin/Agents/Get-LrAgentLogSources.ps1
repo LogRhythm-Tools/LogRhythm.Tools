@@ -141,38 +141,48 @@ Function Get-LrAgentLogSources {
         [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true ,Position = 0)]
         [object] $Id,
 
+
         [Parameter(Mandatory = $false, Position = 1)]
-        [int] $PageValuesCount = 1000,
-
-        [Parameter(Mandatory = $false, Position = 2)]
-        [int] $PageCount = 1,
-
-        [Parameter(Mandatory = $false, Position = 3)]
         [ValidateSet('asc','desc', ignorecase=$true)]
         [string] $Direction = "asc",
 
-        [Parameter(Mandatory = $false, Position = 4)]
+
+        [Parameter(Mandatory = $false, Position = 2)]
         [ValidateSet('name','id', ignorecase=$true)]
         [string] $OrderBy = "name",
 
-        [Parameter(Mandatory = $false, Position = 5)]
+
+        [Parameter(Mandatory = $false, Position = 3)]
         [string] $Name,
 
-        [Parameter(Mandatory = $false, Position = 6)]
+
+        [Parameter(Mandatory = $false, Position = 4)]
         [ValidateSet('all','active','retired', ignorecase=$true)]
         [string] $RecordStatus = "all",
 
-        [Parameter(Mandatory = $false, Position = 7)]
+
+        [Parameter(Mandatory = $false, Position = 5)]
         [int32] $MessageSourceTypeId,
         
-        [Parameter(Mandatory = $false, Position = 8)]
+
+        [Parameter(Mandatory = $false, Position = 6)]
         [bool] $LoadBalanced,
 
-        [Parameter(Mandatory = $false, Position = 9)]
+
+        [Parameter(Mandatory = $false, Position = 7)]
         [bool] $Virtual,
 
-        [Parameter(Mandatory = $false, Position = 10)]
+
+        [Parameter(Mandatory = $false, Position = 8)]
         [switch] $Exact,
+
+
+        [Parameter(Mandatory = $false, Position = 9)]
+        [int] $PageValuesCount = 1000,
+
+
+        [Parameter(Mandatory = $false, Position = 10)]
+        [int] $PageCount = 1,
 
         [Parameter(Mandatory = $false, Position = 11)]
         [ValidateNotNull()]
@@ -181,7 +191,7 @@ Function Get-LrAgentLogSources {
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
         
         # Define HTTP Headers
@@ -208,15 +218,15 @@ Function Get-LrAgentLogSources {
             Type                  =   $null
             Code                  =   $null
             Note                  =   $null
+            Raw                   =   $null
         }
 
         # Verify version
-        if ($LrtConfig.LogRhythm.Version -notmatch '7.5.\d') {
+        if ($LrtConfig.LogRhythm.Version -notmatch '7\.[5-9]\.\d+') {
             $ErrorObject.Error = $true
             $ErrorObject.Code = "404"
             $ErrorObject.Type = "Cmdlet not supported."
             $ErrorObject.Note = "This cmdlet is available in LogRhythm version 7.5.0 and greater."
-
             return $ErrorObject
         }
 
@@ -260,7 +270,7 @@ Function Get-LrAgentLogSources {
         if ($Direction) {
             $ValidStatus = "ASC", "DESC"
             if ($ValidStatus.Contains($($Direction.ToUpper()))) {
-                if ($LrVersion -like "7.5.*") {
+                if ($LrVersion -match '7\.[5-9]\.\d+') {
                     if($Direction.ToUpper() -eq "ASC") {
                         $_direction = "ascending"
                     } else {
@@ -318,43 +328,53 @@ Function Get-LrAgentLogSources {
         }
 
         # Request URL
-        $RequestUrl = $BaseUrl + "/agents/$Guid/logsources/" + $QueryString
+        $RequestUrl = $BaseUrl + "/lr-admin-api/agents/$Guid/logsources/" + $QueryString
 
         # Send Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
-            }
-            catch {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                return $ErrorObject
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                return $ErrorObject
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "System.Net.WebException"
+            $ErrorObject.Code = $($Err.statusCode)
+            $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
-    }
 
-    End {
-        if ($Response.Count -eq $_pageValueCount) {
-            # Need to get next page results
-            $CurrentPage = $PageCount + 1
-            #return 
-            Return $Response + (Get-LrLogSources -PageCount $CurrentPage) 
+
+
+        if ($Response.Count -eq $PageValuesCount) {
+            DO {
+                # Increment Page Count / Offset
+                $PageCount = $PageCount + 1
+                $Offset = ($PageCount -1) * $PageValuesCount
+                # Update Query Paramater
+                $QueryParams.offset = $Offset
+                # Apply to Query String
+                $QueryString = $QueryParams | ConvertTo-QueryString
+                # Update Query URL
+                $RequestUrl = $BaseUrl + "/lr-admin-api/agents/$Guid/logsources/" + $QueryString
+                # Retrieve Query Results
+                try {
+                    $PaginationResults = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+                } catch [System.Net.WebException] {
+                    $Err = Get-RestErrorMessage $_
+                    $ErrorObject.Error = $true
+                    $ErrorObject.Type = "System.Net.WebException"
+                    $ErrorObject.Code = $($Err.statusCode)
+                    $ErrorObject.Note = $($Err.message)
+                    $ErrorObject.Raw = $_
+                    return $ErrorObject
+                }
+                
+                # Append results to Response
+                $Response = $Response + $PaginationResults
+            } While ($($PaginationResults.Count) -eq $PageValuesCount)
+            $Response = $Response | Sort-Object -Property Id -Unique
         }
+
         # [Exact] Parameter
         # Search "Malware" normally returns both "Malware" and "Malware Options"
         # This would only return "Malware"
@@ -370,5 +390,8 @@ Function Get-LrAgentLogSources {
         } else {
             return $Response
         }
+    }
+
+    End {
     }
 }

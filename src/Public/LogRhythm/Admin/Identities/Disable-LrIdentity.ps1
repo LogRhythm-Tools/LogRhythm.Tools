@@ -12,10 +12,12 @@ Function Disable-LrIdentity {
         PSCredential containing an API Token in the Password field.
     .PARAMETER IdentityId
         Unique Identifier ID # for a TrueID record.
+    .PARAMETER PassThru
+        Switch paramater that will enable the return of the output object from the cmdlet.
     .OUTPUTS
         PSCustomObject representing LogRhythm TrueIdentity Identity and its retirement status.
     .EXAMPLE
-        PS C:\> Disable-LrIdentity -IdentityId 11
+        PS C:\> Disable-LrIdentity -IdentityId 11 -PassThru
         ---
         identityID        : 11
         nameFirst         : Marcus
@@ -35,6 +37,8 @@ Function Disable-LrIdentity {
                             recordStatus=Active; source=}, @{identifierID=42; identifierType=Login; value=marcus.burnett_sup; recordStatus=Active; source=}, @{identifierID=43; identifierType=Email;
                             value=marcus.burnett@contoso.com; recordStatus=Active; source=}}
         groups            : {@{name=Domain Admins}}
+    .EXAMPLE
+        PS C:\> Disable-LrIdentity -IdentityId 12
 
     .NOTES
         LogRhythm-API        
@@ -47,20 +51,25 @@ Function Disable-LrIdentity {
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
         [long] $IdentityId,
 
-
+                        
         [Parameter(Mandatory = $false, Position = 1)]
+        [switch] $PassThru,
+
+
+        [Parameter(Mandatory = $false, Position = 2)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Define HTTP Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
 
         # Define HTTP Method
         $Method = $HttpMethod.Put
@@ -74,32 +83,38 @@ Function Disable-LrIdentity {
         Enable-TrustAllCertsPolicy
     }
 
-    Process {        
-        # Define Query URL
-        $RequestUrl = $BaseUrl + "/identities/" + $IdentityId + "/status"
-
-        # Send Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents -SkipCertificateCheck
-            }
-            catch {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                return $false
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
-            }
-            catch [System.Net.WebException] {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                return $false
-            }
+    Process {     
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Error                 =   $false
+            Note                  =   $null
+            Code                  =   $null
+            Type                  =   $null
+            NameFirst             =   $NameFirst
+            NameLast              =   $NameLast
+            Raw                   =   $null
         }
 
-        return $Response
+        # Define Query URL
+        $RequestUrl = $BaseUrl + "/lr-admin-api/identities/" + $IdentityId + "/status"
+
+        # Send Request
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
+        }
+        catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "System.Net.WebException"
+            $ErrorObject.Code = $($Err.statusCode)
+            $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
+            return $ErrorObject
+        }
+
+        if ($PassThru) {
+            return $Response
+        }
     }
 
     End { }

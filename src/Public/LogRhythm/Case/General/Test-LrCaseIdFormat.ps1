@@ -16,7 +16,8 @@ Function Test-LrCaseIdFormat {
     .INPUTS
         [System.Object] -> Id
     .OUTPUTS
-        System.Object with IsGuid, IsValid, Value
+        System.Object containing properties about the case to be tested, including
+        an object representing the case itself, if one was found.
     .EXAMPLE
         C:\PS> Test-CaseIdFormat "5831f290-4798-4148-8165-01317d49afea"
         IsGuid IsValid Value
@@ -32,6 +33,7 @@ Function Test-LrCaseIdFormat {
         CaseName   :
         CaseGuid   :
         Note       : Case Name value references more than one case.
+        Case       : [System.Object]
     .LINK
         https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
@@ -46,6 +48,29 @@ Function Test-LrCaseIdFormat {
     begin {  
         # https://docs.microsoft.com/en-us/dotnet/api/system.int32.tryparse
         $_int = 0
+
+        # Collection of all the properties of an LR Case object.
+        $CaseProperties = @(
+            "id",
+            "number",
+            "externalId",
+            "dateCreated",
+            "dateUpdated",
+            "dateClosed",
+            "owner",
+            "lastUpdatedBy",
+            "name",
+            "status",
+            "priority",
+            "dueDate",
+            "resolution",
+            "resolutionDateUpdated",
+            "resolutionLastUpdatedBy",
+            "summary",
+            "entity",
+            "collaborators",
+            "tags"
+        )
     }
 
     process {
@@ -57,14 +82,30 @@ Function Test-LrCaseIdFormat {
             CaseName    =   $null
             CaseGuid    =   $null
             Note        =   $null
+            Case        =   $null
         }
 
         
-        # We may have received a full case object.  Check to see if it has a property for ID and Number
-        if ($Id.Id -and $Id.Number) {
-            Write-Verbose "[Test-LrCaseIdFormat]: Detected Id is a Case Object. Using Case.Number for validation."
-            $Id = $Id.Number
+        # We may have received a full case object. Validate it has all the proper properties
+        # to be considered a valid case, and we can then avoid having to hit the API with
+        # Get-LrCaseById, and pass back the case itself in $OutObject.
+        $IdProperties = $Id.PSObject.Properties.Name
+        if (! ($CaseProperties | Where-Object { $IdProperties -notcontains $_ })) {
+            Write-Verbose "[Test-LrCaseIdFormat]: Received valid case object."
+            $_case = $Id
+            $OutObject.LookupType = "CaseObject"
+            $OutObject.IsValid = $true
+            $OutObject.Value = $_case.Id
+            $OutObject.CaseNumber = $_case.Number
+            $OutObject.CaseName = $_case.Name
+            $OutObject.CaseGuid = $_case.Id
+            $OutObject.Note = "Test-LrCaseIdFormat received a valid case."
+            $OutObject.Case = $_case
+            
+            # We can return this now, we have everything needed to validate this case.
+            return $OutObject
         }
+
 
         # Check if ID value is an integer
         if ([int]::TryParse($Id, [ref]$_int)) {
@@ -91,6 +132,7 @@ Function Test-LrCaseIdFormat {
                 $OutObject.CaseNumber = $Case.number
                 $OutObject.CaseGuid = $Case.id 
                 $OutObject.CaseName = $Case.name
+                $OutObject.Case = $Case
             }
 
             # Check if ID value is a Guid
@@ -115,6 +157,7 @@ Function Test-LrCaseIdFormat {
                 $OutObject.CaseNumber = $Case.number
                 $OutObject.CaseGuid = $Case.id 
                 $OutObject.CaseName = $Case.name
+                $OutObject.Case = $Case
             }
             
             # Check if ID value represents a unique case name
@@ -135,6 +178,7 @@ Function Test-LrCaseIdFormat {
                     $OutObject.CaseNumber = $Case.number
                     $OutObject.CaseGuid = $Case.id 
                     $OutObject.CaseName = $Case.name
+                    $OutObject.Case = $Case
                     $OutObject.Note = "Case lookup performed by unique case name value."
                 } else {
                     $OutObject.IsValid = $false

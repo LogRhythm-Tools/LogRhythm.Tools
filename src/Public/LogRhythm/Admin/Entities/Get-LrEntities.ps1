@@ -61,33 +61,33 @@ Function Get-LrEntities {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
-        [int] $PageValuesCount = 1000,
-
-        
-        [Parameter(Mandatory = $false, Position = 1)]
-        [int] $PageCount = 1,
-
-
-        [Parameter(Mandatory = $false, Position = 2)]
         [string] $Name,
 
 
-        [Parameter(Mandatory = $false, Position = 3)]
+        [Parameter(Mandatory = $false, Position = 1)]
         [int32] $ParentEntityId,
 
 
-        [Parameter(Mandatory = $false, Position = 4)]
+        [Parameter(Mandatory = $false, Position = 2)]
         [ValidateSet('name','id', ignorecase=$true)]
         [string] $OrderBy = "name",
 
 
-        [Parameter(Mandatory = $false, Position = 5)]
+        [Parameter(Mandatory = $false, Position = 3)]
         [ValidateSet('asc','desc', ignorecase=$true)]
         [string] $Direction = "asc",
 
 
-        [Parameter(Mandatory = $false, Position = 6)]
+        [Parameter(Mandatory = $false, Position = 4)]
         [switch] $Exact,
+
+
+        [Parameter(Mandatory = $false, Position = 5)]
+        [int] $PageValuesCount = 1000,
+
+        
+        [Parameter(Mandatory = $false, Position = 6)]
+        [int] $PageCount = 1,
 
 
         [Parameter(Mandatory = $false, Position = 7)]
@@ -97,7 +97,7 @@ Function Get-LrEntities {
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Define HTTP Header
@@ -122,6 +122,7 @@ Function Get-LrEntities {
             Type                  =   $null
             Note                  =   $null
             Value                 =   $Id
+            Raw                   =   $null
         }
 
         #region: Process Query Parameters
@@ -131,14 +132,14 @@ Function Get-LrEntities {
         $QueryParams.Add("count", $PageValuesCount)
 
         # Query Offset - PageCount
-        $Offset = ($PageCount -1) * $PageValuesCount
+        $Offset = $PageCount - 1
         $QueryParams.Add("offset", $Offset)
 
         # Direction
         if ($Direction) {
             $ValidStatus = "ASC", "DESC"
             if ($ValidStatus.Contains($($Direction.ToUpper()))) {
-                if ($LrVersion -like "7.5.*") {
+                if ($LrVersion -match '7\.[5-9]\.\d+') {
                     if($Direction.ToUpper() -eq "ASC") {
                         $_direction = "ascending"
                     } else {
@@ -184,46 +185,56 @@ Function Get-LrEntities {
 
 
         # Define Search URL
-        $RequestUrl = $BaseUrl + "/entities/" + $QueryString
+        $RequestUrl = $BaseUrl + "/lr-admin-api/entities/" + $QueryString
 
 
 
 
         # Send Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
-            }
-            catch {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                return $ErrorObject
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                return $ErrorObject
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "System.Net.WebException"
+            $ErrorObject.Code = $($Err.statusCode)
+            $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
-    }
 
-    End {
+        # Check if pagination is required, if so - paginate!
         if ($Response.Count -eq $PageValuesCount) {
-            # Need to get next page results
-            $CurrentPage = $PageCount + 1
-            #return 
-            Return $Response + (Get-LrIdentities -PageCount $CurrentPage) 
+            DO {
+                # Increment Page Count / Offset
+                #$PageCount = $PageCount + 1
+                $Offset = $Offset + 1
+                # Update Query Paramater
+                $QueryParams.offset = $Offset
+                # Apply to Query String
+                $QueryString = $QueryParams | ConvertTo-QueryString
+                # Update Query URL
+                $RequestUrl = $BaseUrl + "/lr-admin-api/entities/" + $QueryString
+                # Retrieve Query Results
+                try {
+                    $PaginationResults = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+                } catch [System.Net.WebException] {
+                    $Err = Get-RestErrorMessage $_
+                    $ErrorObject.Error = $true
+                    $ErrorObject.Type = "System.Net.WebException"
+                    $ErrorObject.Code = $($Err.statusCode)
+                    $ErrorObject.Note = $($Err.message)
+                    $ErrorObject.Raw = $_
+                    return $ErrorObject
+                }
+                
+                # Append results to Response
+                $Response = $Response + $PaginationResults
+            } While ($($PaginationResults.Count) -eq $PageValuesCount)
+            $Response = $Response | Sort-Object -Property Id -Unique
         }
+
+        
         # [Exact] Parameter
         # Search "Malware" normally returns both "Malware" and "Malware Options"
         # This would only return "Malware"
@@ -247,5 +258,8 @@ Function Get-LrEntities {
         } else {
             return $Response
         }
+    }
+
+    End {
      }
 }

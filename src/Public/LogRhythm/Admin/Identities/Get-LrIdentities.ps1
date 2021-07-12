@@ -35,7 +35,7 @@ Function Get-LrIdentities {
         
         Defaults to returning only active Identities.
     .PARAMETER Exact
-        Switch used to specify Name is explicit.
+        Switch used to specify Name and Identifier fields, if submitted, are explicit.
     .OUTPUTS
         PSCustomObject representing LogRhythm TrueIdentity Identities and their contents.
     .EXAMPLE
@@ -68,53 +68,57 @@ Function Get-LrIdentities {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
-        [int] $PageValuesCount = 1000,
-
-
-        [Parameter(Mandatory = $false, Position = 1)]
-        [int] $PageCount = 1,
-
-
-        [Parameter(Mandatory = $false, Position = 2)]
         [string] $Name,
 
 
-        [Parameter(Mandatory = $false, Position = 3)]
+        [Parameter(Mandatory = $false, Position = 1)]
         [string] $DisplayIdentifier,
 
 
-        [Parameter(Mandatory = $false, Position = 4)]
+        [Parameter(Mandatory = $false, Position = 2)]
         [string] $Entity,
 
 
-        [Parameter(Mandatory = $false, Position = 5)]
+        [Parameter(
+            Mandatory = $false, 
+            ValueFromPipeline = $true, 
+            Position = 3
+        )]
         [string] $Identifier,
 
 
-        [Parameter(Mandatory = $false, Position = 6)]
+        [Parameter(Mandatory = $false, Position = 4)]
         [string] $RecordStatus,
 
 
-        [Parameter(Mandatory = $false, Position = 7)]
+        [Parameter(Mandatory = $false, Position = 5)]
         [ValidateSet('displayname','recordstatus', 'entity', 'displayidentifier', ignorecase=$true)]
         [string] $OrderBy = "Displayidentifier",
 
 
-        [Parameter(Mandatory = $false, Position = 8)]
+        [Parameter(Mandatory = $false, Position = 6)]
         [ValidateSet('asc','desc', ignorecase=$true)]
         [string] $Direction = "asc",
 
 
-        [Parameter(Mandatory = $false, Position = 9)]
+        [Parameter(Mandatory = $false, Position = 7)]
         [datetime] $DateUpdated,
 
 
-        [Parameter(Mandatory = $false, Position = 10)]
+        [Parameter(Mandatory = $false, Position = 8)]
         [switch] $ShowRetired = $false,
 
 
-        [Parameter(Mandatory = $false, Position = 11)]
+        [Parameter(Mandatory = $false, Position = 9)]
         [switch] $Exact,
+
+
+        [Parameter(Mandatory = $false, Position = 10)]
+        [int] $PageValuesCount = 1000,
+
+
+        [Parameter(Mandatory = $false, Position = 11)]
+        [int] $PageCount = 1,
 
 
         [Parameter(Mandatory = $false, Position = 12)]
@@ -124,12 +128,13 @@ Function Get-LrIdentities {
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Define HTTP Header
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
 
         # Define HTTP Method
         $Method = $HttpMethod.Get
@@ -139,6 +144,15 @@ Function Get-LrIdentities {
     }
 
     Process {
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Error                 =   $false
+            Note                  =   $null
+            Code                  =   $null
+            Type                  =   $null
+            Raw                   =   $null
+        }
+
         #region: Process Query Parameters
         $QueryParams = [Dictionary[string,string]]::new()
 
@@ -178,7 +192,7 @@ Function Get-LrIdentities {
         if ($Direction) {
             $ValidStatus = "ASC", "DESC"
             if ($ValidStatus.Contains($($Direction.ToUpper()))) {
-                if ($LrtConfig.LogRhythm.Version -match '7.5.\d') {
+                if ($LrtConfig.LogRhythm.Version -match '7.[5-9].\d') {
                     if($Direction.ToUpper() -eq "ASC") {
                         $_direction = "ascending"
                     } else {
@@ -224,51 +238,81 @@ Function Get-LrIdentities {
 
 
         # Define Search URL
-        $RequestUrl = $BaseUrl + "/identities/" + $QueryString
+        $RequestUrl = $BaseUrl + "/lr-admin-api/identities/" + $QueryString
 
         # Send Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
-            }
-            catch {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                return $false
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-            }
-            catch [System.Net.WebException] {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                return $false
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
         }
-    }
+        catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "System.Net.WebException"
+            $ErrorObject.Code = $($Err.statusCode)
+            $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
+            return $ErrorObject
+        }
 
-    End {
+
+        # Check if pagination is required, if so - paginate!
         if ($Response.Count -eq $PageValuesCount) {
-            # Need to get next page results
-            $CurrentPage = $PageCount + 1
-            #return 
-            Return $Response + (Get-LrIdentities -PageCount $CurrentPage) 
+            DO {
+                # Increment Page Count / Offset
+                $PageCount = $PageCount + 1
+                $Offset = ($PageCount -1) * $PageValuesCount
+                # Update Query Paramater
+                $QueryParams.offset = $Offset
+                # Apply to Query String
+                $QueryString = $QueryParams | ConvertTo-QueryString
+                # Update Query URL
+                $RequestUrl = $BaseUrl + "/lr-admin-api/identities/" + $QueryString
+                # Retrieve Query Results
+                try {
+                    $PaginationResults = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+                } catch [System.Net.WebException] {
+                    $Err = Get-RestErrorMessage $_
+                    $ErrorObject.Error = $true
+                    $ErrorObject.Type = "System.Net.WebException"
+                    $ErrorObject.Code = $($Err.statusCode)
+                    $ErrorObject.Note = $($Err.message)
+                    return $ErrorObject
+                }
+                
+                # Append results to Response
+                $Response = $Response + $PaginationResults
+            } While ($($PaginationResults.Count) -eq $PageValuesCount)
         }
+
         # [Exact] Parameter
         # Search "Malware" normally returns both "Malware" and "Malware Options"
         # This would only return "Malware"
         if ($Exact) {
-            $Pattern = "^$Name$"
-            $Response | ForEach-Object {
-                if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
-                    Write-Verbose "[$Me]: Exact list name match found."
-                    $List = $_
-                    return $List
+            if ($Name) {
+                $Pattern = "^$Name$"
+                $Response | ForEach-Object {
+                    if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
+                        Write-Verbose "[$Me]: Exact name match found."
+                        return $_
+                    }
+                }
+            }
+            if ($Identifier) {
+                $Pattern = "^$Identifier$"
+                $Response | ForEach-Object {
+                    ForEach ($IdIdentifier in $_.identifiers) {
+                        if(($IdIdentifier.value -match $Pattern) -or ($IdIdentifier.value -eq $Identifier)) {
+                            Write-Verbose "[$Me]: Exact identifier match found."
+                            return $_
+                        }
+                    } 
                 }
             }
         } else {
             return $Response
         }
+    }
+
+    End {
      }
 }

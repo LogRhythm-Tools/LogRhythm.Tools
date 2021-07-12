@@ -14,12 +14,14 @@ Function Disable-LrIdentityIdentifier {
         Unique Identifier ID # for a TrueID record.
     .PARAMETER IdentifierId
         Unique Identifier ID # for an Identifier record.
+    .PARAMETER PassThru
+        Switch paramater that will enable the return of the output object from the cmdlet.
     .OUTPUTS
         PSCustomObject representing LogRhythm TrueIdentity Identity and its retirement status.
     .EXAMPLE
         Identity and Identifier exists and IdentifierStatus Active prior to cmdlet execution:
 
-        PS C:\> Retire-LrIdentityIdentifier -IdentityId 1 -IdentifierId 50
+        PS C:\> Retire-LrIdentityIdentifier -IdentityId 1 -IdentifierId 50 -PassThru
         ---
         identifierID identifierType value                      recordStatus
         ------------ -------------- -----                      ------------
@@ -27,7 +29,7 @@ Function Disable-LrIdentityIdentifier {
     .EXAMPLE
         Identity and Identifier exists and IdentityStatus Retired prior to cmdlet execution:
 
-        PS C:\> Retire-LrIdentityIdentifier -IdentityId 1 -IdentifierId 50
+        PS C:\> Retire-LrIdentityIdentifier -IdentityId 1 -IdentifierId 50 -PassThru
         ---
         IsPresent           : True
         IdentifierId        : 50
@@ -42,7 +44,7 @@ Function Disable-LrIdentityIdentifier {
     .EXAMPLE
         Identity does not exist:
         
-        PS C:\> Retire-LrIdentityIdentifier -IdentityId 77 -IdentifierId 50
+        PS C:\> Retire-LrIdentityIdentifier -IdentityId 77 -IdentifierId 50 -PassThru
         ---
         IsPresent           : False
         IdentifierId        : 50
@@ -57,7 +59,7 @@ Function Disable-LrIdentityIdentifier {
     .EXAMPLE
         Identifier does not exist:
 
-        Retire-LrIdentityIdentifier -IdentityId 1 -IdentifierId 77
+        Retire-LrIdentityIdentifier -IdentityId 1 -IdentifierId 77 -PassThru
         ---
         IsPresent           : False
         IdentifierId        : 77
@@ -68,6 +70,9 @@ Function Disable-LrIdentityIdentifier {
         IdentityValid       : True
         IdentityStatus      : Active
         IdentityDisplayName : marcus.burnett@fabrikam.com
+    .EXAMPLE
+        Retire-LrIdentityIdentifier -IdentityId 1 -IdentifierId 77
+
     .NOTES
         LogRhythm-API        
     .LINK
@@ -83,36 +88,52 @@ Function Disable-LrIdentityIdentifier {
         [Parameter(Mandatory = $true, ValueFromPipeline = $false, Position = 1)]
         [long] $IdentifierId,
 
-
+                        
         [Parameter(Mandatory = $false, Position = 2)]
+        [switch] $PassThru,
+
+        
+        [Parameter(Mandatory = $false, Position = 3)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Define HTTP Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
         
         # Define HTTP Method
         $Method = $HttpMethod.Put
+
+        # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
+        Enable-TrustAllCertsPolicy
+    }
+
+    Process {      
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Error                 =   $false
+            Note                  =   $null
+            Code                  =   $null
+            Type                  =   $null
+            NameFirst             =   $NameFirst
+            NameLast              =   $NameLast
+            Raw                   =   $null
+        }  
 
         # Establish Body Contents
         $BodyContents = [PSCustomObject]@{
             recordStatus = "Retired"
         } | ConvertTo-Json
 
-        # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
-        Enable-TrustAllCertsPolicy
-    }
-
-    Process {        
         # Define Query URL
-        $RequestUrl = $BaseUrl + "/identities/" + $IdentityId + "/identifiers/" + $IdentifierId + "/status/"
+        $RequestUrl = $BaseUrl + "/lr-admin-api/identities/" + $IdentityId + "/identifiers/" + $IdentifierId + "/status/"
 
 
         # Test if Identifier exists
@@ -121,39 +142,24 @@ Function Disable-LrIdentityIdentifier {
         # Send Request and proceed if Identifier is Present
         if ($IdentifierStatus.IsPresent -eq $True -and $IdentifierStatus.RecordStatus -eq "Active") {
             # Send Request
-            if ($PSEdition -eq 'Core'){
-                try {
-                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents -SkipCertificateCheck
-                }
-                catch {
-                    $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                    Write-Verbose "Exception Message: $ExceptionMessage"
-                    return $false
-                }
-            } else {
-                try {
-                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
-                }
-                catch [System.Net.WebException] {
-                    $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                    Write-Verbose "Exception Message: $ExceptionMessage"
-                    return $false
-                }
-            }
             try {
                 $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
-            }
-            catch [System.Net.WebException] {
+            } catch [System.Net.WebException] {
                 $Err = Get-RestErrorMessage $_
-                Write-Host "Exception invoking Rest Method: [$($Err.statusCode)]: $($Err.message)" -ForegroundColor Yellow
-                $PSCmdlet.ThrowTerminatingError($PSItem)
-                return $false
+                $ErrorObject.Error = $true
+                $ErrorObject.Type = "System.Net.WebException"
+                $ErrorObject.Code = $($Err.statusCode)
+                $ErrorObject.Note = $($Err.message)
+                $ErrorObject.Raw = $_
+                return $ErrorObject
             }
         } else {
             $Response = $IdentifierStatus
         }
 
-        return $Response
+        if ($PassThru) {
+            return $Response
+        }
     }
 
     End { }

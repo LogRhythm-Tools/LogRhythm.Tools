@@ -187,7 +187,7 @@ Function Get-LrAgentDetails {
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Define HTTP Headers
@@ -212,15 +212,15 @@ Function Get-LrAgentDetails {
             Code                  =   $Null
             Type                  =   $null
             Note                  =   $null
+            Raw                   =   $null
         }
         
         # Verify version
-        if ($LrtConfig.LogRhythm.Version -notmatch '7.5.\d') {
+        if ($LrtConfig.LogRhythm.Version -notmatch '7\.[5-9]\.\d+') {
             $ErrorObject.Error = $true
             $ErrorObject.Code = "404"
             $ErrorObject.Type = "Cmdlet not supported."
             $ErrorObject.Note = "This cmdlet is available in LogRhythm version 7.5.0 and greater."
-
             return $ErrorObject
         }
 
@@ -239,32 +239,18 @@ Function Get-LrAgentDetails {
         }
 
         
-        $RequestUrl = $BaseUrl + "/agents/" + $Guid + "/"
+        $RequestUrl = $BaseUrl + "/lr-admin-api/agents/" + $Guid + "/"
         # Send Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck 
-            }
-            catch {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                return $ErrorObject
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                return $ErrorObject
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "System.Net.WebException"
+            $ErrorObject.Code = $($Err.statusCode)
+            $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
 
         return $Response

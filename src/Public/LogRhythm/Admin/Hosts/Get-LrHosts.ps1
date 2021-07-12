@@ -1,7 +1,6 @@
 using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
-
 Function Get-LrHosts {
     <#
     .SYNOPSIS
@@ -23,7 +22,7 @@ Function Get-LrHosts {
         Array of strings used to search for Host records based on Identifiers.
 
         Common Identifiers: IP Address, DNS Name, Hostname
-    .PARAMETER Exact,
+    .PARAMETER Exact
         Switch used to specify Name search for Entity Host record is explicit.
     .INPUTS
         [System.Int]           -> PageCount
@@ -33,7 +32,7 @@ Function Get-LrHosts {
         [System.String[array]] -> HostIdentifier
         [System.Switch]        -> Exact
     .OUTPUTS
-        PSCustomObject representing LogRhythm TrueIdentity Identities and their contents.
+        PSCustomObject representing LogRhythm Host records and their contents.
     .EXAMPLE
         PS C:\> Get-LrHosts
         ---
@@ -99,72 +98,81 @@ Function Get-LrHosts {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
-        [int] $PageCount,
-
-
-        [Parameter(Mandatory = $false, Position = 1)]
         [string] $Name,
 
 
-        [Parameter(Mandatory = $false, Position = 2)]
+        [Parameter(Mandatory = $false, Position = 1)]
         [string] $Entity,
 
 
-        [Parameter(Mandatory = $false, Position = 3)]
+        [Parameter(Mandatory = $false, Position = 2)]
+        [ValidateSet('all','active', 'retired', ignorecase=$true)]
         [string] $RecordStatus,
 
 
-        [Parameter(Mandatory = $false, Position = 4)]
+        [Parameter(Mandatory = $false, Position = 3)]
         [string[]] $HostIdentifier,
 
 
-        [Parameter(Mandatory = $false, Position = 5)]
+        [Parameter(Mandatory = $false, Position = 4)]
         [switch] $Exact,
 
 
+        [Parameter(Mandatory = $false, Position = 5)]
+        [int] $PageValuesCount = 1000,
+
+
         [Parameter(Mandatory = $false, Position = 6)]
+        [int] $PageCount = 1,
+
+
+        [Parameter(Mandatory = $false, Position = 7)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
         
         # Define HTTP Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
 
         # Define HTTP Method
         $Method = $HttpMethod.Get
-
-        # Define LogRhythm Version
-        $LrVersion = $LrtConfig.LogRhythm.Version
 
         # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
         Enable-TrustAllCertsPolicy        
     }
 
     Process {
+        $ErrorObject = [PSCustomObject]@{
+            Code                  =   $null
+            Error                 =   $false
+            Type                  =   $null
+            Note                  =   $null
+            Raw                   =   $null
+        }
+
+
         #region: Process Query Parameters____________________________________________________
         $QueryParams = [Dictionary[string,string]]::new()
 
-        # PageCount
-        if ($PageCount) {
-            $_pageCount = $PageCount
-        } else {
-            $_pageCount = 1000
-        }
-        $QueryParams.Add("count", $_pageCount)
+        # PageValuesCount - Amount of Values per Page
+        $QueryParams.Add("count", $PageValuesCount)
 
+        # Query Offset - PageCount
+        $Offset = ($PageCount -1)
+        $QueryParams.Add("offset", $Offset)
 
         # Filter by Object Name
         if ($Name) {
             $_name = $Name
             $QueryParams.Add("name", $_name)
         }
-
 
 
         # Filter by Object Entity Name
@@ -182,20 +190,11 @@ Function Get-LrHosts {
             }
         }
 
-
         # RecordStatus
         if ($RecordStatus) {
-            $ValidStatus = "all", "active", "retired"
-            if ($ValidStatus.Contains($($RecordStatus.ToLower()))) {
-                $_recordStatus = $RecordStatus.ToLower()
-                $QueryParams.Add("recordStatus", $_recordStatus)
-            } else {
-                throw [ArgumentException] "RecordStatus [$RecordStatus] must be: all, active, or retired."
-            }
-
+            $_recordStatus = $RecordStatus.ToLower()
+            $QueryParams.Add("recordStatus", $_recordStatus)
         }
-
-
 
         if ($QueryParams.Count -gt 0) {
             $QueryString = $QueryParams | ConvertTo-QueryString
@@ -203,28 +202,53 @@ Function Get-LrHosts {
         }
         #endregion
 
-        $RequestUrl = $BaseUrl + "/hosts/" + $QueryString
+        $RequestUrl = $BaseUrl + "/lr-admin-api/hosts/" + $QueryString
 
         # Send Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
-            }
-            catch {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                return $ExceptionMessage
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-            }
-            catch [System.Net.WebException] {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                return $ExceptionMessage
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "System.Net.WebException"
+            $ErrorObject.Code = $($Err.statusCode)
+            $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
+
+
+        if ($Response.Count -eq $PageValuesCount) {
+            write-verbose "Response Count: $($Response.Count)  Page Value Count: $PageValuesCount"
+            DO {
+                # Increment Offset
+                $Offset = $Offset + 1
+                # Update Query Paramater
+                $QueryParams.offset = $Offset
+                # Apply to Query String
+                $QueryString = $QueryParams | ConvertTo-QueryString
+                # Update Query URL
+                $RequestUrl = $BaseUrl + "/lr-admin-api/hosts/" + $QueryString
+                # Retrieve Query Results
+                try {
+                    $PaginationResults = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+                } catch [System.Net.WebException] {
+                    $Err = Get-RestErrorMessage $_
+                    $ErrorObject.Error = $true
+                    $ErrorObject.Type = "System.Net.WebException"
+                    $ErrorObject.Code = $($Err.statusCode)
+                    $ErrorObject.Note = $($Err.message)
+                    $ErrorObject.Raw = $_
+                    return $ErrorObject
+                }
+                
+                # Append results to Response
+                $Response = $Response + $PaginationResults
+                write-verbose "Response Count: $($PaginationResults.Count)  Page Value Count: $PageValuesCount"
+            } While ($($PaginationResults.Count) -eq $PageValuesCount)
+            $Response = $Response | Sort-Object -Property Id -Unique
+        }
+
 
         # [Exact] Parameter
         # Search "Malware" normally returns both "Malware" and "Malware Options"
@@ -243,5 +267,6 @@ Function Get-LrHosts {
         }
     }
 
-    End { }
+    End {
+    }
 }

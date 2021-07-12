@@ -101,7 +101,7 @@ Function Get-LrPlaybookProcedures {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
         
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Enable self-signed certificates and Tls1.2
@@ -110,6 +110,7 @@ Function Get-LrPlaybookProcedures {
         # Request Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
         $Headers.Add("count", 500)
         $Headers.Add("orderBy", $OrderBy)
         $Headers.Add("direction", $Sort)
@@ -127,8 +128,8 @@ Function Get-LrPlaybookProcedures {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
-            ResponseUrl           =   $null
             Playbook              =   $Name
+            Raw                   =   $null
         }
 
 
@@ -147,42 +148,25 @@ Function Get-LrPlaybookProcedures {
                 $ErrorObject.Error = $true
                 $ErrorObject.Type = "Null"
                 $ErrorObject.Note = "Playbook does not exist."
-                $ErrorObject.ResponseUrl = "$BaseUrl/playbooks/$($Pb.id)/"
                 return $ErrorObject
             }
         }
 
         # Request URI
-        $RequestUrl = $BaseUrl + "/playbooks/$($Pb.id)/procedures/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/playbooks/$($Pb.id)/procedures/"
 
 
         # REQUEST
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
-            }
-            catch {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Code = $Err.statusCode
-                $ErrorObject.Type = "WebException"
-                $ErrorObject.Note = $Err.message
-                $ErrorObject.ResponseUrl = $RequestUrl
-                $ErrorObject.Error = $true
-                return $ErrorObject
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Code = $Err.statusCode
-                $ErrorObject.Type = "WebException"
-                $ErrorObject.Note = $Err.message
-                $ErrorObject.ResponseUrl = $RequestUrl
-                $ErrorObject.Error = $true
-                return $ErrorObject
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Code = $Err.statusCode
+            $ErrorObject.Type = "WebException"
+            $ErrorObject.Note = $Err.message
+            $ErrorObject.Error = $true
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
         
         # [Exact] Parameter
@@ -206,7 +190,6 @@ Function Get-LrPlaybookProcedures {
             $ErrorObject.Code = 404
             $ErrorObject.Type = "Object not found"
             $ErrorObject.Note = "Playbook not found"
-            $ErrorObject.ResponseUrl = $RequestUrl
             $ErrorObject.Error = $true
             return $ErrorObject
         }

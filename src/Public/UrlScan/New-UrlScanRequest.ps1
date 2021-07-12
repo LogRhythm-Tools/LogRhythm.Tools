@@ -1,7 +1,7 @@
 using namespace System
 using namespace System.Collections.Generic
 
-Function Add-UrlScanRequest {
+Function New-UrlScanRequest {
     <#
     .SYNOPSIS
         Submit a URL to the UrlScan.io
@@ -51,11 +51,20 @@ Function Add-UrlScanRequest {
         $Me = $MyInvocation.MyCommand.Name
 
         $BaseUrl = $LrtConfig.UrlScan.BaseUrl
-        $UsPublic = $($LrtConfig.UrlScan.PublicScans).ToLower()
+        $UsPublic = $($LrtConfig.UrlScan.PublicScans).ToString().ToLower()
         $Token = $Credential.GetNetworkCredential().Password
     }
 
     Process {
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Code                  =   $null
+            Error                 =   $false
+            Type                  =   $null
+            Note                  =   $null
+            Url                   =   $Url
+        }
+
         # Request Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("API-Key", "$Token")
@@ -79,7 +88,15 @@ Function Add-UrlScanRequest {
         }
         catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_
-            throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "System.Net.WebException"
+            if ($Err.message -like "Scan prevented*") {
+                $ErrorObject.Code = 400
+            } else {
+                $ErrorObject.Code = $($Err.statusCode)
+            }
+            $ErrorObject.Note = $($Err.message)
+            return $ErrorObject
         }
 
         Return $Response

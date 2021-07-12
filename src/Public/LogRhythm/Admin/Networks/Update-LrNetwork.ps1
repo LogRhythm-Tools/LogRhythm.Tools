@@ -8,8 +8,6 @@ Function Update-LrNetwork {
         Update a Network entry for the LogRhythm Entity structure.
     .DESCRIPTION
         Update-LrNetwork updates a Network Entity record.
-    .PARAMETER Credential
-        PSCredential containing an API Token in the Password field.
     .PARAMETER Id
         Parameter for specifying object to be updated.  A network record's Id value cannot be changed.
 
@@ -63,6 +61,10 @@ Function Update-LrNetwork {
 
         For LogRhythm Versions 7.5.X and greater the lookup is performed via API.
         For LogRhythm Versions 7.4.X the lookup is performed via a local locations csv contained within LogRhyhtm.Tools.
+    .PARAMETER PassThru
+        Switch paramater that will enable the return of the output object from the cmdlet.
+    .PARAMETER Credential
+        PSCredential containing an API Token in the Password field.
     .INPUTS
         [System.String]    -> Id
         [System.String]    -> Name
@@ -83,7 +85,7 @@ Function Update-LrNetwork {
     .OUTPUTS
         PSCustomObject representing LogRhythm Network Entity for the updated record.
     .EXAMPLE
-        PS C:\> Update-LrNetwork -Id 5 -Name "New Network" -Entity "Secondary Site" -ThreatLevel "medium-high" -EIP 10.77.21.255 -Zone dmz -RecordStatus active -ShortDesc "It's not really all that new." -LongDesc "This record was first created on January 5th 2007." -ThreatLevelComment "This comment describes the risks associated with this network if it were to be the origin of abnormal activity." -Location "Spartanburg" -LocationLookup
+        PS C:\> Update-LrNetwork -Id 5 -Name "New Network" -Entity "Secondary Site" -ThreatLevel "medium-high" -EIP 10.77.21.255 -Zone dmz -RecordStatus active -ShortDesc "It's not really all that new." -LongDesc "This record was first created on January 5th 2007." -ThreatLevelComment "This comment describes the risks associated with this network if it were to be the origin of abnormal activity." -Location "Spartanburg" -LocationLookup -PassThru
         ----
         entity             : @{id=5; name=Secondary Site}
         name               : New Network
@@ -100,7 +102,7 @@ Function Update-LrNetwork {
         dateUpdated        : 2020-07-23T11:54:09.643Z
         id                 : 5
     .EXAMPLE
-        PS C:\> Update-LrNetwork -Name "New Network" -BIP 10.77.18.0
+        PS C:\> Update-LrNetwork -Name "New Network" -BIP 10.77.18.0 -PassThru
         --- 
         entity             : @{id=5; name=Secondary Site}
         name               : New Network
@@ -117,7 +119,7 @@ Function Update-LrNetwork {
         dateUpdated        : 2020-07-23T11:55:37.247Z
         id                 : 5
     .EXAMPLE
-        PS C:\> Update-LrNetwork -Id 5 -Name "Older Network"
+        PS C:\> Update-LrNetwork -Id 5 -Name "Older Network" -PassThru
         ---
         entity             : @{id=5; name=Secondary Site}
         name               : Older Network
@@ -134,7 +136,7 @@ Function Update-LrNetwork {
         dateUpdated        : 2020-07-23T11:56:22.327Z
         id                 : 5
     .EXAMPLE
-        PS C:\> Update-LrNetwork -Name "Older Network" -Entity "Primary Site"
+        PS C:\> Update-LrNetwork -Name "Older Network" -Entity "Primary Site" -PassThru
         ---
         entity             : @{id=1; name=Primary Site}
         name               : Older Network
@@ -241,15 +243,19 @@ Function Update-LrNetwork {
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 14)]
         [ipaddress]$Eip,
 
-
+                                
         [Parameter(Mandatory = $false, Position = 15)]
+        [switch] $PassThru,
+
+
+        [Parameter(Mandatory = $false, Position = 16)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
         
         # Define HTTP Headers
@@ -275,6 +281,7 @@ Function Update-LrNetwork {
             Type                  =   $null
             Note                  =   $null
             Value                 =   $Name
+            Raw                   =   $null
         }
 
         # Lookup Network ID or Name to find Network ID
@@ -283,11 +290,7 @@ Function Update-LrNetwork {
                 Write-Verbose "[$Me]: Network ID parses as integer. Id: $Id"
                 $NetworkLookup = Get-LrNetworkDetails -Id $Id
                 if ($NetworkLookup.Error -eq $true) {
-                    $ErrorObject.Error = $NetworkLookup.Error
-                    $ErrorObject.Type = $NetworkLookup.Type
-                    $ErrorObject.Code = $NetworkLookup.Code
-                    $ErrorObject.Note = $NetworkLookup.Note
-                    return $ErrorObject  
+                    return $NetworkLookup
                 } else {
                     Write-Verbose "[$Me]: Matched network record: $($NetworkLookup.id)"
                     $_networkId = $NetworkLookup | Select-Object -ExpandProperty id
@@ -295,11 +298,8 @@ Function Update-LrNetwork {
             } else {
                 Write-Verbose "[$Me]: Network ID parses as string.  Performing Network Name lookup.  Id: $Id."
                 $NetworkLookup = Get-LrNetworks -Name $Id -Exact
-                if ($EntityLookup.Error -eq $true) {
-                    $ErrorObject.Error = $NetworkLookup.Error
-                    $ErrorObject.Type = $NetworkLookup.Type
-                    $ErrorObject.Code = $NetworkLookup.Code
-                    $ErrorObject.Note = $NetworkLookup.Note
+                if ($NetworkLookup.Error -eq $true) {
+                    return $NetworkLookup
                 } else {
                     Write-Verbose "[$Me]: Matched network record: $($NetworkLookup.id)"
                     $_networkId = $NetworkLookup | Select-Object -ExpandProperty id
@@ -308,12 +308,8 @@ Function Update-LrNetwork {
         } elseif ($Name) {
             Write-Verbose "[$Me]: Performing Network Name lookup.  Id: $Name."
             $NetworkLookup = Get-LrNetworks -Name $Name -Exact
-            if ($EntityLookup.Error -eq $true) {
-                $ErrorObject.Error = $NetworkLookup.Error
-                $ErrorObject.Type = $NetworkLookup.Type
-                $ErrorObject.Code = $NetworkLookup.Code
-                $ErrorObject.Note = $NetworkLookup.Note
-                return $ErrorObject
+            if ($NetworkLookup.Error -eq $true) {
+                return $NetworkLookup
             } else {
                 Write-Verbose "[$Me]: Matched network record: $($NetworkLookup.id)"
                 $_networkId = $NetworkLookup | Select-Object -ExpandProperty id
@@ -330,11 +326,7 @@ Function Update-LrNetwork {
             Write-Verbose "[$Me]: Validating EntityId: $EntityId"
             $EntityLookup = Get-LrEntityDetails -Id $EntityId
             if ($EntityLookup.Error -eq $true) {
-                $ErrorObject.Error = $EntityLookup.Error
-                $ErrorObject.Type = $EntityLookup.Type
-                $ErrorObject.Code = $EntityLookup.Code
-                $ErrorObject.Note = $EntityLookup.Note
-                return $ErrorObject
+                return $EntityLookup
             } else {
                 $_entity = $EntityLookup
             }
@@ -343,11 +335,7 @@ Function Update-LrNetwork {
                 Write-Verbose "[$Me]: Validating Entity as Int32.  EntityId: $Entity"
                 $EntityLookup = Get-LrEntityDetails -Id $Entity
                 if ($EntityLookup.Error -eq $true) {
-                    $ErrorObject.Error = $EntityLookup.Error
-                    $ErrorObject.Type = $EntityLookup.Type
-                    $ErrorObject.Code = $EntityLookup.Code
-                    $ErrorObject.Note = $EntityLookup.Note
-                    return $ErrorObject
+                    return $EntityLookup
                 } else {
                     $_entity = $EntityLookup
                 }
@@ -355,11 +343,7 @@ Function Update-LrNetwork {
                 Write-Verbose "[$Me]: Validating Entity as String.  EntityName: $Entity"
                 $EntityLookup = Get-LrEntities -Name $Entity -Exact
                 if ($EntityLookup.Error -eq $true) {
-                    $ErrorObject.Error = $EntityLookup.Error
-                    $ErrorObject.Type = $EntityLookup.Type
-                    $ErrorObject.Code = $EntityLookup.Code
-                    $ErrorObject.Note = $EntityLookup.Note
-                    return $ErrorObject
+                    return $EntityLookup
                 } else {
                     $_entity = $EntityLookup
                 }
@@ -546,36 +530,28 @@ Function Update-LrNetwork {
         Write-Verbose "$Body"
 
         # Define Query URL
-        $RequestUrl = $BaseUrl + "/networks/" + $_networkId + "/"
+        $RequestUrl = $BaseUrl + "/lr-admin-api/networks/" + $_networkId + "/"
 
         # Send Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
-            }
-            catch {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                return $ErrorObject
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body 
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                return $ErrorObject
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body 
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "System.Net.WebException"
+            $ErrorObject.Code = $($Err.statusCode)
+            $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
 
-        return $Response
+        # Return output object
+        if ($ErrorObject.Error -eq $true) {
+            return $ErrorObject
+        }
+        if ($PassThru) {
+            return $Response
+        }
     }
 
     End { }

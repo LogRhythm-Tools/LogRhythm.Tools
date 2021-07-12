@@ -58,9 +58,13 @@ Function Add-LrCasePlaybook {
         [Parameter( Mandatory = $true, Position = 1)]
         [ValidateNotNullOrEmpty()]
         [string] $Playbook,
-
-
+        
+        
         [Parameter(Mandatory = $false, Position = 2)]
+        [switch] $PassThru,
+
+
+        [Parameter(Mandatory = $false, Position = 3)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -68,7 +72,7 @@ Function Add-LrCasePlaybook {
 
     Begin {
         $Me = $MyInvocation.MyCommand.Name
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Request Headers
@@ -82,6 +86,16 @@ Function Add-LrCasePlaybook {
 
 
     Process {
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Code                  =   $null
+            Error                 =   $false
+            Type                  =   $null
+            Note                  =   $null
+            Case                  =   $Id
+            Raw                   =   $null
+        }      
+
         # Test CaseID Format
         $IdStatus = Test-LrCaseIdFormat $Id
         if ($IdStatus.IsValid -eq $true) {
@@ -108,7 +122,7 @@ Function Add-LrCasePlaybook {
             } 
         }
 
-        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/playbooks/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/playbooks/"
         Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         # Request Body
@@ -120,27 +134,23 @@ Function Add-LrCasePlaybook {
 
 
         # Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
-            }
-            catch {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                return $ExceptionMessage
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
-            }
-            catch [System.Net.WebException] {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                return $ExceptionMessage
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Code = $Err.statusCode
+            $ErrorObject.Type = "WebException"
+            $ErrorObject.Note = $Err.message
+            $ErrorObject.Error = $true
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
 
-        return $Response
+
+        # Only return the case if PassThru was requested.
+        if ($PassThru) {
+            return $Response    
+        }
     }
 
 

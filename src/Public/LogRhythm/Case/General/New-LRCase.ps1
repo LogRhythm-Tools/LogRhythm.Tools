@@ -91,11 +91,15 @@ Function New-LrCase {
         [string] $Summary,
 
 
-        [Parameter(Mandatory = $false, Position = 4)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 4)]
         [int[]] $AlarmNumbers,
 
 
         [Parameter(Mandatory = $false, Position = 5)]
+        [switch] $PassThru,
+
+
+        [Parameter(Mandatory = $false, Position = 6)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -103,7 +107,7 @@ Function New-LrCase {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
 
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
         
         # Enable self-signed certificates and Tls1.2
@@ -113,13 +117,23 @@ Function New-LrCase {
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
         $Headers.Add("Content-Type","application/json")
-        $RequestUrl = $BaseUrl + "/cases/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/cases/"
 
         # Request Method
         $Method = $HttpMethod.Post
     }
 
     Process {
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Code                  =   $null
+            Error                 =   $false
+            Type                  =   $null
+            Note                  =   $null
+            Case                  =   $Id
+            Raw                   =   $null
+        }  
+
         # Request Body
         $Body = [PSCustomObject]@{
             name = $Name
@@ -131,30 +145,23 @@ Function New-LrCase {
         $Body = $Body | ConvertTo-Json
 
         # Send Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
-                Write-Verbose "[$Me]: Created Case $($Response.id)" 
-            }
-            catch {
-                $Err = Get-RestErrorMessage $_
-                throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
-                Write-Verbose "[$Me]: Created Case $($Response.id)"
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
+            Write-Verbose "[$Me]: Created Case $($Response.id)"
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Code = $Err.statusCode
+            $ErrorObject.Type = "WebException"
+            $ErrorObject.Note = $Err.message
+            $ErrorObject.Error = $true
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
         
         # Attach Alarm to Case
         if ($AlarmNumbers) {
             try {
-                $UpdatedCase = Add-LrAlarmToCase -Id $Response.id -AlarmNumbers $AlarmNumbers
+                $UpdatedCase = Add-LrAlarmToCase -Id $Response.id -AlarmNumbers $AlarmNumbers -PassThru
                 $Response = $UpdatedCase
             }
             catch {
@@ -164,7 +171,9 @@ Function New-LrCase {
         }
 
         # Done!
-        return $Response
+        if ($PassThru) {
+            return $Response
+        }
     }
 
 

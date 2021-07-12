@@ -68,7 +68,7 @@ Function Remove-LrCasePlaybook {
 
     Begin {
         $Me = $MyInvocation.MyCommand.Name
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Request Headers
@@ -87,8 +87,8 @@ Function Remove-LrCasePlaybook {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
-            ResponseUrl           =   $null
             Value                 =   $Id
+            Raw                   =   $null
         }
 
         # Test CaseID Format
@@ -142,35 +142,21 @@ Function Remove-LrCasePlaybook {
             return $ErrorObject
         }
 
-        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/playbooks/$PlaybookId/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/playbooks/$PlaybookId/"
         Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
 
         # Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
-            }
-            catch {
-                $Err = Get-RestErrorMessage $_
-                if ($Err.statusCode -eq "409") {
-                    # we know we can use $Pb.name because a 409 wouldn't throw unless the playbook existed.
-                    throw [InvalidOperationException] "[409]: Playbook '$($Pb.name)' has already been added to case '$Id'"
-                }
-                $PSCmdlet.ThrowTerminatingError($PSItem)
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                if ($Err.statusCode -eq "409") {
-                    # we know we can use $Pb.name because a 409 wouldn't throw unless the playbook existed.
-                    throw [InvalidOperationException] "[409]: Playbook '$($Pb.name)' has already been added to case '$Id'"
-                }
-                $PSCmdlet.ThrowTerminatingError($PSItem)
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+        } catch [System.Net.WebException] {
+		    $Err = Get-RestErrorMessage $_
+            $ErrorObject.Code = $Err.statusCode
+            $ErrorObject.Type = "WebException"
+            $ErrorObject.Note = $Err.message
+            $ErrorObject.Error = $true
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
 
         return $Response

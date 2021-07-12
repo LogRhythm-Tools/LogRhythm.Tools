@@ -8,15 +8,15 @@ Function Add-LrNoteToCase {
         Add-LrNoteToCase
     .DESCRIPTION
         Add-LrNoteToCase
+    .PARAMETER Id
+        The Id of the case for which to add a note.
+    .PARAMETER Text
+        Text of note to add   
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
         Note: You can bypass the need to provide a Credential by setting
         the preference variable $LrtConfig.LogRhythm.ApiKey
         with a valid Api Token.
-    .PARAMETER Id
-        The Id of the case for which to add a note.
-    .PARAMETER Text
-        Text of note to add   
     .INPUTS
         Type -> Parameter
     .OUTPUTS
@@ -64,7 +64,7 @@ Function Add-LrNoteToCase {
         [object] $Id,
 
 
-        [Parameter(Mandatory = $true, Position = 1)]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 1)]
         [ValidateNotNullOrEmpty()]
         [string] $Text,
 
@@ -82,7 +82,7 @@ Function Add-LrNoteToCase {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
 
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Enable self-signed certificates and Tls1.2
@@ -99,6 +99,16 @@ Function Add-LrNoteToCase {
 
 
     Process {
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Case                  =   $Id
+            Code                  =   $null
+            Error                 =   $false
+            Note                  =   $null
+            Type                  =   $null
+            Raw                   =   $null
+        }
+
         # Test CaseID Format
         $IdStatus = Test-LrCaseIdFormat $Id
         if ($IdStatus.IsValid -eq $true) {
@@ -107,7 +117,7 @@ Function Add-LrNoteToCase {
             return $IdStatus
         }
 
-        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/evidence/note/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/evidence/note/"
 
 
         # Request Body
@@ -115,24 +125,16 @@ Function Add-LrNoteToCase {
         Write-Verbose "[$Me] Request Body:`n$Body"
 
         # REQUEST
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
-            }
-            catch {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                return $ExceptionMessage
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
-            }
-            catch [System.Net.WebException] {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                return $ExceptionMessage
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Code = $Err.statusCode
+            $ErrorObject.Type = "WebException"
+            $ErrorObject.Note = $Err.message
+            $ErrorObject.Error = $true
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
 
         # Return

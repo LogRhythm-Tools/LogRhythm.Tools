@@ -152,7 +152,7 @@ Function New-LrSearch {
         
 
         [Parameter(Mandatory = $false, Position = 11)]
-        [string] $LogSource = "",
+        [string[]] $LogSources = "",
 
 
         [Parameter(Mandatory = $false, Position = 12)]
@@ -182,44 +182,44 @@ Function New-LrSearch {
 
         [Parameter(Mandatory = $false, Position = 17)]
         [ValidateSet('simple','group', ignorecase=$true)]
-        [string] $ItemFilterItemType = "simple",
+        [string] $ItemFilterItemType,
 
 
         [Parameter(Mandatory = $false, Position = 18)]
         [ValidateSet('none','and', 'or', 'andprevious', 'orprevious',ignorecase=$true)]
-        [string] $ItemFilterFieldOperator = "none",
+        [string] $ItemFilterFieldOperator,
 
 
         [Parameter(Mandatory = $false, Position = 19)]
         [ValidateSet('filterin','filterout', ignorecase=$true)]
-        [string] $ItemFilterMode = "filterin",
+        [string] $ItemFilterMode,
 
 
         [Parameter(Mandatory = $false, Position = 20)]
-        [string] $Param1MetaField = "User (Origin or Impacted)",
+        [string] $Param1MetaField,
 
 
         [Parameter(Mandatory = $false, Position = 21)]
-        [string] $Param1Value = "administrator",
+        [string] $Param1Value,
 
 
         [Parameter(Mandatory = $false, Position = 22)]
         [ValidateSet('none','and', 'or', 'andprevious', 'orprevious',ignorecase=$true)]
-        [string] $Param1Operator = "none",
+        [string] $Param1Operator,
 
 
         [Parameter(Mandatory = $false, Position = 23)]
         [ValidateSet('value' ,'SQLPattern' ,'Regex', ignorecase=$true)]
-        [string] $Param1MatchType = "value",
+        [string] $Param1MatchType,
 
 
         [Parameter(Mandatory = $false, Position = 24)]
         [ValidateSet('filterin','filterout', ignorecase=$true)]
-        [string] $Param1FilterType = "filterin",
+        [string] $Param1FilterType,
 
 
         [Parameter(Mandatory = $false, Position = 25)]
-        [string] $Param2MetaField = "User (Origin or Impacted)",
+        [string] $Param2MetaField,
 
 
         [Parameter(Mandatory = $false, Position = 26)]
@@ -228,21 +228,21 @@ Function New-LrSearch {
 
         [Parameter(Mandatory = $false, Position = 27)]
         [ValidateSet('none','and', 'or', 'andprevious', 'orprevious',ignorecase=$true)]
-        [string] $Param2Operator = "none",
+        [string] $Param2Operator,
 
 
         [Parameter(Mandatory = $false, Position = 28)]
         [ValidateSet('value' ,'SQLPattern' ,'Regex', ignorecase=$true)]
-        [string] $Param2MatchType = "value",
+        [string] $Param2MatchType,
 
 
         [Parameter(Mandatory = $false, Position = 29)]
         [ValidateSet('filterin','filterout', ignorecase=$true)]
-        [string] $Param2FilterType = "filterin",
+        [string] $Param2FilterType,
 
 
         [Parameter(Mandatory = $false, Position = 30)]
-        [string] $Param3MetaField = "User (Origin or Impacted)",
+        [string] $Param3MetaField,
 
 
         [Parameter(Mandatory = $false, Position = 31)]
@@ -251,12 +251,12 @@ Function New-LrSearch {
 
         [Parameter(Mandatory = $false, Position = 32)]
         [ValidateSet('none','and', 'or', 'andprevious', 'orprevious',ignorecase=$true)]
-        [string] $Param3Operator = "none",
+        [string] $Param3Operator,
 
 
         [Parameter(Mandatory = $false, Position = 33)]
         [ValidateSet('value' ,'SQLPattern' ,'Regex', ignorecase=$true)]
-        [string] $Param3MatchType = "value",
+        [string] $Param3MatchType,
 
 
         [Parameter(Mandatory = $false, Position = 34)]
@@ -271,7 +271,7 @@ Function New-LrSearch {
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.SearchBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
         
         # Define HTTP Headers
@@ -296,26 +296,24 @@ Function New-LrSearch {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
-            ResponseUrl           =   $null
-            Value                 =   $Name
+            Raw                   =   $null
         }
 
-        if ($LogSource) {
-            # Check if LogSource value is an integer
-            if ([int]::TryParse($LogSource, [ref]$_int)) {
-                Write-Verbose "[$Me]: Id parses as integer."
-                $_logSource = $Id
-            } else {
-                Write-Verbose "[$Me]: Id does not parse as integer.  Performing string lookup."
-                $LogSourceLookup = Get-LrLogSources -Name $LogSource -Exact
-                if ($LogSourceLookup.Error -eq $true) {
-                    $ErrorObject.Error = $LogSourceLookup.Error
-                    $ErrorObject.Type = $LogSourceLookup.Type
-                    $ErrorObject.Code = $LogSourceLookup.Code
-                    $ErrorObject.Note = $LogSourceLookup.Note
-                    return $ErrorObject
+        if ($LogSources) {
+            $_logSources = [List[int]]::new()
+            ForEach ($LogSource in $LogSources) {
+                # Check if LogSource value is an integer
+                if ([int]::TryParse($LogSource, [ref]$_int)) {
+                    Write-Verbose "[$Me]: Id parses as integer."
+                    $_logSources.add($LogSource)
                 } else {
-                    $_logSource = $LogSourceLookup | Select-Object -ExpandProperty id
+                    Write-Verbose "[$Me]: Id does not parse as integer.  Performing string lookup."
+                    $LogSourceLookup = Get-LrLogSources -Name $LogSource -Exact
+                    if ($LogSourceLookup.Error -eq $true) {
+                        return $LogSourceLookup
+                    } else {
+                        $_logSources.add($LogSourceLookup.Id)
+                    }
                 }
             }
         }
@@ -345,7 +343,7 @@ Function New-LrSearch {
             pagedsorteddatedesc {$_searchMode = 3}
             pagesortedriskasc {$_searchMode = 4}
             pagesortedriskdesc {$_searchMode = 5}
-            default {$_searchMode = 2}
+            default {$_searchMode = 0}
         }
 
         Switch ($LastIntervalUnit) {
@@ -373,7 +371,7 @@ Function New-LrSearch {
             filter {$_groupFilterItemType = 0}
             group {$_groupFilterItemType = 1}
             polylist {$_groupFilterItemType = 2}
-            default {$_groupFilterItemType = 1}
+            default {$_groupFilterItemType = 0}
         }
 
         Switch ($GroupFilterOperator) {
@@ -386,9 +384,9 @@ Function New-LrSearch {
         }
 
         Switch ($GroupFilterMode) {
-            filterin {$_groupFilterMode = 0}
-            filterout {$_groupFilterMode = 1}
-            default {$_groupFilterMode = 0}
+            filterin {$_groupFilterMode = 1}
+            filterout {$_groupFilterMode = 2}
+            default {$_groupFilterMode = 1}
         }
 
         # First Filter Item
@@ -413,8 +411,19 @@ Function New-LrSearch {
             default {$_itemFilterMode = 0}
         }
 
+        Switch ($ItemFilterMatchType) {
+            value {$_itemFilterMatchType = 0}
+            sqlpattern {$_itemFilterMatchType = 1}
+            regex {$_itemFilterMatchType = 2}
+            default {$_itemFilterMatchType = 0}
+        }
+
+        $_filterItems = [List[Object]]::new()
+
         # If the MetaField is integer, lookup Metadata fields by ID
         if ($Param1MetaField) {
+
+
             if ([int]::TryParse($Param1MetaField, [ref]$_int)) {
                 $Param1Results = Test-LrFilterType -Id $Param1MetaField
             } else {
@@ -426,10 +435,24 @@ Function New-LrSearch {
             if ($Param1Results.IsValid -eq $false) {
                 Return "Unable to lookup Parameter 1 - Metadata Type: $Param1MetaField"
             } else {
-                $_param1FilterType = $Param1Results.id
-                $_param1ValueType = $Param1Results.ValueTypeEnum
-                $_param1ValueName = $Param1Results.DisplayName
+                $FilterItem = [PSCustomObject]@{
+                    filterItemType = 0
+                    fieldOperator = 0
+                    filterMode = 1
+                    filterType = $Param1Results.Id
+                    values = @([PSCustomObject]@{
+                        valueType = $Param1Results.ValueTypeEnum
+                        filterType = $Param1Results.Id
+                        value =  [PSCustomObject]@{
+                            value = $($Param1Value.tolower())
+                            matchType = 0
+                        }
+                        displayValue = $($Param1Value.tolower())
+                    })
+                    name = $Param1Results.DisplayName
+                }
             }
+            $_filterItems.Add($FilterItem)
         }
 
         # If the MetaField is integer, lookup Metadata fields by ID
@@ -484,89 +507,28 @@ Function New-LrSearch {
             $_itemFilterName = $ItemFilterDetails.DisplayName
         }
 
-        if ($ItemFilterMatchType) {
-            value {$_itemFilterMatchType = 0}
-            sqlpattern {$_itemFilterMatchType = 1}
-            regex {$_itemFilterMatchType = 2}
-            default {$_itemFilterMatchType = 0}
-        }
 
-
-        # Second Filter Item
-
-        #Date Format: 2020-04-01T06:00:00Z
-
-        <#
-         "filterGroup":{  -- A filter group will be created even if there is only one filter, either it contains group filters or not        
-
-         "filterItemType":1,  -- Filter = 0 ; Group = 1; PolyList = 2 
-         "fieldOperator":1, -- None = 0; [And] = 1 ; [Or] = 2 ; AndPrevious = 3; OrPrevious = 4
-         "filterMode":1, -- FilterIn = 1; FilterOut = 2
-         "filterGroupOperator":0, -- And = 0; Or = 1 Note that the Operator is 0; means AND condition will be applied to all filter items
-         "filterItems":[ 
-
-            {
-
-FIRST FILTER ITEM GOES HERE:
-
-               "filterItemType":0, Note that filterItemType is 0; means this is not a group filter; Simple Filter
-               "fieldOperator":0, Note that filterOperator is 0; means this does not apply any condition, AND condition will be applied according to above filterGroup level
-               "filterMode":1,  -- FilterIn
-               "filterType":29, -- The value of this filterType can be referred from FieldFilterTypeEnum
-               "values":[                   
-
-                    { 
-
-                     "filterType":29, -- The value of this filterType can be referred from FieldFilterTypeEnum
-                     "valueType":4, -- The value of this valueType can be referred from FieldFilterValueTypeEnum
-                     "value":{ 
-                        "value":"user origin value",   --User supplied value
-                        "matchType":0  -- Value = 0; SQLPattern = 1; Regex = 2
-                      },
-                     "displayValue":"user origin value" --User supplied value
-                   }
-                ],
-               "name":"User (Origin)"
-             },
-        #>
-
+#            searchServerIPAddress = $SearchServerIPAddress
         # Establish Body Contents
         $BodyContents = [PSCustomObject]@{
             maxMsgsToQuery = $MaxMsgsToQuery
             queryTimeout = $QueryTimeout
             queryRawLog = $_queryRawLog
             searchMode = $_searchMode
-            searchServerIPAddress = $SearchServerIPAddress
             dateCriteria = @{
                 useInsertedDate = "false"
                 lastIntervalValue = $LastIntervalValue
                 lastIntervalUnit = $_lastIntervalUnit
             }
-            queryLogSources = @()
+            queryLogSources = $_logSources
             queryFilter = @{
                 msgFilterType = $_msgFilterType
                 isSavedFilter = "false"
-                filterGroup = @{
-                    filterItemType = $_groupFilterItemType
-                    fieldOperator = $_itemFilterFieldOperator
-                    filterMode = $_groupFilterMode
-                    filterGroupOperator = $_groupFilterOperator
-                    filterItems = @( @{
-                        filterItemType = 0
-                        fieldOperator = 0
-                        filterMode = 1
-                        filterType = 29
-                        values = @(@{
-                            filterType = 29
-                            valueType = 4
-                            value = @{
-                                value = "administrator"
-                                matchType = 0
-                            }
-                            displayValue = "administrator"
-                        })
-                        name = "User (Origin)"
-                    })
+                filterGroup = [pscustomobject]@{
+                    filterItemType = 1
+                    fieldOperator = 1
+                    filterGroupOperator = 0
+                    filterItems = $_filterItems
                 }
             }
         } | ConvertTo-Json -Depth 7
@@ -575,65 +537,22 @@ FIRST FILTER ITEM GOES HERE:
 
 
         # Define Query URL
-        $RequestUrl = $BaseUrl + "/actions/search-task"
+        $RequestUrl = $BaseUrl + "/lr-search-api/actions/search-task"
 
         # Send Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents -SkipCertificateCheck
-            }
-            catch {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Code = $Err.statusCode
-                $ErrorObject.Type = "WebException"
-                $ErrorObject.Note = $Err.message
-                $ErrorObject.ResponseUrl = $RequestUrl
-                $ErrorObject.Error = $true
-                return $ErrorObject
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Code = $Err.statusCode
-                $ErrorObject.Type = "WebException"
-                $ErrorObject.Note = $Err.message
-                $ErrorObject.ResponseUrl = $RequestUrl
-                $ErrorObject.Error = $true
-                return $ErrorObject
-            }
-        }
-        
         try {
-            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents -SkipCertificateCheck
-        } catch [System.Net.WebException] {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
+        } catch {
             $Err = Get-RestErrorMessage $_
-            return $Err
+            $ErrorObject.Code = $Err.statusCode
+            $ErrorObject.Type = "WebException"
+            $ErrorObject.Note = $Err.message
+            $ErrorObject.Raw = $_
             $ErrorObject.Error = $true
-            $ErrorObject.Type = "System.Net.WebException"
-            $ErrorObject.Code = $($Err.Exception.Response.StatusCode.value__)
-            $ErrorObject.Note = $($Err.Exception.Response.StatusDescription)
-            $ErrorObject.ResponseUrl = $($Err.Exception.Response.ResponseUrl)
             return $ErrorObject
         }
-        #>
-        # [Exact] Parameter
-        # Search "Malware" normally returns both "Malware" and "Malware Options"
-        # This would only return "Malware"
-        if ($Exact) {
-            $Pattern = "^$Name$"
-            $Response | ForEach-Object {
-                if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
-                    Write-Verbose "[$Me]: Exact list name match found."
-                    $List = $_
-                    return $List
-                }
-            }
-        } else {
-            return $Response
-        }
+
+        return $Response
     }
 
     End { 

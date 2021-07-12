@@ -101,11 +101,19 @@ Function Get-LrPlaybooks {
 
         [Parameter(Mandatory = $false, Position = 2)]
         [ValidateSet('asc','desc')]
-        [string] $Sort = "asc",
+        [string] $Direction = "asc",
 
 
         [Parameter(Mandatory = $false, Position = 3)]
         [switch] $Exact,
+
+
+        [Parameter(Mandatory = $false, Position = 3)]
+        [int] $Count = 500,
+
+
+        [Parameter(Mandatory = $false, Position = 4)]
+        [int] $PageNumber = 1,
 
 
         [Parameter(Mandatory = $false, Position = 4)]
@@ -116,7 +124,7 @@ Function Get-LrPlaybooks {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
         
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Enable self-signed certificates and Tls1.2
@@ -125,10 +133,30 @@ Function Get-LrPlaybooks {
         # Request Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
-        $Headers.Add("count", 500)
-        $Headers.Add("orderBy", $OrderBy)
-        $Headers.Add("direction", $Sort)
-        
+        $Headers.Add("Content-Type","application/json")
+
+        # Maximum results returned per API call before pagination required
+        if ($Count) {
+            $Headers.Add("count", $Count)
+        } else {
+            $Headers.Add("count", 500)
+        }
+
+        # Page requested via Offset for Results from API
+        if ($PageNumber) {
+            $Offset = ($PageNumber -1) * $Count
+            $Headers.Add("offset", $Offset)
+        }
+
+        # Sort results by direction
+        if ($Direction) {
+            $Headers.Add("direction", $Direction)
+        }
+
+        # Arrange results by field
+        if ($OrderBy) {
+            $Headers.Add("orderBy", $OrderBy)
+        }
 
         # Request Method
         $Method = $HttpMethod.Get
@@ -142,41 +170,52 @@ Function Get-LrPlaybooks {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
-            ResponseUrl           =   $null
             Playbook              =   $Name
+            Raw                   =   $null
         }
 
         # Request URI
-        $RequestUrl = $BaseUrl + "/playbooks/?playbook=$Name"
+        $RequestUrl = $BaseUrl + "/lr-case-api/playbooks/?playbook=$Name"
 
 
         # REQUEST
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
-            }
-            catch {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Code = $Err.statusCode
-                $ErrorObject.Type = "WebException"
-                $ErrorObject.Note = $Err.message
-                $ErrorObject.ResponseUrl = $RequestUrl
-                $ErrorObject.Error = $true
-                return $ErrorObject
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Code = $Err.statusCode
-                $ErrorObject.Type = "WebException"
-                $ErrorObject.Note = $Err.message
-                $ErrorObject.ResponseUrl = $RequestUrl
-                $ErrorObject.Error = $true
-                return $ErrorObject
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Code = $Err.statusCode
+            $ErrorObject.Type = "WebException"
+            $ErrorObject.Note = $Err.message
+            $ErrorObject.Error = $true
+            $ErrorObject.Raw = $_
+            return $ErrorObject
+        }
+
+        # Pagination
+        if ($Response.Count -eq $Count) {
+            DO {
+                # Increment Page Count / Offset
+                $PageNumber = $PageNumber + 1
+                $Offset = ($PageNumber -1) * $Count
+                # Update Header Pagination Paramater
+                $Headers.offset = $Offset
+                
+                # Retrieve Query Results
+                try {
+                    $PaginationResults = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+                } catch [System.Net.WebException] {
+                    $Err = Get-RestErrorMessage $_
+                    $ErrorObject.Error = $true
+                    $ErrorObject.Type = "System.Net.WebException"
+                    $ErrorObject.Code = $($Err.statusCode)
+                    $ErrorObject.Note = $($Err.message)
+                    $ErrorObject.Raw = $_
+                    return $ErrorObject
+                }
+                
+                # Append results to Response
+                $Response = $Response + $PaginationResults
+            } While ($($PaginationResults.Count) -eq $Count)
         }
         
         # [Exact] Parameter
@@ -200,7 +239,6 @@ Function Get-LrPlaybooks {
             $ErrorObject.Code = 404
             $ErrorObject.Type = "Object not found"
             $ErrorObject.Note = "Playbook not found"
-            $ErrorObject.ResponseUrl = $RequestUrl
             $ErrorObject.Error = $true
             return $ErrorObject
         }

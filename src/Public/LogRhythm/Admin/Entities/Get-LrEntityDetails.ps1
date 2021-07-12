@@ -70,7 +70,7 @@ Function Get-LrEntityDetails {
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Define HTTP Headers
@@ -95,6 +95,7 @@ Function Get-LrEntityDetails {
             Type                  =   $null
             Note                  =   $null
             Value                 =   $Id
+            Raw                   =   $null
         }
 
         # Check if ID value is an integer
@@ -116,35 +117,22 @@ Function Get-LrEntityDetails {
         }
 
         
-        $RequestUrl = $BaseUrl + "/entities/" + $Guid + "/"
+        $RequestUrl = $BaseUrl + "/lr-admin-api/entities/" + $Guid + "/"
         # Error Output - Used to support Pipeline Paramater ID
         Write-Verbose "[$Me]: Id: $Id - Guid: $Guid - ErrorStatus: $($ErrorObject.Error)"
         if ($ErrorObject.Error -eq $false) {
             # Send Request
-            if ($PSEdition -eq 'Core'){
-                try {
-                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
-                }
-                catch {
-                    $Err = Get-RestErrorMessage $_
-                    $ErrorObject.Error = $true
-                    $ErrorObject.Type = "System.Net.WebException"
-                    $ErrorObject.Code = $($Err.statusCode)
-                    $ErrorObject.Note = $($Err.message)
-                    return $ErrorObject
-                }
-            } else {
-                try {
-                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-                }
-                catch [System.Net.WebException] {
-                    $Err = Get-RestErrorMessage $_
-                    $ErrorObject.Error = $true
-                    $ErrorObject.Type = "System.Net.WebException"
-                    $ErrorObject.Code = $($Err.statusCode)
-                    $ErrorObject.Note = $($Err.message)
-                    return $ErrorObject
-                }
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+            }
+            catch [System.Net.WebException] {
+                $Err = Get-RestErrorMessage $_
+                $ErrorObject.Error = $true
+                $ErrorObject.Type = "System.Net.WebException"
+                $ErrorObject.Code = $($Err.statusCode)
+                $ErrorObject.Note = $($Err.message)
+                $ErrorObject.Raw = $_
+                return $ErrorObject
             }
         } else {
             return $ErrorObject

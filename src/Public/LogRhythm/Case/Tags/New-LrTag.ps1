@@ -38,6 +38,10 @@ Function New-LrTag {
 
 
         [Parameter(Mandatory = $false, Position = 1)]
+        [switch] $PassThru,
+        
+
+        [Parameter(Mandatory = $false, Position = 2)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -46,7 +50,7 @@ Function New-LrTag {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
         
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Enable self-signed certificates and Tls1.2
@@ -70,12 +74,12 @@ Function New-LrTag {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
-            ResponseUrl           =   $null
             Tag                   =   $Tag
+            Raw                   =   $null
         }
 
         # Request URI
-        $RequestUrl = $BaseUrl + "/tags/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/tags/"
         Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
 
@@ -90,7 +94,6 @@ Function New-LrTag {
             $ErrorObject.Code = "ValueExists"
             $ErrorObject.Type = "Duplicate"
             $ErrorObject.Note = "Tag exists.  ID: $_tagNumber"
-            $ErrorObject.ResponseUrl = "Reference results of: Get-LrTag -number $_tagNumber"
             $ErrorObject.Error = $true
             return $ErrorObject
         }
@@ -103,35 +106,21 @@ Function New-LrTag {
         Write-Verbose "[$Me]: request body is:`n$Body"
 
         # Make Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
-            }
-            catch {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Code = $Err.statusCode
-                $ErrorObject.Type = "WebException"
-                $ErrorObject.Note = $Err.message
-                $ErrorObject.ResponseUrl = $RequestUrl
-                $ErrorObject.Error = $true
-                return $ErrorObject
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Code = $Err.statusCode
-                $ErrorObject.Type = "WebException"
-                $ErrorObject.Note = $Err.message
-                $ErrorObject.ResponseUrl = $RequestUrl
-                $ErrorObject.Error = $true
-                return $ErrorObject
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Code = $Err.statusCode
+            $ErrorObject.Type = "WebException"
+            $ErrorObject.Note = $Err.message
+            $ErrorObject.Error = $true
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
         
-        return $Response
+        if ($PassThru) {
+            return $Response
+        }
         #endregion
     }
 

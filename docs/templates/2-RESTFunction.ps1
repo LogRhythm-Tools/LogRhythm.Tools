@@ -46,24 +46,35 @@ Function Set-YourFunctionName {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
     
-        # $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
-        # $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        # $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
 
         $Token = $Credential.GetNetworkCredential().Password
+        
+        # Request Headers
+        $Headers = [Dictionary[string,string]]::new()
+        $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
+        
+        # Request URI   
+        $Method = $HttpMethod.Post
+
         # Enable self-signed certificates and Tls1.2
         Enable-TrustAllCertsPolicy
     }
 
 
     Process {
-        # Request Headers
-        $Headers = [Dictionary[string,string]]::new()
-        $Headers.Add("Authorization", "Bearer $Token")
-        $Headers.Add("Content-Type","application/json")
-        
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Code                  =   $null
+            Error                 =   $false
+            Type                  =   $null
+            Note                  =   $null
+            Raw                   =   $_
+        }
 
-        # Request URI   
-        $Method = $HttpMethod.Post
+        # Define RequestUri
         $RequestUri = $BaseUrl + "/path/"
 
 
@@ -84,7 +95,12 @@ Function Set-YourFunctionName {
         }
         catch [System.Net.WebException] {
             $Err = Get-RestErrorMessage $_
-            throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+            $ErrorObject.Code = $Err.statusCode
+            $ErrorObject.Type = "WebException"
+            $ErrorObject.Note = $Err.message
+            $ErrorObject.Raw = $_
+            $ErrorObject.Error = $true
+            return $ErrorObject
         }
 
         return $Response

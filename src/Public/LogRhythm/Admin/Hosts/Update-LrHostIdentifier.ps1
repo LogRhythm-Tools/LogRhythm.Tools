@@ -21,6 +21,8 @@ Function Update-LrHostIdentifier {
         [System.String] Parameter for specifying a new identifier value.
         
         Max length: 50 characters
+    .PARAMETER PassThru
+        Switch paramater that will enable the return of the output object from the cmdlet.
     .OUTPUTS
         Confirmation string returned as result.
         "Identifiers added"
@@ -29,13 +31,12 @@ Function Update-LrHostIdentifier {
         ---
         Identifiers added
     .EXAMPLE
-        PS C:\> Update-LrHostIdentifier -Id 3 -Type ipaddress -Value 192.168.2.4
+        PS C:\> Update-LrHostIdentifier -Id 3 -Type ipaddress -Value 192.168.2.4 -PassThru
         ---
         Identifiers added
     .EXAMPLE
         PS C:\> Update-LrHostIdentifier -Id "Myexistinghost" -Type dnsname -Value mycoolhost.mydomain.com
-        ---
-        Identifiers added
+
     .NOTES
         LogRhythm-API        
     .LINK
@@ -56,15 +57,19 @@ Function Update-LrHostIdentifier {
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true,  Position = 2)]
         [string] $Value,
 
-
+                
         [Parameter(Mandatory = $false, Position = 3)]
+        [switch] $PassThru,
+
+
+        [Parameter(Mandatory = $false, Position = 4)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
         
         # Define HTTP Headers
@@ -93,6 +98,7 @@ Function Update-LrHostIdentifier {
             Type                  =   $Type
             Note                  =   $null
             Value                 =   $Value
+            Raw                   =   $null
         }
 
         if ([int]::TryParse($Id, [ref]$_int)) {
@@ -107,7 +113,9 @@ Function Update-LrHostIdentifier {
             Write-Verbose "[$Me]: Id does not parse as integer.  Performing string lookup."
             $HostLookup = Get-LrHosts -Name $Id -Exact
             if (!$HostLookup) {
-                return "[$Me]: Unable to identify host record with exact match to string: $Id."
+                $ErrorObject.Error = $true
+                $ErrorObject.Code = 404
+                $ErrorObject.Note = "Unable to identify host record with exact match to string: $Id."
             } else {
                 [int32] $Guid = $HostLookup | Select-Object -ExpandProperty id 
             }
@@ -133,18 +141,30 @@ Function Update-LrHostIdentifier {
                     $_type = "WindowsName"
                 }
             } else {
-                throw [ArgumentException] "RecordStatus [$Type] must be: ipaddress, dnsname, or windowsname"
+                $ErrorObject.Error = $true
+                $ErrorObject.Note = "RecordStatus [$Type] must be: ipaddress, dnsname, or windowsname"
+                return $ErrorObject
             }
         }
 
-
-        # Establish JSON Body contents
-        $BodyContents = [PSCustomObject]@{
-            hostIdentifiers = @([PSCustomObject]@{
-                type = $_type
-                value = $Value
+        if ($LrtConfig.LogRhythm.Version -match '7\.4\.[0-6]') {
+            # Establish JSON Body contents
+            $BodyContents = @([PSCustomObject]@{
+                hostIdentifiers = @([PSCustomObject]@{
+                    type = $_type
+                    value = $Value
+                })
             })
+        } else {
+            # Establish JSON Body contents
+            $BodyContents = [PSCustomObject]@{
+                hostIdentifiers = @([PSCustomObject]@{
+                    type = $_type
+                    value = $Value
+                })
+            }
         }
+
 
         # Establish Body Contents
         $Body = $BodyContents | ConvertTo-Json
@@ -152,49 +172,26 @@ Function Update-LrHostIdentifier {
         Write-Verbose "$Body"
 
         # Define Query URL
-        $RequestUrl = $BaseUrl + "/hosts/$Guid/identifiers/"
+        $RequestUrl = $BaseUrl + "/lr-admin-api/hosts/$Guid/identifiers/"
 
         # Send Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
-            }
-            catch {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                return $ErrorObject
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body 
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                return $ErrorObject
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body 
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "System.Net.WebException"
+            $ErrorObject.Code = $($Err.statusCode)
+            $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
         
-        #>
-        # [Exact] Parameter
-        # Search "Malware" normally returns both "Malware" and "Malware Options"
-        # This would only return "Malware"
-        if ($Exact) {
-            $Pattern = "^$Name$"
-            $Response | ForEach-Object {
-                if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
-                    Write-Verbose "[$Me]: Exact list name match found."
-                    $List = $_
-                    return $List
-                }
-            }
-        } else {
+        # Return output object
+        if ($ErrorObject.Error -eq $true) {
+            return $ErrorObject
+        }
+        if ($PassThru) {
             return $Response
         }
     }

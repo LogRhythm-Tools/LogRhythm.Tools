@@ -23,6 +23,10 @@ Function Sync-LrListItems {
     .PARAMETER ItemType
         For use with Lists that support multiple item types.  Add-LrListItem will attempt to auto-define
         this value.  This parameter enables setting the ItemType.
+    .PARAMETER Clear
+        Switch Paramater that will perform a synchronization of $null into the target list.  
+
+        This paramater will cause the target list to have all list values removed.
     .INPUTS
 
     .OUTPUTS
@@ -31,7 +35,60 @@ Function Sync-LrListItems {
         If a Value parameter error is identified, a PSCustomObject is returned providing details
         associated to the error.
     .EXAMPLE
+        Sync-LrListItems -Name "Network: Search : SSL/TLS" -Value $Null -PassThru
 
+        ListGuid   : 3DBB29CB-AB09-4319-9D34-FEA8798DCF3D
+        ListName   : Network: Search : SSL/TLS
+        ValueCount : 0
+        Before     : 502
+        After      : 502
+        Added      : 0
+        Removed    : 502
+    .EXAMPLE
+        Sync-LrListItems -Name "LRT: Hashes" -Value $NewValues -PassThru
+
+        ListGuid   : 11AF69E2-BDAA-4788-AD25-D6EE395B08E4
+        ListName   : LRT: Hashes
+        ValueCount : 50
+        Before     : 50
+        After      : 50
+        Added      : 0
+        Removed    : 0
+        ListType   : GeneralValue
+    .EXAMPLE
+        Sync-LrListItems -Name "LRT: Hashes" -Clear -PassThru
+
+
+        ListGuid   : 11AF69E2-BDAA-4788-AD25-D6EE395B08E4
+        ListName   : LRT: Hashes
+        ValueCount : 0
+        Before     : 50
+        After      : 0
+        Added      : 0
+        Removed    : 50
+        ListType   : GeneralValue
+    .EXAMPLE
+        Sync-LrListItems -Name "LRT: Hashes" -Value "002438992142cec59436dfd31e75dabe" -PassThru
+
+        ListGuid   : 11AF69E2-BDAA-4788-AD25-D6EE395B08E4
+        ListName   : LRT: Hashes
+        ValueCount : 1
+        Before     : 0
+        After      : 1
+        Added      : 1
+        Removed    : 0
+        ListType   : GeneralValue
+    .EXAMPLE 
+        Sync-LrListItems -Name "LRT: Hashes" -PassThru -Value $NewValues
+
+        ListGuid   : 11AF69E2-BDAA-4788-AD25-D6EE395B08E4
+        ListName   : LRT: Hashes
+        ValueCount : 50
+        Before     : 1
+        After      : 50
+        Added      : 49
+        Removed    : 0
+        ListType   : GeneralValue
     .NOTES
         LogRhythm-API        
     .LINK
@@ -50,11 +107,11 @@ Function Sync-LrListItems {
 
 
         [Parameter(Mandatory = $false, Position = 2)]
-        [string] $ItemType,
+        [switch] $Clear,
 
 
         [Parameter(Mandatory = $false, Position = 3)]
-        [string] $UseContext,
+        [switch] $PassThru,
 
 
         [Parameter(Mandatory = $false, Position = 4)]
@@ -78,31 +135,70 @@ Function Sync-LrListItems {
             FieldType             =   $null
         }
 
+        if (($Null -eq $Value) -And (! ($PSCmdlet.MyInvocation.BoundParameters["Clear"].IsPresent))) {
+            $ErrorObject.Error = $true
+            $ErrorObject.Note = "Null value submitted without the -Clear flag."
+            $ErrorObject.ListName = $Name
+            return $ErrorObject
+        }
+
+        # Establish General Output object
+        $OutObject = [PSCustomObject]@{
+            ListGuid              =   $null
+            ListName              =   $null
+            ValueCount            =   $($Value.count)
+            Before                =   $null
+            After                 =   $null
+            Added                 =   $null
+            Removed               =   $null
+            ListType              =   $null
+        }
+
         # Process Name
         if (($Name.GetType() -eq [System.Guid]) -Or (Test-Guid $Name)) {
-            $Guid = $Name.ToString()
-            $ErrorObject.ListName = (Get-LrList -Name $Guid | Select-Object -ExpandProperty Name)
-            $ErrorObject.ListGuid = $Guid
-        } else {
-            $Guid = Get-LRListGuidByName -Name $Name.ToString() -Exact
-            if ($Guid -is [array]) {
-                throw [Exception] "Get-LrListGuidbyName returned an array of GUID.  Provide specific List Name."
+            $TargetList = Get-LrList -name $Name.ToString()
+            if ($TargetList.Error -eq $true) {
+                $ErrorObject.Error = $true
+                $ErrorObject.ListName = $TargetList.Name
+                $ErrorObject.ListGuid = $TargetList.Guid
+                $ErrorObject.Note = $TargetList.Note
+                return $ErrorObject
             } else {
-                $LrListDetails = Get-LrList -Name $Guid
-                $LrListType = $LrListDetails.ListType
+                $OutObject.ListName = $TargetList.Name
+                $OutObject.ListGuid = $TargetList.Guid
+                $OutObject.Before = $TargetList.entryCount
+                $OutObject.ListType = $TargetList.ListType
+            }
+        } else {
+            $TargetList = Get-LrLists -Name $Name.ToString() -Exact
+            if ($TargetList -is [array]) {
+                $ErrorObject.Error = $true
                 $ErrorObject.ListName = $Name.ToString()
                 $ErrorObject.ListGuid = $Guid
+                $ErrorObject.Note = "List lookup returned an array of values.  Ensure the list referenced is unique."
+                return $ErrorObject
+            } elseif ($TargetList.Error -eq $true) {
+                $ErrorObject.Error = $true
+                $ErrorObject.ListName = $TargetList.Name
+                $ErrorObject.ListGuid = $TargetList.Guid
+                $ErrorObject.Note = $TargetList.Note
+                return $ErrorObject
+            } else {
+                $OutObject.ListName = $TargetList.Name
+                $OutObject.ListGuid = $TargetList.Guid
+                $OutObject.Before = $TargetList.entryCount
+                $OutObject.ListType = $TargetList.ListType
             }
         }
 
-        if ($($ErrorObject.ListGuid) -or $($ErrorObject.ListName)) {
-            Write-Host "$(Get-TimeStamp) - Retrieving List Values for: $($ErrorObject.ListName)"
-            $ListValues = Get-LrListItems -Name $ErrorObject.ListName -ValuesOnly
+
+        if ($OutObject.ListGuid) {
+            Write-Verbose "$(Get-TimeStamp) - Retrieving List Values for: $($OutObject.ListName)"
+            $ListValues = Get-LrListItems -Name $OutObject.ListGuid -ValuesOnly
             if ($Value.Count -ge 1 -And $ListValues.Count -ge 1) {
-                Write-Host "$(Get-TimeStamp) - Number of ListValues: $($ListValues.Count) - Number of Values: $($Value.Count)"
-                #$ComparisonResults = Compare-Object $Value $ListValues
+                Write-Verbose "$(Get-TimeStamp) - Number of ListValues: $($ListValues.Count) - Number of Values: $($Value.Count)"
                 $ComparisonResults = Compare-StringArrays $Value $ListValues -Unsorted
-                Write-Host "$(Get-TimeStamp) - Comparison Complete"
+                Write-Verbose "$(Get-TimeStamp) - Comparison Complete"
                 $RemoveList = $ComparisonResults | Where-Object SideIndicator -eq "=>" | Select-Object -ExpandProperty InputObject
                 Write-Verbose "$(Get-TimeStamp) - RemoveList Count: $($RemoveList.Count)"
                 $AddList = $ComparisonResults | Where-Object SideIndicator -eq "<=" | Select-Object -ExpandProperty InputObject
@@ -116,36 +212,55 @@ Function Sync-LrListItems {
 
             # Bulk remove of the RemoveList items
             if ($RemoveList) {
-                Write-Host "$(Get-TimeStamp) - Remove Count: $($RemoveList.Count)"
+                Write-Verbose "$(Get-TimeStamp) - Remove Count: $($RemoveList.Count)"
+                # Set quantity of removed values
+                $OutObject.Removed = $RemoveList.Count
                 # For large number of removals, break the additions into 10,000 items per API call
                 if ($RemoveList.Count -ge 1000) {
-                    Write-Host "$(Get-TimeStamp) - Enter Removal Segmentation"
+                    Write-Verbose "$(Get-TimeStamp) - Enter Removal Segmentation"
                     $SegmentCount = ([Math]::Round(($($RemoveList.Count) / 1000), 0)) + 1
                     $SegmentedRemoveList = Create-LrPsArraySegments -InputArray $RemoveList -Segments $SegmentCount
                     foreach ($RemoveArray in $SegmentedRemoveList) {
                         Write-Verbose "$(Get-TimeStamp) - Submitting $($RemoveArray.count)"
                         Try {
-                            Remove-LrListItem -name $ErrorObject.ListName -Value $RemoveArray -ItemType $ItemType | Out-Null
+                            Remove-LrListItem -name $OutObject.ListGuid -Value $RemoveArray -ItemType $OutObject.ListType
                         } Catch {
-                            Write-Host "$(Get-TimeStamp) - Failed to submit entries.  Entry Dump:"
-                            Write-Host "$RemoveArray"
+                            $ErrorObject.Error = $true
+                            $ErrorObject.Note = "Failed to submit removal entries."
+                            $ErrorObject.Value = $RemoveArray
                         }
                         start-sleep .2
                     }
-                    $RemovalResults = "$(Get-TimeStamp) - Removal Summary - List: $($ErrorObject.ListName) Quantity: $($RemoveList.Count)"
                 } else {
                     if ($ItemType) {
-                        $RemovalResults = Remove-LrListItem -name $ErrorObject.ListName -Value $RemoveList -ItemType $ItemType
+                        Try {
+                            Remove-LrListItem -name $OutObject.ListGuid -Value $RemoveList -ItemType $OutObject.ListType
+                        } Catch {
+                            $ErrorObject.Error = $true
+                            $ErrorObject.Note = "Failed to submit removal entries."
+                            $ErrorObject.Value = $RemoveArray
+                        }
                     } else {
-                        $RemovalResults = Remove-LrListItem -name $ErrorObject.ListName -Value $RemoveList
+                        Try {
+                            Remove-LrListItem -name $OutObject.ListGuid -Value $RemoveList
+                        } Catch {
+                            $ErrorObject.Error = $true
+                            $ErrorObject.Note = "Failed to submit removal entries."
+                            $ErrorObject.Value = $RemoveArray
+                        }
                     } 
                 }
+            } else {
+                # Set quantity of removed values
+                $OutObject.Removed = 0
             }
 
             # Bulk addition of the AddList items
             if ($AddList) {
-                Write-Host "$(Get-TimeStamp) - Addition Count: $($AddList.Count)"
-                # For large number of additions, break the additions into 10,000 items per API call
+                Write-Verbose "$(Get-TimeStamp) - Addition Count: $($AddList.Count)"
+                # Set quantity of removed values
+                $OutObject.Added = $AddList.Count
+                # For large number of additions, break the additions into 1,000 items per API call
                 if ($AddList.Count -ge 1000) {
                     Write-Verbose "$(Get-TimeStamp) - Enter Addition Segmentation"
                     $SegmentCount = ([Math]::Round(($($AddList.Count) / 1000), 0)) +1
@@ -153,25 +268,50 @@ Function Sync-LrListItems {
                     foreach ($AddArray in $SegmentedAddList) {
                         Write-Verbose "$(Get-TimeStamp) - Submitting $($AddArray.count)"
                         Try {
-                            Add-LrListItem -name $ErrorObject.ListName -Value $AddArray -ItemType $ItemType | Out-Null
+                            Add-LrListItem -name $OutObject.ListGuid -Value $AddArray -ItemType $OutObject.ListType
                         } Catch {
-                            Write-Host "$(Get-TimeStamp) - Failed to submit entries.  Entry Dump:"
-                            Write-Host "$AddArray"
+                            $ErrorObject.Error = $true
+                            $ErrorObject.Note = "Failed to submit addition entries."
+                            $ErrorObject.Value = $AddArray
                         }
                         start-sleep .2
                     }
-                    $RemovalResults = "$(Get-TimeStamp) - Addition Summary - List: $($ErrorObject.ListName) Quantity: $($AddList.Count)"
                 } else {
                     if ($ItemType) {
-                        $AdditionResults = Add-LrListItem -Name $ErrorObject.ListName -Value $AddList -ItemType $ItemType
+                        Try {
+                            Add-LrListItem -Name $OutObject.ListGuid -Value $AddList -ItemType $OutObject.ListType
+                        } Catch {
+                            $ErrorObject.Error = $true
+                            $ErrorObject.Note = "Failed to submit addition entries."
+                            $ErrorObject.Value = $AddArray
+                        }
                     } else {
-                        $AdditionResults = Add-LrListItem -Name $ErrorObject.ListName -Value $AddList
+                        Try {
+                            Add-LrListItem -Name $OutObject.ListGuid -Value $AddList
+                        } Catch {
+                            $ErrorObject.Error = $true
+                            $ErrorObject.Note = "Failed to submit addition entries."
+                            $ErrorObject.Value = $AddArray
+                        }
                     }
                 }
+            } else {
+                # Set quantity of added values
+                $OutObject.Added = $AddList.Count
             }
-            $Results = @($RemovalResults, $AdditionResults)
+
+            # Retrieve list final entry count:
+            $OutObject.After = $(Get-LrList -Name $OutObject.ListGuid | Select-Object -ExpandProperty entryCount)
         }
-        return $Results
+
+
+        # Return output object
+        if ($ErrorObject.Error -eq $true) {
+            return $ErrorObject
+        }
+        if ($PassThru) {
+            return $OutObject
+        }
     }
     
     End { }

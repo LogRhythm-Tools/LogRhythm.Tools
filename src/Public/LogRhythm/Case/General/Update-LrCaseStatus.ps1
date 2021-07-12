@@ -82,7 +82,7 @@ Function Update-LrCaseStatus {
 
 
         [Parameter(Mandatory = $true, Position = 1)]
-        [ValidateNotNullOrEmpty()]
+        [ValidateSet('Created', 'Completed', 'Incident', 'Mitigated', 'Resolved', ignorecase=$true)]
         [string] $Status,
 
 
@@ -103,7 +103,7 @@ Function Update-LrCaseStatus {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
         
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Enable self-signed certificates and Tls1.2
@@ -123,6 +123,16 @@ Function Update-LrCaseStatus {
 
 
     Process {
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Code                  =   $null
+            Error                 =   $false
+            Type                  =   $null
+            Note                  =   $null
+            Case                  =   $Id
+            Raw                   =   $null
+        }  
+
         # Test CaseID Format
         $IdStatus = Test-LrCaseIdFormat $Id
         if ($IdStatus.IsValid -eq $true) {
@@ -138,7 +148,7 @@ Function Update-LrCaseStatus {
         }
 
         # Request URI
-        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/actions/changeStatus/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/actions/changeStatus/"
 
 
         # Request Body
@@ -150,23 +160,19 @@ Function Update-LrCaseStatus {
         # Send Request
         Write-Verbose "[$Me]: request body is:`n$Body"
 
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
-            }
-            catch {
-                $Err = Get-RestErrorMessage $_
-                throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
         }
+        catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Code = $Err.statusCode
+            $ErrorObject.Type = "WebException"
+            $ErrorObject.Note = $Err.message
+            $ErrorObject.Error = $true
+            $ErrorObject.Raw = $_
+            return $ErrorObject
+        }
+        
         $ProcessedCount++
 
         # Return

@@ -77,12 +77,13 @@ Function Get-LrIdentityIdentifierConflicts {
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Define HTTP Header
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
 
         # Define HTTP Method
         $Method = $HttpMethod.Get
@@ -108,27 +109,13 @@ Function Get-LrIdentityIdentifierConflicts {
             if ($ShowRetired) { $RequestUrl += "&showRetired=true" }
             if ($Filter) { $RequestUrl += "&$Filter" }
             
-
-            if ($PSEdition -eq 'Core'){
-                try {
-                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
-                }
-                catch {
-                    $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                    Write-Verbose "Exception Message: $ExceptionMessage"
-                    $SearchingIdententities = $False
-                    break;
-                }
-            } else {
-                try {
-                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-                }
-                catch [System.Net.WebException] {
-                    $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                    Write-Verbose "Exception Message: $ExceptionMessage"
-                    $SearchingIdententities = $False
-                    break;
-                }
+            try {
+                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+            } catch [System.Net.WebException] {
+                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
+                Write-Verbose "Exception Message: $ExceptionMessage"
+                $SearchingIdententities = $False
+                break;
             }
  
             if ($Response.Count -eq 0) {

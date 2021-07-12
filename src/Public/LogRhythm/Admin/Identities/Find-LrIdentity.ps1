@@ -94,7 +94,7 @@ Function Find-LrIdentity {
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Define HTTP Headers
@@ -106,13 +106,22 @@ Function Find-LrIdentity {
         $Method = $HttpMethod.Post
 
         # Define HTTP Destination URI
-        $RequestUrl = $BaseUrl + "/identities/query/"
+        $RequestUrl = $BaseUrl + "/lr-admin-api/identities/query/"
 
         # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
         Enable-TrustAllCertsPolicy
     }
 
     Process {
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Error                 =   $false
+            Note                  =   $null
+            Code                  =   $null
+            Type                  =   $null
+            Raw                   =   $null
+        }
+
         # Define HTTP Body
         $BodyContents = [PSCustomObject]@{
             ids = @($Id)
@@ -122,24 +131,16 @@ Function Find-LrIdentity {
         Write-Verbose "[$Me] Request Body:`n$Body"
 
         # Send Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
-            }
-            catch {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                return $ExceptionMessage
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
-            }
-            catch [System.Net.WebException] {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                return $ExceptionMessage
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "System.Net.WebException"
+            $ErrorObject.Code = $($Err.statusCode)
+            $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
         
         return $Response

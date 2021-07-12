@@ -2,7 +2,7 @@
     "General": {
         "Name": "General",
         "Optional": false,
-        "Message": "",
+        "Message": "The Trust Self-Signed SSL Certificates policy is applied to LogRhythm API endpoints.",
         "HasKey": false,
 
         "Fields": {
@@ -11,6 +11,44 @@
             "Hint": "yes or no",
             "InputCmd": "Get-InputYesNo",
             "FallThru": false
+            }
+        }
+    },
+
+    "Proxy": {
+        "Name": "Proxy",
+        "Optional": true,
+        "Message": "",
+        "HasCredential": true,
+
+        "Fields": {
+            "Required": {
+                "Prompt": "Is a Proxy required for any Web (API) request?",
+                "Hint": "yes or no",
+                "InputCmd": "Get-InputYesNo",
+                "FallThru": false
+            },
+            "Host": {
+                "Prompt": "Proxy host",
+                "Hint": "Hostname or IP (x.x.x.x)",
+                "InputCmd": "Get-InputHostname",
+                "FallThru": false
+            },
+            "Port": {
+                "Prompt": "Proxy port",
+                "Hint": "Integer, typically 80 or 8080",
+                "InputCmd": "Get-StringPattern",
+                "FallThru": false,
+                "InputPattern": {
+                    "Pattern": "^\\d*$",
+                    "AllowChars": ""
+                }
+            },
+            "RequiresCredential": {
+                "Prompt": "Does the Proxy require any credential?",
+                "Hint": "yes or no",
+                "InputCmd": "Get-InputYesNo",
+                "FallThru": false
             }
         }
     },
@@ -29,39 +67,11 @@
                 "FallThru": false
             },
     
-            "DataIndexerIP": {
-                "Prompt": "Data Indexer IP Address",
-                "Hint": "Hostname or IP (x.x.x.x)",
-                "InputCmd": "Get-InputIpAddress",
-                "FallThru": false
-            },
-    
-            "AdminBaseUrl": {
+            "BaseUrl": {
                 "Prompt": "LogRhythm Platform Manager",
                 "Hint": "Hostname or IP (x.x.x.x)",
                 "InputCmd": "Get-InputApiUrl",
                 "FallThru": false
-            },
-    
-            "CaseBaseUrl": {
-                "Prompt": "",
-                "Hint": "",
-                "InputCmd": "Get-InputApiUrl",
-                "FallThru": true
-            },
-    
-            "AieBaseUrl": {
-                "Prompt": "",
-                "Hint": "",
-                "InputCmd": "Get-InputApiUrl",
-                "FallThru": true
-            },
-    
-            "SearchBaseUrl": {
-                "Prompt": "",
-                "Hint": "",
-                "InputCmd": "Get-InputApiUrl",
-                "FallThru": true
             }
         }
     },
@@ -159,6 +169,26 @@
         }
     },
 
+    "Mimecast": {
+        "Name": "Mimecast",
+        "Optional": true,
+        "Message": "Provides acaccess to Mimecast API. \nNOTE: Mimecast requires for key components for authentication.\nFollow the mapping below to identify where each value should be entered.\nClient/AppID: Application Id\nAPI Key for Mimecast: Access Key \nEnter Username: Application Key\nPassword: Secret Key.",
+        "HasKey": true,
+        "HasClientId": true,
+        "HasCredential": true,
+        "Fields": {
+            "Region": {
+                "Prompt": "Enter your region. Default: US",
+                "Hint": "US, EU or UK",
+                "InputCmd": "Get-StringPattern",
+                "FallThru": false,
+                "InputPattern": {
+                    "Pattern": "^[uU][sS]|[uU][kK]|[eE][uU]$",
+                    "AllowChars": ""
+                }
+            }
+        }
+    },
 
     "RecordedFuture": {
         "Name": "Recorded Future",

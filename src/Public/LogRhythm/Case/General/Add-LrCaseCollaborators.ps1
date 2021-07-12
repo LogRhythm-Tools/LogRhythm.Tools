@@ -60,7 +60,12 @@ Function Add-LrCaseCollaborators {
         [ValidateNotNull()]
         [int32[]] $GroupNumbers,
 
+
         [Parameter(Mandatory = $false, Position = 4)]
+        [switch] $PassThru,
+
+
+        [Parameter(Mandatory = $false, Position = 5)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -69,7 +74,7 @@ Function Add-LrCaseCollaborators {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
         
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Enable self-signed certificates and Tls1.2
@@ -93,9 +98,8 @@ Function Add-LrCaseCollaborators {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
-            ResponseUrl           =   $null
-            Tags                  =   $Tags
             Case                  =   $Id
+            Raw                   =   $null
         }
         Write-Verbose "[$Me]: Case Id: $Id"
 
@@ -107,7 +111,7 @@ Function Add-LrCaseCollaborators {
             return $IdStatus
         }                                                      
 
-        $RequestUrl = $BaseUrl + "/cases/$CaseNumber/actions/addCollaborators/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/actions/addCollaborators/"
         Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
         #endregion
 
@@ -147,35 +151,22 @@ Function Add-LrCaseCollaborators {
         Write-Verbose "[$Me]: request body is:`n$Body"
 
         # Make Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
-            }
-            catch {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Code = $Err.statusCode
-                $ErrorObject.Type = "WebException"
-                $ErrorObject.Note = $Err.message
-                $ErrorObject.ResponseUrl = $RequestUrl
-                $ErrorObject.Error = $true
-                return $ErrorObject
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Code = $Err.statusCode
-                $ErrorObject.Type = "WebException"
-                $ErrorObject.Note = $Err.message
-                $ErrorObject.ResponseUrl = $RequestUrl
-                $ErrorObject.Error = $true
-                return $ErrorObject
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Code = $Err.statusCode
+            $ErrorObject.Type = "WebException"
+            $ErrorObject.Note = $Err.message
+            $ErrorObject.Error = $true
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
         
-        return $Response
+        # Only return the case if PassThru was requested.
+        if ($PassThru) {
+            return $Response    
+        }
     }
 
 

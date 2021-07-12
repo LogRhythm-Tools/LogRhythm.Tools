@@ -94,8 +94,15 @@ Function Get-LrAieSummary {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
 
-        $BaseUrl = $LrtConfig.LogRhythm.AieBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
+
+        # Request Headers
+        $Headers = [Dictionary[string,string]]::new()
+        $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
+
+        $Method = $HttpMethod.Get
 
         # Enable self-signed certificates and Tls1.2
         Enable-TrustAllCertsPolicy
@@ -106,89 +113,41 @@ Function Get-LrAieSummary {
 
     #region: Process                                                                     
     Process {
-        # Request Headers
-        $Headers = [Dictionary[string,string]]::new()
-        $Headers.Add("Authorization", "Bearer $Token")
-        $Headers.Add("Content-Type","application/json")
-        
-
         # Request URI   
-        $Method = $HttpMethod.Get
-        $RequestUrl = $BaseUrl + "/drilldown/$AlarmId/summary"
-
-
-
-        
-
+        $RequestUrl = $BaseUrl + "/lr-drilldown-cache-api/drilldown/$AlarmId/summary"
+     
         # REST Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod -Uri $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
-            }
-            catch {
-                #region Exception Handling                                               
-                $Err = Get-RestErrorMessage $_
-                $ExceptionMsg = $_.Exception.message
+        try {
+            $Response = Invoke-RestMethod -Uri $RequestUrl -Headers $Headers -Method $Method
+        } catch [System.Net.WebException] {
+            #region Exception Handling                                               
+            $Err = Get-RestErrorMessage $_
+            $ExceptionMsg = $_.Exception.message
 
-                # Catch specific error corresponding to classic alarms
-                # These errors throw a WebException including a message with text:
-                # "The remote server returned an error: (404) Not Found."
-                # $Err in this case will have the proper container for data, but
-                # the results will be null. Part of the validation of this type
-                # of error is to check that the DrillDownResults property exists.
-                if (($Err.data).PSObject.Properties.name -match "DrillDownResults") {
-                    if ($Err.data.DrillDownResults.Count -eq 0) {
-                        $Msg = "[$Me]: (LogRhythm API) "
-                        $Msg += $ExceptionMsg
-                        $Msg += " When a 404 error is specified, ensure that the requested"
-                        $Msg += " alarm is from an AI Engine rule and not a diagnostic alarm."
-                        throw [Exception] $Msg
-                    }
+            # Catch specific error corresponding to classic alarms
+            # These errors throw a WebException including a message with text:
+            # "The remote server returned an error: (404) Not Found."
+            # $Err in this case will have the proper container for data, but
+            # the results will be null. Part of the validation of this type
+            # of error is to check that the DrillDownResults property exists.
+            if (($Err.data).PSObject.Properties.name -match "DrillDownResults") {
+                if ($Err.data.DrillDownResults.Count -eq 0) {
+                    $Msg = "[$Me]: (LogRhythm API) "
+                    $Msg += $ExceptionMsg
+                    $Msg += " When a 404 error is specified, ensure that the requested"
+                    $Msg += " alarm is from an AI Engine rule and not a diagnostic alarm."
+                    throw [Exception] $Msg
                 }
-                if (! $Err) {
-                    # Unable to parse Rest Error, re-throw our error.
-                    $PSCmdlet.ThrowTerminatingError($PSItem)
-                }
-                # We could parse the Rest Error, throw a custom error based on fields.
-                $Msg = "[$Me] [$($Err.statusCode)]: $($Err.message) | "
-                $Msg += "$($Err.details)`n$($Err.validationErrors)`n"
-                throw [Exception] $Msg                
-                #endregion
             }
-        } else {
-            try {
-                $Response = Invoke-RestMethod -Uri $RequestUrl -Headers $Headers -Method $Method
+            if (! $Err) {
+                # Unable to parse Rest Error, re-throw our error.
+                $PSCmdlet.ThrowTerminatingError($PSItem)
             }
-            catch [System.Net.WebException] {
-                #region Exception Handling                                               
-                $Err = Get-RestErrorMessage $_
-                $ExceptionMsg = $_.Exception.message
-
-                # Catch specific error corresponding to classic alarms
-                # These errors throw a WebException including a message with text:
-                # "The remote server returned an error: (404) Not Found."
-                # $Err in this case will have the proper container for data, but
-                # the results will be null. Part of the validation of this type
-                # of error is to check that the DrillDownResults property exists.
-                if (($Err.data).PSObject.Properties.name -match "DrillDownResults") {
-                    if ($Err.data.DrillDownResults.Count -eq 0) {
-                        $Msg = "[$Me]: (LogRhythm API) "
-                        $Msg += $ExceptionMsg
-                        $Msg += " When a 404 error is specified, ensure that the requested"
-                        $Msg += " alarm is from an AI Engine rule and not a diagnostic alarm."
-                        throw [Exception] $Msg
-                    }
-                }
-                if (! $Err) {
-                    # Unable to parse Rest Error, re-throw our error.
-                    $PSCmdlet.ThrowTerminatingError($PSItem)
-                }
-                # We could parse the Rest Error, throw a custom error based on fields.
-                $Msg = "[$Me] [$($Err.statusCode)]: $($Err.message) | "
-                $Msg += "$($Err.details)`n$($Err.validationErrors)`n"
-                throw [Exception] $Msg                
-                #endregion
-            }
+            # We could parse the Rest Error, throw a custom error based on fields.
+            $Msg = "[$Me] [$($Err.statusCode)]: $($Err.message) | "
+            $Msg += "$($Err.details)`n$($Err.validationErrors)`n"
+            throw [Exception] $Msg                
+            #endregion
         }
         #region: Prorcess Result                                                         
         # Shortcut to the meat of the response:

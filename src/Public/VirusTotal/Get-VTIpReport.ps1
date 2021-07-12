@@ -136,13 +136,14 @@ Function Get-VTIPReport {
             $vtResponse = Invoke-RestMethod $RequestUrl -Method $Method 
         }
         catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
+            return $_
         }
+        # Add value for scan type and value
+        $vtResponse | Add-Member -MemberType NoteProperty -Name 'IpAddr' -Value $IpAddr
+
+        Return $vtResponse
     }
  
 
-    End {
-        Return $vtResponse
-    }
+    End {}
 }

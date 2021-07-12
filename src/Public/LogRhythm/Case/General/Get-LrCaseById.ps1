@@ -68,7 +68,7 @@ Function Get-LrCaseById {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
         
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Enable self-signed certificates and Tls1.2
@@ -77,6 +77,7 @@ Function Get-LrCaseById {
         # Request Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
 
         # Request URI
         $Method = $HttpMethod.Get
@@ -94,6 +95,7 @@ Function Get-LrCaseById {
             Type                  =   $null
             Note                  =   $null
             Value                 =   $Id
+            Raw                   =   $null
         }
 
         # Check if ID value is an integer
@@ -108,45 +110,31 @@ Function Get-LrCaseById {
             return $ErrorObject
         }
         
-        $RequestUrl = $BaseUrl + "/cases/$Id/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/cases/$Id/"
 
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
-            }
-            catch {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                return $ErrorObject
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                switch ($Err.statusCode) {
-                    "404" {
-                        $ErrorObject.Type = "KeyNotFoundException"
-                        $ErrorObject.Code = 404
-                        $ErrorObject.Note = "Value not found, or you do not have permission to view it."
-                     }
-                     "401" {
-                        $ErrorObject.Type = "UnauthorizedAccessException"
-                        $ErrorObject.Code = 401
-                        $ErrorObject.Note = "Credential '$($Credential.UserName)' is unauthorized to access 'lr-case-api'"
-                     }
-                    Default {
-                        $ErrorObject.Type = "System.Net.WebException"
-                        $ErrorObject.Note = $Err.message
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Error = $true
+            switch ($Err.statusCode) {
+                "404" {
+                    $ErrorObject.Type = "KeyNotFoundException"
+                    $ErrorObject.Code = 404
+                    $ErrorObject.Note = "Value not found, or you do not have permission to view it."
                     }
+                    "401" {
+                    $ErrorObject.Type = "UnauthorizedAccessException"
+                    $ErrorObject.Code = 401
+                    $ErrorObject.Note = "Credential '$($Credential.UserName)' is unauthorized to access 'lr-case-api'"
+                    }
+                Default {
+                    $ErrorObject.Type = "System.Net.WebException"
+                    $ErrorObject.Note = $Err.message
                 }
-                return $ErrorObject
             }
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
 
         return $Response

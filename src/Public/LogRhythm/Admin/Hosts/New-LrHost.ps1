@@ -70,10 +70,12 @@ Function New-LrHost {
         String description for OS Type.
 
         Valid entries: "Server" "Desktop" "None"
+    .PARAMETER PassThru
+        Switch paramater that will enable the return of the output object from the cmdlet.
     .OUTPUTS
         PSCustomObject representing the new LogRhythm Host and its contents.
     .EXAMPLE
-        PS C:\> New-LrHost -Entity "Primary Site" -Name "Mynewhost" -ShortDesc "This is the short desc." -LongDesc "This is the killer long description for this host." -Zone "internal" -OS "Windows" -OSVersion "2008r2" -OSType "Server"
+        PS C:\> New-LrHost -Entity "Primary Site" -Name "Mynewhost" -ShortDesc "This is the short desc." -LongDesc "This is the killer long description for this host." -Zone "internal" -OS "Windows" -OSVersion "2008r2" -OSType "Server" -PassThru
         ---
         id                     : 3
         entity                 : @{id=1; name=Primary Site}
@@ -203,15 +205,18 @@ Function New-LrHost {
         [ValidateSet('server','none','desktop', ignorecase=$true)]
         [string] $OSType = "server",
 
-
+        
         [Parameter(Mandatory = $false, Position = 15)]
+        [switch] $PassThru,
+
+        [Parameter(Mandatory = $false, Position = 16)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
     Begin {
         # Request Setup
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
         
         # Define HTTP Headers
@@ -240,6 +245,7 @@ Function New-LrHost {
             Type                  =   $null
             Note                  =   $null
             Value                 =   $Name
+            Raw                   =   $null
         }
 
         # Lookup Entity By ID or Name
@@ -251,11 +257,7 @@ Function New-LrHost {
                 Write-Verbose "[$Me]: Id does not parse as integer.  Performing string lookup."
                 $EntityLookup = Get-LrEntities -Name $Entity -Exact
                 if ($EntityLookup.Error -eq $true) {
-                    $ErrorObject.Error = $EntityLookup.Error
-                    $ErrorObject.Type = $EntityLookup.Type
-                    $ErrorObject.Code = $EntityLookup.Code
-                    $ErrorObject.Note = $EntityLookup.Note
-                    return $ErrorObject
+                    return $EntityLookup
                 } else {
                     $_entity = $EntityLookup
                 }
@@ -272,7 +274,7 @@ Function New-LrHost {
         # Location lookup
         if ($LocationId -and $Location) {
             if ($LocationLookup) {
-                if ($LrtConfig.LogRhythm.Version -notmatch '7.5.\d') {
+                if ($LrtConfig.LogRhythm.Version -notmatch '7\.[5-9]\.\d+') {
                     $LocationStatus = Show-LrLocations -Id $LocationId
                     if ($LocationStatus) {
                         $_locationName = $LocationStatus.name
@@ -295,7 +297,7 @@ Function New-LrHost {
             }
         } elseif ($Location) {
             if ($LocationLookup) {
-                if ($LrtConfig.LogRhythm.Version -notmatch '7.5.\d') {
+                if ($LrtConfig.LogRhythm.Version -notmatch '7\.[5-9]\.\d+') {
                     $LocationStatus = Show-LrLocations -Name $Location -Exact
                     if ($LocationStatus) {
                         $_locationName = $LocationStatus.name
@@ -322,7 +324,7 @@ Function New-LrHost {
         # Ensure proper syntax
         if ($RecordStatus) {
             # Update RecordStatus for 7.5 API
-            if ($LrtConfig.LogRhythm.Version -match '7.5.\d') {
+            if ($LrtConfig.LogRhythm.Version -match '7\.[5-9]\.\d+') {
                 if ($RecordStatus -eq "new") {
                     $RecordStatus = "active"
                 }
@@ -434,36 +436,29 @@ Function New-LrHost {
         Write-Verbose "$Body"
 
         # Define Query URL
-        $RequestUrl = $BaseUrl + "/hosts/"
+        $RequestUrl = $BaseUrl + "/lr-admin-api/hosts/"
 
         # Send Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body -SkipCertificateCheck
-            }
-            catch {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                return $ErrorObject
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body 
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                return $ErrorObject
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body 
+        }
+        catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "System.Net.WebException"
+            $ErrorObject.Code = $($Err.statusCode)
+            $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
         
-        return $Response
+        # Return output object
+        if ($ErrorObject.Error -eq $true) {
+            return $ErrorObject
+        }
+        if ($PassThru) {
+            return $Response
+        }
     }
 
     End { }

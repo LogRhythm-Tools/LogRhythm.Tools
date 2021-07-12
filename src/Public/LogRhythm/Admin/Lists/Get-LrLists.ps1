@@ -11,18 +11,22 @@ Function Get-LrLists {
 
         [NOTE]: Due to the way LogRhythm REST API is built, if the specified MaxItemsThreshold
         is less than the number of actual items in the list, this cmdlet will return an http 400 error.
-    .PARAMETER Credential
-        PSCredential containing an API Token in the Password field.
     .PARAMETER Name
         [System.String] (Name or Guid) or [System.Guid]
         Specifies a LogRhythm list object by providing one of the following property values:
           + List Name (as System.String), e.g. "LogRhythm: Suspicious Hosts"
           + List Guid (as System.String or System.Guid), e.g. D378A76F-1D83-4714-9A7C-FC04F9A2EB13
+    .PARAMETER Status
+        Specifies a LogRhythm list status.  Default behavior is to return only Active lists.
+
+        Valid entries: Active, Retired, All
     .PARAMETER MaxItemsThreshold
         The maximum number of list items to retrieve from LogRhythm.
         The default value for this parameter is set to 1001.
     .PARAMETER Exact
         Switch to force PARAMETER Name to be matched explicitly.
+    .PARAMETER Credential
+        PSCredential containing an API Token in the Password field.
     .INPUTS
         The Name parameter can be provided via the PowerShell pipeline.
     .OUTPUTS
@@ -62,8 +66,18 @@ Function Get-LrLists {
         [ValidateNotNull()]
         [string] $Name,
 
-        
+
         [Parameter(Mandatory = $false, Position = 1)]
+        [ValidateSet(
+            'Active',
+            'Retired', 
+            'All',
+            ignorecase=$true
+        )]
+        [string] $Status = 'Active',
+        
+
+        [Parameter(Mandatory = $false, Position = 2)]
         [ValidateSet(
             'application',
             'classification', 
@@ -87,16 +101,19 @@ Function Get-LrLists {
         [string] $ListType,
 
 
-        [Parameter(Mandatory = $false, Position = 2)]
+        [Parameter(Mandatory = $false, Position = 3)]
+        [switch] $Exact,
+
+        
+        [Parameter(Mandatory = $false, Position = 4)]
         [ValidateRange(1,1000)]
         [int] $PageSize = 1000,
 
 
-        [Parameter(Mandatory = $false, Position = 3)]
-        [switch] $Exact,
+        [Parameter(Mandatory = $false, Position = 5)]
+        [int] $PageNumber = 1,
 
-
-        [Parameter(Mandatory = $false, Position = 4)]
+        [Parameter(Mandatory = $false, Position = 6)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -104,7 +121,7 @@ Function Get-LrLists {
     Begin {
         # Request Setup
         $Me = $MyInvocation.MyCommand.Name
-        $BaseUrl = $LrtConfig.LogRhythm.AdminBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Validate ListType
@@ -120,9 +137,18 @@ Function Get-LrLists {
         # Define HTTP Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
-        if ($pageSize) {
+        $Headers.Add("Content-Type","application/json")
+
+        # Number of Results returned per API Call
+        if ($PageSize) {
             $Headers.Add("pageSize", $PageSize)
         }
+
+        # Page requested for Results from API
+        if ($PageNumber) {
+            $Headers.Add("pageNumber", $PageNumber)
+        }
+
         if ($ListTypeValid) { 
             $Headers.Add("listType", $ListTypeValid)
         }
@@ -131,53 +157,94 @@ Function Get-LrLists {
         $Method = $HttpMethod.Get
         
         # Define HTTP URI
-        $RequestUrl = $BaseUrl + "/lists/"
+        $RequestUrl = $BaseUrl + "/lr-admin-api/lists/"
 
         # Check preference requirements for self-signed certificates and set enforcement for Tls1.2
         Enable-TrustAllCertsPolicy
     }
 
-    Process {      
+    Process {
+        # Define ErrorObject
+        $ErrorObject = [PSCustomObject]@{
+            Code                  =   $null
+            Error                 =   $false
+            Type                  =   $null
+            Note                  =   $null
+            Raw                   =   $null
+        }
+
+
         if ($Name) {
             $Headers.Add("name", $Name)
         }
 
         # Send Request
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
-            }
-            catch {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                return $ExceptionMessage
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-            }
-            catch [System.Net.WebException] {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                return $ExceptionMessage
-            }
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "System.Net.WebException"
+            $ErrorObject.Code = $($Err.statusCode)
+            $ErrorObject.Note = $($Err.message)
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
         
 
+        # Pagination
+        if ($Response.Count -eq $PageSize) {
+            Write-Verbose 'Begin Pagination'
+            DO {
+                # Increment Page Count / Offset
+                $PageNumber = $PageNumber + 1
+                # Update Header Pagination Paramater
+                $Headers.PageNumber = $PageNumber
+                
+                # Retrieve Query Results
+                try {
+                    $PaginationResults = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+                } catch [System.Net.WebException] {
+                    $Err = Get-RestErrorMessage $_
+                    $ErrorObject.Error = $true
+                    $ErrorObject.Type = "System.Net.WebException"
+                    $ErrorObject.Code = $($Err.statusCode)
+                    $ErrorObject.Note = $($Err.message)
+                    $ErrorObject.Raw = $_
+                    return $ErrorObject
+                }
+                
+                # Append results to Response
+                $Response = $Response + $PaginationResults
+            } While ($($PaginationResults.Count) -eq $PageSize)
+            Write-Verbose 'End Pagination'
+        }
+
+        # Filter lists based on Status.  Default behavior is to return all active lists.
+        $Results = [List[Object]]::new()
+        ForEach ($ListResult in $Response) {
+            if ($Status -like 'active' -or $Status -like 'retired') {
+                if ($ListResult.status -like $Status) {
+                    $Results.add($ListResult) | Out-Null
+                }
+            } else {
+                $Results.add($ListResult) | Out-Null
+            }
+        }
+        
         # [Exact] Parameter
         # Search "Malware" normally returns both "Malware" and "Malware Options"
         # This would only return "Malware"
         if ($Exact) {
             $Pattern = "^$Name$"
-            $Response | ForEach-Object {
+            $Results | ForEach-Object {
                 if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
                     Write-Verbose "[$Me]: Exact list name match found."
-                    $List = $_
-                    return $List
+                    return $_
                 }
             }
         } else {
-            return $Response
+            return $Results
         }
     }
 

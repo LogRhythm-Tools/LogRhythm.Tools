@@ -7,8 +7,12 @@ Function Get-InputCredential {
         Prompts to overwrite if the credential exists.
     .PARAMETER AppId
         The object identifier for an application from Lrt.Config.Input (example: "LogRhythmEcho")
-    .PARAMETER AppDescr
+    .PARAMETER AppName
         The value of the "Name" field of an application from Lrt.Config.Input (example: "LogRhythm Echo")
+    .PARAMETER Username
+        The value of the "Username" part of the credential object
+    .PARAMETER UserCredential
+        Switch from asking for an API Key to ask for a User PassewThe value of the "Username" part of the credential object
     .EXAMPLE
         PS C:\> 
     #>
@@ -27,7 +31,11 @@ Function Get-InputCredential {
 
         [Parameter(Mandatory = $false, Position = 3)]
         [ValidateNotNullOrEmpty()]
-        [string] $Username
+        [string] $Username,
+
+
+        [Parameter(Mandatory = $false, Position = 4)]
+        [switch] $UserCredential = $false
     )
 
     # LogRhythm.ApiKey.key
@@ -44,7 +52,11 @@ Function Get-InputCredential {
 
 
     # Determine the filename and save location for this key
-    $KeyFileName = $AppId + ".ApiKey.xml"
+    if ($UserCredential) {
+        $KeyFileName = $AppId + ".Credential.xml"
+    } else {
+        $KeyFileName = $AppId + ".ApiKey.xml"
+    }
     $KeyPath = Join-Path -Path $ConfigDirPath -ChildPath $KeyFileName
     
     # Prompt to Overwrite existing key
@@ -56,13 +68,17 @@ Function Get-InputCredential {
     }
 
 
-    # Prompt for Key
+    # Prompt for Key / Password
     $Key = ""
-    while ($Key.Length -lt 10) {
-        $Key = Read-Host -AsSecureString -Prompt "  > API Key for $AppName"
-        if ($Key.Length -lt 10) {
-            # Hint
-            Write-Host "    Key less than 10 characters." -ForegroundColor Magenta
+    if ($UserCredential) {
+            $Key = Read-Host -AsSecureString -Prompt "  > Password for $AppName"
+    } else {
+        while ($Key.Length -lt 10) {
+            $Key = Read-Host -AsSecureString -Prompt "  > API Key for $AppName"
+            if ($Key.Length -lt 10) {
+                # Hint
+                Write-Host "    Key less than 10 characters." -ForegroundColor Magenta
+            }
         }
     }
     
@@ -73,5 +89,17 @@ Function Get-InputCredential {
         $_cred = [PSCredential]::new($AppId, $Key)
     }
     
-    Export-Clixml -Path $ConfigDirPath\$KeyFileName -InputObject $_cred
+    $OutObject = [PSCustomObject]@{
+        Valid = $null
+        Value = $null
+    }
+    
+    Try {
+        Export-Clixml -Path $ConfigDirPath\$KeyFileName -InputObject $_cred
+        $OutObject.Valid = $true
+    } Catch {
+        $OutObject.Valid = $false
+    }
+
+    return $OutObject
 }

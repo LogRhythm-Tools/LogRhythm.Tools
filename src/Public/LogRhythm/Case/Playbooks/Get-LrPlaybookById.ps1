@@ -66,7 +66,7 @@ Function Get-LrPlaybookById {
     Begin {
         $Me = $MyInvocation.MyCommand.Name
         
-        $BaseUrl = $LrtConfig.LogRhythm.CaseBaseUrl
+        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
         # Enable self-signed certificates and Tls1.2
@@ -75,6 +75,7 @@ Function Get-LrPlaybookById {
         # Request Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
 
         # Request Method
         $Method = $HttpMethod.Get
@@ -88,9 +89,10 @@ Function Get-LrPlaybookById {
             Error                 =   $false
             Type                  =   $null
             Note                  =   $null
-            ResponseUrl           =   $null
-            Value              =   $Name
+            Value                 =   $Name
+            Raw                   =   $null
         }
+        
         # Validate Playbook Id
         if (! (Test-Guid $Id)) {
             $ErrorObject.Error = $true
@@ -101,64 +103,34 @@ Function Get-LrPlaybookById {
         }
 
         
-        $RequestUrl = $BaseUrl + "/playbooks/$Id/"
+        $RequestUrl = $BaseUrl + "/lr-case-api/playbooks/$Id/"
         Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         # REQUEST
-        if ($PSEdition -eq 'Core'){
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -SkipCertificateCheck
-            }
-            catch {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Code = $Err.statusCode
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "TypeMismatch"
-                $ErrorObject.ResponseUrl = $RequestUrl
-                switch ($Err.statusCode) {
-                    "404" {
-                        $ErrorObject.Type = "KeyNotFoundException"
-                        $ErrorObject.Note = "Playbook ID $Id not found, or you do not have permission to view it."
-                     }
-                     "401" {
-                        $ErrorObject.Type = "UnauthorizedAccessException"
-                        $ErrorObject.Note = "Credential '$($Credential.UserName)' is unauthorized to access 'lr-case-api'"
-                     }
-                    Default {
-                        $ErrorObject.Type = "System.Net.WebException"
-                        $ErrorObject.Note = $Err.message
+        try {
+            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
+        } catch [System.Net.WebException] {
+            $Err = Get-RestErrorMessage $_
+            $ErrorObject.Code = $Err.statusCode
+            $ErrorObject.Error = $true
+            $ErrorObject.Type = "TypeMismatch"
+            switch ($Err.statusCode) {
+                "404" {
+                    $ErrorObject.Type = "KeyNotFoundException"
+                    $ErrorObject.Note = "Playbook ID $Id not found, or you do not have permission to view it."
                     }
-                }
-                $ErrorObject.Value = $Id
-                return $ErrorObject
-            }
-        } else {
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Code = $Err.statusCode
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "TypeMismatch"
-                $ErrorObject.ResponseUrl = $RequestUrl
-                switch ($Err.statusCode) {
-                    "404" {
-                        $ErrorObject.Type = "KeyNotFoundException"
-                        $ErrorObject.Note = "Playbook ID $Id not found, or you do not have permission to view it."
-                     }
-                     "401" {
-                        $ErrorObject.Type = "UnauthorizedAccessException"
-                        $ErrorObject.Note = "Credential '$($Credential.UserName)' is unauthorized to access 'lr-case-api'"
-                     }
-                    Default {
-                        $ErrorObject.Type = "System.Net.WebException"
-                        $ErrorObject.Note = $Err.message
+                    "401" {
+                    $ErrorObject.Type = "UnauthorizedAccessException"
+                    $ErrorObject.Note = "Credential '$($Credential.UserName)' is unauthorized to access 'lr-case-api'"
                     }
+                Default {
+                    $ErrorObject.Type = "System.Net.WebException"
+                    $ErrorObject.Note = $Err.message
                 }
-                $ErrorObject.Value = $Id
-                return $ErrorObject
             }
+            $ErrorObject.Value = $Id
+            $ErrorObject.Raw = $_
+            return $ErrorObject
         }
 
         # Return all responses.
