@@ -145,7 +145,7 @@ Function Update-LrAlarm {
                 $ErrorObject.Raw = $ValidStatus
             }
         } else {
-            $AlarmDetails = Get-LrAlarm -AlarmId $AlarmId
+            $AlarmDetails = Get-LrAlarm -AlarmId $AlarmId -ResultsOnly
             if ($AlarmDetails.error -ne $true) {
                 $ValidStatus = Test-LrAlarmStatus -Id $AlarmDetails.alarmStatus
                 $_alarmStatus = $ValidStatus.AlarmStatus
