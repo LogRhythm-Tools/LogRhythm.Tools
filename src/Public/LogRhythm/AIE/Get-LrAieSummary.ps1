@@ -97,6 +97,13 @@ Function Get-LrAieSummary {
         $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
+        # Request Headers
+        $Headers = [Dictionary[string,string]]::new()
+        $Headers.Add("Authorization", "Bearer $Token")
+        $Headers.Add("Content-Type","application/json")
+
+        $Method = $HttpMethod.Get
+
         # Enable self-signed certificates and Tls1.2
         Enable-TrustAllCertsPolicy
     }
@@ -106,20 +113,9 @@ Function Get-LrAieSummary {
 
     #region: Process                                                                     
     Process {
-        # Request Headers
-        $Headers = [Dictionary[string,string]]::new()
-        $Headers.Add("Authorization", "Bearer $Token")
-        $Headers.Add("Content-Type","application/json")
-        
-
         # Request URI   
-        $Method = $HttpMethod.Get
         $RequestUrl = $BaseUrl + "/lr-drilldown-cache-api/drilldown/$AlarmId/summary"
-
-
-
-        
-
+     
         # REST Request
         try {
             $Response = Invoke-RestMethod -Uri $RequestUrl -Headers $Headers -Method $Method
