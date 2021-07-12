@@ -476,6 +476,7 @@ Function Get-LrCases {
         # Pagination
         if ($Response.Count -eq $Count) {
             DO {
+                Start-Sleep 0.1
                 # Increment Page Count / Offset
                 $PageNumber = $PageNumber + 1
                 $Offset = ($PageNumber -1) * $Count
@@ -502,36 +503,77 @@ Function Get-LrCases {
     }
 
     End {
-        # For Summary, return a formatted report
-        if ($Summary) {
-            return Format-LrCaseListSummary -InputObject $Response
+        # Set the case results into List form to support manipulation
+        $Results = [List[Object]]::new()
+        ForEach ($CaseResult in $Response) {
+            $Results.add($CaseResult) | Out-Null
         }
 
         # Exclude Tags
         if ($ExcludeTags -and $Response) {
-            $FilteredResult = [List[Object]]::new()
+            $FilterResults = [List[Object]]::new()
 
             # Check every case
-            foreach ($case in $Response) {
+            foreach ($Case in $Results) {
                 $Exclude = $false
                 
                 # Inspect each case's tags
-                foreach ($tag in $case.tags) {
+                ForEach ($tag in $Case.tags) {
                     # Check each case tag against Excluded Tags
-                    foreach ($excludedTag in $ExcludeTags) {
-                        if ($tag.text -eq $excludedTag) {
+                    ForEach ($excludedTag in $ExcludeTags) {
+                        If ($tag.text -like $excludedTag) {
                             Write-Verbose "Excluding Case $($case.number) because it contains tag $excludedTag."
                             $Exclude = $true
                         }
                     }
                 }
-
-                if (-not $Exclude) {
-                    $FilteredResult.Add($case)
+                # Add excluded case to FilterResults for removal
+                if ($Exclude) {
+                    $FilterResults.Add($Case) | Out-Null
                 }
+            }
+
+            # Iterate through FilterResults to remove from Results
+            ForEach ($FilterResult in $FilterResults) {
+                $Results.remove($FilterResult) | Out-Null
             }
         }
         #endregion
+
+        if ($TagSearchMode -like "all" -and $Tags) {
+            $FilterResults = [List[object]]::new()
+            # Check every case
+            foreach ($Case in $Results) {
+                $Exclude = $false
+                
+                # Inspect each case's tags
+                if ($Tags.count -eq $_tagNumbers.count) {
+                    foreach ($_tag in $_tagNumbers) {
+                        if ($case.tags.number -notcontains $_tag) {
+                            Write-Verbose "Case #: $($Case.number) Mising Tag #: $_tag"
+                            $Exclude = $true
+                        }
+                    }
+                } else {
+                    Write-Verbose "Total number of Tag Names submitted: $($Tags.count) does not match Tag Lookup Quantity: $($_tagNumbers.count)"
+                    $Exclude = $true
+                }
+
+                if ($Exclude -eq $true) {
+                    $FilterResults.add($case) | Out-Null
+                }
+            }
+
+            # Iterate through FilterResults to remove from Results
+            ForEach ($FilterResult in $FilterResults) {
+                $Results.remove($FilterResult) | Out-Null
+            }
+        }
+
+        # For Summary, return a formatted report
+        if ($Summary) {
+            return Format-LrCaseListSummary -InputObject $Results
+        }
 
         #region: Return Results                                                                        
         # [Exact Match] - return a single result based on exact name
@@ -542,34 +584,25 @@ Function Get-LrCases {
             $ExactCaseMatches = [List[object]]::New()
 
             # [Exact Match] - Filtered Results
-            if ($FilteredResult) {
-                $FilteredResult | ForEach-Object {
-                    if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
-                        $ExactCaseMatches.Add($_)
-                    }
-                }
-            } else {
-                # [Exact Match] - All Results
-                $Response | ForEach-Object {
-                    if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
-                        Write-Verbose "[$Me]: Exact case name match found: $($_.Name)"
-                        $ExactCaseMatches.Add($_)
-                    }
+            $Results | ForEach-Object {
+                if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
+                    Write-Verbose "[$Me]: Exact case name match found: $($_.Name)"
+                    $ExactCaseMatches.Add($_) | Out-Null
                 }
             }
 
-            # [Exact Match] - Check Result Count
-            if ($ExactCaseMatches.Count -gt 1) {
-                Write-Warning "More than one case found matching exact name: $Name"
-                Write-Warning "Only the first result will be returned"
-            }
-            
             # [Exact Match] - Get Metrics if requested
             if ($Metrics) {
                 if ($ExactCaseMatches[0]) {
                     $_metrics = $ExactCaseMatches[0] | Get-LrCaseMetrics    
                     $ExactCaseMatches[0] | Add-Member -MemberType NoteProperty -Name "Metrics" -Value $_metrics
                 } 
+            }
+
+            # [Exact Match] - Check Result Count
+            if ($ExactCaseMatches.Count -gt 1) {
+                Write-Warning "More than one case found matching exact name: $Name"
+                Write-Warning "Only the first result will be returned"
             }
             return $ExactCaseMatches[0]
             
@@ -578,54 +611,29 @@ Function Get-LrCases {
             $Pattern = ".*$Name.*"
             $CaseMatches = [List[object]]::New()
 
-            # [Name Match] - Filtered Results
-            if ($FilteredResult) {
-                $FilteredResult | ForEach-Object {
-                    if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
-                        $CaseMatches.Add($_)
+            # [Name Match]
+            $Results | ForEach-Object {
+                if(($_.name -match $Pattern) -or ($_.name -like $Name)) {
+                    # [Name Match] - Get Metrics if requested
+                    if ($Metrics) {
+                        $_metrics = $_ | Get-LrCaseMetrics    
+                        $_ | Add-Member -MemberType NoteProperty -Name "Metrics" -Value $_metrics -Force
                     }
+                    $CaseMatches.Add($_) | Out-Null
                 }
+            }
 
-            # [Name Match] - All Results
-            } else {
-                $Response | ForEach-Object {
-                    if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
-                        $CaseMatches.Add($_)
-                    }
-                }
-            }
-            
-            # [Name Match] - Get Case Metrics
-            if ($Metrics) {
-                foreach ($case in $CaseMatches) {
-                    $_metrics = $case | Get-LrCaseMetrics
-                    $case | Add-Member -MemberType NoteProperty -Name "Metrics" -Value $_metrics
-                }
-            }
             return $CaseMatches
-
         # [Default] - return all results
         } else {
-            # Return FilteredResult if present (excluded tags)
-            if ($FilteredResult) {
-                if ($Metrics) {
-                    $FilteredResult | ForEach-Object {
-                        $_metrics = $_ | Get-LrCaseMetrics
-                        $_ | Add-Member -MemberType NoteProperty -Name "Metrics" -Value $_metrics
-                    } 
+            if ($Metrics) {
+                $Response | ForEach-Object {
+                    $_metrics = $_ | Get-LrCaseMetrics
+                    $_ | Add-Member -MemberType NoteProperty -Name "Metrics" -Value $_metrics -Force
                 }
-                return $FilteredResult
-            # Return the base results
-            } else {
-                if ($Metrics) {
-                    $Response | ForEach-Object {
-                        $_metrics = $_ | Get-LrCaseMetrics
-                        $_ | Add-Member -MemberType NoteProperty -Name "Metrics" -Value $_metrics
-                    }
-                }
-                return $Response
             }
+            return $Results
         }
     }
-        #endregion
+    #endregion
 }
