@@ -216,6 +216,6 @@ Function Update-LrCase {
 
     
     End { 
-        Write-Verbose "Updated $ProcessedCount cases."
+        Write-Verbose "[$Me]: Updated $ProcessedCount cases."
     }
 }
