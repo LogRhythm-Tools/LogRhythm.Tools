@@ -310,11 +310,7 @@ Function New-LrSearch {
                     Write-Verbose "[$Me]: Id does not parse as integer.  Performing string lookup."
                     $LogSourceLookup = Get-LrLogSources -Name $LogSource -Exact
                     if ($LogSourceLookup.Error -eq $true) {
-                        $ErrorObject.Error = $LogSourceLookup.Error
-                        $ErrorObject.Type = $LogSourceLookup.Type
-                        $ErrorObject.Code = $LogSourceLookup.Code
-                        $ErrorObject.Note = $LogSourceLookup.Note
-                        return $ErrorObject
+                        return $LogSourceLookup
                     } else {
                         $_logSources.add($LogSourceLookup.Id)
                     }
