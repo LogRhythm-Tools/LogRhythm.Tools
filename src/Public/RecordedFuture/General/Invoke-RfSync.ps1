@@ -96,12 +96,20 @@ Function Invoke-RfSync {
 
         [Parameter(Mandatory = $false, Position = 7)]
         [ValidateNotNull()]
-        [int32] $HashDefaultConfThreshold = 80
-    )
+        [int32] $HashDefaultConfThreshold = 80,
 
-    $ListPrefix = "RF :"
-    $ListReadAccess = "PublicGlobalAnalyst"
-    $ListWriteAccess = "PublicGlobalAdmin"
+        [Parameter(Mandatory = $false, Position = 8)]
+        [ValidateNotNull()]
+        [string] $ListPrefix = "RF :",
+
+        [Parameter(Mandatory = $false, Position = 9)]
+        [ValidateNotNull()]
+        [string] $ListReadAccess = "PublicGlobalAnalyst",
+
+        [Parameter(Mandatory = $false, Position = 10)]
+        [ValidateNotNull()]
+        [string] $ListWriteAccess = "PublicGlobalAdmin"
+    )
 
     $ListOwnerResults = Get-LrUsers -Name $ListOwner -Exact
 
