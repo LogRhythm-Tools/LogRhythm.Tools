@@ -157,7 +157,7 @@ Function Update-LrHost {
             'high-high',
             ignorecase=$true
         )]
-        [string] $RiskLevel = "none",
+        [string] $RiskLevel,
 
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 6)]
@@ -173,7 +173,7 @@ Function Update-LrHost {
             'high-medium',
             'high-high',
             ignorecase=$true
-        )][string] $ThreatLevel = "none",
+        )][string] $ThreatLevel,
 
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 7)]
@@ -182,12 +182,12 @@ Function Update-LrHost {
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 8)]
         [ValidateSet('retired','active', ignorecase=$true)]
-        [string] $RecordStatus = "active",
+        [string] $RecordStatus,
 
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 9)]
         [ValidateSet('unknown', 'internal','dmz','external', ignorecase=$true)]
-        [string] $Zone="internal",
+        [string] $Zone,
 
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 10)]
@@ -230,7 +230,7 @@ Function Update-LrHost {
         
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 15)]
         [ValidateSet('server','none','desktop', ignorecase=$true)]
-        [string] $OSType = "server",
+        [string] $OSType,
 
         
         [Parameter(Mandatory = $false, Position = 16)]
@@ -359,18 +359,10 @@ Function Update-LrHost {
         # Location lookup
         if ($LocationId -and $Location) {
             if ($LocationLookup) {
-                if ($LrtConfig.LogRhythm.Version -notmatch '7\.[5-9]\.\d+') {
-                    $LocationStatus = Show-LrLocations -Id $LocationId
-                    if ($LocationStatus) {
-                        $_locationName = $LocationStatus.name
-                        $_locationId = $LocationStatus.id
-                    }
-                } else {
-                    $LocationStatus = Get-LrLocations -Id $LocationId
-                    if ($LocationStatus) {
-                        $_locationName = $LocationStatus.name
-                        $_locationId = $LocationStatus.id
-                    }
+                $LocationStatus = Get-LrLocations -Id $LocationId
+                if ($LocationStatus) {
+                    $_locationName = $LocationStatus.name
+                    $_locationId = $LocationStatus.id
                 }
             } else {
                 $_locationName = $Location 
@@ -382,22 +374,28 @@ Function Update-LrHost {
             }
         } elseif ($Location) {
             if ($LocationLookup) {
-                if ($LrtConfig.LogRhythm.Version -notmatch '7\.[5-9]\.\d+') {
-                    $LocationStatus = Show-LrLocations -Name $Location -Exact
-                    if ($LocationStatus) {
-                        $_locationName = $LocationStatus.name
-                        $_locationId = $LocationStatus.id
-                    }
-                } else {
+                if ($LocationLookup) {
                     $LocationStatus = Get-LrLocations -Name $Location -Exact
                     if ($LocationStatus) {
-                        $_locationName = $LocationStatus.name
-                        $_locationId = $LocationStatus.id
+                        $_location = [PSCustomObject][Ordered]@{
+                            id = $LocationStatus.id
+                            name = $LocationStatus.name
+                        }
                     }
                 }
-                $_location = [PSCustomObject][Ordered]@{
-                    id = $_locationId
-                    name = $_locationName
+            } else {
+                $_location = $OriginHostRecord.Location
+            }
+        } elseif ($LocationId) {
+            if ($LocationLookup) {
+                $LocationStatus = Get-LrLocations -Id $LocationId
+                if ($LocationStatus) {
+                    $_location = [PSCustomObject][Ordered]@{
+                        id = $LocationStatus.id
+                        name = $LocationStatus.name
+                    }
+                } else {
+                    $_location = $OriginHostRecord.Location
                 }
             } else {
                 $_location = $OriginHostRecord.Location
@@ -595,9 +593,6 @@ Function Update-LrHost {
         }
         
         # Return output object
-        if ($ErrorObject.Error -eq $true) {
-            return $ErrorObject
-        }
         if ($PassThru) {
             return $Response
         }
