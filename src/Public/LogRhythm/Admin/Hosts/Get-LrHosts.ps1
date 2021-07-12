@@ -106,6 +106,7 @@ Function Get-LrHosts {
 
 
         [Parameter(Mandatory = $false, Position = 2)]
+        [ValidateSet('all','active', 'retired', ignorecase=$true)]
         [string] $RecordStatus,
 
 
@@ -189,20 +190,11 @@ Function Get-LrHosts {
             }
         }
 
-
         # RecordStatus
         if ($RecordStatus) {
-            $ValidStatus = "all", "active", "retired"
-            if ($ValidStatus.Contains($($RecordStatus.ToLower()))) {
-                $_recordStatus = $RecordStatus.ToLower()
-                $QueryParams.Add("recordStatus", $_recordStatus)
-            } else {
-                throw [ArgumentException] "RecordStatus [$RecordStatus] must be: all, active, or retired."
-            }
-
+            $_recordStatus = $RecordStatus.ToLower()
+            $QueryParams.Add("recordStatus", $_recordStatus)
         }
-
-
 
         if ($QueryParams.Count -gt 0) {
             $QueryString = $QueryParams | ConvertTo-QueryString
