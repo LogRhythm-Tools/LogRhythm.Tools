@@ -2,6 +2,9 @@
 
 ![Logo](../assets/logos/logo.v1.png?raw=true)
 
+[![Last Release](https://badgen.net/badge/release/v1.2.2/green)](https://github.com/LogRhythm-Tools/LogRhythm.Tools/releases)
+[![Dev Version](https://badgen.net/badge/dev/v1.2.3/orange)](https://github.com/LogRhythm-Tools/LogRhythm.Tools/tree/development/)
+
 LogRhythm.Tools is a PowerShell module for interacting with LogRhythm APIs. The module is a powerful addition to a LogRhythm analyst's toolbox, and can be used interactively within PowerShell or as a framework for developing SmartResponse plugins - without requiring an understanding of LogRhythm's API layer.
 
 **LogRhythm Components:**
