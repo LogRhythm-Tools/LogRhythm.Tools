@@ -2,42 +2,17 @@ using namespace System.Collections.Generic
 Import-Module LogRhythm.Tools
 # Set home folder for Sync to read/write content to.
 #$RootFolderPath = "/opt/logrhythm/lrtools_azure_securityevents"
-$RootFolderPath = "C:\Users\eric\Documents\GitHub\LogRhythm.Tools"
+$RootFolderPath = "C:\LogRhythm\Tools\AzureSecEvents"
 $SecEventSyncLog = "azure_synclog.csv"
 
-# Log Maintenance
-$LogFileTimestamp = $(get-date -f yyyyMMdd)
 
-# Cleanup log files older than 10 days
-$CleanupDate = (Get-Date).AddDays(-10).Date
-
-# FileBeat File Names
-# AzureATP
-$FB_AzureATP = "FB_AzureATP_$LogFileTimestamp.log"
-$FB_AzureATP_Path = (Join-Path $RootFolderPath -ChildPath $FB_AzureATP)
-
-# AzureSecurityCenter
-$FB_AzureSecurityCenter = "FB_AzureSecurityCenter_$LogFileTimestamp.log"
-$FB_AzureSecurityCenter_Path = (Join-Path $RootFolderPath -ChildPath $FB_AzureSecurityCenter)
+# Cleanup Alert entries older than 90 days from the SecEventSyncLog
+$CleanupDate = (Get-Date).AddDays(-90).Date
 
 
-# MCAS
-$FB_MCAS = "FB_MCAS_$LogFileTimestamp.log"
-$FB_MCAS_Path = (Join-Path $RootFolderPath -ChildPath $FB_MCAS)
+# OpenCollector Webhook Endpoint
+$OCEndpoint = 'http://172.17.5.20:8080/webhook'
 
-
-# AzureADIdentityProtection
-$FB_AzureADIdentityProtection = "FB_AzureADIdentityProtection_$LogFileTimestamp.log"
-$FB_AzureADIdentityProtection_Path = (Join-Path $RootFolderPath -ChildPath $FB_AzureADIdentityProtection)
-
-
-# AzureSentinel
-$FB_AzureSentinel = "FB_AzureSentinel_$LogFileTimestamp.log"
-$FB_AzureSentinel_Path = (Join-Path $RootFolderPath -ChildPath $FB_AzureSentinel)
-
-# DefenderATP
-$FB_DefenderATP = "FB_DefenderATP_$LogFileTimestamp.log"
-$FB_DefenderATP_Path = (Join-Path $RootFolderPath -ChildPath $FB_DefenderATP)
 
 #####
 # Log Path
@@ -79,12 +54,8 @@ ForEach ($AZAtpSecurityEvent in $AzureATP_SecEvents) {
 
         # Write out JSON event for FileBeat
         Try {
-            if (!(Test-Path $FB_AzureATP_Path -PathType Leaf)) {
-                $AZAtpSecurityEvent | ConvertTo-Json -Depth 50 -Compress | Out-File -FilePath $FB_AzureATP_Path -Encoding 'utf8'
-            } else {
-                $AZAtpSecurityEvent | ConvertTo-Json -Depth 50 -Compress | Out-File -FilePath $FB_AzureATP_Path -Append -Encoding 'utf8'
-            }
-            
+            Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($AZAtpSecurityEvent | ConvertTo-Json -Depth 50 -Compress)
+             
             # Record Log Entry
             Try {
                 $SecEvent | Export-Csv -Path $SecEventSyncLogPath -NoTypeInformation -Append
@@ -119,11 +90,7 @@ ForEach ($AzSecCenSecurityEvent in $AzureSecurityCenter_SecEvents) {
 
         # Write out JSON event for FileBeat
         Try {
-            if (!(Test-Path $FB_AzureSecurityCenter_Path -PathType Leaf)) {
-                $AzSecCenSecurityEvent | ConvertTo-Json -Depth 50 -Compress | Out-File -FilePath $FB_AzureSecurityCenter_Path -Encoding 'utf8'
-            } else {
-                $AzSecCenSecurityEvent | ConvertTo-Json -Depth 50 -Compress | Out-File -FilePath $FB_AzureSecurityCenter_Path -Append -Encoding 'utf8'
-            }
+            Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($AzSecCenSecurityEvent | ConvertTo-Json -Depth 50 -Compress)
             
             # Record Log Entry
             Try {
@@ -137,6 +104,7 @@ ForEach ($AzSecCenSecurityEvent in $AzureSecurityCenter_SecEvents) {
     }
 }
 # End Section - AzureSecurityCenter
+
 
 # Begin Section - MCAS
 $MCAS_SecEvents = Get-LrtAzSecurityAlerts -MCAS -Status 'newAlert'
@@ -156,15 +124,11 @@ ForEach ($MCASSecurityEvent in $MCAS_SecEvents) {
             severity = $MCASSecurityEvent.severity
         }
 
+        $MCASSecurityEvent | Add-Member -MemberType NoteProperty -Name "tag" -Value "AZURE_MCAS" -Force
+
         # Write out JSON event for FileBeat
         Try {
-            if (!(Test-Path $FB_MCAS_Path -PathType Leaf)) {
-                $MCASSecurityEvent | ConvertTo-Json  -Depth 50 -Compress | Out-File -FilePath $FB_MCAS_Path -Encoding 'utf8'
-            } else {
-                $MCASSecurityEvent | ConvertTo-Json  -Depth 50 -Compress | Out-File -FilePath $FB_MCAS_Path -Append -Encoding 'utf8'
-            }
-            
-            # Record Log Entry
+            Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($MCASSecurityEvent | ConvertTo-Json -Depth 50 -Compress)
             Try {
                 $SecEvent | Export-Csv -Path $SecEventSyncLogPath -NoTypeInformation -Append
             } Catch {
@@ -197,12 +161,8 @@ ForEach ($AZADIdProtSecurityEvent in $AzureADIdentityProtection_SecEvents) {
 
         # Write out JSON event for FileBeat
         Try {
-            if (!(Test-Path $FB_AzureADIdentityProtection_Path -PathType Leaf)) {
-                $AZADIdProtSecurityEvent | ConvertTo-Json -Depth 50 -Compress | Out-File -FilePath $FB_AzureADIdentityProtection_Path -Encoding 'utf8'
-            } else {
-                $AZADIdProtSecurityEvent | ConvertTo-Json -Depth 50 -Compress | Out-File -FilePath $FB_AzureADIdentityProtection_Path -Append -Encoding 'utf8'
-            }
-            
+            Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($AZADIdProtSecurityEvent | ConvertTo-Json -Depth 50 -Compress)
+
             # Record Log Entry
             Try {
                 $SecEvent | Export-Csv -Path $SecEventSyncLogPath -NoTypeInformation -Append
@@ -236,11 +196,7 @@ ForEach ($AZSentSecurityEvent in $AzureSentinel_SecEvents) {
 
         # Write out JSON event for FileBeat
         Try {
-            if (!(Test-Path $FB_AzureSentinel_Path -PathType Leaf)) {
-                $AZSentSecurityEvent | ConvertTo-Json -Depth 50 -Compress | Out-File -FilePath $FB_AzureSentinel_Path -Encoding 'utf8'
-            } else {
-                $AZSentSecurityEvent | ConvertTo-Json -Depth 50 -Compress | Out-File -FilePath $FB_AzureSentinel_Path -Append -Encoding 'utf8'
-            }
+            Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($AZSentSecurityEvent | ConvertTo-Json -Depth 50 -Compress)
             
             # Record Log Entry
             Try {
@@ -275,11 +231,7 @@ ForEach ($DefSecurityEvent in $DefenderATP_SecEvents) {
 
         # Write out JSON event for FileBeat
         Try {
-            if (!(Test-Path $FB_DefenderATP_Path -PathType Leaf)) {
-                $DefSecurityEvent | ConvertTo-Json -Depth 50 -Compress | Out-File -FilePath $FB_DefenderATP_Path -Encoding 'utf8'
-            } else {
-                $DefSecurityEvent | ConvertTo-Json -Depth 50 -Compress | Out-File -FilePath $FB_DefenderATP_Path -Append -Encoding 'utf8'
-            }
+            Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($DefSecurityEvent | ConvertTo-Json -Depth 50 -Compress)
             
             # Record Log Entry
             Try {
@@ -293,22 +245,3 @@ ForEach ($DefSecurityEvent in $DefenderATP_SecEvents) {
     }
 }
 # End Section - DefenderATP
-
-
-# Log Maintenance
-$AzureSecLogs = Get-ChildItem -Path $RootFolderPath -Filter '*.log' -File
-$LogRemovalList = [list[String]]::new()
-ForEach ($AzureSecLog in $AzureSecLogs) {
-    if ($AzureSecLog.BaseName -Match '.*(\d{8})\.log$') {
-        $FileDate = [datetime]::ParseExact($Matches[1], 'yyyyMMdd', $null)
-        if ($FileDate -lt $CleanupDate) {
-            $LogRemovalList.add($AzureSecLog)
-        }
-    }
-}
-
-Write-host "Log Removal List:"
-Write-Host $LogRemovalList
-<#
-$LogRemoveList | Remove-Item
-#>
