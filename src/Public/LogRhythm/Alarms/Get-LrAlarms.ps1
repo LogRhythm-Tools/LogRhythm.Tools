@@ -219,9 +219,11 @@ Function Get-LrAlarms {
         $QueryParams.Add("offset", $Offset)
 
         # Filter by Object Name
-        if ($Name) {
-            $_name = $Name
-            $QueryParams.Add("alarmRuleName", $_name)
+        if ($Exact) {
+            if ($Name) {
+                $_name = $Name
+                $QueryParams.Add("alarmRuleName", $_name)
+            }
         }
 
 
@@ -368,36 +370,37 @@ Function Get-LrAlarms {
         }
 
 
-        # [Exact] Parameter
-        # Search "Malware" normally returns both "Malware" and "Malware Options"
-        # This would only return "Malware"
-        if ($Exact) {
-            $Pattern = "^$Name$"
-            $ExactResults = [list[object]]::new()
+        if ($Name) {
+            Write-Verbose "Performing Name match without exact."
+            $Pattern = "^$Name.*?$"
+            $NameResults = [list[object]]::new()
             if ($ResultsOnly) {
                 $Response | ForEach-Object {
-                    write-host $_
-                    if(($_.alarmRuleName -match $Pattern) -or ($_.alarmRuleName -eq $Name)) {
-                        Write-Verbose "[$Me]: Exact list name match found."
-                        $ExactResults.Add($_)
+                    if(($_.alarmRuleName -match $Pattern) -or ($_.alarmRuleName -like $Name)) {
+                        Write-Verbose "[$Me]: Name match found."
+                        $NameResults.Add($_)
                     }
                 }
-                if ($ExactResults) {
-                    return $ExactResults
-                } 
+                if ($NameResults) {
+                    return $NameResults
+                } else {
+                    return $null
+                }
             } else {
                 $Response.alarmsSearchDetails | ForEach-Object {
-                    if(($_.alarmRuleName -match $Pattern) -or ($_.alarmRuleName -eq $Name)) {
-                        Write-Verbose "[$Me]: Exact list name match found."
-                        $ExactResults.Add($_)
+                    if(($_.alarmRuleName -match $Pattern) -or ($_.alarmRuleName -like $Name)) {
+                        Write-Verbose "[$Me]: Name match found."
+                        $NameResults.Add($_)
                     }
                 }
-                if ($ExactResults) {
-                    $Response.alarmsSearchDetails = $ExactResults
+                if ($NameResults) {
+                    $Response.alarmsCount = $NameResults.count
+                    $Response.alarmsSearchDetails = $NameResults
                     return $Response
+                } else {
+                    return $null
                 }
             }
-
         } else {
             return $Response
         }
