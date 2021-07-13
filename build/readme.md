@@ -1,3 +1,6 @@
+[![Last Release](https://badgen.net/badge/release/v1.2.2/green)](https://github.com/LogRhythm-Tools/LogRhythm.Tools/releases)
+[![Dev Version](https://badgen.net/badge/dev/v1.2.3/orange)](https://github.com/LogRhythm-Tools/LogRhythm.Tools/tree/development/)
+
 # :hammer: The Build Process
 
 ## :page_with_curl: `New-TestBuild.ps1`
