@@ -219,7 +219,12 @@ Function Get-LrtAzSecurityAlerts {
         }
 
         if ($Top) {
-            $QueryString = $QueryString + "&`$top=$Top"
+            if ($QueryString) {
+                $QueryString = $QueryString + "&`$top=$Top"
+            } else {
+                $QueryString = "?`$top=$Top"
+            } 
+            Write-Verbose "[$Me]: QueryString is [$QueryString]"
         }
 
         $RequestUrl = $RequestUri + $QueryString
@@ -236,7 +241,7 @@ Function Get-LrtAzSecurityAlerts {
             throw [Exception] "[$Me] [$($Err.error.code)]: $($Err.error.message)`n"
         }
 
-    
+        $ResultsCount = $($Response.value.count)
         # Cast result to List<Object>
         Write-Verbose "Results: $($Response.value.count)"
         [List[Object]] $ResultSet = $Response.value
@@ -251,7 +256,7 @@ Function Get-LrtAzSecurityAlerts {
             $PageCount = 0
             # Begin paging until no more pages.
             while ($Paging) {
-                Write-Verbose ">>>> More Results, calling next page <<<<"
+                # Iterate the page count
                 $PageCount += 1
 
                 # Make the next request, using the nextLink property.
@@ -264,25 +269,32 @@ Function Get-LrtAzSecurityAlerts {
                     $Err = Get-RestErrorMessage $_
                     throw [Exception] "[$Me] [$($Err.error.code)]: $($Err.error.message)`n"
                 }
+ 
+                $ResultsCount += $($Response.value.count)
+                Write-Verbose "Current Page: $PageCount  Request Results: $($Response.value.count)  Total Results: $ResultsCount"
 
                 # Cast result to List<Object> and append to ResultSet
-                Write-Verbose "Results: $($Response.value.count)"
                 [List[Object]] $PageSet = $Response.value
                 $ResultSet.AddRange($PageSet)
 
-
-                # Check if done
-                if ($Response.'@odata.nextLink') {
-                    $NextPage = $Response.'@odata.nextLink'
-                } elseif ($PageCount -ge 20) {
-                    $Paging = $false
+                # Prevent from requesting over 5,000 results, GraphAPI pagination halt point.  
+                # The check is if the current count + a return sample result of the last result is greater than 5,000, do not request the next page.
+                if (($ResultsCount + $($Response.value.count) -lt 5000)) {
+                    if ($Response.'@odata.nextLink') {
+                        $NextPage = $Response.'@odata.nextLink'
+                    } elseif ($PageCount -ge 20) {
+                        Write-Verbose "Stopping pagination.  Reason: Iterated over 20 pages.  Currently limited to only 20 pages, apply -Top to retrieve more results per request."
+                        $Paging = $false
+                    } else {
+                        Write-Verbose "Stopping pagination.  Reason: All results returned."
+                        $Paging = $false
+                    }
                 } else {
+                    Write-Verbose "Stopping pagination.  Reason: Result greater than 5,000 values.  GraphAPI limited to 5,000 values or less."
                     $Paging = $false
                 }
             }
-        }
-        #>
-        
+        }        
         #endregion
 
         return $ResultSet
