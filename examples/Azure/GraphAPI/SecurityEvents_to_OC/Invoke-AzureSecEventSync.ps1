@@ -13,6 +13,15 @@ $CleanupDate = (Get-Date).AddDays(-90).Date
 # OpenCollector Webhook Endpoint
 $OCEndpoint = 'http://172.17.5.20:8080/webhook'
 
+# Enable Azure Alert Providers
+$AZAlertProviders = [List[string]]::new()
+$AZAlertProviders.add('AzureATP')
+$AZAlertProviders.add('AzureSecurityCenter')
+$AZAlertProviders.add('MCAS')
+$AZAlertProviders.add('AzureADIdentityProtection')
+$AZAlertProviders.add('DefenderATP')
+$AZAlertProviders.add('AzureSentinel')
+
 
 #####
 # Log Path
@@ -33,215 +42,352 @@ if (!(Test-Path $SecEventSyncLogPath -PathType Leaf)) {
 # Load in Security Events Log
 $SecEventLogs = Import-Csv -Path $SecEventSyncLogPath
 
-# Begin Section - AzureATP
-$AzureATP_SecEvents = Get-LrtAzSecurityAlerts -AzureATP -Status 'newAlert'
-$AzureATP_LoggedEvents = $SecEventLogs | Where-Object -Property "type" -like "AzureATP"
-
-
-# Loop through results and proceed to process identified new events
-ForEach ($AZAtpSecurityEvent in $AzureATP_SecEvents) {
-    if ($AzureATP_LoggedEvents.Id -notcontains $AZAtpSecurityEvent.Id) {
-        # New Event
-        # Establish Log Entry
-        $SecEvent = [PSCustomObject]@{
-            log_timestamp = (get-date -Format yyyy-MM-ddTHH:mm:ss:ffffffK)
-            event_timestamp = $AZAtpSecurityEvent.createdDateTime
-            type = "AzureATP"
-            id = $AZAtpSecurityEvent.id
-            azureTenantId = $AZAtpSecurityEvent.azureTenantId
-            severity = $AZAtpSecurityEvent.severity
-        }
-
-        # Write out JSON event for FileBeat
-        Try {
-            Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($AZAtpSecurityEvent | ConvertTo-Json -Depth 50 -Compress)
-             
-            # Record Log Entry
-            Try {
-                $SecEvent | Export-Csv -Path $SecEventSyncLogPath -NoTypeInformation -Append
-            } Catch {
-                Write-Host $_
-            }
-        } Catch {
-            Write-Host $_
-        }
+ForEach ($AZAlertProvider in $AZAlertProviders) {
+    write-host "Processing: $AZAlertProvider"
+    switch ($AZAlertProvider) {
+        'AzureATP' { $SecEvents = Get-LrtAzSecurityAlerts -AzureATP -Status 'newAlert' }
+        'AzureSecurityCenter' { $SecEvents = Get-LrtAzSecurityAlerts -AzureSecurityCenter -Status 'newAlert' }
+        'MCAS' { $SecEvents = Get-LrtAzSecurityAlerts -MCAS -Status 'newAlert' }
+        'AzureADIdentityProtection' { $SecEvents = Get-LrtAzSecurityAlerts -AzureADIdentityProtection -Status 'newAlert' }
+        'DefenderATP' { $SecEvents = Get-LrtAzSecurityAlerts -DefenderATP -Status 'newAlert' }
+        'AzureSentinel' { $SecEvents = Get-LrtAzSecurityAlerts -AzureSentinel -Status 'newAlert' }
     }
-}
 
-# End Section - AzureATP
+    $LoggedEvents = $SecEventLogs | Where-Object -Property "type" -like $AZAlertProvider 
 
-# Begin Section - AzureSecurityCenter
-$AzureSecurityCenter_SecEvents = Get-LrtAzSecurityAlerts -AzureSecurityCenter -Status 'newAlert'
-$AzureSecurityCenter_LoggedEvents = $SecEventLogs | Where-Object -Property "type" -like "AzureSecurityCenter"
-
-# Loop through results and proceed to process identified new events
-ForEach ($AzSecCenSecurityEvent in $AzureSecurityCenter_SecEvents) {
-    if ($AzureSecurityCenter_LoggedEvents.Id -notcontains $AzSecCenSecurityEvent.Id) {
-        # New Event
-        # Establish Log Entry
-        $SecEvent = [PSCustomObject]@{
-            log_timestamp = (get-date -Format yyyy-MM-ddTHH:mm:ss:ffffffK)
-            event_timestamp = $AzSecCenSecurityEvent.createdDateTime
-            type = "AzureSecurityCenter"
-            id = $AzSecCenSecurityEvent.id
-            azureTenantId = $AzSecCenSecurityEvent.azureTenantId
-            severity = $AzSecCenSecurityEvent.severity
-        }
-
-        # Write out JSON event for FileBeat
-        Try {
-            Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($AzSecCenSecurityEvent | ConvertTo-Json -Depth 50 -Compress)
+    ForEach ($SecEvent in $SecEvents) {
+        if ($LoggedEvents.Id -notcontains $SecEvent.Id) {
+            # Establish log entry.
+            $LoggedEvent = [PSCustomObject]@{
+                log_timestamp = (get-date -Format yyyy-MM-ddTHH:mm:ss:ffffffK)
+                event_timestamp = $SecEvent.createdDateTime
+                type = $AZAlertProvider
+                id = $SecEvent.id
+                azureTenantId = $SecEvent.azureTenantId
+                severity = $SecEvent.severity
+            }
             
-            # Record Log Entry
-            Try {
-                $SecEvent | Export-Csv -Path $SecEventSyncLogPath -NoTypeInformation -Append
-            } Catch {
-                Write-Host $_
+            # User States
+            if ($null -ne $SecEvent.userStates) {
+                $UserStates = [list[object]]::new()
+                ForEach ($UserState in $SecEvent.userStates) {
+                    if ($UserStates -notcontains $UserState) {
+                        $UserStates.add($UserState)
+                        
+                    }
+                }
+                $UserStateCount = $UserStates.count
             }
-        } Catch {
-            Write-Host $_
-        }
-    }
-}
-# End Section - AzureSecurityCenter
-
-
-# Begin Section - MCAS
-$MCAS_SecEvents = Get-LrtAzSecurityAlerts -MCAS -Status 'newAlert'
-$MCAS_LoggedEvents = $SecEventLogs | Where-Object -Property "type" -like "MCAS"
-
-# Loop through results and proceed to process identified new events
-ForEach ($MCASSecurityEvent in $MCAS_SecEvents) {
-    if ($MCAS_LoggedEvents.Id -notcontains $MCASSecurityEvent.Id) {
-        # New Event
-        # Establish Log Entry
-        $SecEvent = [PSCustomObject]@{
-            log_timestamp = (get-date -Format yyyy-MM-ddTHH:mm:ss:ffffffK)
-            event_timestamp = $MCASSecurityEvent.createdDateTime
-            type = "MCAS"
-            id = $MCASSecurityEvent.id
-            azureTenantId = $MCASSecurityEvent.azureTenantId
-            severity = $MCASSecurityEvent.severity
-        }
-
-        $MCASSecurityEvent | Add-Member -MemberType NoteProperty -Name "tag" -Value "AZURE_MCAS" -Force
-
-        # Write out JSON event for FileBeat
-        Try {
-            Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($MCASSecurityEvent | ConvertTo-Json -Depth 50 -Compress)
-            Try {
-                $SecEvent | Export-Csv -Path $SecEventSyncLogPath -NoTypeInformation -Append
-            } Catch {
-                Write-Host $_
-            }
-        } Catch {
-            Write-Host $_
-        }
-    }
-}
-# End Section - MCAS
-
-# Begin Section - AzureADIdentityProtection
-$AzureADIdentityProtection_SecEvents = Get-LrtAzSecurityAlerts -AzureADIdentityProtection -Status 'newAlert'
-$AzureADIdentityProtection_LoggedEvents = $SecEventLogs | Where-Object -Property "type" -like "AzureADIdentityProtection"
-
-# Loop through results and proceed to process identified new events
-ForEach ($AZADIdProtSecurityEvent in $AzureADIdentityProtection_SecEvents) {
-    if ($AzureADIdentityProtection_LoggedEvents.Id -notcontains $AZADIdProtSecurityEvent.Id) {
-        # New Event
-        # Establish Log Entry
-        $SecEvent = [PSCustomObject]@{
-            log_timestamp = (get-date -Format yyyy-MM-ddTHH:mm:ss:ffffffK)
-            event_timestamp = $AZADIdProtSecurityEvent.createdDateTime
-            type = "AzureADIdentityProtection"
-            id = $AZADIdProtSecurityEvent.id
-            azureTenantId = $AZADIdProtSecurityEvent.azureTenantId
-            severity = $AZADIdProtSecurityEvent.severity
-        }
-
-        # Write out JSON event for FileBeat
-        Try {
-            Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($AZADIdProtSecurityEvent | ConvertTo-Json -Depth 50 -Compress)
-
-            # Record Log Entry
-            Try {
-                $SecEvent | Export-Csv -Path $SecEventSyncLogPath -NoTypeInformation -Append
-            } Catch {
-                Write-Host "Unable to append to file: $SecEventSyncLogPath"
-            }
-        } Catch {
-            Write-Host $_
-        }
-    }
-}
-# End Section - AzureADIdentityProtection
-
-# Begin Section - AzureSentinel
-$AzureSentinel_SecEvents = Get-LrtAzSecurityAlerts -AzureSentinel -Status 'newAlert'
-$AzureSentinel_LoggedEvents = $SecEventLogs | Where-Object -Property "type" -like "AzureSentinel"
-
-# Loop through results and proceed to process identified new events
-ForEach ($AZSentSecurityEvent in $AzureSentinel_SecEvents) {
-    if ($AzureSentinel_LoggedEvents.Id -notcontains $AZSentSecurityEvent.Id) {
-        # New Event
-        # Establish Log Entry
-        $SecEvent = [PSCustomObject]@{
-            log_timestamp = (get-date -Format yyyy-MM-ddTHH:mm:ss:ffffffK)
-            event_timestamp = $AZSentSecurityEvent.createdDateTime
-            type = "AzureSentinel"
-            id = $AZSentSecurityEvent.id
-            azureTenantId = $AZSentSecurityEvent.azureTenantId
-            severity = $AZSentSecurityEvent.severity
-        }
-
-        # Write out JSON event for FileBeat
-        Try {
-            Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($AZSentSecurityEvent | ConvertTo-Json -Depth 50 -Compress)
             
-            # Record Log Entry
-            Try {
-                $SecEvent | Export-Csv -Path $SecEventSyncLogPath -NoTypeInformation -Append
-            } Catch {
-                Write-Host $_
+            # Host States
+            if ($null -ne $SecEvent.hostStates) {
+                $HostStates = [list[object]]::new()
+                ForEach ($HostState in $SecEvent.hostStates) {
+                    if ($HostStates -notcontains $HostState) {
+                        
+                        $HostStates.add($HostState)
+                    }
+                }
+                $HostStateCount = $HostStates.count
             }
-        } Catch {
-            Write-Host $_
-        }
-    }
-}
-# End Section - AzureSentinel
 
-# Begin Section - DefenderATP
-$DefenderATP_SecEvents = Get-LrtAzSecurityAlerts -DefenderATP -Status 'newAlert'
-$DefenderATP_LoggedEvents = $SecEventLogs | Where-Object -Property "type" -like "DefenderATP"
+            # VulnerabilityStates
+            if ($null -ne $SecEvent.vulnerabilityStates) {
+                $VulnStates = [list[object]]::new()
+                ForEach ($VulnState in $SecEvent.vulnerabilityStates) {
+                    if ($VulnStates -notcontains $VulnState) {
+                        $VulnStates.add($VulnState)
+                    }
+                }
+                $VulnStateCount = $VulnStates.count
+            }
 
-# Loop through results and proceed to process identified new events
-ForEach ($DefSecurityEvent in $DefenderATP_SecEvents) {
-    if ($DefenderATP_LoggedEvents.Id -notcontains $DefSecurityEvent.Id) {
-        # New Event
-        # Establish Log Entry
-        $SecEvent = [PSCustomObject]@{
-            log_timestamp = (get-date -Format yyyy-MM-ddTHH:mm:ss:ffffffK)
-            event_timestamp = $DefSecurityEvent.createdDateTime
-            type = "DefenderATP"
-            id = $DefSecurityEvent.id
-            azureTenantId = $DefSecurityEvent.azureTenantId
-            severity = $DefSecurityEvent.severity
-        }
+            # UserClickSecurityStates
 
-        # Write out JSON event for FileBeat
-        Try {
-            Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($DefSecurityEvent | ConvertTo-Json -Depth 50 -Compress)
+            # CloudAppStates
+            if ($null -ne $SecEvent.cloudAppStates) {
+                $AppStates = [list[object]]::new()
+                ForEach ($AppState in $SecEvent.cloudAppStates) {
+                    if ($AppStates -notcontains $AppState) {
+                        $AppStates.add($AppState)
+                    }
+                }
+                $AppStateCount = $AppStates.count
+            }
+
+            # FileStates
+            if ($null -ne $SecEvent.fileStates) {
+                $FileStates = [list[object]]::new()
+                ForEach ($FileState in $SecEvent.fileStates) {
+                    if ($FileStates -notcontains $FileState) {
+                        $FileStates.add($FileState)
+                    }
+                }
+                $FileStateCount = $FileStates.count
+            }
+
+            # InvestigationSecurityStates
+
+            # MalwareStates
+            if ($null -ne $SecEvent.malwareStates) {
+                $MalwareStates = [list[object]]::new()
+                ForEach ($MalwareState in $SecEvent.malwareStates) {
+                    if ($MalwareStates -notcontains $MalwareState) {
+                        $MalwareStates.add($MalwareState)
+                    }
+                }
+                $MalwareStateCount = $MalwareStates.count
+            }
+
+            # MessageSecurityStates
+            if ($null -ne $SecEvent.messageSecurityStates) {
+                $MsgSecStates = [list[object]]::new()
+                ForEach ($MsgSecState in $SecEvent.messageSecurityStates) {
+                    if ($MsgSecStates -notcontains $MsgSecState) {
+                        $MsgSecStates.add($MsgSecState)
+                    }
+                }
+                $MsgSecStateCount = $MsgSecStates.count
+            }
+
+            # NetworkConnections
+            if ($null -ne $SecEvent.networkConnections) {
+                $NetConStates = [list[object]]::new()
+                ForEach ($NetConState in $SecEvent.networkConnections) {
+                    if ($NetConStates -notcontains $NetConState) {
+                        $NetConStates.add($NetConState)
+                    }
+                }
+                $NetConStateCount = $NetConStates.count
+            }
+
+            # Processes
+            if ($null -ne $SecEvent.processes) {
+                $ProcessesStates = [list[object]]::new()
+                ForEach ($ProcessesState in $SecEvent.processes) {
+                    if ($ProcessesStates -notcontains $ProcessesState) {
+                        $ProcessesStates.add($ProcessesState)
+                    }
+                }
+                $ProcessesStateCount = $ProcessesStates.count
+            }
+
+            # RegistryKeyStates
+
+            # Security Resources
+
+            # Triggers
+            # 
+            # Global alert parsing
+            $OCLog = [PSCustomObject]@{
+                tag1 = $SecEvent.vendorInformation.provider
+                tag2 = $SecEvent.category
+                object = $SecEvent.vendorInformation.provider
+                objecttype = $null
+                severity = $SecEvent.severity
+                vmid = $SecEvent.azureSubscriptionId
+                policy = $SecEvent.category
+                serialnumber = $SecEvent.azureTenantId
+                session = $SecEvent.id
+                reason = $SecEvent.description
+                status = $SecEvent.status
+                quantity = $null
+                amount = $null
+                threatname = $SecEvent.title
+                threatid = $null
+                dname = $null
+                sname = $null
+                hash = $null
+                account = $null
+                login = $null
+                sip = $null
+                dip = $null
+                snatip = $null
+                dnatip = $null
+                process = $null
+                useragent = $null
+                size = $null
+                domainorigin = $null
+                domainimpacted = $null
+                action = $null
+                vendorinfo = $null
+                "timestamp.iso8601" = $('{0:yyyy-MM-ddTHH:mm:ssZ}' -f $($([DateTime]$SecEvent.createdDateTime).ToUniversalTime()))
+                original_message = $SecEvent
+                whsdp = $true
+                fullyqualifiedbeatname = "webhookbeat_AzureGraph-$($SecEvent.vendorInformation.provider.replace(' ',''))2"
+            }
+
+             # Recommended Actions - Action
+             if ($SecEvent.recommendedActions) {
+                if ($SecEvent.recommendedActions.count -gt 1) {
+                    $SecEvent.recommendedActions = $([string[]]$SecEVent.recommendedActions -join ", ")
+                }
+                $OCLog | Add-Member -MemberType NoteProperty -Name 'action' -Value $SecEvent.recommendedActions -Force
+            }
+
+            # Source Materials - VendorInfo
+            if ($SecEvent.sourceMaterials) {
+                if ($SecEvent.sourceMaterials.count -gt 1) {
+                    $SecEvent.sourceMaterials = $([string[]]$SecEVent.sourceMaterials -join ", ")
+                }
+                $OCLog | Add-Member -MemberType NoteProperty -Name 'vendorinfo' -Value $SecEvent.sourceMaterials -Force
+            }
+
+            # Seen in MCAS
+            if ($SecEvent.cloudAppStates.destinationServiceIp) {
+                $OCLog | Add-Member -MemberType NoteProperty -Name 'dip' -Value $SecEVent.cloudAppStates.destinationServiceIp -Force
+            }
+
+            if ($FileStates) {
+                $EventCurrent = 0
+                $OCLog.quantity = $FileStateCount
+                $OCLog.objecttype = 'FileState'
+                ForEach ($FileState in $FileStates) {
+                    $EventCurrent++
+                    $OCLog.amount = $EventCurrent
+
+                    # Capture File Names
+                    if ($FileState.name) {
+                        $OCLog.process = $FileState.name
+                    }
+
+                    # Capture File Hashes
+                    if ($FileState.fileHash) {
+                        $OCLog.hash = $FileState.fileHash
+                    }
+
+                    Try {
+                        Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($OCLog | ConvertTo-Json -Depth 10 -Compress)
+                    } Catch {
+                        Write-Host $_
+                    }
+                }
+            }
+
+
+            if ($MalwareStates) {
+                $EventCurrent = 0
+                $OCLog.quantity = $MalwareStateCount
+                $OCLog.objecttype = 'MalwareState'
+                ForEach ($MalwareState in $MalwareStates) {
+                    $EventCurrent++
+                    $OCLog.amount = $EventCurrent
+
+                    # Capture Malware Name as ThreatID 
+                    if ($MalwareState.name) {
+                        $OCLog.threatid = $MalwareState.name
+                    }
+
+
+                    Try {
+                        Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($OCLog | ConvertTo-Json -Depth 10 -Compress)
+                    } Catch {
+                        Write-Host $_
+                    }
+                }
+            }
+
+
+            if ($HostStates) {
+                $EventCurrent = 0
+                $OCLog.quantity = $HostStateCount
+                ForEach ($HostState in $HostStates) {
+                    $EventCurrent++
+                    $OCLog.amount = $EventCurrent
+                    $OCLog.objecttype = 'HostState'
+                    if ($HostState.fqdn) {
+                        $OCLog.sname = $HostState.fqdn
+                    } elseif ($HostState.netBiosName) {
+                        $OCLog.sname = $HostState.fqdn
+                    }
+    
+                    if ($HostState.isAzureAdJoined) {
+    
+                    }
+    
+                    if ($HostState.isAzureAdRegistered) {
+    
+                    }
+    
+                    if ($HostState.isHybridAzureDomainJoined) {
+    
+                    }
+    
+                    if ($HostState.os) {
+                        $OCLog.useragent = $HostState.os
+                    }
+    
+                    if ($HostState.privateIpAddress) {
+                        $OCLog.sip = $HostState.privateIpAddress
+                    } 
+                    
+                    if ($HostState.publicIpAddress) {
+                        $OCLog.snatip = $HostState.publicIpAddress
+                    }
+    
+                    if ($HostState.riskScore) {
+                        $OCLog.size = $HostState.riskScore
+                    }
+                    Try {
+                        Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($OCLog | ConvertTo-Json -Depth 10 -Compress)
+                    } Catch {
+                        Write-Host $_
+                    }
+                }
+            }
             
+            # Submit one log for each UserState entry
+            if ($UserStates) {
+                $EventCurrent = 0
+                $OCLog.quantity = $UserStateCount
+                $OCLog.objecttype = 'UserStates'
+                ForEach ($UserState in $UserStates) {
+                    $EventCurrent++
+                    $OCLog.amount = $EventCurrent
+                    if ($UserState.userPrincipalName) {
+                        $OCLog.login = $UserState.userPrincipalName
+                    }
+    
+                    if ($UserState.logonIp) {
+                        $OCLog.sip = $UserState.logonIp
+                    }
+    
+                    if ($UserState.domainName) {
+                        $OCLog.domainorigin = $UserState.domainName
+                    }
+                    Try {
+                        Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($OCLog | ConvertTo-Json -Depth 10 -Compress)
+                    } Catch {
+                        Write-Host $_
+                    }
+                }
+            }
+
             # Record Log Entry
             Try {
-                $SecEvent | Export-Csv -Path $SecEventSyncLogPath -NoTypeInformation -Append
+                $LoggedEvent | Export-Csv -Path $SecEventSyncLogPath -NoTypeInformation -Append
             } Catch {
                 Write-Host $_
             }
-        } Catch {
-            Write-Host $_
         }
     }
+    
 }
-# End Section - DefenderATP
+
+
+# Refresh the $State variable from the appended CSV content.
+$State = Import-Csv -Path $SecEventSyncLogPath
+$StateCleanup = [list[object]]::new()
+ForEach ($StateEntry in $State) {
+    Try {
+        $AlertDate = [DateTime]$StateEntry.event_timestamp
+    } Catch {
+        continue
+    }
+    if ($AlertDate -ge $CleanupDate) {
+        $StateCleanup.add($StateEntry)
+    }
+}
+
+# Overwrite the CSV State File representing only the entries that are valid within the script's configured $eventLookBack time period.
+$StateCleanup | Export-Csv -Path $SecEventSyncLogPath -NoTypeInformation -Force
