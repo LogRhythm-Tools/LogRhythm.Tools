@@ -11,7 +11,7 @@ $CleanupDate = (Get-Date).AddDays(-90).Date
 
 
 # OpenCollector Webhook Endpoint
-$OCEndpoint = 'http://172.17.5.20:8080/webhook'
+$OCEndpoint = 'http://172.17.5.20:8085/webhook'
 
 # Enable Azure Alert Providers
 $AZAlertProviders = [List[string]]::new()
@@ -84,7 +84,6 @@ ForEach ($AZAlertProvider in $AZAlertProviders) {
                 $HostStates = [list[object]]::new()
                 ForEach ($HostState in $SecEvent.hostStates) {
                     if ($HostStates -notcontains $HostState) {
-                        
                         $HostStates.add($HostState)
                     }
                 }
@@ -177,13 +176,25 @@ ForEach ($AZAlertProvider in $AZAlertProviders) {
             # Security Resources
 
             # Triggers
+
+            # Processes
+            if ($null -ne $SecEvent.recommendedActions) {
+                $RecommendedActions = [list[object]]::new()
+                ForEach ($RecommendedAction in $SecEvent.recommendedActions) {
+                    if ($RecommendedActions -notcontains $RecommendedAction) {
+                        $RecommendedActions.add($RecommendedAction)
+                    }
+                }
+                $RecommendedActionCount = $RecommendedActions.count
+            }
+
             # 
             # Global alert parsing
             $OCLog = [PSCustomObject]@{
                 tag1 = $SecEvent.vendorInformation.provider
                 tag2 = $SecEvent.category
                 object = $SecEvent.vendorInformation.provider
-                objecttype = $null
+                objecttype = 'BaseAlert'
                 severity = $SecEvent.severity
                 vmid = $SecEvent.azureSubscriptionId
                 policy = $SecEvent.category
@@ -211,26 +222,18 @@ ForEach ($AZAlertProvider in $AZAlertProviders) {
                 domainimpacted = $null
                 action = $null
                 vendorinfo = $null
+                url = $null
                 "timestamp.iso8601" = $('{0:yyyy-MM-ddTHH:mm:ssZ}' -f $($([DateTime]$SecEvent.createdDateTime).ToUniversalTime()))
                 original_message = $SecEvent
                 whsdp = $true
-                fullyqualifiedbeatname = "webhookbeat_AzureGraph-$($SecEvent.vendorInformation.provider.replace(' ',''))2"
+                fullyqualifiedbeatname = "webhookbeat_AzureGraph-$($SecEvent.vendorInformation.provider.replace(' ',''))"
             }
-
-             # Recommended Actions - Action
-             if ($SecEvent.recommendedActions) {
-                if ($SecEvent.recommendedActions.count -gt 1) {
-                    $SecEvent.recommendedActions = $([string[]]$SecEVent.recommendedActions -join ", ")
-                }
-                $OCLog | Add-Member -MemberType NoteProperty -Name 'action' -Value $SecEvent.recommendedActions -Force
-            }
-
-            # Source Materials - VendorInfo
-            if ($SecEvent.sourceMaterials) {
-                if ($SecEvent.sourceMaterials.count -gt 1) {
-                    $SecEvent.sourceMaterials = $([string[]]$SecEVent.sourceMaterials -join ", ")
-                }
-                $OCLog | Add-Member -MemberType NoteProperty -Name 'vendorinfo' -Value $SecEvent.sourceMaterials -Force
+            # (get-date -Format yyyy-MM-ddTHH:mm:ssZ) 
+            
+            Try {
+                Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($OCLog | ConvertTo-Json -Depth 10 -Compress) | Out-Null
+            } Catch {
+                Write-Host $_
             }
 
             # Seen in MCAS
@@ -238,6 +241,29 @@ ForEach ($AZAlertProvider in $AZAlertProviders) {
                 $OCLog | Add-Member -MemberType NoteProperty -Name 'dip' -Value $SecEVent.cloudAppStates.destinationServiceIp -Force
             }
 
+            if ($SecEvent.sourceMaterials) {
+                $EventCurrent = 0
+                $OCLog.quantity = $($SecEvent.sourceMaterials | Sort-Object -Unique).count
+                $OCLog.objecttype = 'SourceMaterials'
+                ForEach ($SourceMaterial in $($SecEvent.sourceMaterials | Sort-Object -Unique)) {
+                    $EventCurrent++
+                    $OCLog.amount = $EventCurrent
+
+                    $OCLog.vendorinfo = $SourceMaterial
+                    $OCLog.url = $SourceMaterial
+
+                    Try {
+                        Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($OCLog | ConvertTo-Json -Depth 10 -Compress) | Out-Null
+                    } Catch {
+                        Write-Host $_
+                    }
+                    $OCLog.vendorinfo = $null
+                    $OCLog.url = $null
+                }
+
+            }
+
+            # File States
             if ($FileStates) {
                 $EventCurrent = 0
                 $OCLog.quantity = $FileStateCount
@@ -257,10 +283,12 @@ ForEach ($AZAlertProvider in $AZAlertProviders) {
                     }
 
                     Try {
-                        Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($OCLog | ConvertTo-Json -Depth 10 -Compress)
+                        Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($OCLog | ConvertTo-Json -Depth 10 -Compress) | Out-Null
                     } Catch {
                         Write-Host $_
                     }
+                    $OCLog.process = $null
+                    $OCLog.hash = $null
                 }
             }
 
@@ -280,11 +308,13 @@ ForEach ($AZAlertProvider in $AZAlertProviders) {
 
 
                     Try {
-                        Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($OCLog | ConvertTo-Json -Depth 10 -Compress)
+                        Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($OCLog | ConvertTo-Json -Depth 10 -Compress)  | Out-Null
                     } Catch {
                         Write-Host $_
                     }
+                    $OCLog.threatid = $null
                 }
+                
             }
 
 
@@ -329,10 +359,15 @@ ForEach ($AZAlertProvider in $AZAlertProviders) {
                         $OCLog.size = $HostState.riskScore
                     }
                     Try {
-                        Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($OCLog | ConvertTo-Json -Depth 10 -Compress)
+                        Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($OCLog | ConvertTo-Json -Depth 10 -Compress)  | Out-Null
                     } Catch {
                         Write-Host $_
                     }
+                    $OCLog.size = $null
+                    $OCLog.snatip = $null
+                    $OCLog.sip = $null
+                    $OCLog.useragent = $null
+                    $OCLog.sname = $null
                 }
             }
             
@@ -356,10 +391,13 @@ ForEach ($AZAlertProvider in $AZAlertProviders) {
                         $OCLog.domainorigin = $UserState.domainName
                     }
                     Try {
-                        Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($OCLog | ConvertTo-Json -Depth 10 -Compress)
+                        Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($OCLog | ConvertTo-Json -Depth 10 -Compress)  | Out-Null
                     } Catch {
                         Write-Host $_
                     }
+                    $OCLog.login = $null
+                    $OCLog.sip = $null
+                    $OCLog.domainorigin = $null
                 }
             }
 
