@@ -105,13 +105,13 @@ ForEach ($AZAlertProvider in $AZAlertProviders) {
 
             # CloudAppStates
             if ($null -ne $SecEvent.cloudAppStates) {
-                $AppStates = [list[object]]::new()
+                $CloudAppStates = [list[object]]::new()
                 ForEach ($AppState in $SecEvent.cloudAppStates) {
-                    if ($AppStates -notcontains $AppState) {
-                        $AppStates.add($AppState)
+                    if ($CloudAppStates -notcontains $AppState) {
+                        $CloudAppStates.add($AppState)
                     }
                 }
-                $AppStateCount = $AppStates.count
+                $CloudAppStateCount = $AppStates.count
             }
 
             # FileStates
@@ -174,6 +174,15 @@ ForEach ($AZAlertProvider in $AZAlertProviders) {
             # RegistryKeyStates
 
             # Security Resources
+            if ($null -ne $SecEvent.securityResources) {
+                $SecResources = [list[object]]::new()
+                ForEach ($SecResource in $SecEvent.processes) {
+                    if ($SecResources -notcontains $SecResource) {
+                        $SecResources.add($SecResource)
+                    }
+                }
+                $SecResourceCount = $SecResources.count
+            }
 
             # Triggers
 
@@ -187,14 +196,12 @@ ForEach ($AZAlertProvider in $AZAlertProviders) {
                 }
                 $RecommendedActionCount = $RecommendedActions.count
             }
-
             # 
             # Global alert parsing
             $OCLog = [PSCustomObject]@{
                 tag1 = $SecEvent.vendorInformation.provider
                 tag2 = $SecEvent.category
                 object = $SecEvent.vendorInformation.provider
-                objecttype = 'BaseAlert'
                 severity = $SecEvent.severity
                 vmid = $SecEvent.azureSubscriptionId
                 policy = $SecEvent.category
@@ -202,43 +209,88 @@ ForEach ($AZAlertProvider in $AZAlertProviders) {
                 session = $SecEvent.id
                 reason = $SecEvent.description
                 status = $SecEvent.status
-                quantity = $null
-                amount = $null
                 threatname = $SecEvent.title
-                threatid = $null
+                # These properties change as the objecttype shifts from BaseAlert to the other alert elements
+                # The updates to these metadata values align to the same usecase and purpose of the values set on the BaseAlert.
+                objecttype = 'BaseAlert'
+                size = $SecEvent.riskScore
+                vendorinfo = 'https://docs.microsoft.com/en-us/graph/api/resources/alert?view=graph-rest-1.0'
+                
                 dname = $null
-                sname = $null
-                hash = $null
-                account = $null
-                login = $null
-                sip = $null
-                dip = $null
-                snatip = $null
-                dnatip = $null
-                process = $null
-                useragent = $null
-                size = $null
                 domainorigin = $null
                 domainimpacted = $null
+                account = $null
                 action = $null
-                vendorinfo = $null
+                amount = $null
+                dip = $null
+                dnatip = $null
+                dport = $null
+                hash = $null
+                login = $null
+                objectname = $null
+                process = $null
+                processid = $null
+                parentprocessname = $null
+                parentprocesspath = $null
+                quantity = $null
+                sessiontype = $null
+                sip = $null
+                snatip = $null
+                sname = $null
+                subject = $null
+                sport = $null
+                threatid = $null
                 url = $null
+                useragent = $null   
                 "timestamp.iso8601" = $('{0:yyyy-MM-ddTHH:mm:ssZ}' -f $($([DateTime]$SecEvent.createdDateTime).ToUniversalTime()))
                 original_message = $SecEvent
                 whsdp = $true
                 fullyqualifiedbeatname = "webhookbeat_AzureGraph-$($SecEvent.vendorInformation.provider.replace(' ',''))"
             }
             # (get-date -Format yyyy-MM-ddTHH:mm:ssZ) 
-            
             Try {
                 Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($OCLog | ConvertTo-Json -Depth 10 -Compress) | Out-Null
             } Catch {
                 Write-Host $_
             }
 
-            # Seen in MCAS
-            if ($SecEvent.cloudAppStates.destinationServiceIp) {
-                $OCLog | Add-Member -MemberType NoteProperty -Name 'dip' -Value $SecEVent.cloudAppStates.destinationServiceIp -Force
+            if ($CloudAppStates) {
+                $EventCurrent = 0
+                $OCLog.quantity = $CloudAppStateCount
+                $OCLog.objecttype = 'CloudAppState'
+                ForEach ($CloudAppState in $CloudAppStates) {
+                    $EventCurrent++
+                    $OCLog.amount = $EventCurrent
+
+                    # Capture Destination Service IP
+                    if ($CloudAppState.destinationServiceIp) {
+                        $OCLog.dip = $CloudAppState.destinationServiceIp
+                    }
+
+                    # Capture DestinationServiceName 
+                    if ($CloudAppState.destinationServiceName) {
+                        $OCLog.process = $CloudAppState.destinationServiceName
+                    }
+
+                    # Capture CloudAppState Risk Score
+                    if ($CloudAppState.riskScore) {
+                        $OCLog.size = $CloudAppState.riskScore
+                    }
+
+                    $OCLog.vendorinfo = 'https://docs.microsoft.com/en-us/graph/api/resources/cloudappsecuritystate?view=graph-rest-1.0'
+
+                    Try {
+                        Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($OCLog | ConvertTo-Json -Depth 10 -Compress) | Out-Null
+                    } Catch {
+                        Write-Host $_
+                    }
+                    $OCLog.dip = $null
+                    $OCLog.process = $null
+                    $OCLog.size = $null
+                    $OCLog.vendorinfo = $null
+                }
+                $OCLog.quantity = $null
+                $OCLog.objecttype = $null
             }
 
             if ($SecEvent.sourceMaterials) {
@@ -249,8 +301,9 @@ ForEach ($AZAlertProvider in $AZAlertProviders) {
                     $EventCurrent++
                     $OCLog.amount = $EventCurrent
 
-                    $OCLog.vendorinfo = $SourceMaterial
                     $OCLog.url = $SourceMaterial
+
+                    $OCLog.vendorinfo = 'https://docs.microsoft.com/en-us/graph/api/resources/alert?view=graph-rest-1.0'
 
                     Try {
                         Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($OCLog | ConvertTo-Json -Depth 10 -Compress) | Out-Null
@@ -260,7 +313,8 @@ ForEach ($AZAlertProvider in $AZAlertProviders) {
                     $OCLog.vendorinfo = $null
                     $OCLog.url = $null
                 }
-
+                $OCLog.quantity = $null
+                $OCLog.objecttype = $null
             }
 
             # File States
@@ -273,14 +327,24 @@ ForEach ($AZAlertProvider in $AZAlertProviders) {
                     $OCLog.amount = $EventCurrent
 
                     # Capture File Names
+                    if ($FileState.fileHash.hashValue) {
+                        $OCLog.hash = $FileState.fileHash.hashValue
+                    }
+
+                    # Capture File Hashes
+                    if ($FileState.fileHash.hashType) {
+                        $OCLog.objectname = $FileState.fileHash.hashType
+                    }
+
                     if ($FileState.name) {
                         $OCLog.process = $FileState.name
                     }
 
-                    # Capture File Hashes
-                    if ($FileState.fileHash) {
-                        $OCLog.hash = $FileState.fileHash
+                    if ($FileState.riskScore) {
+                        $OCLog.size = $FileState.riskScore
                     }
+
+                    $OCLog.vendorinfo = 'https://docs.microsoft.com/en-us/graph/api/resources/filesecuritystate?view=graph-rest-1.0'
 
                     Try {
                         Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($OCLog | ConvertTo-Json -Depth 10 -Compress) | Out-Null
@@ -289,7 +353,118 @@ ForEach ($AZAlertProvider in $AZAlertProviders) {
                     }
                     $OCLog.process = $null
                     $OCLog.hash = $null
+                    $OCLog.size = $null
+                    $OCLog.objectname = $null
+                    $OCLog.vendorinfo = $null
                 }
+                $OCLog.quantity = $null
+                $OCLog.objecttype = $null
+            }
+
+            # Security Resources
+            if ($SecResources) {
+                $EventCurrent = 0
+                $OCLog.quantity = $SecResourceCount
+                $OCLog.objecttype = 'SecurityResource'
+                ForEach ($SecResource in $SecResources) {
+                    $EventCurrent++
+                    $OCLog.amount = $EventCurrent
+
+                    if ($SecResource.resource) {
+                        $OCLog.objectname = $SecResource.resource
+                    }
+                    
+                    if ($SecResource.resourceType) {
+                        switch ($SecResource.resourceType) {
+                            1 {$OCLog.subject = "The resource was attacked in the alert."}
+                            2 {$OCLog.subject = "The resource is related to the alert, though not directly attacked."}
+                            'attacked' {$OCLog.subject = "The resource was attacked in the alert."}
+                            'related' {$OCLog.subject = "The resource is related to the alert, though not directly attacked."}
+                            default {
+                                $OCLog.subject = "The resource has not been defined as being attacked or related to the attack."
+                            }
+                        }
+                        
+                    }
+
+                    $OCLog.vendorinfo = 'https://docs.microsoft.com/en-us/graph/api/resources/securityresource?view=graph-rest-1.0'
+
+                    Try {
+                        Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($OCLog | ConvertTo-Json -Depth 10 -Compress) | Out-Null
+                    } Catch {
+                        Write-Host $_
+                    }
+
+                    $OCLog.objectname = $null
+                    $OCLog.subject = $null
+                    $OCLog.vendorinfo = $null
+                }
+                $OCLog.quantity = $null
+                $OCLog.objecttype = $null
+            }
+
+
+            # File States
+            if ($NetConStates) {
+                $EventCurrent = 0
+                $OCLog.quantity = $NetConStateCount
+                $OCLog.objecttype = 'NetworkConnection'
+                ForEach ($NetConn in $NetConStates) {
+                    $EventCurrent++
+                    $OCLog.amount = $EventCurrent
+
+                    if ($NetConn.sourceAddress) {
+                        $OCLog.sip = $NetConn.sourceAddress
+                    }
+
+                    if ($NetConn.destinationAddress) {
+                        $OCLog.dip = $NetConn.destinationAddress
+                    }
+
+                    if ($NetConn.sourcePort) {
+                        $OCLog.sport = $NetConn.sourceAddress
+                    }
+
+                    if ($NetConn.destinationPort) {
+                        $OCLog.dport = $NetConn.destinationPort
+                    }
+
+                    if ($NetConn.natSourceAddress) {
+                        $OCLog.snatip = $NetConn.natSourceAddress
+                    }
+
+                    if ($NetConn.natDestinationAddress) {
+                        $OCLog.dnatip = $NetConn.natDestinationAddress
+                    }
+
+                    if ($NetConn.destinationUrl) {
+                        $OCLog.url = $NetCon.destinationUrl
+                    }
+
+                    if ($NetConn.riskScore) {
+                        $OCLog.size = $NetConn.riskScore
+                    }
+
+                    $OCLog.vendorinfo = 'https://docs.microsoft.com/en-us/graph/api/resources/networkconnection?view=graph-rest-1.0'
+
+                    Try {
+                        Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($OCLog | ConvertTo-Json -Depth 10 -Compress) | Out-Null
+                    } Catch {
+                        Write-Host $_
+                    }
+                    $OCLog.sip = $null
+                    $OCLog.dip = $null
+                    $OCLog.hash = $null
+                    $OCLog.url = $null
+                    $OCLog.dnatip = $null
+                    $OCLog.snatip = $null
+                    $OCLog.dport = $null
+                    $OCLog.sport = $null
+                    $OCLog.size = $null
+                    $OCLog.vendorinfo = $null
+                }
+                $OCLog.quantity = $null
+                $OCLog.objecttype = $null
             }
 
 
@@ -306,6 +481,25 @@ ForEach ($AZAlertProvider in $AZAlertProviders) {
                         $OCLog.threatid = $MalwareState.name
                     }
 
+                    if ($MalwareState.category) {
+                        $OCLog.objectname = $MalwareState.category
+                    }
+
+                    if ($MalwareStates.family) {
+                        $OCLog.process = $MalwareState.family
+                    }
+
+                    if ($MalwareStates.severity) {
+                        $OCLog.subject = $MalwareStates.severity
+                    }
+
+                    if ($MalwareStates.wasRunning) {
+                        $OCLog.sessiontype = "Malware reported as running at the time of detection."
+                    } else {
+                        $OCLog.sessiontype = "Malware reported as not running at the time of detection."
+                    }
+
+                    $OCLog.vendorinfo = 'https://docs.microsoft.com/en-us/graph/api/resources/malwarestate?view=graph-rest-1.0'
 
                     Try {
                         Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($OCLog | ConvertTo-Json -Depth 10 -Compress)  | Out-Null
@@ -313,8 +507,14 @@ ForEach ($AZAlertProvider in $AZAlertProviders) {
                         Write-Host $_
                     }
                     $OCLog.threatid = $null
+                    $OCLog.process = $null
+                    $OCLog.subject = $null
+                    $OCLog.objectname = $null
+                    $OCLog.sessiontype = $null
+                    $OCLog.vendorinfo = $null
                 }
-                
+                $OCLog.quantity = $null
+                $OCLog.objecttype = $null
             }
 
 
@@ -325,22 +525,31 @@ ForEach ($AZAlertProvider in $AZAlertProviders) {
                     $EventCurrent++
                     $OCLog.amount = $EventCurrent
                     $OCLog.objecttype = 'HostState'
+
                     if ($HostState.fqdn) {
                         $OCLog.sname = $HostState.fqdn
                     } elseif ($HostState.netBiosName) {
-                        $OCLog.sname = $HostState.fqdn
+                        Try {
+                            $netBNtoIP = [IPAddress] $HostState.netBiosName
+                            if ($null -eq $HostState.privateIpAddress) {
+                                $OCLog.sip = $netBNtoIP.IPAddressToString
+                            }
+                        } Catch {
+                            $OCLog.sname = $HostState.netBiosName
+                        }
+                        
                     }
     
                     if ($HostState.isAzureAdJoined) {
-    
+                        $OCLog.sessiontype = "AzureAdJoined"
                     }
     
                     if ($HostState.isAzureAdRegistered) {
-    
+                        $OCLog.objectname = "AzureAdRegistered"
                     }
-    
+
                     if ($HostState.isHybridAzureDomainJoined) {
-    
+                        $OCLog.subject = "HybridAzureDomainJoined"
                     }
     
                     if ($HostState.os) {
@@ -358,6 +567,9 @@ ForEach ($AZAlertProvider in $AZAlertProviders) {
                     if ($HostState.riskScore) {
                         $OCLog.size = $HostState.riskScore
                     }
+
+                    $OCLog.vendorinfo = 'https://docs.microsoft.com/en-us/graph/api/resources/hostsecuritystate?view=graph-rest-1.0'
+
                     Try {
                         Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($OCLog | ConvertTo-Json -Depth 10 -Compress)  | Out-Null
                     } Catch {
@@ -368,7 +580,13 @@ ForEach ($AZAlertProvider in $AZAlertProviders) {
                     $OCLog.sip = $null
                     $OCLog.useragent = $null
                     $OCLog.sname = $null
+                    $OCLog.subject = $null
+                    $OCLog.objectname = $null
+                    $OCLog.sessiontype = $null
+                    $OCLog.vendorinfo = $null
                 }
+                $OCLog.quantity = $null
+                $OCLog.objecttype = $null
             }
             
             # Submit one log for each UserState entry
@@ -379,26 +597,60 @@ ForEach ($AZAlertProvider in $AZAlertProviders) {
                 ForEach ($UserState in $UserStates) {
                     $EventCurrent++
                     $OCLog.amount = $EventCurrent
+
+                    # Preference to userPrincipalName as this will be username+domainName 
                     if ($UserState.userPrincipalName) {
                         $OCLog.login = $UserState.userPrincipalName
+                    } elseif ($UserState.accountName) {
+                        $OCLog.login = $UserState.accountName
+                    }
+
+                    if ($UserState.aadUserId) {
+                        $OCLog.subject = $UserState.aadUserId
                     }
     
                     if ($UserState.logonIp) {
                         $OCLog.sip = $UserState.logonIp
                     }
+
+                    if ($UserState.isVpn) {
+                        $OCLog.sessiontype = "VPN"
+                    } elseif ($UserState.logonType) {
+                        $OCLog.sessiontype = $UserState.logonType
+                    }
+
+                    if ($UserState.userAccountType) {
+                        $OCLog.objectname = $UserState.userAccountType
+                    }
     
                     if ($UserState.domainName) {
                         $OCLog.domainorigin = $UserState.domainName
                     }
+
+                    if ($UserState.riskScore) {
+                        $OCLog.size = $UserState.riskScore
+                    }
+
+                    $OCLog.vendorinfo = 'https://docs.microsoft.com/en-us/graph/api/resources/usersecuritystate?view=graph-rest-1.0'
+
                     Try {
                         Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($OCLog | ConvertTo-Json -Depth 10 -Compress)  | Out-Null
                     } Catch {
                         Write-Host $_
                     }
+                    # Reset variables before proceeding to next state
+                    $OCLog.amount = $null
                     $OCLog.login = $null
                     $OCLog.sip = $null
                     $OCLog.domainorigin = $null
+                    $OCLog.size = $null
+                    $OCLog.objectname = $null
+                    $OCLog.sessiontype = $null
+                    $OCLog.subject = $null
+                    $OCLog.vendorinfo = $null
                 }
+                $OCLog.quantity = $null
+                $OCLog.objecttype = $null
             }
 
             # Record Log Entry
