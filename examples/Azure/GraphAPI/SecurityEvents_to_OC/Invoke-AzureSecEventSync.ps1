@@ -66,145 +66,15 @@ ForEach ($AZAlertProvider in $AZAlertProviders) {
                 azureTenantId = $SecEvent.azureTenantId
                 severity = $SecEvent.severity
             }
-            
-            # User States
-            if ($null -ne $SecEvent.userStates) {
-                $UserStates = [list[object]]::new()
-                ForEach ($UserState in $SecEvent.userStates) {
-                    if ($UserStates -notcontains $UserState) {
-                        $UserStates.add($UserState)
-                        
-                    }
-                }
-                $UserStateCount = $UserStates.count
-            }
-            
-            # Host States
-            if ($null -ne $SecEvent.hostStates) {
-                $HostStates = [list[object]]::new()
-                ForEach ($HostState in $SecEvent.hostStates) {
-                    if ($HostStates -notcontains $HostState) {
-                        $HostStates.add($HostState)
-                    }
-                }
-                $HostStateCount = $HostStates.count
-            }
 
-            # VulnerabilityStates
-            if ($null -ne $SecEvent.vulnerabilityStates) {
-                $VulnStates = [list[object]]::new()
-                ForEach ($VulnState in $SecEvent.vulnerabilityStates) {
-                    if ($VulnStates -notcontains $VulnState) {
-                        $VulnStates.add($VulnState)
-                    }
-                }
-                $VulnStateCount = $VulnStates.count
-            }
-
-            # UserClickSecurityStates
-
-            # CloudAppStates
-            if ($null -ne $SecEvent.cloudAppStates) {
-                $CloudAppStates = [list[object]]::new()
-                ForEach ($AppState in $SecEvent.cloudAppStates) {
-                    if ($CloudAppStates -notcontains $AppState) {
-                        $CloudAppStates.add($AppState)
-                    }
-                }
-                $CloudAppStateCount = $AppStates.count
-            }
-
-            # FileStates
-            if ($null -ne $SecEvent.fileStates) {
-                $FileStates = [list[object]]::new()
-                ForEach ($FileState in $SecEvent.fileStates) {
-                    if ($FileStates -notcontains $FileState) {
-                        $FileStates.add($FileState)
-                    }
-                }
-                $FileStateCount = $FileStates.count
-            }
-
-            # InvestigationSecurityStates
-
-            # MalwareStates
-            if ($null -ne $SecEvent.malwareStates) {
-                $MalwareStates = [list[object]]::new()
-                ForEach ($MalwareState in $SecEvent.malwareStates) {
-                    if ($MalwareStates -notcontains $MalwareState) {
-                        $MalwareStates.add($MalwareState)
-                    }
-                }
-                $MalwareStateCount = $MalwareStates.count
-            }
-
-            # MessageSecurityStates
-            if ($null -ne $SecEvent.messageSecurityStates) {
-                $MsgSecStates = [list[object]]::new()
-                ForEach ($MsgSecState in $SecEvent.messageSecurityStates) {
-                    if ($MsgSecStates -notcontains $MsgSecState) {
-                        $MsgSecStates.add($MsgSecState)
-                    }
-                }
-                $MsgSecStateCount = $MsgSecStates.count
-            }
-
-            # NetworkConnections
-            if ($null -ne $SecEvent.networkConnections) {
-                $NetConStates = [list[object]]::new()
-                ForEach ($NetConState in $SecEvent.networkConnections) {
-                    if ($NetConStates -notcontains $NetConState) {
-                        $NetConStates.add($NetConState)
-                    }
-                }
-                $NetConStateCount = $NetConStates.count
-            }
-
-            # Processes
-            if ($null -ne $SecEvent.processes) {
-                $ProcessesStates = [list[object]]::new()
-                ForEach ($ProcessesState in $SecEvent.processes) {
-                    if ($ProcessesStates -notcontains $ProcessesState) {
-                        $ProcessesStates.add($ProcessesState)
-                    }
-                }
-                $ProcessesStateCount = $ProcessesStates.count
-            }
-
-            # RegistryKeyStates
-
-            # Security Resources
-            if ($null -ne $SecEvent.securityResources) {
-                $SecResources = [list[object]]::new()
-                ForEach ($SecResource in $SecEvent.processes) {
-                    if ($SecResources -notcontains $SecResource) {
-                        $SecResources.add($SecResource)
-                    }
-                }
-                $SecResourceCount = $SecResources.count
-            }
-
-            # Triggers
-
-            # Processes
-            if ($null -ne $SecEvent.recommendedActions) {
-                $RecommendedActions = [list[object]]::new()
-                ForEach ($RecommendedAction in $SecEvent.recommendedActions) {
-                    if ($RecommendedActions -notcontains $RecommendedAction) {
-                        $RecommendedActions.add($RecommendedAction)
-                    }
-                }
-                $RecommendedActionCount = $RecommendedActions.count
-            }
-            # 
             # Global alert parsing
             $OCLog = [PSCustomObject]@{
                 tag1 = $SecEvent.vendorInformation.provider
                 tag2 = $SecEvent.category
                 object = $SecEvent.vendorInformation.provider
                 severity = $SecEvent.severity
-                vmid = $SecEvent.azureSubscriptionId
                 policy = $SecEvent.category
+                vmid = $SecEvent.azureSubscriptionId
                 serialnumber = $SecEvent.azureTenantId
                 session = $SecEvent.id
                 reason = $SecEvent.description
@@ -232,6 +102,7 @@ ForEach ($AZAlertProvider in $AZAlertProviders) {
                 processid = $null
                 parentprocessname = $null
                 parentprocesspath = $null
+                parentprocessid = $null
                 quantity = $null
                 sessiontype = $null
                 sip = $null
@@ -254,11 +125,11 @@ ForEach ($AZAlertProvider in $AZAlertProviders) {
                 Write-Host $_
             }
 
-            if ($CloudAppStates) {
+            if ($null -ne $SecEvent.cloudAppStates) {
                 $EventCurrent = 0
-                $OCLog.quantity = $CloudAppStateCount
+                $OCLog.quantity = $SecEvent.cloudAppStates.count
                 $OCLog.objecttype = 'CloudAppState'
-                ForEach ($CloudAppState in $CloudAppStates) {
+                ForEach ($CloudAppState in $SecEvent.cloudAppStates) {
                     $EventCurrent++
                     $OCLog.amount = $EventCurrent
 
@@ -318,11 +189,11 @@ ForEach ($AZAlertProvider in $AZAlertProviders) {
             }
 
             # File States
-            if ($FileStates) {
+            if ($null -ne $SecEvent.fileStates) {
                 $EventCurrent = 0
-                $OCLog.quantity = $FileStateCount
+                $OCLog.quantity = $SecEvent.fileStates.count
                 $OCLog.objecttype = 'FileState'
-                ForEach ($FileState in $FileStates) {
+                ForEach ($FileState in $SecEvent.fileStates) {
                     $EventCurrent++
                     $OCLog.amount = $EventCurrent
 
@@ -361,12 +232,74 @@ ForEach ($AZAlertProvider in $AZAlertProviders) {
                 $OCLog.objecttype = $null
             }
 
-            # Security Resources
-            if ($SecResources) {
+            # Process States
+            if ($null -ne $SecEvent.processes) {
                 $EventCurrent = 0
-                $OCLog.quantity = $SecResourceCount
+                $OCLog.quantity = $SecEvent.processes.count
+                $OCLog.objecttype = 'Process'
+                ForEach ($Process in $SecEvent.processes) {
+                    $EventCurrent++
+                    $OCLog.amount = $EventCurrent
+
+                    # Capture File Names
+                    if ($Process.accountName) {
+                        $OCLog.login = $Process.accountName
+                    }
+
+                    # Capture File Hashes
+                    if ($Process.name) {
+                        $OCLog.process = $Process.name
+                    }
+
+                    if ($Process.processId) {
+                        $OCLog.processid = $Process.processId
+                    }
+
+                    if ($Process.commandLine) {
+                        $OCLog.process = $Process.commandLine
+                    }
+
+                    if ($Process.parentProcessName) {
+                        $OCLog.parentprocessname = $Process.parentProcessName
+                    }
+
+                    if ($Process.parentProcessId) {
+                        $OCLog.parentprocessid = $Process.parentProcessId
+                    }
+
+                    if ($Process.fileHash.hashValue) {
+                        $OCLog.hash = $Process.fileHash.hashValue
+                    }
+
+                    if ($Process.fileHash.hashType) {
+                        $OCLog.subject = $Process.fileHash.hashType
+                    }
+
+
+                    $OCLog.vendorinfo = 'https://docs.microsoft.com/en-us/graph/api/resources/process?view=graph-rest-1.0'
+
+                    Try {
+                        Invoke-RestMethod -Method 'post' -uri $OCendpoint -Headers @{'Content-Type' = 'application/json; charset=utf-8'} -Body $($OCLog | ConvertTo-Json -Depth 10 -Compress) | Out-Null
+                    } Catch {
+                        Write-Host $_
+                    }
+                    $OCLog.process = $null
+                    $OCLog.hash = $null
+                    $OCLog.size = $null
+                    $OCLog.objectname = $null
+                    $OCLog.vendorinfo = $null
+                }
+                $OCLog.quantity = $null
+                $OCLog.objecttype = $null
+            }
+
+
+            # Security Resources
+            if ($null -ne $SecEvent.securityResources) {
+                $EventCurrent = 0
+                $OCLog.quantity = $SecEvent.securityResources.count
                 $OCLog.objecttype = 'SecurityResource'
-                ForEach ($SecResource in $SecResources) {
+                ForEach ($SecResource in $SecEvent.securityResources) {
                     $EventCurrent++
                     $OCLog.amount = $EventCurrent
 
@@ -404,12 +337,13 @@ ForEach ($AZAlertProvider in $AZAlertProviders) {
             }
 
 
-            # File States
-            if ($NetConStates) {
+
+            # NetworkConnections
+            if ($null -ne $SecEvent.networkConnections) {
                 $EventCurrent = 0
-                $OCLog.quantity = $NetConStateCount
+                $OCLog.quantity = $SecEvent.networkConnections.count
                 $OCLog.objecttype = 'NetworkConnection'
-                ForEach ($NetConn in $NetConStates) {
+                ForEach ($NetConn in $SecEvent.networkConnections) {
                     $EventCurrent++
                     $OCLog.amount = $EventCurrent
 
@@ -468,11 +402,12 @@ ForEach ($AZAlertProvider in $AZAlertProviders) {
             }
 
 
-            if ($MalwareStates) {
+
+            if ($null -ne $SecEvent.malwareStates) {
                 $EventCurrent = 0
-                $OCLog.quantity = $MalwareStateCount
+                $OCLog.quantity = $SecEvent.malwareStates.count
                 $OCLog.objecttype = 'MalwareState'
-                ForEach ($MalwareState in $MalwareStates) {
+                ForEach ($MalwareState in $SecEvent.malwareStates) {
                     $EventCurrent++
                     $OCLog.amount = $EventCurrent
 
@@ -518,10 +453,10 @@ ForEach ($AZAlertProvider in $AZAlertProviders) {
             }
 
 
-            if ($HostStates) {
+            if ($null -ne $SecEvent.hostStates) {
                 $EventCurrent = 0
-                $OCLog.quantity = $HostStateCount
-                ForEach ($HostState in $HostStates) {
+                $OCLog.quantity = $SecEvent.hostStates.count
+                ForEach ($HostState in $SecEvent.hostStates) {
                     $EventCurrent++
                     $OCLog.amount = $EventCurrent
                     $OCLog.objecttype = 'HostState'
@@ -588,13 +523,14 @@ ForEach ($AZAlertProvider in $AZAlertProviders) {
                 $OCLog.quantity = $null
                 $OCLog.objecttype = $null
             }
+
             
             # Submit one log for each UserState entry
-            if ($UserStates) {
+            if ($null -ne $SecEvent.userStates) {
                 $EventCurrent = 0
-                $OCLog.quantity = $UserStateCount
+                $OCLog.quantity = $SecEvent.userStates.count
                 $OCLog.objecttype = 'UserStates'
-                ForEach ($UserState in $UserStates) {
+                ForEach ($UserState in $SecEvent.userStates) {
                     $EventCurrent++
                     $OCLog.amount = $EventCurrent
 
