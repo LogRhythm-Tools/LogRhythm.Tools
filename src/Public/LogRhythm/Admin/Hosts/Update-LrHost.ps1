@@ -225,7 +225,7 @@ Function Update-LrHost {
 
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 14)]
-        [bool] $UseEventlogCredentials = $false,
+        [bool] $UseEventlogCredentials,
 
         
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 15)]
@@ -525,12 +525,10 @@ Function Update-LrHost {
             $_osType = $OriginHostRecord.osType
         }
 
-        if ($OriginHostRecord.eventlogUsername) {
-            $_eventlogUsername = $OriginHostRecord.eventlogUsername
-        }
-
-        if ($OriginHostRecord.eventlogPassword) {
-            $_eventlogPassword = $OriginHostRecord.eventlogPassword
+        if ($UseEventlogCredentials) {
+            $_useEventlogCredentials = $UseEventlogCredentials
+        } else {
+            $_useEventlogCredentials = $OriginHostRecord.useEventlogCredentials
         }
 
         # Establish JSON Body contents
@@ -538,7 +536,7 @@ Function Update-LrHost {
             id = $Guid
             entity = [PSCustomObject]@{
                     id = $($_entity.Id)
-                    name = $($_entity.Name)
+                    name = $($_entity.fullName)
             }
             name =  $_name
             shortDesc = $_shortDesc
@@ -551,7 +549,7 @@ Function Update-LrHost {
             location = $_location
             os = $_os
             osVersion = $_osVersion
-            useEventlogCredentials = $UseEventlogCredentials
+            useEventlogCredentials = $_useEventlogCredentials
             osType = $_osType
         }
 
