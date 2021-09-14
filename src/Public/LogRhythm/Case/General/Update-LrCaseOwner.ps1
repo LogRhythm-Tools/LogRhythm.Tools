@@ -39,12 +39,16 @@ Function Update-LrCaseOwner {
         [ValidateNotNullOrEmpty()]
         [string] $Name,
 
-
+        
         [Parameter(Mandatory = $false, Position = 2)]
-        [switch] $PassThru,
+        [switch] $Force,
 
 
         [Parameter(Mandatory = $false, Position = 3)]
+        [switch] $PassThru,
+
+
+        [Parameter(Mandatory = $false, Position = 4)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -109,6 +113,29 @@ Function Update-LrCaseOwner {
             }
 
             # Make sure user is a collaborator on case
+            $CaseResults = Get-LrCaseById -Id $Id
+            if ($CaseResults -and $CaseResults.Error -ne $true) {
+                $CaseCollaborators = $CaseResults | Select-Object -ExpandProperty 'collaborators'
+                if (!($CaseCollaborators.number -contains $UserNumber)) {
+                    if ($Force) {
+                        $AddCollabResults = Add-LrCaseCollaborators -Id $Id -Numbers $UserNumber -PassThru
+                        Start-Sleep $global:APISleep
+                        if ($AddCollabResults.Error -eq $true) {
+                            return $AddCollabResults
+                        }
+                    } else {
+                        $ErrorObject.Code = -1
+                        $ErrorObject.Type = "Input Validation"
+                        $ErrorObject.Note = "New case owner is not an existing case collaborator.  Manually add the target user to the case as a collaborator or re-run this cmdlet with the -Force flag."
+                        $ErrorObject.Error = $true
+                        $ErrorObject.Raw = $null
+                        return $ErrorObject
+                    }
+                }
+            } elseif ($CaseResults.Error) {
+                return $CaseResults
+            }
+
             $CaseCollaborators = Get-LrCaseById -Id $CaseNumber | Select-Object -ExpandProperty collaborators
             if ($CaseCollaborators) {
                 if (!$CaseCollaborators.number -contains $UserNumber) {
@@ -123,7 +150,7 @@ Function Update-LrCaseOwner {
             throw [ArgumentException] "Unable to find an active LogRhythm ID for $Name."
         }
         #endregion
-
+        
 
 
         #region: Send Request                                                                      
