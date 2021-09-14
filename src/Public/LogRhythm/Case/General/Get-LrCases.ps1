@@ -218,6 +218,10 @@ Function Get-LrCases {
         [ValidateNotNull()]
         [string[]] $Tags,
 
+        [Parameter(Mandatory = $false, Position = 7)]
+        [ValidateSet("all","any")]
+        [string] $TagSearchMode,
+
 
         [Parameter(Mandatory = $false, Position = 7)]
         [ValidateNotNull()]
@@ -404,14 +408,63 @@ Function Get-LrCases {
         # Tags  (Exclude Tags are removed from the final result)
         if ($Tags) {
             $_tagNumbers = [list[string]]::new()
-            ForEach ($Tag in $Tags) {
-                $_tagNumbers.add($($Tag | Get-LrTagNumber))
+            # With TagSearchMode All, all tags must exist in order to be able to return results.
+            # If a tag requested does not exist, return the request with an error for missing tag.
+            switch ($TagSearchMode) {
+                "all" {
+                    ForEach ($Tag in $Tags) {
+                        $TagResults = $Tag | Get-LrTagNumber
+                        if ($TagResults) {
+                            if ($_tagNumbers -notcontains $TagResults) {
+                                $_tagNumbers.add($TagResults)
+                            }
+                        } else {
+                            $ErrorObject.Error = $true
+                            $ErrorObject.Type = "Tag not found."
+                            $ErrorObject.Code = 404
+                            $ErrorObject.Note = "Tag [$Tag] not found."
+                            return $ErrorObject
+                        }
+                        Start-Sleep 0.1
+                    }
+                }
+                "any" {
+                    ForEach ($Tag in $Tags) {
+                        $TagResults = $Tag | Get-LrTagNumber
+                        if ($TagResults) {
+                            if ($_tagNumbers -notcontains $TagResults) {
+                                $_tagNumbers.add($TagResults)
+                            }
+                        }
+                        Start-Sleep 0.1
+                    }
+                    if ($null -eq $TagResults -or $TagResults.count -eq 0) {
+                        $ErrorObject.Error = $true
+                        $ErrorObject.Type = "Tag not found."
+                        $ErrorObject.Code = 404
+                        $ErrorObject.Note = "Tags $([string]::Join(', ', $Tags)) not found."
+                        return $ErrorObject
+                    }
+                }
+                default {
+                    ForEach ($Tag in $Tags) {
+                        $TagResults = $Tag | Get-LrTagNumber
+                        if ($TagResults) {
+                            if ($_tagNumbers -notcontains $TagResults) {
+                                $_tagNumbers.add($TagResults)
+                            }
+                        }
+                        Start-Sleep 0.1
+                    }
+                }
             }
+
             if ($_tagNumbers.count -gt 1) {
                 $_tags = $_tagNumbers -join ','
             } else {
                 $_tags = $_tagNumbers
             }
+
             $QueryParams.Add("tagNumber", $_tags)
         }
 
@@ -547,17 +600,13 @@ Function Get-LrCases {
                 $Exclude = $false
                 
                 # Inspect each case's tags
-                if ($Tags.count -eq $_tagNumbers.count) {
-                    foreach ($_tag in $_tagNumbers) {
-                        if ($case.tags.number -notcontains $_tag) {
-                            Write-Verbose "Case #: $($Case.number) Mising Tag #: $_tag"
-                            $Exclude = $true
-                        }
+                foreach ($_tag in $_tagNumbers) {
+                    if ($case.tags.number -notcontains $_tag) {
+                        Write-Verbose "Case #: $($Case.number) Mising Tag #: $_tag"
+                        $Exclude = $true
                     }
-                } else {
-                    Write-Verbose "Total number of Tag Names submitted: $($Tags.count) does not match Tag Lookup Quantity: $($_tagNumbers.count)"
-                    $Exclude = $true
                 }
+
 
                 if ($Exclude -eq $true) {
                     $FilterResults.add($case) | Out-Null
@@ -568,6 +617,36 @@ Function Get-LrCases {
             ForEach ($FilterResult in $FilterResults) {
                 $Results.remove($FilterResult) | Out-Null
             }
+        }
+
+        if ($TagSearchMode -like "any" -and $Tags) {
+            $FilterResults = [List[object]]::new()
+            # Check every case
+            foreach ($Case in $Results) {
+                $Include = $false
+                
+                # Inspect each case's tags
+                foreach ($_tag in $_tagNumbers) {
+                    if ($case.tags.number -contains $_tag) {
+                        Write-Verbose "Case #: $($Case.number) Tag #: $_tag"
+                        $Include = $true
+                    }
+                }
+
+                if ($Include -eq $true) {
+                    if ($FilterResults -notcontains $case) {
+                        $FilterResults.add($case) | Out-Null
+                    }
+                }
+            }
+
+            # Iterate through FilterResults to remove from Results
+            if ($FilterResults.count -ge 1) {
+                $Results = $FilterResults
+            } else {
+                return $null
+            }
+            
         }
 
         # For Summary, return a formatted report
