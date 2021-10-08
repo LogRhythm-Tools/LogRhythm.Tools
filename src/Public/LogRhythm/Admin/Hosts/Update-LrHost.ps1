@@ -535,8 +535,8 @@ Function Update-LrHost {
         $BodyContents = [PSCustomObject]@{
             id = $Guid
             entity = [PSCustomObject]@{
-                    id = $($_entity.Id)
-                    name = $($_entity.fullName)
+                id = $($_entity.Id)
+                name = $($_entity.fullName)
             }
             name =  $_name
             shortDesc = $_shortDesc
