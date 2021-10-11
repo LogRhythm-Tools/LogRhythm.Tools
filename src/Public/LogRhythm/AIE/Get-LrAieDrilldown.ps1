@@ -197,6 +197,7 @@ Function Get-LrAieDrilldown {
                     FieldName = $($field.PIFType | Get-PIFTypeName)
                     FieldValue = ($field.DrillDownSummaryLogs | ConvertFrom-Json).field
                     FieldCount = ($field.DrillDownSummaryLogs | ConvertFrom-Json).value
+                    RuleBlockId = ($ruleBlock.RuleBlockId)
                 }
                 $SummaryFields.Add($fields)
             }
