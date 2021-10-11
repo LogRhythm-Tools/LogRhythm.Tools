@@ -158,7 +158,7 @@ Function Get-LrAieSummary {
         foreach ($ruleBlock in $_dd.RuleBlocks) {
             foreach ($field in $ruleBlock.DDSummaries) {
                 $fields = [PSCustomObject]@{
-                    FieldName = $field.PIFType
+                    FieldName = $($field.PIFType)
                     FieldValue = ($field.DrillDownSummaryLogs | ConvertFrom-Json).field
                     FieldCount = ($field.DrillDownSummaryLogs | ConvertFrom-Json).value
                     RuleBlockId = ($ruleBlock.RuleBlockId)
