@@ -143,11 +143,18 @@ Function Get-LrAlarmEvents {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
+        [Parameter(
+            Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true, 
+            Position = 0
+        )]
         [Int32] $AlarmId,
 
 
-        [Parameter(Mandatory = $false, Position = 1)]
+        [Parameter(
+            Mandatory = $false,
+            Position = 1
+        )]
         [switch] $ResultsOnly,
 
 
