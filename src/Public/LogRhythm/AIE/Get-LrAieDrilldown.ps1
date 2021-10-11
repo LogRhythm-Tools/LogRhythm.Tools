@@ -194,10 +194,10 @@ Function Get-LrAieDrilldown {
         foreach ($ruleBlock in $_dd.RuleBlocks) {
             foreach ($field in $ruleBlock.DDSummaries) {
                 $fields = [PSCustomObject]@{
+                    RuleBlockId = ($ruleBlock.RuleBlockId)
                     FieldName = $($field.PIFType | Get-PIFTypeName)
                     FieldValue = ($field.DrillDownSummaryLogs | ConvertFrom-Json).field
                     FieldCount = ($field.DrillDownSummaryLogs | ConvertFrom-Json).value
-                    RuleBlockId = ($ruleBlock.RuleBlockId)
                 }
                 $SummaryFields.Add($fields)
             }
