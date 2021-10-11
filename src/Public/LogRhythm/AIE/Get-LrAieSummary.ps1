@@ -162,7 +162,6 @@ Function Get-LrAieSummary {
                 $FieldName = $field.PIFType
                 $FieldValue = ($field.DrillDownSummaryLogs | ConvertFrom-Json).field
                 $fields.Add($FieldName, $FieldValue)
-                $fields.Add('RuleBlockId', $ruleBlock.RuleBlockId)
             }
             $SummaryFields.Add($fields)
         }
