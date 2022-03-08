@@ -43,11 +43,11 @@ Function Add-LrAlarmComment {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $true, Position = 0)]
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 0)]
         [Int32] $AlarmId,
 
 
-        [Parameter(Mandatory = $true, Position = 1)]
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 1)]
         [String] $Comment,
 
 

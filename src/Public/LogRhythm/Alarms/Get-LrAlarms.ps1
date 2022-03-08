@@ -117,24 +117,44 @@ Function Get-LrAlarms {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
+        [Parameter(
+            Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true, 
+            Position = 0
+        )]
         [string] $Name,
 
 
-        [Parameter(Mandatory = $false, Position = 1)]
+        [Parameter(
+            Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true, 
+            Position = 1
+        )]
         [string] $Entity,
 
 
-        [Parameter(Mandatory = $false, Position = 2)]
+        [Parameter(
+            Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true, 
+            Position = 2
+        )]
         [string] $Alarm,
 
 
-        [Parameter(Mandatory = $false, Position = 3)]
-        [string] $Notification,
+        [Parameter(
+            Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true, 
+            Position = 3
+        )]
+        [bool] $Notification,
 
 
-        [Parameter(Mandatory = $false, Position = 4)]
-        [string] $CaseId,
+        [Parameter(
+            Mandatory = $false, 
+            ValueFromPipelineByPropertyName = $true, 
+            Position = 4
+        )]
+        [bool] $CaseAssociation,
 
 
         [Parameter(Mandatory = $false, Position = 5)]
@@ -144,7 +164,7 @@ Function Get-LrAlarms {
 
         [Parameter(Mandatory = $false, Position = 6)]
         [ValidateSet('asc','desc', 'ascending', 'descending', ignorecase=$true)]
-        [string] $Direction = "asc",
+        [string] $Direction = "desc",
 
 
         [Parameter(Mandatory = $false, Position = 7)]
@@ -165,6 +185,10 @@ Function Get-LrAlarms {
 
         [Parameter(Mandatory = $false, Position = 11)]
         [int] $PageCount = 1,
+
+
+        [Parameter(Mandatory = $false, Position = 20)]
+        [int] $MaxPages = 1000,
 
 
         [Parameter(Mandatory = $false, Position = 12)]
@@ -233,14 +257,12 @@ Function Get-LrAlarms {
             $QueryParams.Add("entityName", $_entityName)
         }
 
-        if ($CaseId) {
-            $CaseIdStatus = Test-LrCaseIdFormat -Id $CaseId
-            if (($CaseIdStatus.IsValid -eq $true) -and ($null -ne $CaseIdStatus.CaseNumber) ) {
-                $_caseId = $CaseIdStatus.CaseGuid.replace("-","")
-            } else {
-                $_caseId = $CaseId
-            }
-            $QueryParams.Add("caseAssociation", $_caseId)
+        if ($CaseAssociation) {
+            $QueryParams.Add("caseAssociation", $CaseAssociation)
+        }
+
+        if ($Notification) {
+            $QueryParams.Add("Notification", $Notification)
         }
 
         if ($DateInserted) {
@@ -315,18 +337,20 @@ Function Get-LrAlarms {
         }
 
 
-        if ($Response.alarmsCount -eq $PageValuesCount) {
-            write-verbose "Response Count: $($Response.alarmsCount)  Page Value Count: $PageValuesCount"
+        if ($Response.alarmsCount -eq $PageValuesCount -and ($MaxPages -gt 1)) {
+            $PageNumber = 1
+            write-verbose "Response Count: $($Response.alarmsCount)  Page Value Count: $PageValuesCount  Page: $PageNumber  Max Pages: $MaxPages"
             $AlarmResults = [list[object]]::new()
-            ForEach ($AlarmDetails in $Response.alarmSearchDetails) {
+            ForEach ($AlarmDetails in $Response.alarmsSearchDetails) {
                 if ($AlarmResults.alarmId -notcontains $AlarmDetails.alarmId) {
                     $AlarmResults.Add($AlarmDetails)
                 }
             }
             
             DO {
+                $PageNumber = $PageNumber + 1
                 # Increment Offset
-                $Offset = $Offset + 1
+                $Offset = $Offset + (1 * $PageValuesCount)
                 # Update Query Paramater
                 $QueryParams.offset = $Offset
                 # Apply to Query String
@@ -352,8 +376,9 @@ Function Get-LrAlarms {
                     }
                 }
                 
-                write-verbose "Response Count: $($PaginationResults.alarmsCount)  Page Value Count: $PageValuesCount"
-            } While ($($PaginationResults.alarmsCount) -eq $PageValuesCount)
+                write-verbose "Response Count: $($PaginationResults.alarmsCount)  Page Value Count: $PageValuesCount  Page: $PageNumber  Max Pages: $MaxPages"
+            } While (($($PaginationResults.alarmsCount) -eq $PageValuesCount) -and ($PageNumber -lt $MaxPages))
+
             #$AlarmResults = $AlarmResults | Sort-Object -Property alarmId -Unique
             $Response = [PSCustomObject]@{
                 alarmsSearchDetails = $AlarmResults

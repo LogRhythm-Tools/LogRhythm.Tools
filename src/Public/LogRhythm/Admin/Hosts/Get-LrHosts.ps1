@@ -145,7 +145,9 @@ Function Get-LrHosts {
         $Method = $HttpMethod.Get
 
         # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
-        Enable-TrustAllCertsPolicy        
+        Enable-TrustAllCertsPolicy    
+        
+        $_int = 1
     }
 
     Process {
@@ -177,8 +179,19 @@ Function Get-LrHosts {
 
         # Filter by Object Entity Name
         if ($Entity) {
-            $_entityName = $Entity
-            $QueryParams.Add("entity", $_entityName)
+            # Check if ID value is an integer
+            if ([int]::TryParse($Entity, [ref]$_int)) {
+                $EntityLookup = Get-LrEntityDetails -Id $Entity
+                if ($EntityLookup.error) {
+                    return $EntityLookup
+                } else {
+                    $_entityName = $EntityLookup.name
+                }
+            } else {
+                $_entityName = $Entity
+                $QueryParams.Add("entity", $_entityName)
+            }
+            
         }
 
         if ($HostIdentifier) {
@@ -249,6 +262,9 @@ Function Get-LrHosts {
             $Response = $Response | Sort-Object -Property Id -Unique
         }
 
+        if ($null -ne $EntityLookup -and $null -ne $Response) {
+            $Response = $Response | Where-Object -FilterScript {$_.entity.id -eq $EntityLookup.id}
+        }
 
         # [Exact] Parameter
         # Search "Malware" normally returns both "Malware" and "Malware Options"

@@ -166,7 +166,7 @@ Function Get-LrAgentsAccepted {
 
         [Parameter(Mandatory = $false, Position = 4)]
         [ValidateSet('all','active','retired', ignorecase=$true)]
-        [string] $RecordStatus = "all",
+        [string] $RecordStatus = "active",
 
 
         [Parameter(Mandatory = $false, Position = 5)]

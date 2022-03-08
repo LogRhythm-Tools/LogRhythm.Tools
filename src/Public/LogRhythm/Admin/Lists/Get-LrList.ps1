@@ -124,6 +124,23 @@ Function Get-LrList {
             return $ErrorObject
         }
 
+        switch ($Response.listType) {
+            'MsgSource' {
+                ForEach ($Item in $Response.items) {
+                    $ItemName = Get-LrLogSourceDetails -Id $Item.value
+                    $Item | Add-Member -MemberType NoteProperty -Name 'valueName' -Value $ItemName.Name
+                }
+            }
+            'MsgSourceType' {
+                $LSTypes = Get-LrLogSourceTypes
+                ForEach ($Item in $Response.items) {
+                    $ItemName = $LSTypes | Where-Object -filterscript {$_.id -eq $Item.value}
+                    $Item | Add-Member -MemberType NoteProperty -Name 'valueName' -Value $ItemName.Name
+                }
+            }
+            default {}
+        }
+
 
         # Process Results
         if ($ValuesOnly) {

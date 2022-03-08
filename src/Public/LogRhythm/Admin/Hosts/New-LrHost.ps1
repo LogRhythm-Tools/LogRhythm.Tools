@@ -230,9 +230,6 @@ Function New-LrHost {
         # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
         Enable-TrustAllCertsPolicy
 
-        # Define LogRhythm Version
-        $LrVersion = $LrtConfig.LRDeployment.Version
-        
         # Integer Reference
         [int32] $_int = 1
     }
@@ -318,7 +315,9 @@ Function New-LrHost {
                 $_location = $OriginHostRecord.Location
             }
         } else {
-            $_location = $OriginHostRecord.Location
+            $_location = [PSCustomObject][Ordered]@{
+                id = -1
+            }
         }
 
         # Ensure proper syntax
@@ -411,7 +410,7 @@ Function New-LrHost {
             id = -1
             entity = [PSCustomObject]@{
                     id = $($_entity.Id)
-                    name = $($_entity.Name)
+                    name = $($_entity.fullName)
             }
             name =  $Name
             shortDesc = $shortDesc
