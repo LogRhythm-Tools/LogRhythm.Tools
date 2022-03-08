@@ -62,19 +62,19 @@ Function Get-LrLocations {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 0)]
         [string] $Name,
 
         
-        [Parameter(Mandatory = $false, Position = 1)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 1)]
         [int32] $Id,
 
 
-        [Parameter(Mandatory = $false, Position = 2)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 2)]
         [int32] $ParentLocationId,
 
 
-        [Parameter(Mandatory = $false, Position = 3)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 3)]
         [ValidateSet('region','country', ignorecase=$true)]
         [string] $LocationType,
 

@@ -2,7 +2,7 @@ function Get-LrLogSourceTypes
 {
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 0)]
         [string] $Name,
 
 

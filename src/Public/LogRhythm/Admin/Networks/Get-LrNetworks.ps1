@@ -111,33 +111,33 @@ Function Get-LrNetworks {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 0)]
         [string] $Name,
 
 
-        [Parameter(Mandatory = $false, Position = 1)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 1)]
         [string] $Entity,
 
 
-        [Parameter(Mandatory = $false, Position = 2)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 2)]
         [ValidateSet('asc','desc', ignorecase=$true)]
         [string] $Direction,
 
 
-        [Parameter(Mandatory = $false, Position = 3)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 3)]
         [ValidateSet('all','active','retired', ignorecase=$true)]
         [string] $RecordStatus = "active",
 
 
-        [Parameter(Mandatory = $false, Position = 4)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 4)]
         [string] $BIP,
 
 
-        [Parameter(Mandatory = $false, Position = 5)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 5)]
         [string] $EIP,
 
 
-        [Parameter(Mandatory = $false, Position = 6)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 6)]
         [ValidateSet('name','bip','eip','entity', ignorecase=$true)]
         [string] $OrderBy = "Entity",
 
