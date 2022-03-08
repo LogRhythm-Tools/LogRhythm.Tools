@@ -154,16 +154,18 @@ Function Get-LrAieSummary {
         $_dd = $Response.Data.drilldownsummary
 
         # Get Summary Fields
-        $SummaryFields = [List[Dictionary[string,string]]]::new()
+        $SummaryFields = [List[object]]::new()
         foreach ($ruleBlock in $_dd.RuleBlocks) {
-            $fields = [Dictionary[string,string]]::new()
-
             foreach ($field in $ruleBlock.DDSummaries) {
-                $FieldName = $field.PIFType
-                $FieldValue = ($field.DrillDownSummaryLogs | ConvertFrom-Json).field
-                $fields.Add($FieldName, $FieldValue)
+                $fields = [PSCustomObject]@{
+                    RuleBlockId = ($ruleBlock.RuleBlockId)
+                    FieldName = $($field.PIFType)
+                    FieldValue = ($field.DrillDownSummaryLogs | ConvertFrom-Json).field
+                    FieldCount = ($field.DrillDownSummaryLogs | ConvertFrom-Json).value
+                }
+                $SummaryFields.Add($fields)
             }
-            $SummaryFields.Add($fields)
+
         }
 
         # Done!
