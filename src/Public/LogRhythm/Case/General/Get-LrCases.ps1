@@ -292,6 +292,10 @@ Function Get-LrCases {
 
 
         [Parameter(Mandatory = $false, Position = 20)]
+        [int] $MaxPages = 1000,
+
+
+        [Parameter(Mandatory = $false, Position = 21)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -551,7 +555,7 @@ Function Get-LrCases {
                 
                 # Append results to Response
                 $Response = $Response + $PaginationResults
-            } While ($($PaginationResults.Count) -eq $Count)
+            } While (($($PaginationResults.Count) -eq $Count) -and ($PageNumber -lt $MaxPages))
         }
     }
 

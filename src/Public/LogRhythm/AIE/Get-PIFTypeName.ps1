@@ -25,6 +25,7 @@ Function Get-PIFTypeName {
         [Parameter(
             Mandatory = $true,
             ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true,
             Position = 0
         )]
         [int] $PIFType

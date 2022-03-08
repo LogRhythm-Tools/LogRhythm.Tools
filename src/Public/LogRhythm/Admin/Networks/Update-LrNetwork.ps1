@@ -160,7 +160,7 @@ Function Update-LrNetwork {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 0)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 0)]
         [string] $Id,
 
 
@@ -508,8 +508,8 @@ Function Update-LrNetwork {
         #>
         $BodyContents = [PSCustomObject]@{
             entity = [PSCustomObject]@{
-                    id = $($_entity.Id)
-                    name = $($_entity.Name)
+                id = $($_entity.Id)
+                name = $($_entity.Name)
             }
             name =  $_name
             shortDesc = $_shortDesc

@@ -175,51 +175,51 @@ Function Get-LrLogSources {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 0)]
         [string] $Name,
 
 
-        [Parameter(Mandatory = $false, Position = 1)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 1)]
         [int32] $SystemMonitorId,
 
 
-        [Parameter(Mandatory = $false, Position = 2)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 2)]
         [int32[]] $HostId,
 
 
-        [Parameter(Mandatory = $false, Position = 3)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 3)]
         [ValidateSet('all','active','retired', ignorecase=$true)]
         [string] $RecordStatus = "active",
 
 
-        [Parameter(Mandatory = $false, Position = 4)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 4)]
         [int32[]] $EntityId,
 
 
-        [Parameter(Mandatory = $false, Position = 5)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 5)]
         [ValidateSet('name','id', ignorecase=$true)]
         [string] $OrderBy = "name",
 
 
-        [Parameter(Mandatory = $false, Position = 6)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 6)]
         [ValidateSet('asc','desc', ignorecase=$true)]
         [string] $Direction,
 
 
-        [Parameter(Mandatory = $false, Position = 7)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 7)]
         [string] $Description,
 
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 8)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 8)]
         [string] $MessageSourceTypeId,
 
 
-        [Parameter(Mandatory = $false, Position = 9)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 9)]
         [ValidateSet('true','false', ignorecase=$true)]
         [string] $Virtual,
 
 
-        [Parameter(Mandatory = $false, Position = 10)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 10)]
         [ValidateSet('true','false', ignorecase=$true)]
         [string] $LoadBalanced,
 

@@ -81,20 +81,20 @@ Function Add-LrListItem {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $true, Position = 0)]
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, Position = 0)]
         [ValidateNotNull()]
         [object] $Name,
 
 
-        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 1)]
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, Position = 1)]
         [string[]] $Value,
 
 
-        [Parameter(Mandatory = $false, Position = 2)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 2)]
         [string] $ItemType,
 
 
-        [Parameter(Mandatory = $false, Position = 3)]
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 3)]
         [switch] $LoadListItems,
 
                         
@@ -128,6 +128,10 @@ Function Add-LrListItem {
 
         # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
         Enable-TrustAllCertsPolicy
+
+        if ($Value -is [array]) {
+            $Value = $Value.Split('',[System.StringSplitOptions]::RemoveEmptyEntries)
+        }
     }
 
     Process {
@@ -387,8 +391,9 @@ Function Add-LrListItem {
                 if ($Value -is [array]) {
                     ForEach ($Entry in $Value) {
                         $IPValid = $Entry -as [IPAddress] -as [Bool]
-                        Write-Verbose "[$Me] IPValid: $IPValid"
+                        
                         if ($IPValid -eq $false) {
+                            Write-Verbose "[$Me] IPValid: $IPValid  Value: $Entry"
                             $ErrorObject.Error = $true
                             $ErrorObject.FieldType =  "IP"
                             $ErrorObject.TypeMismatch = $true

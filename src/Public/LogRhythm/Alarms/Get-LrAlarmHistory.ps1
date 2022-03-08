@@ -64,44 +64,80 @@ Function Get-LrAlarmHistory {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $true, Position = 0)]
+        [Parameter(
+            Mandatory = $true,
+            ValueFromPipelineByPropertyName = $true, 
+            Position = 0
+        )]
         [Int32] $AlarmId,
 
 
-        [Parameter(Mandatory = $false, Position = 1)]
+        [Parameter(
+            Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true, 
+            Position = 1
+        )]
         [string] $Person,
 
 
-        [Parameter(Mandatory = $false, Position = 2)]
+        [Parameter(
+            Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true, 
+            Position = 2
+        )]
         [string] $OrderBy,
 
 
-        [Parameter(Mandatory = $false, Position = 3)]
+        [Parameter(
+            Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true, 
+            Position = 3
+        )]
         [string] $Direction,
 
 
-        [Parameter(Mandatory = $false, Position = 4)]
+        [Parameter(
+            Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true, 
+            Position = 4
+        )]
         [datetime] $DateUpdated,
     
         
-        [Parameter(Mandatory = $false, Position = 5)]
+        [Parameter(
+            Mandatory = $false,
+            ValueFromPipelineByPropertyName = $true, 
+            Position = 5
+        )]
         [ValidateSet('comment', 'status','rbp', ignorecase=$true)]
         [string] $Type,
     
 
-        [Parameter(Mandatory = $false, Position = 6)]
+        [Parameter(
+            Mandatory = $false,
+            Position = 6
+        )]
         [switch] $ResultsOnly,
 
         
-        [Parameter(Mandatory = $false, Position = 7)]
+        [Parameter(
+            Mandatory = $false,
+            Position = 7
+        )]
         [int] $PageValuesCount = 1000,
 
 
-        [Parameter(Mandatory = $false, Position = 8)]
+        [Parameter(
+            Mandatory = $false,
+            Position = 8
+        )]
         [int] $PageCount = 1,
 
 
-        [Parameter(Mandatory = $false, Position = 9)]
+        [Parameter(
+            Mandatory = $false,
+            Position = 9
+        )]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )

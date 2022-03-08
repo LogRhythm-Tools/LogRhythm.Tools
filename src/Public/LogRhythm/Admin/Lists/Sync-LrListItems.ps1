@@ -122,6 +122,10 @@ Function Sync-LrListItems {
     Begin {
         # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
         Enable-TrustAllCertsPolicy
+
+        if ($Value -is [array]) {
+            $Value = $Value.Split('',[System.StringSplitOptions]::RemoveEmptyEntries)
+        }
     }
 
     Process {
@@ -156,6 +160,7 @@ Function Sync-LrListItems {
 
         # Process Name
         if (($Name.GetType() -eq [System.Guid]) -Or (Test-Guid $Name)) {
+            Write-Verbose "Inspecting for List Name by GUID"
             $TargetList = Get-LrList -name $Name.ToString()
             if ($TargetList.Error -eq $true) {
                 $ErrorObject.Error = $true
@@ -170,6 +175,7 @@ Function Sync-LrListItems {
                 $OutObject.ListType = $TargetList.ListType
             }
         } else {
+            Write-Verbose "Inspecting for List Name by Exact Name"
             $TargetList = Get-LrLists -Name $Name.ToString() -Exact
             if ($TargetList -is [array]) {
                 $ErrorObject.Error = $true
