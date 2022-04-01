@@ -83,7 +83,8 @@ Function Get-LrList {
         $ErrorObject = [PSCustomObject]@{
             Code                  =   $null
             Error                 =   $false
-            Value                 =   $Value
+            Value                 =   $Name
+            Type                  =   $null
             Note                  =   $null
             Raw                   =   $null
         }
