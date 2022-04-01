@@ -218,36 +218,39 @@ Function Get-LrCases {
         [ValidateNotNull()]
         [string[]] $Tags,
 
-
         [Parameter(Mandatory = $false, Position = 7)]
+        [ValidateSet("all","any")]
+        [string] $TagSearchMode,
+
+        [Parameter(Mandatory = $false, Position = 8)]
         [ValidateNotNull()]
         [string[]] $ExcludeTags,
 
 
-        [Parameter(Mandatory = $false, Position = 8)]
+        [Parameter(Mandatory = $false, Position = 9)]
         [ValidateSet("alarm","userEvents","log","note","file")]
         [string[]] $EvidenceType,
         #endregion
 
         
         #region: Header Parameters___________________________________________________________
-        [Parameter(Mandatory = $false, Position = 9)]
+        [Parameter(Mandatory = $false, Position = 10)]
         [DateTime] $UpdatedAfter,
 
 
-        [Parameter(Mandatory = $false, Position = 10)]
+        [Parameter(Mandatory = $false, Position = 11)]
         [DateTime] $UpdatedBefore,
 
 
-        [Parameter(Mandatory = $false,Position = 11)]
+        [Parameter(Mandatory = $false,Position = 12)]
         [DateTime] $CreatedAfter,
 
 
-        [Parameter(Mandatory = $false,Position = 12)]
+        [Parameter(Mandatory = $false,Position = 13)]
         [DateTime] $CreatedBefore,
 
 
-        [Parameter(Mandatory = $false,Position = 13)]
+        [Parameter(Mandatory = $false,Position = 14)]
         [ValidateSet(
             "dateCreated",
             "dateClosed",
@@ -262,36 +265,36 @@ Function Get-LrCases {
         [string] $OrderBy = "dateCreated",
 
 
-        [Parameter(Mandatory = $false,Position = 14)]
+        [Parameter(Mandatory = $false,Position = 15)]
         [ValidateSet("asc","desc")]
         [string] $Direction = "asc",
 
 
-        [Parameter(Mandatory = $false, Position = 15)]
+        [Parameter(Mandatory = $false, Position = 16)]
         [switch] $Summary,
 
 
-        [Parameter(Mandatory = $false, Position = 16)]
+        [Parameter(Mandatory = $false, Position = 17)]
         [switch] $Exact,
 
 
-        [Parameter(Mandatory = $false, Position = 17)]
+        [Parameter(Mandatory = $false, Position = 18)]
         [switch] $Metrics,
 
 
-        [Parameter(Mandatory = $false, Position = 18)]
+        [Parameter(Mandatory = $false, Position = 19)]
         [int] $Count = 500,
 
 
-        [Parameter(Mandatory = $false, Position = 19)]
+        [Parameter(Mandatory = $false, Position = 20)]
         [int] $PageNumber = 1,
 
 
-        [Parameter(Mandatory = $false, Position = 20)]
+        [Parameter(Mandatory = $false, Position = 21)]
         [int] $MaxPages = 1000,
 
 
-        [Parameter(Mandatory = $false, Position = 21)]
+        [Parameter(Mandatory = $false, Position = 22)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -408,14 +411,62 @@ Function Get-LrCases {
         # Tags  (Exclude Tags are removed from the final result)
         if ($Tags) {
             $_tagNumbers = [list[string]]::new()
-            ForEach ($Tag in $Tags) {
-                $_tagNumbers.add($($Tag | Get-LrTagNumber))
+
+            switch ($TagSearchMode) {
+                "all" {
+                    ForEach ($Tag in $Tags) {
+                        $TagResults = $Tag | Get-LrTagNumber
+                        if ($TagResults) {
+                            if ($_tagNumbers -notcontains $TagResults) {
+                                $_tagNumbers.add($TagResults)
+                            }
+                        } else {
+                            $ErrorObject.Error = $true
+                            $ErrorObject.Type = "Tag not found."
+                            $ErrorObject.Code = 404
+                            $ErrorObject.Note = "Tag [$Tag] not found."
+                            return $ErrorObject
+                        }
+                        Start-Sleep 0.1
+                    }
+                }
+                "any" {
+                    ForEach ($Tag in $Tags) {
+                        $TagResults = $Tag | Get-LrTagNumber
+                        if ($TagResults) {
+                            if ($_tagNumbers -notcontains $TagResults) {
+                                $_tagNumbers.add($TagResults)
+                            }
+                        }
+                        Start-Sleep 0.1
+                    }
+                    if ($null -eq $TagResults -or $TagResults.count -eq 0) {
+                        $ErrorObject.Error = $true
+                        $ErrorObject.Type = "Tag not found."
+                        $ErrorObject.Code = 404
+                        $ErrorObject.Note = "Tags $([string]::Join(', ', $Tags)) not found."
+                        return $ErrorObject
+                    }
+                }
+                default {
+                    ForEach ($Tag in $Tags) {
+                        $TagResults = $Tag | Get-LrTagNumber
+                        if ($TagResults) {
+                            if ($_tagNumbers -notcontains $TagResults) {
+                                $_tagNumbers.add($TagResults)
+                            }
+                        }
+                        Start-Sleep 0.1
+                    }
+                }
             }
+
             if ($_tagNumbers.count -gt 1) {
                 $_tags = $_tagNumbers -join ','
             } else {
                 $_tags = $_tagNumbers
             }
+
             $QueryParams.Add("tagNumber", $_tags)
         }
 
@@ -467,7 +518,7 @@ Function Get-LrCases {
         # REQUEST
         try {
             $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-        } catch [System.Net.WebException] {
+        } catch {
             $Err = Get-RestErrorMessage $_
             $ErrorObject.Error = $true
             $ErrorObject.Type = "System.Net.WebException"
@@ -490,7 +541,7 @@ Function Get-LrCases {
                 # Retrieve Query Results
                 try {
                     $PaginationResults = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-                } catch [System.Net.WebException] {
+                } catch {
                     $Err = Get-RestErrorMessage $_
                     $ErrorObject.Error = $true
                     $ErrorObject.Type = "System.Net.WebException"
@@ -510,6 +561,11 @@ Function Get-LrCases {
         # Set the case results into List form to support manipulation
         $Results = [List[Object]]::new()
         ForEach ($CaseResult in $Response) {
+            if ($Metrics) {
+                $_metrics = $CaseResult | Get-LrCaseMetrics
+                $CaseResult | Add-Member -MemberType NoteProperty -Name "Metrics" -Value $_metrics -Force
+                Start-Sleep 0.1
+            }
             $Results.add($CaseResult) | Out-Null
         }
 
@@ -551,16 +607,11 @@ Function Get-LrCases {
                 $Exclude = $false
                 
                 # Inspect each case's tags
-                if ($Tags.count -eq $_tagNumbers.count) {
-                    foreach ($_tag in $_tagNumbers) {
-                        if ($case.tags.number -notcontains $_tag) {
-                            Write-Verbose "Case #: $($Case.number) Mising Tag #: $_tag"
-                            $Exclude = $true
-                        }
+                foreach ($_tag in $_tagNumbers) {
+                    if ($Case.tags.number -notcontains $_tag) {
+                        Write-Verbose "Case #: $($Case.number) Mising Tag #: $_tag"
+                        $Exclude = $true
                     }
-                } else {
-                    Write-Verbose "Total number of Tag Names submitted: $($Tags.count) does not match Tag Lookup Quantity: $($_tagNumbers.count)"
-                    $Exclude = $true
                 }
 
                 if ($Exclude -eq $true) {
@@ -574,9 +625,33 @@ Function Get-LrCases {
             }
         }
 
-        # For Summary, return a formatted report
-        if ($Summary) {
-            return Format-LrCaseListSummary -InputObject $Results
+        if ($TagSearchMode -like "any" -and $Tags) {
+            $FilterResults = [List[object]]::new()
+            # Check every case
+            foreach ($Case in $Results) {
+                $Include = $false
+                
+                # Inspect each case's tags
+                foreach ($_tag in $_tagNumbers) {
+                    if ($case.tags.number -contains $_tag) {
+                        Write-Verbose "Case #: $($Case.number) Tag #: $_tag"
+                        $Include = $true
+                    }
+                }
+
+                if ($Include -eq $true) {
+                    if ($FilterResults -notcontains $case) {
+                        $FilterResults.add($case) | Out-Null
+                    }
+                }
+            }
+
+            # Iterate through FilterResults to remove from Results
+            if ($FilterResults.count -ge 1) {
+                $Results = $FilterResults
+            } else {
+                return $null
+            }
         }
 
         #region: Return Results                                                                        
@@ -595,21 +670,18 @@ Function Get-LrCases {
                 }
             }
 
-            # [Exact Match] - Get Metrics if requested
-            if ($Metrics) {
-                if ($ExactCaseMatches[0]) {
-                    $_metrics = $ExactCaseMatches[0] | Get-LrCaseMetrics    
-                    $ExactCaseMatches[0] | Add-Member -MemberType NoteProperty -Name "Metrics" -Value $_metrics
-                } 
-            }
-
             # [Exact Match] - Check Result Count
             if ($ExactCaseMatches.Count -gt 1) {
                 Write-Warning "More than one case found matching exact name: $Name"
                 Write-Warning "Only the first result will be returned"
             }
-            return $ExactCaseMatches[0]
-            
+
+            # For Summary, return a formatted report
+            if ($Summary) {
+                return Format-LrCaseListSummary -InputObject $ExactCaseMatches[0]
+            } else {
+                return $ExactCaseMatches[0]
+            }
         # [Name Match] - return one or more resuls based on partial name match
         } elseif ($Name) {
             $Pattern = ".*$Name.*"
@@ -618,25 +690,26 @@ Function Get-LrCases {
             # [Name Match]
             $Results | ForEach-Object {
                 if(($_.name -match $Pattern) -or ($_.name -like $Name)) {
-                    # [Name Match] - Get Metrics if requested
-                    if ($Metrics) {
-                        $_metrics = $_ | Get-LrCaseMetrics    
-                        $_ | Add-Member -MemberType NoteProperty -Name "Metrics" -Value $_metrics -Force
-                    }
                     $CaseMatches.Add($_) | Out-Null
                 }
             }
-
-            return $CaseMatches
+    
+            # For Summary, return a formatted report
+            if ($Summary -and $null -ne $CaseMatches) {
+                return $(Format-LrCaseListSummary -InputObject $CaseMatches)
+            } else {
+                return $CaseMatches
+            }
         # [Default] - return all results
         } else {
-            if ($Metrics) {
-                $Response | ForEach-Object {
-                    $_metrics = $_ | Get-LrCaseMetrics
-                    $_ | Add-Member -MemberType NoteProperty -Name "Metrics" -Value $_metrics -Force
+            # For Summary, return a formatted report
+            if ($Summary) {
+                if ($Results) {
+                    return $(Format-LrCaseListSummary -InputObject $Results)
                 }
+            } else {
+                return $Results
             }
-            return $Results
         }
     }
     #endregion
