@@ -25,17 +25,18 @@ Function Update-LrCaseStatus {
         3 - [Incident]  Open
         4 - [Incident]  Mitigated
         5 - [Incident]  Resolved
-    .PARAMETER Quiet
-        Indicates that this cmdlet suppresses all output.
+    .PARAMETER Force
+        Will cause the cmdlet to take into consideration the current case status and apply
+        any required status transitions to achieve the target status.
+    .PARAMETER PassThru
+        Switch paramater that will enable the return of the output object from the cmdlet.
     .INPUTS
         [System.Object]   ->  Id
         [System.Int32]    ->  StatusNumber
     .OUTPUTS
         PSCustomObject representing the modified LogRhythm Case.
     .EXAMPLE
-        PS C:\> Update-LrCaseStatus -id 2 -Status 2 -Summary
-        ---
-        Updated 1 cases to status 2
+        PS C:\> Update-LrCaseStatus -id 2 -Status 2 -Force
     .EXAMPLE
         PS C:\> Update-LrCaseStatus -id "case 2" -Status 1 -Summary
         ---
@@ -43,7 +44,6 @@ Function Update-LrCaseStatus {
     .EXAMPLE
         PS C:\> Update-LrCaseStatus -id "case 2" -Status 1 -PassThru
         ---
-
         id                      : 408C2E88-2E5D-4DA5-90FE-9F4D63B5B709
         number                  : 2
         externalId              :
@@ -87,14 +87,18 @@ Function Update-LrCaseStatus {
 
 
         [Parameter(Mandatory = $false, Position = 2)]
-        [switch] $PassThru,
+        [switch] $Force,
 
 
         [Parameter(Mandatory = $false, Position = 3)]
-        [switch] $Summary,
+        [switch] $PassThru,
 
 
         [Parameter(Mandatory = $false, Position = 4)]
+        [switch] $Summary,
+
+
+        [Parameter(Mandatory = $false, Position = 5)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -123,16 +127,6 @@ Function Update-LrCaseStatus {
 
 
     Process {
-        # Establish General Error object Output
-        $ErrorObject = [PSCustomObject]@{
-            Code                  =   $null
-            Error                 =   $false
-            Type                  =   $null
-            Note                  =   $null
-            Case                  =   $Id
-            Raw                   =   $null
-        }  
-
         # Test CaseID Format
         $IdStatus = Test-LrCaseIdFormat $Id
         if ($IdStatus.IsValid -eq $true) {
@@ -143,36 +137,232 @@ Function Update-LrCaseStatus {
 
         # Validate Case Status
         $_status = ConvertTo-LrCaseStatusId -Status $Status
-        if (! $_status) {
-            throw [ArgumentException] "Invalid case status: $Status"
+        if ($_status.Error) {
+            return $_status
         }
-
         # Request URI
         $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/actions/changeStatus/"
 
+        if ($Force) {
+            $CurrentCase = Get-LrCaseById -Id $CaseNumber
+            Switch ($CurrentCase.status.number) {
+                1 {
+                    Switch ($_status) {
+                        4 {
+                            $Body = [PSCustomObject]@{
+                                statusNumber = 3
+                            } | ConvertTo-Json
+                            $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body
+                            if ($Response.Error) {
+                                return $Response
+                            }
+                        }
+                        5 {
+                            $Body = [PSCustomObject]@{
+                                statusNumber = 3
+                            } | ConvertTo-Json
+                            $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body
+                            if ($Response.Error) {
+                                return $Response
+                            }
+                            $Body = [PSCustomObject]@{
+                                statusNumber = 4
+                            } | ConvertTo-Json
+                            $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body
+                            if ($Response.Error) {
+                                return $Response
+                            }
+                        }
+                        default {
+                            continue
+                        }
+                    }
+                }
+                2 {
+                    Switch ($_status) {
+                        3 {
+                            $Body = [PSCustomObject]@{
+                                statusNumber = 1
+                            } | ConvertTo-Json
+                            $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body
+                            if ($Response.Error) {
+                                return $Response
+                            }
+                        }
+                        4 {
+                            $Body = [PSCustomObject]@{
+                                statusNumber = 1
+                            } | ConvertTo-Json
+                            $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body
+                            if ($Response.Error) {
+                                return $Response
+                            }
+                            $Body = [PSCustomObject]@{
+                                statusNumber = 3
+                            } | ConvertTo-Json
+                            $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body
+                            if ($Response.Error) {
+                                return $Response
+                            }
+                        }
+                        5 {
+                            $Body = [PSCustomObject]@{
+                                statusNumber = 1
+                            } | ConvertTo-Json
+                            $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body
+                            if ($Response.Error) {
+                                return $Response
+                            }
+                            $Body = [PSCustomObject]@{
+                                statusNumber = 3
+                            } | ConvertTo-Json
+                            $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body
+                            if ($Response.Error) {
+                                return $Response
+                            }
+
+                            $Body = [PSCustomObject]@{
+                                statusNumber = 4
+                            } | ConvertTo-Json
+                            $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body
+                            if ($Response.Error) {
+                                return $Response
+                            }
+                        }
+                        default {
+                            continue
+                        }
+                    }
+                }
+                3 {
+                    Switch ($_status) {
+                        2 {
+                            $Body = [PSCustomObject]@{
+                                statusNumber = 1
+                            } | ConvertTo-Json
+                            $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body
+                            if ($Response.Error) {
+                                return $Response
+                            }
+                        }
+                        5 {
+                            $Body = [PSCustomObject]@{
+                                statusNumber = 4
+                            } | ConvertTo-Json
+                            $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body
+                            if ($Response.Error) {
+                                return $Response
+                            }
+                        }
+                        default {
+                            continue
+                        }
+                    }
+                }
+                4 {
+                    Switch ($_status) {
+                        1 {
+                            $Body = [PSCustomObject]@{
+                                statusNumber = 3
+                            } | ConvertTo-Json
+                            $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body
+                            if ($Response.Error) {
+                                return $Response
+                            }
+                        }
+                        2 {
+                            $Body = [PSCustomObject]@{
+                                statusNumber = 3
+                            } | ConvertTo-Json
+                            $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body
+                            if ($Response.Error) {
+                                return $Response
+                            }
+                            $Body = [PSCustomObject]@{
+                                statusNumber = 1
+                            } | ConvertTo-Json
+                            $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body
+                            if ($Response.Error) {
+                                return $Response
+                            }
+                        }
+                        default {
+                            continue
+                        }
+                    }
+                }
+                5 {
+                    Switch ($_status) {
+                        1 {
+                            $Body = [PSCustomObject]@{
+                                statusNumber = 4
+                            } | ConvertTo-Json
+                            $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body
+                            if ($Response.Error) {
+                                return $Response
+                            }
+                            $Body = [PSCustomObject]@{
+                                statusNumber = 3
+                            } | ConvertTo-Json
+                            $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body
+                            if ($Response.Error) {
+                                return $Response
+                            }
+                        }
+                        2 {
+                            $Body = [PSCustomObject]@{
+                                statusNumber = 4
+                            } | ConvertTo-Json
+                            $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body
+                            if ($Response.Error) {
+                                return $Response
+                            }
+                            $Body = [PSCustomObject]@{
+                                statusNumber = 3
+                            } | ConvertTo-Json
+                            $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body
+                            if ($Response.Error) {
+                                return $Response
+                            }
+                            $Body = [PSCustomObject]@{
+                                statusNumber = 1
+                            } | ConvertTo-Json
+                            $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body
+                            if ($Response.Error) {
+                                return $Response
+                            }
+                        }
+                        3 {
+                            $Body = [PSCustomObject]@{
+                                statusNumber = 4
+                            } | ConvertTo-Json
+                            $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body
+                            if ($Response.Error) {
+                                return $Response
+                            }
+                        }
+                        default {
+                            continue
+                        }
+                    }
+                }
+            }
+        }
 
         # Request Body
         $Body = [PSCustomObject]@{
             statusNumber = $_status
         } | ConvertTo-Json
 
-        
         # Send Request
         Write-Verbose "[$Me]: request body is:`n$Body"
 
-        try {
-            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
+
+        $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body
+        if ($Response.Error) {
+            return $Response
         }
-        catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            $ErrorObject.Code = $Err.statusCode
-            $ErrorObject.Type = "WebException"
-            $ErrorObject.Note = $Err.message
-            $ErrorObject.Error = $true
-            $ErrorObject.Raw = $_
-            return $ErrorObject
-        }
-        
+
         $ProcessedCount++
 
         # Return
