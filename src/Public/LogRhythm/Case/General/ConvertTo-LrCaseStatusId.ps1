@@ -18,6 +18,19 @@ Function ConvertTo-LrCaseStatusId {
         ConvertTo-LrCaseStatusId -Status "Closed"
         ---
         5
+    .EXAMPLE
+        ConvertTo-LrCaseStatusId -Status "Bogus"
+        ---
+        Code  : 404
+        Error : True
+        Type  : Invalid status name
+        Note  :
+        Value : Bogus
+        Raw   : [ConvertTo-LrCaseStatusId] No match found for Bogus
+    .EXAMPLE
+        ConvertTo-LrCaseStatusId -Status 5
+        ---
+        5
     .LINK
         https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
@@ -37,6 +50,14 @@ Function ConvertTo-LrCaseStatusId {
     }
 
     Process {
+        $ErrorObject = [PSCustomObject]@{
+            Code                  =   $null
+            Error                 =   $false
+            Type                  =   $null
+            Value                 =   $Status
+            Raw                   =   $null
+        }  
+
         # Validate Case Status
         $_int = $null
         if (! ([int]::TryParse($Status, [ref]$_int))) {
@@ -45,13 +66,26 @@ Function ConvertTo-LrCaseStatusId {
                 Write-Verbose "[$Me] Found match for $Status. Return $($LrCaseStatus.Status)"
                 return $LrCaseStatus.$Status
             } else {
+                $ErrorObject.Code = 404
+                $ErrorObject.Error = $true
+                $ErrorObject.Raw = "[$Me] No match found for $Status"
+                $ErrorObject.Type = 'Invalid status name'
+                $ErrorObject.Value = $Status
                 Write-Verbose "[$Me] No match found for $Status"
-                return $null
+                return $ErrorObject
             }
         }
         # we have an integer, ensure it is between 1 and 5
         if (($_int -gt 0) -and ($_int -lt 6)) {
             return $_int
+        } else {
+            $ErrorObject.Code = 404
+            $ErrorObject.Error = $true
+            $ErrorObject.Raw = "[$Me] No match found for $Status"
+            $ErrorObject.Type = 'Invalid status value'
+            $ErrorObject.Value = $Status
+            Write-Verbose "[$Me] No match found for $Status"
+            return $ErrorObject
         }
         # int outside of range, and not a string.
         return $null
