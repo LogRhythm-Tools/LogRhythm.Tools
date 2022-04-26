@@ -69,7 +69,7 @@ Function Get-UrlScanScreenshot {
         Try {
             $Response = Invoke-WebRequest $RequestUrl -Method $Method -OutFile $FullPath
         }
-        catch [System.Net.WebException] {
+        catch {
             $Err = Get-RestErrorMessage $_
             throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
         }

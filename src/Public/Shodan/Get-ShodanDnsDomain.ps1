@@ -61,7 +61,7 @@
             # Query DNS and obtain domain IP address
             try {
                 $shodanDNSResults = Invoke-RestMethod $RequestUrl
-            } catch [System.Net.WebException] {
+            } catch {
                 $Err = Get-RestErrorMessage $_
                 $ErrorObject.Error = $true
                 $ErrorObject.Type = "System.Net.WebException"

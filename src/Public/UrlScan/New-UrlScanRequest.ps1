@@ -86,7 +86,7 @@ Function New-UrlScanRequest {
         Try {
             $Response = Invoke-RestMethod $RequestUrl -Method $Method -Headers $Headers -Body $Body
         }
-        catch [System.Net.WebException] {
+        catch {
             $Err = Get-RestErrorMessage $_
             $ErrorObject.Error = $true
             $ErrorObject.Type = "System.Net.WebException"

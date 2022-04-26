@@ -78,7 +78,7 @@ Function New-VTUrlScanRequest {
         Try {
             $vtResponse = Invoke-RestMethod $RequestUrl -Method $Method -Body $Body
         }
-        catch [System.Net.WebException] {
+        catch {
             return $_
             $ErrorObject.Error = $true
             $ErrorObject.Type = "System.Net.WebException"

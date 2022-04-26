@@ -166,7 +166,7 @@ Function Get-RfIPRiskList {
         Try {
             $Results = Invoke-RestMethod $RequestUrl -Method $Method -Headers $Headers | ConvertFrom-Csv
         }
-        catch [System.Net.WebException] {
+        catch {
             $Err = Get-RestErrorMessage $_
             $ErrorObject.Error = $true
             $ErrorObject.Type = "System.Net.WebException"

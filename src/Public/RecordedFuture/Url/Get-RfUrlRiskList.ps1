@@ -135,7 +135,7 @@ Function Get-RfUrlRiskList {
             Try {
                 $Results = Invoke-RestMethod $RequestUrl -Method $Method -Headers $Headers | ConvertFrom-Csv
             }
-            catch [System.Net.WebException] {
+            catch {
                 If ($_.Exception.Response.StatusCode.value__) {
                     $HTTPCode = ($_.Exception.Response.StatusCode.value__ ).ToString().Trim()
                     Write-Verbose "HTTP Code: $HTTPCode"
@@ -150,7 +150,7 @@ Function Get-RfUrlRiskList {
             Try {
                 $Results = Invoke-WebRequest $RequestUrl -Method $Method -Headers $Headers
             }
-            catch [System.Net.WebException] {
+            catch {
                 $Err = Get-RestErrorMessage $_
                 $ErrorObject.Error = $true
                 $ErrorObject.Type = "System.Net.WebException"

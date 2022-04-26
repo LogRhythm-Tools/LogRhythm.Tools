@@ -161,7 +161,7 @@ Function Get-RfHashRiskLists {
         Try {
             $Results = Invoke-RestMethod $RequestUrl -Method $Method -Headers $Headers
         }
-        catch [System.Net.WebException] {
+        catch {
             If ($_.Exception.Response.StatusCode.value__) {
                 $HTTPCode = ($_.Exception.Response.StatusCode.value__ ).ToString().Trim()
                 Write-Verbose "HTTP Code: $HTTPCode"

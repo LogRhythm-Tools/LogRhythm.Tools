@@ -47,7 +47,7 @@ function Get-ShodanProfile {
 
         try {
             $Results = Invoke-RestMethod $RequestUrl
-        } catch [System.Net.WebException] {
+        } catch {
             $Err = Get-RestErrorMessage $_
             $ErrorObject.Error = $true
             $ErrorObject.Type = "System.Net.WebException"

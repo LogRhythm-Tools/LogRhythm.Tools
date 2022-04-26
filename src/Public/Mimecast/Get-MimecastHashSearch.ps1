@@ -109,7 +109,7 @@ function Get-MimecastHashSearch {
         # Query DNS and obtain domain IP address
         try {
             $Results = Invoke-RestMethod $RequestUrl -Method $Method -Body $Body -Headers $Headers
-        } catch [System.Net.WebException] {
+        } catch {
             return $_
         }
 

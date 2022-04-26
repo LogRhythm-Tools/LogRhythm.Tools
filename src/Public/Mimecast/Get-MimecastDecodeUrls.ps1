@@ -130,7 +130,7 @@ function Get-MimecastDecodeUrls {
         # Query DNS and obtain domain IP address
         try {
             $Results = Invoke-RestMethod $RequestUrl -Method $Method -Body $Body -Headers $Headers
-        } catch [System.Net.WebException] {
+        } catch {
             $Err = Get-RestErrorMessage $_
             $ErrorObject.Error = $true
             $ErrorObject.Type = "System.Net.WebException"

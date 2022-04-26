@@ -74,7 +74,7 @@ function Get-ShodanDirectorySearch {
             $RequestUrl = $BaseUrl +"/shodan/query/search?query="+ $Keyword +"&page="+ $Page +"&key="+ $Token           
             try {
                 $Response = Invoke-RestMethod $RequestUrl
-            } catch [System.Net.WebException] {
+            } catch {
                 $Err = Get-RestErrorMessage $_
                 $ErrorObject.Error = $true
                 $ErrorObject.Type = "System.Net.WebException"

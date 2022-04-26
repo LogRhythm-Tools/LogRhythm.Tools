@@ -135,7 +135,7 @@ Function Get-VTIPReport {
         Try {
             $vtResponse = Invoke-RestMethod $RequestUrl -Method $Method 
         }
-        catch [System.Net.WebException] {
+        catch {
             return $_
         }
         # Add value for scan type and value

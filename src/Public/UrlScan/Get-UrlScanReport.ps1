@@ -77,7 +77,7 @@ Function Get-UrlScanReport {
         Try {
             $Response = Invoke-RestMethod $RequestUrl -Method $Method -Headers $Headers -Body $Body
         }
-        catch [System.Net.WebException] {
+        catch {
             return $_
         }
 
