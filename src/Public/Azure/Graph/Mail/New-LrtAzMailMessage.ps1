@@ -107,7 +107,7 @@ Function New-LrtAzMailMessage {
                 -Headers $Headers `
                 -Method $Method `
                 -Body $Body
-        } catch [System.Net.WebException] {
+        } catch {
             return $_
             throw [Exception] "[$Me] [$($Err.error.code)]: $($Err.error.message)`n"
         }

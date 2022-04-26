@@ -91,7 +91,7 @@ Function Get-LrtAzMailFolders {
                 -Headers $Headers `
                 -Method $Method `
         }
-        catch [System.Net.WebException] {
+        catch {
             $Err = Get-RestErrorMessage $_
             throw [Exception] "[$Me] [$($Err.error.code)]: $($Err.error.message)`n"
         }
@@ -119,7 +119,7 @@ Function Get-LrtAzMailFolders {
                         -Headers $Headers `
                         -Method $Method `
                 }
-                catch [System.Net.WebException] {
+                catch {
                     $Err = Get-RestErrorMessage $_
                     throw [Exception] "[$Me] [$($Err.error.code)]: $($Err.error.message)`n"
                 }

@@ -65,7 +65,7 @@ Function Get-LrtAzSecurityAlert {
                 -Uri $RequestUri `
                 -Headers $Headers `
                 -Method $Method `
-        } catch [System.Net.WebException] {
+        } catch {
             $Err = Get-RestErrorMessage $_
             throw [Exception] "[$Me] [$($Err.error.code)]: $($Err.error.message)`n"
         }

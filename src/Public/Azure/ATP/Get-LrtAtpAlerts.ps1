@@ -254,7 +254,7 @@ Function Get-LrtAtpAlerts {
         $Response = Invoke-RestMethod -Uri $RequestUri -Headers $Headers -Method $Method
         Write-Verbose "Alert Count: $($Response.Count)"
     }
-    catch [System.Net.WebException] {
+    catch {
         $Err = Get-RestErrorMessage $_
         throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
     }

@@ -73,7 +73,7 @@ Function Get-LrtAzUserManager {
                 -Uri $RequestUri `
                 -Headers $Headers `
                 -Method $Method
-        } catch [System.Net.WebException] {
+        } catch {
             $Err = Get-RestErrorMessage $_
             $ErrorObject.Error = $true
             $ErrorObject.Type = "System.Net.WebException"

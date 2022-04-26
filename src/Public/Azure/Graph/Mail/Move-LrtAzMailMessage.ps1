@@ -83,7 +83,7 @@ Function Move-LrtAzMailMessage {
                 -Method $Method `
                 -Body $MessageBody `
         }
-        catch [System.Net.WebException] {
+        catch {
             $Err = Get-RestErrorMessage $_
             throw [Exception] "[$Me] [$($Err.error.code)]: $($Err.error.message)`n"
         }
@@ -111,7 +111,7 @@ Function Move-LrtAzMailMessage {
                         -Headers $Headers `
                         -Method $Method `
                 }
-                catch [System.Net.WebException] {
+                catch {
                     $Err = Get-RestErrorMessage $_
                     throw [Exception] "[$Me] [$($Err.error.code)]: $($Err.error.message)`n"
                 }

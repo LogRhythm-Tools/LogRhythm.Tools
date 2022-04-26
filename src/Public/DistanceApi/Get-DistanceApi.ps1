@@ -54,7 +54,7 @@ Function Get-DistanceApi {
         Try {
             $Response = Invoke-RestMethod $RequestUrl -Method $Method 
         }
-        catch [System.Net.WebException] {
+        catch {
             $Err = Get-RestErrorMessage $_
             throw [Exception] "[$Me] [$($Err.statusCode)]: $($Err.message) $($Err.details)`n$($Err.validationErrors)`n"
         }

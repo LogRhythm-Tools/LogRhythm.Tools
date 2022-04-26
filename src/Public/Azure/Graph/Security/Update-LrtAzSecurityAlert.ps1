@@ -182,7 +182,7 @@ Function Update-LrtAzSecurityAlert {
                 -Headers $Headers `
                 -Method $Method `
                 -Body $Body `
-        } catch [System.Net.WebException] {
+        } catch {
             $Err = Get-RestErrorMessage $_
             return $Err
         }

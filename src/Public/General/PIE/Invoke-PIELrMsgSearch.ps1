@@ -121,7 +121,7 @@ Function Invoke-PIELrMsgSearch {
         # Send Request
         try {
             $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
-        } catch [System.Net.WebException] {
+        } catch {
             $Err = Get-RestErrorMessage $_
             $ErrorObject.Code = $Err.statusCode
             $ErrorObject.Type = "WebException"
