@@ -107,30 +107,9 @@ Function Get-LrPlaybookById {
         Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         # REQUEST
-        try {
-            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-        } catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            $ErrorObject.Code = $Err.statusCode
-            $ErrorObject.Error = $true
-            $ErrorObject.Type = "TypeMismatch"
-            switch ($Err.statusCode) {
-                "404" {
-                    $ErrorObject.Type = "KeyNotFoundException"
-                    $ErrorObject.Note = "Playbook ID $Id not found, or you do not have permission to view it."
-                    }
-                    "401" {
-                    $ErrorObject.Type = "UnauthorizedAccessException"
-                    $ErrorObject.Note = "Credential '$($Credential.UserName)' is unauthorized to access 'lr-case-api'"
-                    }
-                Default {
-                    $ErrorObject.Type = "System.Net.WebException"
-                    $ErrorObject.Note = $Err.message
-                }
-            }
-            $ErrorObject.Value = $Id
-            $ErrorObject.Raw = $_
-            return $ErrorObject
+        $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
+        if ($Response.Error) {
+            return $Response
         }
 
         # Return all responses.

@@ -42,6 +42,8 @@ Function Test-LrIdentityIdentifierId {
         [int] $IdentityId
     )
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+        
         # Establish output object
         $OutObject = [PSCustomObject]@{
             IsPresent           =   $false

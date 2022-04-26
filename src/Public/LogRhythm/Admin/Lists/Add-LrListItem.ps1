@@ -108,8 +108,9 @@ Function Add-LrListItem {
     )
                                                                    
     Begin {
-        # Request Setup
         $Me = $MyInvocation.MyCommand.Name
+        
+        # Request Setup
         $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
@@ -153,11 +154,7 @@ Function Add-LrListItem {
         if (($Name.GetType() -eq [System.Guid]) -Or (Test-Guid $Name)) {
             $TargetList = Get-LrList -name $Name.ToString()
             if ($TargetList.Error -eq $true) {
-                $ErrorObject.Error = $true
-                $ErrorObject.ListName = $TargetList.Name
-                $ErrorObject.ListGuid = $TargetList.Guid
-                $ErrorObject.Note = $TargetList.Note
-                return $ErrorObject
+                return $TargetList
             }
         } else {
             $TargetList = Get-LrList -Name $Name.ToString() -Exact
@@ -194,6 +191,7 @@ Function Add-LrListItem {
                                 $ErrorObject.FieldType =  "PortRange"
                                 $ErrorObject.QuantityMismatch =   $true
                                 $ErrorObject.Note = "Quantity Mismatch.  Values Submited: $($Entry.split(",").Count) - ValuesRequired: 2"
+                                return $ErrorObject
                             }
                             $Entry.split(",").Trim() | ForEach-Object {
                                 # Validate each port
@@ -202,6 +200,7 @@ Function Add-LrListItem {
                                     $ErrorObject.Error = $true
                                     $ErrorObject.FieldType =  "PortRange"
                                     $ErrorObject.Note = "Improper PortRange Value. Value Submited: $_ - ValueRange: 0-65535"
+                                    return $ErrorObject
                                 }
                             }
                             # Set List metadata type
@@ -214,6 +213,7 @@ Function Add-LrListItem {
                                 $ErrorObject.Error = $true
                                 $ErrorObject.FieldType =  "Port"
                                 $ErrorObject.Note = "Improper Port Value. Value Submited: $Value - ValueRange: 0-65535"
+                                return $ErrorObject
                             }
                             $ListItemDataType = "Int32"
                             $ListItemType = "Port"
@@ -227,6 +227,7 @@ Function Add-LrListItem {
                             $ErrorObject.FieldType =  "PortRange"
                             $ErrorObject.QuantityMismatch =   $true
                             $ErrorObject.Note = "Quantity Mismatch.  Values Submited: $($Value.split(",").Count) - ValuesRequired: 2"
+                            return $ErrorObject
                         }
                         $Value.split(",").Trim() | ForEach-Object {
                             # Validate each port
@@ -235,6 +236,7 @@ Function Add-LrListItem {
                                 $ErrorObject.Error = $true
                                 $ErrorObject.FieldType =  "PortRange"
                                 $ErrorObject.Note = "Improper PortRange Value. Value Submited: $_ - ValueRange: 0-65535"
+                                return $ErrorObject
                             }
                         }
                         # Set List metadata type
@@ -247,6 +249,7 @@ Function Add-LrListItem {
                             $ErrorObject.Error = $true
                             $ErrorObject.FieldType =  "Port"
                             $ErrorObject.Note = "Improper Port Value. Value Submited: $Value - ValueRange: 0-65535"
+                            return $ErrorObject
                         }
                         $ListItemDataType = "Int32"
                         $ListItemType = "Port"
@@ -304,6 +307,7 @@ Function Add-LrListItem {
                         $ErrorObject.Error = $true
                         $ErrorObject.FieldType = $ListItemType
                         $ErrorObject.Note = "ListType KnownHost is currently not supported"
+                        return $ErrorObject
                     }
                     hostname {
                         $ListItemDataType = "String"
@@ -317,6 +321,7 @@ Function Add-LrListItem {
                                     $ErrorObject.FieldType =  "IPRange"
                                     $ErrorObject.QuantityMismatch =   $true
                                     $ErrorObject.Note = "Quantity Mismatch.  Values Submited: $($Entry.split(",").Count) - ValuesRequired: 2"
+                                    return $ErrorObject
                                 }
                                 $Entry.split(",").Trim() | ForEach-Object {
                                     # Validate each IP Address
@@ -326,6 +331,7 @@ Function Add-LrListItem {
                                         $ErrorObject.FieldType =  "IPRange"
                                         $ErrorObject.TypeMismatch = $true
                                         $ErrorObject.Note = "Type Mismatch.  Values Submited: $_ - Type Required: IPv4/IPv6 Address"
+                                        return $ErrorObject
                                     }
                                 }
                                 # Remove spaces from Entry
@@ -338,6 +344,7 @@ Function Add-LrListItem {
                                 $ErrorObject.FieldType =  "IPRange"
                                 $ErrorObject.QuantityMismatch =   $true
                                 $ErrorObject.Note = "Quantity Mismatch.  Values Submited: $($Value.split(",").Count) - ValuesRequired: 2"
+                                return $ErrorObject
                             }
                             $Value.split(",").Trim() | ForEach-Object {
                                 # Validate each IP Address
@@ -347,6 +354,7 @@ Function Add-LrListItem {
                                     $ErrorObject.FieldType =  "IPRange"
                                     $ErrorObject.TypeMismatch = $true
                                     $ErrorObject.Note = "Type Mismatch.  Values Submited: $_ - Type Required: IPv4/IPv6 Address"
+                                    return $ErrorObject
                                 }
                             }
                             # Remove all spaces from Value to support type IPRange
@@ -365,6 +373,7 @@ Function Add-LrListItem {
                                     $ErrorObject.FieldType =  "IP"
                                     $ErrorObject.TypeMismatch = $true
                                     $ErrorObject.Note = "Type Mismatch.  Values Submited: $Entry - Type Required: IPv4/IPv6 Address"
+                                    return $ErrorObject
                                 }
                             }
                         } else {
@@ -375,6 +384,7 @@ Function Add-LrListItem {
                                 $ErrorObject.FieldType =  "IP"
                                 $ErrorObject.TypeMismatch = $true
                                 $ErrorObject.Note = "Type Mismatch.  Values Submited: $Value - Type Required: IPv4/IPv6 Address"
+                                return $ErrorObject
                             }
                         }
 
@@ -398,6 +408,7 @@ Function Add-LrListItem {
                             $ErrorObject.FieldType =  "IP"
                             $ErrorObject.TypeMismatch = $true
                             $ErrorObject.Note = "Type Mismatch.  Values Submited: $Entry - Type Required: IPv4/IPv6 Address"
+                            return $ErrorObject
                         }
                     }
                 } else {
@@ -408,6 +419,7 @@ Function Add-LrListItem {
                         $ErrorObject.FieldType =  "IP"
                         $ErrorObject.TypeMismatch = $true
                         $ErrorObject.Note = "Type Mismatch.  Values Submited: $Value - Type Required: IPv4/IPv6 Address"
+                        return $ErrorObject
                     }
                 }
                 $ListItemDataType = "IP"
@@ -422,6 +434,7 @@ Function Add-LrListItem {
                             $ErrorObject.FieldType =  "IPRange"
                             $ErrorObject.QuantityMismatch =   $true
                             $ErrorObject.Note = "Quantity Mismatch.  Values Submited: $($Entry.split(",").Count) - ValuesRequired: 2"
+                            return $ErrorObject
                         }
                         $Entry.split(",").Trim() | ForEach-Object {
                             # Validate each IP Address
@@ -431,6 +444,7 @@ Function Add-LrListItem {
                                 $ErrorObject.FieldType =  "IPRange"
                                 $ErrorObject.TypeMismatch = $true
                                 $ErrorObject.Note = "Type Mismatch.  Values Submited: $_ - Type Required: IPv4/IPv6 Address"
+                                return $ErrorObject
                             }
                         }
                         # Remove spaces from Entry
@@ -442,6 +456,7 @@ Function Add-LrListItem {
                         $ErrorObject.FieldType =  "IPRange"
                         $ErrorObject.QuantityMismatch =   $true
                         $ErrorObject.Note = "Quantity Mismatch.  Values Submited: $($Value.split(",").Count) - ValuesRequired: 2"
+                        return $ErrorObject
                     }
                     $Value.split(",").Trim() | ForEach-Object {
                         # Validate each IP Address
@@ -451,6 +466,7 @@ Function Add-LrListItem {
                             $ErrorObject.FieldType =  "IPRange"
                             $ErrorObject.TypeMismatch = $true
                             $ErrorObject.Note = "Type Mismatch.  Values Submited: $_ - Type Required: IPv4/IPv6 Address"
+                            return $ErrorObject
                         }
                     }
                     # Remove spaces from Value
@@ -518,37 +534,21 @@ Function Add-LrListItem {
         Write-Verbose "[$Me] Request Body:`n$Body"
 
         # Check for Object Errors
-        if ( $ErrorObject.Error -eq $true) {
-            return $ErrorObject
-        } elseif ($Value -is [array]) {
+        if ($Value -is [array]) {
             # No Duplicate checking for array of items
             # Send Request
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
-            } catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                $ErrorObject.Raw = $_
-                return $ErrorObject
+            $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
+            if ($Response.Error) {
+                return $Response
             }
         } else {
             # Check for Duplicates for single items
             $ExistingValue = Test-LrListValue -Name $Guid -Value $Value
             if (($ExistingValue.IsPresent -eq $false) -and ($ExistingValue.ListValid -eq $true)) {
                 # Send Request
-                try {
-                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
-                } catch [System.Net.WebException] {
-                    $Err = Get-RestErrorMessage $_
-                    $ErrorObject.Error = $true
-                    $ErrorObject.Type = "System.Net.WebException"
-                    $ErrorObject.Code = $($Err.statusCode)
-                    $ErrorObject.Note = $($Err.message)
-                    $ErrorObject.Raw = $_
-                    return $ErrorObject
+                $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
+                if ($Response.Error) {
+                    return $Response
                 }
             } else {
                 $ErrorObject.Error = $true
@@ -560,11 +560,6 @@ Function Add-LrListItem {
             }
         }  
 
-
-        # Return output object
-        if ($ErrorObject.Error -eq $true) {
-            return $ErrorObject
-        }
         if ($PassThru) {
             return $Response
         }

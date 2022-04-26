@@ -44,6 +44,7 @@ Function Get-LrListGuidByName {
     )
 
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
     }
 
 

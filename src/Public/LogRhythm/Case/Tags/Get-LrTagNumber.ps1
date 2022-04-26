@@ -29,6 +29,8 @@ Function Get-LrTagNumber {
     )
 
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+        
         $_int = 1
      }
 

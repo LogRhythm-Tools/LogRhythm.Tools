@@ -116,6 +116,8 @@ Function New-LrEntity {
     )
 
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+
         # Request Setup
         $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
@@ -131,9 +133,6 @@ Function New-LrEntity {
         # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
         Enable-TrustAllCertsPolicy
 
-        # Define LogRhythm Version
-        $LrVersion = $LrtConfig.LRDeployment.Version
-        
         # Integer Reference
         [int32] $_int = 1
     }
@@ -174,9 +173,9 @@ Function New-LrEntity {
         # Ensure proper syntax
         if ($RecordStatus) {
             # Update RecordStatus for 7.5 API
-            if ($LrtConfig.LogRhythm.Version -match '7\.[5-9]\.\d+') {
-                if ($RecordStatus -eq "new") {
-                    $RecordStatus = "active"
+            if ($LrtConfig.LogRhythm.Version -match '7\.[0-4]\.\d+') {
+                if ($RecordStatus -eq "active") {
+                    $RecordStatus = "new"
                 }
             }
             $_recordStatus = (Get-Culture).TextInfo.ToTitleCase($RecordStatus)
@@ -203,23 +202,11 @@ Function New-LrEntity {
         $RequestUrl = $BaseUrl + "/lr-admin-api/entities/"
 
         # Send Request
-        try {
-            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body 
-        }
-        catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            $ErrorObject.Error = $true
-            $ErrorObject.Type = "System.Net.WebException"
-            $ErrorObject.Code = $($Err.statusCode)
-            $ErrorObject.Note = $($Err.message)
-            $ErrorObject.Raw = $_
-            return $ErrorObject
+        $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
+        if ($Response.Error) {
+            return $Response
         }
         
-        # Return output object
-        if ($ErrorObject.Error -eq $true) {
-            return $ErrorObject
-        }
         if ($PassThru) {
             return $Response
         }

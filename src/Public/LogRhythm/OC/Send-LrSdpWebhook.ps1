@@ -276,6 +276,8 @@ Function Send-LrSdpWebhook {
     )
 
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+        
         # Request Setup
         if ($OCUrl) {
             $BaseUrl = $OCUrl

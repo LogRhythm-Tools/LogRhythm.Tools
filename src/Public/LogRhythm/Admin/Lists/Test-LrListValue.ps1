@@ -46,6 +46,8 @@ Function Test-LrListValue {
 
     
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+        
         # Establish output object
         $OutObject = [PSCustomObject]@{
             IsPresent   =   $false

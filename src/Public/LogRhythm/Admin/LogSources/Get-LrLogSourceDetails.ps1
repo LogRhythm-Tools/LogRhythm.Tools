@@ -126,6 +126,8 @@ Function Get-LrLogSourceDetails {
     )
 
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+
         # Request Setup
         $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
@@ -162,7 +164,6 @@ Function Get-LrLogSourceDetails {
             $ErrorObject.Code = "404"
             $ErrorObject.Type = "Cmdlet not supported."
             $ErrorObject.Note = "This cmdlet is available in LogRhythm version 7.5.0 and greater."
-
             return $ErrorObject
         }
 
@@ -173,8 +174,8 @@ Function Get-LrLogSourceDetails {
         } else {
             Write-Verbose "[$Me]: Id does not parse as integer.  Performing string lookup."
             $LogSourceLookup = Get-LrLogSources -Name $Id -Exact
-            if ($NetworkLookup.Error -eq $true) {
-                return $NetworkLookup
+            if ($LogSourceLookup.Error -eq $true) {
+                return $LogSourceLookup
             } else {
                 $Guid = $LogSourceLookup | Select-Object -ExpandProperty id
             }
@@ -184,21 +185,11 @@ Function Get-LrLogSourceDetails {
         $RequestUrl = $BaseUrl + "/lr-admin-api/logsources/" + $Guid + "/"
         # Error Output - Used to support Pipeline Paramater ID
         Write-Verbose "[$Me]: Id: $Id - Guid: $Guid - ErrorStatus: $($ErrorObject.Error)"
-        if ($ErrorObject.Error -eq $false) {
+
             # Send Request
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-            } catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                $ErrorObject.Raw = $_
-                return $ErrorObject
-            }
-        } else {
-            return $ErrorObject
+        $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
+        if ($Response.Error) {
+            return $Response
         }
 
         return $Response

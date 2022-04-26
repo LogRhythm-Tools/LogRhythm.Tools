@@ -41,6 +41,8 @@ Function Test-LrFilterType {
         [string] $EnumName
     )
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+        
         $FieldFilterTypeEnum = @{
             53 = @{
                 DisplayName = "Account by Active Directory Group"

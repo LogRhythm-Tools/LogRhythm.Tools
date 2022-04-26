@@ -40,6 +40,7 @@ Function Import-LrPlaybook {
 
     Begin {
         $Me = $MyInvocation.MyCommand.Name
+        
         $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 

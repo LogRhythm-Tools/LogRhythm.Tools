@@ -270,6 +270,8 @@ Function New-LrSearch {
     )
 
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+        
         # Request Setup
         $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
@@ -510,7 +512,7 @@ Function New-LrSearch {
 
 #            searchServerIPAddress = $SearchServerIPAddress
         # Establish Body Contents
-        $BodyContents = [PSCustomObject]@{
+        $Body = [PSCustomObject]@{
             maxMsgsToQuery = $MaxMsgsToQuery
             queryTimeout = $QueryTimeout
             queryRawLog = $_queryRawLog
@@ -533,23 +535,16 @@ Function New-LrSearch {
             }
         } | ConvertTo-Json -Depth 7
 
-        Write-Verbose $BodyContents
+        Write-Verbose $Body
 
 
         # Define Query URL
         $RequestUrl = $BaseUrl + "/lr-search-api/actions/search-task"
 
         # Send Request
-        try {
-            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
-        } catch {
-            $Err = Get-RestErrorMessage $_
-            $ErrorObject.Code = $Err.statusCode
-            $ErrorObject.Type = "WebException"
-            $ErrorObject.Note = $Err.message
-            $ErrorObject.Raw = $_
-            $ErrorObject.Error = $true
-            return $ErrorObject
+        $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
+        if ($Response.Error) {
+            return $Response
         }
 
         return $Response

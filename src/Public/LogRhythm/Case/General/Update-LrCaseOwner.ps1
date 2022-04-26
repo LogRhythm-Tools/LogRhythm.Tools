@@ -134,16 +134,9 @@ Function Update-LrCaseOwner {
         $Body = [PSCustomObject]@{ number = $UserNumber } | ConvertTo-Json
         
         Write-Verbose "[$Me]: request body is:`n$Body"
-        try {
-            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
-        } catch [System.Net.WebException] {
-		    $Err = Get-RestErrorMessage $_
-            $ErrorObject.Code = $Err.statusCode
-            $ErrorObject.Type = "WebException"
-            $ErrorObject.Note = $Err.message
-            $ErrorObject.Error = $true
-            $ErrorObject.Raw = $_
-            return $ErrorObject
+        $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
+        if ($Response.Error) {
+            return $Response
         }
 
         #endregion

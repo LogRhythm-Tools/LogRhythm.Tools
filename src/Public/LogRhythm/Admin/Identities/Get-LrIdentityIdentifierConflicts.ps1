@@ -76,6 +76,8 @@ Function Get-LrIdentityIdentifierConflicts {
     )
 
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+
         # Request Setup
         $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
@@ -109,13 +111,9 @@ Function Get-LrIdentityIdentifierConflicts {
             if ($ShowRetired) { $RequestUrl += "&showRetired=true" }
             if ($Filter) { $RequestUrl += "&$Filter" }
             
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-            } catch [System.Net.WebException] {
-                $ExceptionMessage = ($_.Exception.Message).ToString().Trim()
-                Write-Verbose "Exception Message: $ExceptionMessage"
-                $SearchingIdententities = $False
-                break;
+            $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
+            if ($Response.Error) {
+                return $Response
             }
  
             if ($Response.Count -eq 0) {

@@ -82,10 +82,11 @@ Function Format-LrIdentityPsObject {
     )
 
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+
         # Count Maximum number of Identifiers
         [int] $IdentifierMax = 0
-        # Count Maximum number of Groups
-        [int] $GroupsMax = 0
+
         # Count number of Entries
         [int] $Entry = 0
 

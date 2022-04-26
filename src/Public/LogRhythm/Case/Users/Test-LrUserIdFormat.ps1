@@ -34,6 +34,8 @@ Function Test-LrUserIdFormat {
     )
 
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+        
         # [Ref] placeholder for TryParse
         $_int = 0
     }

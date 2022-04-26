@@ -43,7 +43,8 @@ Function Format-LrCaseListSummary {
     )
 
 
-    Begin { }
+    Begin {$Me = $MyInvocation.MyCommand.Name
+    }
 
 
     Process {

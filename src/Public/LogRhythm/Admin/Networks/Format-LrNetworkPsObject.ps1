@@ -97,6 +97,8 @@ Function Format-LrNetworkPsObject {
     )
 
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+        
         $OutputObject = [list[object]]::new()  
     }
 

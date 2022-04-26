@@ -194,7 +194,7 @@ Function Update-LrNetwork {
             'high-high', 
             ignorecase=$true
         )]
-        [string] $RiskLevel = "none",
+        [string] $RiskLevel,
 
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 6)]
@@ -225,7 +225,7 @@ Function Update-LrNetwork {
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 9)]
         [ValidateSet('unknown','internal','dmz','external', ignorecase=$true)]
-        [string] $Zone="unknown",
+        [string] $Zone,
 
 
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 10)]
@@ -254,6 +254,8 @@ Function Update-LrNetwork {
     )
 
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+
         # Request Setup
         $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
@@ -319,6 +321,7 @@ Function Update-LrNetwork {
             $ErrorObject.Type = "NullValue"
             $ErrorObject.Code = 404
             $ErrorObject.Note = "Cmdlet must be provided Id or Name paramater values."
+            return $ErrorObject
         }
 
         # Lookup Entity By ID or Name
@@ -357,18 +360,10 @@ Function Update-LrNetwork {
         # Location lookup
         if ($LocationId -and $Location) {
             if ($LocationLookup) {
-                if ($LrtConfig.LogRhythm.Version -notmatch '7.5.\d') {
-                    $LocationStatus = Show-LrLocations -Id $LocationId
-                    if ($LocationStatus) {
-                        $_locationName = $LocationStatus.name
-                        $_locationId = $LocationStatus.id
-                    }
-                } else {
-                    $LocationStatus = Get-LrLocations -Id $LocationId
-                    if ($LocationStatus) {
-                        $_locationName = $LocationStatus.name
-                        $_locationId = $LocationStatus.id
-                    }
+                $LocationStatus = Get-LrLocations -Id $LocationId
+                if ($LocationStatus) {
+                    $_locationName = $LocationStatus.name
+                    $_locationId = $LocationStatus.id
                 }
             } else {
                 $_locationName = $Location 
@@ -380,18 +375,10 @@ Function Update-LrNetwork {
             }
         } elseif ($Location) {
             if ($LocationLookup) {
-                if ($LrtConfig.LogRhythm.Version -notmatch '7.5.\d') {
-                    $LocationStatus = Show-LrLocations -Name $Location -Exact
-                    if ($LocationStatus) {
-                        $_locationName = $LocationStatus.name
-                        $_locationId = $LocationStatus.id
-                    }
-                } else {
-                    $LocationStatus = Get-LrLocations -Name $Location -Exact
-                    if ($LocationStatus) {
-                        $_locationName = $LocationStatus.name
-                        $_locationId = $LocationStatus.id
-                    }
+                $LocationStatus = Get-LrLocations -Name $Location -Exact
+                if ($LocationStatus) {
+                    $_locationName = $LocationStatus.name
+                    $_locationId = $LocationStatus.id
                 }
                 $_location = [PSCustomObject][Ordered]@{
                     id = $_locationId
@@ -533,22 +520,11 @@ Function Update-LrNetwork {
         $RequestUrl = $BaseUrl + "/lr-admin-api/networks/" + $_networkId + "/"
 
         # Send Request
-        try {
-            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body 
-        } catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            $ErrorObject.Error = $true
-            $ErrorObject.Type = "System.Net.WebException"
-            $ErrorObject.Code = $($Err.statusCode)
-            $ErrorObject.Note = $($Err.message)
-            $ErrorObject.Raw = $_
-            return $ErrorObject
+        $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
+        if ($Response.Error) {
+            return $Response
         }
 
-        # Return output object
-        if ($ErrorObject.Error -eq $true) {
-            return $ErrorObject
-        }
         if ($PassThru) {
             return $Response
         }

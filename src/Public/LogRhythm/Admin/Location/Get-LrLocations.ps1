@@ -89,6 +89,8 @@ Function Get-LrLocations {
     )
 
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+
         # Request Setup
         $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
@@ -100,9 +102,6 @@ Function Get-LrLocations {
 
         # Define HTTP Method
         $Method = $HttpMethod.Get
-
-        # Define LogRhythm Version
-        $LrVersion = $LrtConfig.LogRhythm.Version
 
         # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
         Enable-TrustAllCertsPolicy
@@ -122,7 +121,7 @@ Function Get-LrLocations {
         }
 
         # Verify version
-        if ($LrtConfig.LogRhythm.Version -notmatch '7\.[5-9]\.\d+') {
+        if ($LrtConfig.LogRhythm.Version -match '7\.[0-4]\.\d+') {
             $ErrorObject.Error = $true
             $ErrorObject.Code = "404"
             $ErrorObject.Type = "Cmdlet not supported."
@@ -132,16 +131,9 @@ Function Get-LrLocations {
         }
 
         # Send Request
-        try {
-            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-        } catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            $ErrorObject.Error = $true
-            $ErrorObject.Type = "System.Net.WebException"
-            $ErrorObject.Code = $($Err.statusCode)
-            $ErrorObject.Note = $($Err.message)
-            $ErrorObject.Raw = $_
-            return $ErrorObject
+        $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
+        if ($Response.Error) {
+            return $Response
         }
 
         $ResultList = [list[Object]]::new()

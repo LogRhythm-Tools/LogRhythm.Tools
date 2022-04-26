@@ -456,7 +456,6 @@ Function Get-LrCases {
                                 $_tagNumbers.add($TagResults)
                             }
                         }
-                        Start-Sleep 0.1
                     }
                 }
             }
@@ -516,16 +515,9 @@ Function Get-LrCases {
         $RequestUrl = $BaseUrl + "/lr-case-api/cases/" + $QueryString
 
         # REQUEST
-        try {
-            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-        } catch {
-            $Err = Get-RestErrorMessage $_
-            $ErrorObject.Error = $true
-            $ErrorObject.Type = "System.Net.WebException"
-            $ErrorObject.Code = $($Err.statusCode)
-            $ErrorObject.Note = $($Err.message)
-            $ErrorObject.Raw = $_
-            return $ErrorObject
+        $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
+        if ($Response.Error) {
+            return $Response
         }
 
         # Pagination
@@ -539,16 +531,9 @@ Function Get-LrCases {
                 $Headers.offset = $Offset
                 
                 # Retrieve Query Results
-                try {
-                    $PaginationResults = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-                } catch {
-                    $Err = Get-RestErrorMessage $_
-                    $ErrorObject.Error = $true
-                    $ErrorObject.Type = "System.Net.WebException"
-                    $ErrorObject.Code = $($Err.statusCode)
-                    $ErrorObject.Note = $($Err.message)
-                    $ErrorObject.Raw = $_
-                    return $ErrorObject
+                $PaginationResults = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
+                if ($PaginationResults.Error) {
+                    return $PaginationResults
                 }
                 
                 # Append results to Response

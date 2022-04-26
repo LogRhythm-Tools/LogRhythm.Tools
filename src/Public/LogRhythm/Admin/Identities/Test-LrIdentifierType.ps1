@@ -36,7 +36,9 @@ Function Test-LrIdentifierType {
         [Parameter(Mandatory = $true, ValueFromPipeline = $false, Position = 1)]
         [string] $IdentifierType
     )
-    Begin { }
+    Begin { 
+        $Me = $MyInvocation.MyCommand.Name
+    }
 
     Process {
         # Define return object

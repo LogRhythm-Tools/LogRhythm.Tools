@@ -29,7 +29,9 @@ Function Test-LrAlarmStatus {
         [ValidateNotNull()]
         [string] $Id
     )
-    Begin { }
+    Begin { 
+        $Me = $MyInvocation.MyCommand.Name
+    }
     
     Process {
         $OutObject = [PSCustomObject]@{

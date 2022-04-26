@@ -127,6 +127,8 @@ Function Get-LrIdentities {
     )
 
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+
         # Request Setup
         $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
@@ -192,35 +194,28 @@ Function Get-LrIdentities {
         if ($Direction) {
             $ValidStatus = "ASC", "DESC"
             if ($ValidStatus.Contains($($Direction.ToUpper()))) {
-                if ($LrtConfig.LogRhythm.Version -match '7.[5-9].\d') {
-                    if($Direction.ToUpper() -eq "ASC") {
-                        $_direction = "ascending"
-                    } else {
-                        $_direction = "descending"
-                    }
-                } else {
+                if ($LrtConfig.LogRhythm.Version -match '7.[0-4].\d') {
                     if($Direction.ToUpper() -eq "ASC") {
                         $_direction = "asc"
                     } else {
                         $_direction = "desc"
                     }
+                } else {
+                    if($Direction.ToUpper() -eq "ASC") {
+                        $_direction = "ascending"
+                    } else {
+                        $_direction = "descending"
+                    }
                 }
                 $QueryParams.Add("dir", $_direction)
-            } else {
-                throw [ArgumentException] "Direction [$Direction] must be: asc or desc."
             }
         }
 
 
         # RecordStatus
         if ($RecordStatus) {
-            $ValidStatus = "active", "retired"
-            if ($ValidStatus.Contains($($RecordStatus.ToLower()))) {
-                $_recordStatus = $RecordStatus.ToLower()
-                $QueryParams.Add("recordStatus", $_recordStatus)
-            } else {
-                throw [ArgumentException] "RecordStatus [$RecordStatus] must be: active or retired."
-            }
+            $_recordStatus = $RecordStatus.ToLower()
+            $QueryParams.Add("recordStatus", $_recordStatus)
         }
 
         if ($ShowRetired) {
@@ -241,17 +236,9 @@ Function Get-LrIdentities {
         $RequestUrl = $BaseUrl + "/lr-admin-api/identities/" + $QueryString
 
         # Send Request
-        try {
-            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-        }
-        catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            $ErrorObject.Error = $true
-            $ErrorObject.Type = "System.Net.WebException"
-            $ErrorObject.Code = $($Err.statusCode)
-            $ErrorObject.Note = $($Err.message)
-            $ErrorObject.Raw = $_
-            return $ErrorObject
+        $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
+        if ($Response.Error) {
+            return $Response
         }
 
 
@@ -268,15 +255,9 @@ Function Get-LrIdentities {
                 # Update Query URL
                 $RequestUrl = $BaseUrl + "/lr-admin-api/identities/" + $QueryString
                 # Retrieve Query Results
-                try {
-                    $PaginationResults = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-                } catch [System.Net.WebException] {
-                    $Err = Get-RestErrorMessage $_
-                    $ErrorObject.Error = $true
-                    $ErrorObject.Type = "System.Net.WebException"
-                    $ErrorObject.Code = $($Err.statusCode)
-                    $ErrorObject.Note = $($Err.message)
-                    return $ErrorObject
+                $PaginationResults = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
+                if ($PaginationResults.Error) {
+                    return $PaginationResults
                 }
                 
                 # Append results to Response

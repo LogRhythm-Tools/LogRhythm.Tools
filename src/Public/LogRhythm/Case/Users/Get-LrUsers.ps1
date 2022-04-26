@@ -153,16 +153,9 @@ Function Get-LrUsers {
         $RequestUrl = $BaseUrl + "/lr-case-api/persons/" + $Params
 
         # REQUEST
-        try {
-            $Response = Invoke-RestMethod -Uri $RequestUrl -Headers $Headers -Method $Method
-        } catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            $ErrorObject.Code = $Err.statusCode
-            $ErrorObject.Type = "WebException"
-            $ErrorObject.Note = $Err.message
-            $ErrorObject.Error = $true
-            $ErrorObject.Raw = $_
-            return $ErrorObject
+        $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
+        if ($Response.Error) {
+            return $Response
         }
 
 
@@ -176,16 +169,9 @@ Function Get-LrUsers {
                 $Headers.offset = $Offset
                 
                 # Retrieve Query Results
-                try {
-                    $PaginationResults = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-                } catch [System.Net.WebException] {
-                    $Err = Get-RestErrorMessage $_
-                    $ErrorObject.Code = $Err.statusCode
-                    $ErrorObject.Type = "WebException"
-                    $ErrorObject.Note = $Err.message
-                    $ErrorObject.Error = $true
-                    $ErrorObject.Raw = $_
-                    return $ErrorObject
+                $PaginationResults = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
+                if ($PaginationResults.Error) {
+                    return $PaginationResults
                 }
                 
                 # Append results to Response

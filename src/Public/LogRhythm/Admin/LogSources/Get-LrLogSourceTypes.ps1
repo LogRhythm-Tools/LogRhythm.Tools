@@ -20,22 +20,20 @@ function Get-LrLogSourceTypes
     )
 
     Begin {
-        # Request Setup
         $Me = $MyInvocation.MyCommand.Name
+
+        # Request Setup
         $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
-
 
         # Define HTTP Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
         $Headers.Add("Content-Type","application/json")
 
-
         # Define HTTP Method
         $Method = $HttpMethod.Get
         
-
         # Check preference requirements for self-signed certificates and set enforcement for Tls1.2
         Enable-TrustAllCertsPolicy
     }
@@ -51,7 +49,7 @@ function Get-LrLogSourceTypes
         }
 
         # Verify version
-        if ($LrtConfig.LogRhythm.Version -notmatch '7\.[5-9]\.\d+') {
+        if ($LrtConfig.LogRhythm.Version -match '7\.[0-4]\.\d+') {
             $ErrorObject.Error = $true
             $ErrorObject.Code = "404"
             $ErrorObject.Type = "Cmdlet not supported."
@@ -93,16 +91,9 @@ function Get-LrLogSourceTypes
 
 
         # Send Request
-        try {
-            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-        } catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            $ErrorObject.Error = $true
-            $ErrorObject.Type = "System.Net.WebException"
-            $ErrorObject.Code = $($Err.statusCode)
-            $ErrorObject.Note = $($Err.message)
-            $ErrorObject.Raw = $_
-            return $ErrorObject
+        $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
+        if ($Response.Error) {
+            return $Response
         }
         
 
@@ -119,16 +110,9 @@ function Get-LrLogSourceTypes
                 # Update Query URL
                 $RequestUrl = $BaseUrl + "/lr-admin-api/messagesourcetypes/" + $QueryString
                 # Retrieve Query Results
-                try {
-                    $PaginationResults = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-                } catch [System.Net.WebException] {
-                    $Err = Get-RestErrorMessage $_
-                    $ErrorObject.Error = $true
-                    $ErrorObject.Type = "System.Net.WebException"
-                    $ErrorObject.Code = $($Err.statusCode)
-                    $ErrorObject.Note = $($Err.message)
-                    $ErrorObject.Raw = $_
-                    return $ErrorObject
+                $PaginationResults = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
+                if ($PaginationResults.Error) {
+                    return $PaginationResults
                 }
                 
                 # Append results to Response

@@ -189,8 +189,9 @@ Function Update-LrList {
     )
                                                                    
     Begin {
-        # Request Setup
         $Me = $MyInvocation.MyCommand.Name
+
+        # Request Setup
         $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
@@ -423,22 +424,11 @@ Function Update-LrList {
 
 
         # Send Request
-        try {
-            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
-        } catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            $ErrorObject.Error = $true
-            $ErrorObject.Type = "System.Net.WebException"
-            $ErrorObject.Code = $($Err.statusCode)
-            $ErrorObject.Note = $($Err.message)
-            $ErrorObject.Raw = $_
-            return $ErrorObject
+        $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
+        if ($Response.Error) {
+            return $Response
         }
-        
-        # Return output object
-        if ($ErrorObject.Error -eq $true) {
-            return $ErrorObject
-        }
+
         if ($PassThru) {
             return $Response
         }

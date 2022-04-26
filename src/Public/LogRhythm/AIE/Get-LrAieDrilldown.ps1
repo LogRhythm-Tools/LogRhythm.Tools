@@ -106,10 +106,17 @@ Function Get-LrAieDrilldown {
 
     #region: Process                                                                     
     Process { 
+        $ErrorObject = [PSCustomObject]@{
+            Error                 =   $false
+            Note                  =   $null
+            Code                  =   $null
+            Type                  =   $null
+            Raw                   =   $null
+        }
+
         # Request URI   
         $Method = $HttpMethod.Get
         $RequestUrl = $BaseUrl + "/lr-drilldown-cache-api/drilldown/$AlarmId/"
-
 
 
         #region: Request Loop                                                            
@@ -125,44 +132,20 @@ Function Get-LrAieDrilldown {
 
             # If we've hit our limit of attempts, exit the loop.
             if ($Attempts -gt $RetryAttempts) {
-                Write-Verbose "Unable to retrieve drilldown after $RetryAttempts attempts. Aborting."
-                break;
+                Write-Verbose "Unable to retrieve drilldown after $RetryAttempts attempts.  Aborting."
+                $DrilldownWatch.Stop()
+                $ErrorObject.Error = $true
+                $ErrorOBject.Note = "Unable to retrieve drilldown after $RetryAttempts attempts over $([math]::Round($($DrilldownWatch.Elapsed.TotalSeconds),2)) seconds."
+                $ErrorObject.Type = 'Timeout'
+                $ErrorObject.Code = 408
+                return $ErrorObject
             }
 
-            # REST Request
-            try {
-                $Response = Invoke-RestMethod -Uri $RequestUrl -Headers $Headers -Method $Method
-            } catch [System.Net.WebException] {
-                #region Exception Handling                                               
-                $Err = Get-RestErrorMessage $_
-                $ExceptionMsg = $_.Exception.message
-
-                # Catch specific error corresponding to classic alarms
-                # These errors throw a WebException including a message with text:
-                # "The remote server returned an error: (404) Not Found."
-                # $Err in this case will have the proper container for data, but
-                # the results will be null. Part of the validation of this type
-                # of error is to check that the DrillDownResults property exists.
-                if (($Err.data).PSObject.Properties.name -match "DrillDownResults") {
-                    if ($Err.data.DrillDownResults.Count -eq 0) {
-                        $Msg = "[$Me]: (LogRhythm API) "
-                        $Msg += $ExceptionMsg
-                        $Msg += " When a 404 error is specified, ensure that the requested"
-                        $Msg += " alarm is from an AI Engine rule and not a diagnostic alarm."
-                        throw [Exception] $Msg
-                    }
-                }
-                if (! $Err) {
-                    # Unable to parse Rest Error, re-throw our error.
-                    $PSCmdlet.ThrowTerminatingError($PSItem)
-                }
-                # We could parse the Rest Error, throw a custom error based on fields.
-                $Msg = "[$Me] [$($Err.statusCode)]: $($Err.message) | "
-                $Msg += "$($Err.details)`n$($Err.validationErrors)`n"
-                throw [Exception] $Msg                
-                #endregion
+            # Send Request
+            $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
+            if ($Response.Error) {
+                return $Response
             }
-
 
             # Wait X seconds if no result
             if (! $Response.Data.DrillDownResults) {

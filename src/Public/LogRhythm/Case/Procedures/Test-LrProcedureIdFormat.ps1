@@ -38,6 +38,8 @@ Function Test-LrProcedureIdFormat {
 
 
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+        
         # Define output object
         $OutObject = [PSCustomObject]@{
             IsGuid      =   $false

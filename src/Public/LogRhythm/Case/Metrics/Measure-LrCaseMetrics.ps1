@@ -41,6 +41,8 @@ Function Measure-LrCaseMetrics {
 
 
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+        
         # Total cases, regardless of whether they have a TTD,TTR, etc.
         $Total_Cases = 0
         $Total_Incidents = 0

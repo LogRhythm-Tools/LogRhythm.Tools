@@ -45,6 +45,8 @@ Function Run-LrTrueIdentityConflictMerger {
     )
 
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+        
         $Version = 0.1
         function Show-Menu
         {

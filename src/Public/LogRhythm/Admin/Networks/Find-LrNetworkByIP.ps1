@@ -62,6 +62,8 @@ Function Find-LrNetworkByIP {
     )
 
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+        
         # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
         Enable-TrustAllCertsPolicy
     }

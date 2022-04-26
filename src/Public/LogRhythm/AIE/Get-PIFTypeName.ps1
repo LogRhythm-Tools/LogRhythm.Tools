@@ -33,6 +33,8 @@ Function Get-PIFTypeName {
 
 
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+        
         $PIFTypes = @{
             1 = "Direction"
             2 = "Priority"

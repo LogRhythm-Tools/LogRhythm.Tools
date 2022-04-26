@@ -173,6 +173,8 @@ Function Get-LrAlarms {
     )
 
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+
         # Request Setup
         $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
@@ -302,16 +304,9 @@ Function Get-LrAlarms {
         $RequestUrl = $BaseUrl + "/lr-alarm-api/alarms" + $QueryString
 
         # Send Request
-        try {
-            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-        } catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            $ErrorObject.Error = $true
-            $ErrorObject.Type = "System.Net.WebException"
-            $ErrorObject.Code = $($Err.statusCode)
-            $ErrorObject.Note = $($Err.message)
-            $ErrorObject.Raw = $_
-            return $ErrorObject
+        $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
+        if ($Response.Error) {
+            return $Response
         }
 
 
@@ -334,17 +329,11 @@ Function Get-LrAlarms {
                 # Update Query URL
                 $RequestUrl = $BaseUrl + "/lr-alarm-api/alarms" + $QueryString
                 # Retrieve Query Results
-                try {
-                    $PaginationResults = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-                } catch [System.Net.WebException] {
-                    $Err = Get-RestErrorMessage $_
-                    $ErrorObject.Error = $true
-                    $ErrorObject.Type = "System.Net.WebException"
-                    $ErrorObject.Code = $($Err.statusCode)
-                    $ErrorObject.Note = $($Err.message)
-                    $ErrorObject.Raw = $_
-                    return $ErrorObject
+                $PaginationResults = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
+                if ($PaginationResults.Error) {
+                    return $PaginationResults
                 }
+
                 # Append results to Response
                 ForEach ($AlarmDetails in $PaginationResults.alarmsSearchDetails) {
                     if ($AlarmResults.alarmId -notcontains $AlarmDetails.alarmId) {

@@ -111,8 +111,9 @@ Function Remove-LrListItem {
     )
                                                                    
     Begin {
-        # Request Setup
         $Me = $MyInvocation.MyCommand.Name
+
+        # Request Setup
         $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
@@ -179,6 +180,7 @@ Function Remove-LrListItem {
                                 $ErrorObject.FieldType =  "PortRange"
                                 $ErrorObject.QuantityMismatch =   $true
                                 $ErrorObject.Note = "Quantity Mismatch.  Values Submited: $($Entry.split(",").Count) - ValuesRequired: 2"
+                                return $ErrorObject
                             }
                             $Entry.split(",").Trim() | ForEach-Object {
                                 # Validate each port
@@ -187,6 +189,7 @@ Function Remove-LrListItem {
                                     $ErrorObject.Error = $true
                                     $ErrorObject.FieldType =  "PortRange"
                                     $ErrorObject.Note = "Improper PortRange Value. Value Submited: $_ - ValueRange: 0-65535"
+                                    return $ErrorObject
                                 }
                             }
                             # Set List metadata type
@@ -199,6 +202,7 @@ Function Remove-LrListItem {
                                 $ErrorObject.Error = $true
                                 $ErrorObject.FieldType =  "Port"
                                 $ErrorObject.Note = "Improper Port Value. Value Submited: $Value - ValueRange: 0-65535"
+                                return $ErrorObject
                             }
                             $ListItemDataType = "Int32"
                             $ListItemType = "Port"
@@ -212,6 +216,7 @@ Function Remove-LrListItem {
                             $ErrorObject.FieldType =  "PortRange"
                             $ErrorObject.QuantityMismatch =   $true
                             $ErrorObject.Note = "Quantity Mismatch.  Values Submited: $($Value.split(",").Count) - ValuesRequired: 2"
+                            return $ErrorObject
                         }
                         $Value.split(",").Trim() | ForEach-Object {
                             # Validate each port
@@ -220,6 +225,7 @@ Function Remove-LrListItem {
                                 $ErrorObject.Error = $true
                                 $ErrorObject.FieldType =  "PortRange"
                                 $ErrorObject.Note = "Improper PortRange Value. Value Submited: $_ - ValueRange: 0-65535"
+                                return $ErrorObject
                             }
                         }
                         # Set List metadata type
@@ -232,6 +238,7 @@ Function Remove-LrListItem {
                             $ErrorObject.Error = $true
                             $ErrorObject.FieldType =  "Port"
                             $ErrorObject.Note = "Improper Port Value. Value Submited: $Value - ValueRange: 0-65535"
+                            return $ErrorObject
                         }
                         $ListItemDataType = "Int32"
                         $ListItemType = "Port"
@@ -289,6 +296,7 @@ Function Remove-LrListItem {
                         $ErrorObject.Error = $true
                         $ErrorObject.FieldType = $ListItemType
                         $ErrorObject.Note = "ListType KnownHost is currently not supported"
+                        return $ErrorObject
                     }
                     hostname {
                         $ListItemDataType = "String"
@@ -302,6 +310,7 @@ Function Remove-LrListItem {
                                     $ErrorObject.FieldType =  "IPRange"
                                     $ErrorObject.QuantityMismatch =   $true
                                     $ErrorObject.Note = "Quantity Mismatch.  Values Submited: $($Entry.split(",").Count) - ValuesRequired: 2"
+                                    return $ErrorObject
                                 }
                                 $Entry.split(",").Trim() | ForEach-Object {
                                     # Validate each IP Address
@@ -311,6 +320,7 @@ Function Remove-LrListItem {
                                         $ErrorObject.FieldType =  "IPRange"
                                         $ErrorObject.TypeMismatch = $true
                                         $ErrorObject.Note = "Type Mismatch.  Values Submited: $_ - Type Required: IPv4/IPv6 Address"
+                                        return $ErrorObject
                                     }
                                 }
                                 # Remove spaces from Entry
@@ -323,6 +333,7 @@ Function Remove-LrListItem {
                                 $ErrorObject.FieldType =  "IPRange"
                                 $ErrorObject.QuantityMismatch =   $true
                                 $ErrorObject.Note = "Quantity Mismatch.  Values Submited: $($Value.split(",").Count) - ValuesRequired: 2"
+                                return $ErrorObject
                             }
                             $Value.split(",").Trim() | ForEach-Object {
                                 # Validate each IP Address
@@ -332,6 +343,7 @@ Function Remove-LrListItem {
                                     $ErrorObject.FieldType =  "IPRange"
                                     $ErrorObject.TypeMismatch = $true
                                     $ErrorObject.Note = "Type Mismatch.  Values Submited: $_ - Type Required: IPv4/IPv6 Address"
+                                    return $ErrorObject
                                 }
                             }
                             # Remove all spaces from Value to support type IPRange
@@ -350,6 +362,7 @@ Function Remove-LrListItem {
                                     $ErrorObject.FieldType =  "IP"
                                     $ErrorObject.TypeMismatch = $true
                                     $ErrorObject.Note = "Type Mismatch.  Values Submited: $Entry - Type Required: IPv4/IPv6 Address"
+                                    return $ErrorObject
                                 }
                             }
                         } else {
@@ -360,6 +373,7 @@ Function Remove-LrListItem {
                                 $ErrorObject.FieldType =  "IP"
                                 $ErrorObject.TypeMismatch = $true
                                 $ErrorObject.Note = "Type Mismatch.  Values Submited: $Value - Type Required: IPv4/IPv6 Address"
+                                return $ErrorObject
                             }
                         }
 
@@ -382,6 +396,7 @@ Function Remove-LrListItem {
                             $ErrorObject.FieldType =  "IP"
                             $ErrorObject.TypeMismatch = $true
                             $ErrorObject.Note = "Type Mismatch.  Values Submited: $Entry - Type Required: IPv4/IPv6 Address"
+                            return $ErrorObject
                         }
                     }
                 } else {
@@ -392,6 +407,7 @@ Function Remove-LrListItem {
                         $ErrorObject.FieldType =  "IP"
                         $ErrorObject.TypeMismatch = $true
                         $ErrorObject.Note = "Type Mismatch.  Values Submited: $Value - Type Required: IPv4/IPv6 Address"
+                        return $ErrorObject
                     }
                 }
                 $ListItemDataType = "IP"
@@ -406,6 +422,7 @@ Function Remove-LrListItem {
                             $ErrorObject.FieldType =  "IPRange"
                             $ErrorObject.QuantityMismatch =   $true
                             $ErrorObject.Note = "Quantity Mismatch.  Values Submited: $($Entry.split(",").Count) - ValuesRequired: 2"
+                            return $ErrorObject
                         }
                         $Entry.split(",").Trim() | ForEach-Object {
                             # Validate each IP Address
@@ -415,6 +432,7 @@ Function Remove-LrListItem {
                                 $ErrorObject.FieldType =  "IPRange"
                                 $ErrorObject.TypeMismatch = $true
                                 $ErrorObject.Note = "Type Mismatch.  Values Submited: $_ - Type Required: IPv4/IPv6 Address"
+                                return $ErrorObject
                             }
                         }
                         # Remove spaces from Entry
@@ -426,6 +444,7 @@ Function Remove-LrListItem {
                         $ErrorObject.FieldType =  "IPRange"
                         $ErrorObject.QuantityMismatch =   $true
                         $ErrorObject.Note = "Quantity Mismatch.  Values Submited: $($Value.split(",").Count) - ValuesRequired: 2"
+                        return $ErrorObject
                     }
                     $Value.split(",").Trim() | ForEach-Object {
                         # Validate each IP Address
@@ -435,6 +454,7 @@ Function Remove-LrListItem {
                             $ErrorObject.FieldType =  "IPRange"
                             $ErrorObject.TypeMismatch = $true
                             $ErrorObject.Note = "Type Mismatch.  Values Submited: $_ - Type Required: IPv4/IPv6 Address"
+                            return $ErrorObject
                         }
                     }
                     # Remove spaces from Value
@@ -473,6 +493,7 @@ Function Remove-LrListItem {
                 # TO DO
                 $ErrorObject.Error = $true
                 $ErrorObject.Note = "Over 1000 items submitted.  Currently not supported."
+                return $ErrorObject
             } else {
                 # Establish Body Contents
                 $BodyContents = $ItemValues
@@ -504,37 +525,21 @@ Function Remove-LrListItem {
 
 
         # Check for Object Errors
-        if ( $ErrorObject.Error -eq $true) {
-            return $ErrorObject
-        } elseif ($Value -is [array]) {
+        if ($Value -is [array]) {
             # No Duplicate checking for array of items
             # Send Request
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
-            } catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                $ErrorObject.Raw = $_
-                return $ErrorObject
+            $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
+            if ($Response.Error) {
+                return $Response
             }
         } else {
             # Check for Duplicates for single items
             $ExistingValue = Test-LrListValue -Name $ListGuid -Value $Value
             if (($ExistingValue.IsPresent -eq $false) -and ($ExistingValue.ListValid -eq $true)) {
                 # Send Request
-                try {
-                    $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
-                } catch [System.Net.WebException] {
-                    $Err = Get-RestErrorMessage $_
-                    $ErrorObject.Error = $true
-                    $ErrorObject.Type = "System.Net.WebException"
-                    $ErrorObject.Code = $($Err.statusCode)
-                    $ErrorObject.Note = $($Err.message)
-                    $ErrorObject.Raw = $_
-                    return $ErrorObject
+                $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
+                if ($Response.Error) {
+                    return $Response
                 }
             } else {
                 $ErrorObject.Error = $true
@@ -546,10 +551,6 @@ Function Remove-LrListItem {
             }
         }  
 
-        # Return output object
-        if ($ErrorObject.Error -eq $true) {
-            return $ErrorObject
-        }
         if ($PassThru) {
             return $Response
         }

@@ -68,6 +68,8 @@ Function Invoke-LrSearchExample {
     )
 
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+        
         # Request Setup
         $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
@@ -131,7 +133,7 @@ Function Invoke-LrSearchExample {
         $JSON.DateCriteria.dateMax = $SearchEndDate
 
         # Establish Body Contents
-        $BodyContents = $JSON | ConvertTo-Json -Depth 20
+        $Body = $JSON | ConvertTo-Json -Depth 20
 
         Write-Verbose $BodyContents
 
@@ -139,19 +141,10 @@ Function Invoke-LrSearchExample {
         $RequestUrl = $BaseUrl + "/lr-search-api/actions/search-task"
 
         # Send Request
-        try {
-            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $BodyContents
-        } catch {
-            $Err = Get-RestErrorMessage $_
-            $ErrorObject.Code = $Err.statusCode
-            $ErrorObject.Type = "WebException"
-            $ErrorObject.Note = $Err.message
-            $ErrorObject.ResponseUrl = $RequestUrl
-            $ErrorObject.Raw = $_
-            $ErrorObject.Error = $true
-            return $ErrorObject
+        $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
+        if ($Response.Error) {
+            return $Response
         }
-
 
         return $Response
     }

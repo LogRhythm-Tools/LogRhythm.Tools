@@ -42,7 +42,7 @@ Function Get-LrListItems {
 
 
         [Parameter(Mandatory = $false, Position = 1)]
-        [ValidateRange(1,10000000)]
+        [ValidateRange(1, 10000000)]
         [int] $MaxItemsThreshold = 10000000,
 
 
@@ -59,7 +59,9 @@ Function Get-LrListItems {
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
 
-    Begin { }
+    Begin {
+        $Me = $MyInvocation.MyCommand.Name
+    }
 
     Process {
         # Establish General Error object Output

@@ -69,7 +69,7 @@ Function Format-LrHostTextOutput {
     )
 
     Begin {
-
+        $Me = $MyInvocation.MyCommand.Name
     }
 
     Process {

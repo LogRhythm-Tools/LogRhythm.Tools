@@ -182,29 +182,9 @@ Function Get-LrCaseHistory {
         
         $RequestUrl = $BaseUrl + "/lr-case-api/cases/$Id/history/"
 
-        try {
-            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-        } catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            $ErrorObject.Error = $true
-            switch ($Err.statusCode) {
-                "404" {
-                    $ErrorObject.Type = "KeyNotFoundException"
-                    $ErrorObject.Code = 404
-                    $ErrorObject.Note = "Value not found, or you do not have permission to view it."
-                    }
-                    "401" {
-                    $ErrorObject.Type = "UnauthorizedAccessException"
-                    $ErrorObject.Code = 401
-                    $ErrorObject.Note = "Credential '$($Credential.UserName)' is unauthorized to access 'lr-case-api'"
-                    }
-                Default {
-                    $ErrorObject.Type = "System.Net.WebException"
-                    $ErrorObject.Note = $Err.message
-                }
-            }
-            $ErrorObject.Raw = $_
-            return $ErrorObject
+        $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
+        if ($Response.Error) {
+            return $Response
         }
 
         # Pagination
@@ -217,16 +197,9 @@ Function Get-LrCaseHistory {
                 $Headers.offset = $Offset
                 
                 # Retrieve Query Results
-                try {
-                    $PaginationResults = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-                } catch [System.Net.WebException] {
-                    $Err = Get-RestErrorMessage $_
-                    $ErrorObject.Error = $true
-                    $ErrorObject.Type = "System.Net.WebException"
-                    $ErrorObject.Code = $($Err.statusCode)
-                    $ErrorObject.Note = $($Err.message)
-                    $ErrorObject.Raw = $_
-                    return $ErrorObject
+                $PaginationResults = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
+                if ($PaginationResults.Error) {
+                    return $PaginationResults
                 }
                 
                 # Append results to Response

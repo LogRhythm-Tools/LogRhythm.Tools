@@ -62,6 +62,8 @@ function Get-LrThreatIntelligence
 	)
 
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+        
         # Request Setup
         $BaseUrl = $LrtConfig.LogRhythm.ThreatIntelligenceBaseUrl
         $Token = $Credential.GetNetworkCredential().Password
@@ -88,26 +90,19 @@ function Get-LrThreatIntelligence
         }
 
         # Search for the IoC
-        $BodyContents = [PSCustomObject]@{
+        $Body = [PSCustomObject]@{
             value = $IoC
         } | ConvertTo-Json -Depth 8
 
-        Write-Verbose $BodyContents
+        Write-Verbose $Body
 
         # Define Query URL
         $RequestUrl = $BaseUrl + "/Observables/actions/search"
 
-	try {
-            $Response = Invoke-RestMethod -uri $RequestUrl -headers $Headers -Method $Method -Body $BodyContents
-	} catch {
-            $Err = Get-RestErrorMessage $_
-            $ErrorObject.Code = $Err.statusCode
-            $ErrorObject.Type = "WebException"
-            $ErrorObject.Note = $Err.message
-            $ErrorObject.ResponseUrl = $RequestUrl
-            $ErrorObject.Error = $true
-            return $ErrorObject
-	}
+        $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
+        if ($Response.Error) {
+            return $Response
+        }
 
         if ($Response -and $Response.observables -and $Response.observables.length -gt 0) {
             return $Response.observables.providers

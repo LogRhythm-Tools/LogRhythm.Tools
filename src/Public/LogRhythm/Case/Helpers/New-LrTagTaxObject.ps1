@@ -8,6 +8,9 @@ Function New-LrTagTaxObject {
         $Value,
         $Note
     )
+
+    $Me = $MyInvocation.MyCommand.Name
+    
     $OutputObject = [PSCustomObject]@{
         Primary = $Primary
         Secondary = $Secondary

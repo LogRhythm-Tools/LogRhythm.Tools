@@ -57,7 +57,6 @@ Function New-LrHost {
 
         Valid entries: "Unknown" "Other" "WindowsNT4" "Windows2000Professional" "Windows2000Server" "Windows2003Standard" "Windows2003Enterprise"
         "Windows95" "WindowsXP" "WindowsVista" "Linux" "Solaris" "AIX" "HPUX" "Windows"
-
     .PARAMETER OSVersion
         String description of the OS Version.
 
@@ -215,6 +214,8 @@ Function New-LrHost {
     )
 
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+
         # Request Setup
         $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
@@ -230,9 +231,6 @@ Function New-LrHost {
         # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
         Enable-TrustAllCertsPolicy
 
-        # Define LogRhythm Version
-        $LrVersion = $LrtConfig.LRDeployment.Version
-        
         # Integer Reference
         [int32] $_int = 1
     }
@@ -402,7 +400,12 @@ Function New-LrHost {
             if ($ValidStatus.Contains($($OSType.ToLower()))) {
                 $_osType = (Get-Culture).TextInfo.ToTitleCase($OSType)
             } else {
-                throw [ArgumentException] "OS Type [$OSType] must be: server, none, or desktop"
+                $ErrorObject.Error = $true
+                $ErrorObject.Type = "OS Type"
+                $ErrorObject.Code = 500
+                $ErrorObject.Value = $OSType
+                $ErrorObject.Note = "OS Type must be: server, none, or desktop"
+                return $ErrorObject
             }
         }
 
@@ -439,23 +442,16 @@ Function New-LrHost {
         $RequestUrl = $BaseUrl + "/lr-admin-api/hosts/"
 
         # Send Request
-        try {
-            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body 
-        }
-        catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            $ErrorObject.Error = $true
-            $ErrorObject.Type = "System.Net.WebException"
-            $ErrorObject.Code = $($Err.statusCode)
-            $ErrorObject.Note = $($Err.message)
-            $ErrorObject.Raw = $_
-            return $ErrorObject
+        $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
+        if ($Response.Error) {
+            return $Response
         }
         
         # Return output object
         if ($ErrorObject.Error -eq $true) {
             return $ErrorObject
         }
+
         if ($PassThru) {
             return $Response
         }

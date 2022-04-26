@@ -45,7 +45,9 @@ Function Test-LrCaseIdFormat {
         [object] $Id
     )
 
-    begin {  
+    begin {
+        $Me = $MyInvocation.MyCommand.Name
+        
         # https://docs.microsoft.com/en-us/dotnet/api/system.int32.tryparse
         $_int = 0
 

@@ -78,6 +78,8 @@ Function Get-LrHostDetails {
     )
 
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+        
         # Request Setup
         $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
@@ -118,30 +120,19 @@ Function Get-LrHostDetails {
             $Guid = Get-LrHosts -Name $Id -Exact | Select-Object -ExpandProperty id
             if (!$Guid) {
                 $ErrorObject.Error = $true
+                $ErrorObject.Code = 404
+                $ErrorObject.Raw = $Guid
                 $ErrorObject.Note = "Id String [$Id] not found in LrHosts List."
+                return $ErrorObject
             }
         }
 
         
         $RequestUrl = $BaseUrl + "/lr-admin-api/hosts/" + $Guid + "/"
-        # Error Output - Used to support Pipeline Paramater ID
-        Write-Verbose "[$Me]: Id: $Id - Guid: $Guid - ErrorStatus: $($ErrorObject.Error)"
-        if ($ErrorObject.Error -eq $false) {
-            # Send Request
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-            }
-            catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Error = $true
-                $ErrorObject.Type = "System.Net.WebException"
-                $ErrorObject.Code = $($Err.statusCode)
-                $ErrorObject.Note = $($Err.message)
-                $ErrorObject.Raw = $_
-                return $ErrorObject
-            }
-        } else {
-            return $ErrorObject
+
+        $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
+        if ($Response.Error) {
+            return $Response
         }
 
         return $Response

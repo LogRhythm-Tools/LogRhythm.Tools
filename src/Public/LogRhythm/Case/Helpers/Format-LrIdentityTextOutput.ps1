@@ -62,7 +62,7 @@ Function Format-LrIdentityTextOutput {
     )
 
     Begin {
-
+        $Me = $MyInvocation.MyCommand.Name
     }
 
     Process {

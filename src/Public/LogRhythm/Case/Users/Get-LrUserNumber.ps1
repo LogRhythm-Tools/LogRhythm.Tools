@@ -29,6 +29,8 @@ Function Get-LrUserNumber {
     )
 
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+        
         $_int = $null
     }
 

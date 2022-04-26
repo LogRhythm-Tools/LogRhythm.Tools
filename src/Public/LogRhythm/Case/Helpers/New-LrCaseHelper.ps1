@@ -95,6 +95,8 @@ Function New-LrCaseHelper {
     )
 
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+        
         Write-Verbose "$(Get-Timestamp) - Begin New-LrCaseHelper"
         Write-Verbose "$(Get-Timestamp) - Initializing cmdlet list variables"
         # List of Unique User Login accounts identified within the Alarm Log results from the AIE Drilldown results.

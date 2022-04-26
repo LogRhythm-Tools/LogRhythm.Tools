@@ -67,6 +67,8 @@ Function Remove-LrHostIdentifier {
     )
 
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+        
         # Request Setup
         $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
@@ -81,9 +83,6 @@ Function Remove-LrHostIdentifier {
 
         # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
         Enable-TrustAllCertsPolicy
-
-        # Define LogRhythm Version
-        $LrVersion = $LrtConfig.LRDeployment.Version
         
         # Integer Reference
         [int32] $_int = 1
@@ -165,24 +164,11 @@ Function Remove-LrHostIdentifier {
         $RequestUrl = $BaseUrl + "/lr-admin-api/hosts/$Guid/identifiers/"
 
         # Send Request
-        try {
-            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body 
+        $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method  -Body $Body -Origin $Me
+        if ($Response.Error) {
+            return $Response
         }
-        catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            $ErrorObject.Error = $true
-            $ErrorObject.Type = "System.Net.WebException"
-            $ErrorObject.Code = $($Err.statusCode)
-            $ErrorObject.Note = $($Err.message)
-            $ErrorObject.Raw = $_
-            return $ErrorObject
-        }
-
         
-        # Return output object
-        if ($ErrorObject.Error -eq $true) {
-            return $ErrorObject
-        }
         if ($PassThru) {
             return $Response
         }

@@ -142,6 +142,8 @@ Function Get-LrNotificationGroups {
     )
 
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+
         # Request Setup
         $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
@@ -199,7 +201,7 @@ Function Get-LrNotificationGroups {
         # Return results direction, ascending or descending
         if ($Direction) {
             # Apply formatting based on Lr Version
-            if ($LrtConfig.LogRhythm.Version -match '7\.[5-9]\.\d+') {
+            if ($LrtConfig.LogRhythm.Version -notmatch '7\.[0-4]\.\d+') {
                 if($Direction.ToUpper() -eq "ASC") {
                     $_direction = "ascending"
                 } else {
@@ -222,16 +224,9 @@ Function Get-LrNotificationGroups {
         $RequestUrl = $BaseUrl + "/lr-admin-api/notification-groups/" + $QueryString
 
         # Send Request
-        try {
-            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-        } catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            $ErrorObject.Error = $true
-            $ErrorObject.Type = "System.Net.WebException"
-            $ErrorObject.Code = $($Err.statusCode)
-            $ErrorObject.Note = $($Err.message)
-            $ErrorObject.Raw = $_
-            return $ErrorObject
+        $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
+        if ($Response.Error) {
+            return $Response
         }
 
         # Check if pagination is required, if so - paginate!
@@ -247,16 +242,9 @@ Function Get-LrNotificationGroups {
                 # Update Query URL
                 $RequestUrl = $BaseUrl + "/lr-admin-api/notification-groups/" + $QueryString
                 # Retrieve Query Results
-                try {
-                    $PaginationResults = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-                } catch [System.Net.WebException] {
-                    $Err = Get-RestErrorMessage $_
-                    $ErrorObject.Error = $true
-                    $ErrorObject.Type = "System.Net.WebException"
-                    $ErrorObject.Code = $($Err.statusCode)
-                    $ErrorObject.Note = $($Err.message)
-                    $ErrorObject.Raw = $_
-                    return $ErrorObject
+                $PaginationResults = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
+                if ($PaginationResults.Error) {
+                    return $PaginationResults
                 }
                 
                 # Append results to Response

@@ -99,6 +99,8 @@ Function Remove-LrCaseTags {
 
 
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+
         $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
@@ -166,22 +168,17 @@ Function Remove-LrCaseTags {
 
 
         #region: Make Request                                                            
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)]: request body is:`n$Body"
+        Write-Verbose "[$($Me)]: request body is:`n$Body"
 
         # Make Request
-        try {
-            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method -Body $Body
-        } catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            $ErrorObject.Code = $Err.statusCode
-            $ErrorObject.Type = "WebException"
-            $ErrorObject.Note = $Err.message
-            $ErrorObject.Error = $true
-            $ErrorObject.Raw = $_
-            return $ErrorObject
+        $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
+        if ($Response.Error) {
+            return $Response
         }
         
-        return $Response
+        if ($PassThru) {
+            return $Response
+        }
         #endregion
     }
 

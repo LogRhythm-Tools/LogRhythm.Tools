@@ -74,6 +74,7 @@ Function Update-LrCaseEarliestEvidenceFromDrilldown {
 
     Begin {
         $Me = $MyInvocation.MyCommand.Name
+        
         $ProcessedCount = 0
     }
 

@@ -114,46 +114,11 @@ Function Get-LrCaseMetrics {
 
 
         #region: Send Request - First Attempt                                                      
-        try {
-            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-        } catch [System.Net.WebException] {
-             # Rate limit error
-             if ($Err.statusCode -eq "429") {
-                Write-Verbose "Rate limit exceeded at case $CaseNumber, throttling requests."
-                $RunAgain = $true
-                Start-Sleep -Milliseconds 100
-            } else {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Code = $Err.statusCode
-                $ErrorObject.Type = "WebException"
-                $ErrorObject.Note = $Err.message
-                $ErrorObject.Error = $true
-                $ErrorObject.Raw = $_
-                return $ErrorObject
-            }
-        }      
+        $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
+        if ($Response.Error) {
+            return $Response
+        }    
         #endregion
-
-
-
-        #region: Send Request - Second Attempt                                                     
-        if ($RunAgain) {
-            Write-Verbose "Running Second Attempt at $CaseNumber"
-            try {
-                $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-            } catch [System.Net.WebException] {
-                $Err = Get-RestErrorMessage $_
-                $ErrorObject.Code = $Err.statusCode
-                $ErrorObject.Type = "WebException"
-                $ErrorObject.Note = $Err.message
-                $ErrorObject.Error = $true
-                $ErrorObject.Raw = $_
-                return $ErrorObject
-            }
-        }
-        #endregion
-
-
 
         #region: Convert values to DateTime                                              
         # category: created, completed, incident, mitigated, resolved, earliestEvidence

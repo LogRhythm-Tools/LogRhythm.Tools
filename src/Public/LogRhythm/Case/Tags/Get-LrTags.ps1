@@ -109,6 +109,8 @@ Function Get-LrTags {
     )
 
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+
         $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
 
@@ -136,9 +138,6 @@ Function Get-LrTags {
         if ($Direction) {
             $Headers.Add("direction", $Direction)
         }
-        
-        
-
 
         # Request Method
         $Method = $HttpMethod.Get
@@ -160,18 +159,10 @@ Function Get-LrTags {
         $RequestUrl = $BaseUrl + "/lr-case-api/tags/?tag=$Name"
 
         # Make Request
-        try {
-            $Response = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-        } catch [System.Net.WebException] {
-            $Err = Get-RestErrorMessage $_
-            $ErrorObject.Code = $Err.statusCode
-            $ErrorObject.Type = "System.Net.WebException"
-            $ErrorObject.Note = $Err.message
-            $ErrorObject.Error = $true
-            $ErrorObject.Raw = $_
-            return $ErrorObject
+        $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
+        if ($Response.Error) {
+            return $Response
         }
-
 
         # Pagination
         if ($Response.Count -eq $Count) {
@@ -183,15 +174,9 @@ Function Get-LrTags {
                 $Headers.offset = $Offset
                 
                 # Retrieve Query Results
-                try {
-                    $PaginationResults = Invoke-RestMethod $RequestUrl -Headers $Headers -Method $Method
-                } catch [System.Net.WebException] {
-                    $Err = Get-RestErrorMessage $_
-                    $ErrorObject.Error = $true
-                    $ErrorObject.Type = "System.Net.WebException"
-                    $ErrorObject.Code = $($Err.statusCode)
-                    $ErrorObject.Note = $($Err.message)
-                    return $ErrorObject
+                $PaginationResults = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
+                if ($PaginationResults.Error) {
+                    return $PaginationResults
                 }
                 
                 # Append results to Response

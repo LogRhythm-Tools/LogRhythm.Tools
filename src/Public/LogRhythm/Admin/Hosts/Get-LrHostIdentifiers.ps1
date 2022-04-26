@@ -53,6 +53,8 @@ Function Get-LrHostIdentifiers {
     )
 
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
+        
         $_int = 0
     }
 
