@@ -216,7 +216,7 @@ Function Get-LrIdentities {
         if ($RecordStatus) {
             $ValidStatus = "active", "retired"
             if ($ValidStatus.Contains($($RecordStatus.ToLower()))) {
-                $_recordStatus = $RecordStatus.ToLower()
+                $_recordStatus = [CultureInfo]::InvariantCulture.TextInfo.ToTitleCase($RecordStatus.ToLowerInvariant())
                 $QueryParams.Add("recordStatus", $_recordStatus)
             } else {
                 throw [ArgumentException] "RecordStatus [$RecordStatus] must be: active or retired."
