@@ -80,11 +80,11 @@ function Get-MimecastIncident {
         $sig = $sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($hdrDate + ":" + $requestId + ":" + $Uri + ":" + $apKey))
         $sig = [Convert]::ToBase64String($sig)
         $Headers = [Dictionary[string,string]]::new()
-        $Headers.Add("Authorization", "MC $accessKey`:$sig")
+        $Headers.Add("Authorization", "MC $AccKey`:$sig")
         $Headers.Add("x-mc-date","$hdrDate")
         $Headers.Add("x-mc-app-id","$appId")
         $Headers.Add("x-mc-req-id","$requestId")
-        $Headers.Add("Content-Type","application/json")
+        
 
     }
 
@@ -108,7 +108,7 @@ function Get-MimecastIncident {
 
         # Query DNS and obtain domain IP address
         try {
-            $Results = Invoke-RestMethod $RequestUrl -Method $Method -Body $Body -Headers $Headers
+            $Results = Invoke-RestMethod $RequestUrl -Method $Method -Body $Body -Headers $Headers -ContentType "application/json"
         } catch {
             return $_
         }

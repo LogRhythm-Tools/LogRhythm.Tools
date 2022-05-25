@@ -84,7 +84,7 @@ function Get-MimecastDecodeUrls {
         $Headers.Add("x-mc-date","$hdrDate")
         $Headers.Add("x-mc-app-id","$appId")
         $Headers.Add("x-mc-req-id","$requestId")
-        $Headers.Add("Content-Type","application/json")
+        
 
     }
 
@@ -129,7 +129,7 @@ function Get-MimecastDecodeUrls {
 
         # Query DNS and obtain domain IP address
         try {
-            $Results = Invoke-RestMethod $RequestUrl -Method $Method -Body $Body -Headers $Headers
+            $Results = Invoke-RestMethod $RequestUrl -Method $Method -Body $Body -Headers $Headers  -ContentType "application/json"
         } catch {
             $Err = Get-RestErrorMessage $_
             $ErrorObject.Error = $true
