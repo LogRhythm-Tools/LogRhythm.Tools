@@ -26,7 +26,7 @@ function Get-ProofpointDecodeUrls {
     Begin {
         # Request Headers
         $Headers = [Dictionary[string,string]]::new()
-        $Headers.Add("Content-Type","application/json")
+        
         
         # Request BaseURL
         $BaseUrl = "https://tap-api-v2.proofpoint.com"
@@ -58,7 +58,7 @@ function Get-ProofpointDecodeUrls {
 
         # Query DNS and obtain domain IP address
         try {
-            $Results = Invoke-RestMethod $RequestUrl -Method $Method -Body $Body -Headers $Headers
+            $Results = Invoke-RestMethod $RequestUrl -Method $Method -Body $Body -Headers $Headers -ContentType "application/json"
         } catch {
             $Err = Get-RestErrorMessage $_
             $ErrorObject.Error = $true
