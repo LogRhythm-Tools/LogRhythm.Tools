@@ -93,7 +93,7 @@ Function Set-YourFunctionName {
                 -Method $Method `
                 -Body $Body
         }
-        catch [System.Net.WebException] {
+        catch {
             $Err = Get-RestErrorMessage $_
             $ErrorObject.Code = $Err.statusCode
             $ErrorObject.Type = "WebException"
