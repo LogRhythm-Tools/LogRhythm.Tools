@@ -95,7 +95,7 @@ Function Get-LrAieDrilldown {
         # Request Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
-        $Headers.Add("Content-Type","application/json")
+        
 
         # Enable self-signed certificates and Tls1.2
         Enable-TrustAllCertsPolicy

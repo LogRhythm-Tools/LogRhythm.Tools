@@ -288,7 +288,7 @@ Function Send-LrSdpWebhook {
 
         # Define HTTP Headers
         $Headers = [Dictionary[string,string]]::new()
-        $Headers.Add("Content-Type","application/json")
+        
 
         # Define HTTP Method
         $Method = $HttpMethod.post

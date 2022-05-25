@@ -70,7 +70,7 @@ Function Enable-LrIdentity {
         # Define HTTP Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
-        $Headers.Add("Content-Type","application/json")
+        
 
         # Define HTTP Method
         $Method = $HttpMethod.Put

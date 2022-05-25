@@ -110,7 +110,7 @@ Function Get-LrPlaybookProcedures {
         # Request Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
-        $Headers.Add("Content-Type","application/json")
+        
         $Headers.Add("count", 500)
         $Headers.Add("orderBy", $OrderBy)
         $Headers.Add("direction", $Sort)

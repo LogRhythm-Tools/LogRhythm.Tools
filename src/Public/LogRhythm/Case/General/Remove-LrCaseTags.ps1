@@ -110,7 +110,7 @@ Function Remove-LrCaseTags {
         # Request Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
-        $Headers.Add("Content-Type","application/json")
+        
 
 
         # Request URI

@@ -14,12 +14,15 @@ function Invoke-RestAPIMethod {
         [string]$Body,
 
         [Parameter(Position=4, Mandatory=$false)]
-        [int]$MaxRetries = 25,
+        [string]$ContentType = 'application/json',
 
         [Parameter(Position=5, Mandatory=$false)]
-        [int]$Delay = 500,
+        [int]$MaxRetries = 25,
 
         [Parameter(Position=6, Mandatory=$false)]
+        [int]$Delay = 500,
+
+        [Parameter(Position=7, Mandatory=$false)]
         [string]$Origin
     )
     Begin {
@@ -41,9 +44,9 @@ function Invoke-RestAPIMethod {
             $RetryRequest = $false
             Try {
                 if ($Body) {
-                    $Response = Invoke-RestMethod -Method $Method -Uri $Uri -Body $Body -Headers $Headers
+                    $Response = Invoke-RestMethod -Method $Method -Uri $Uri -Body $Body -Headers $Headers -ContentType $ContentType
                 } else {
-                    $Response = Invoke-RestMethod -Method $Method -Uri $Uri -Headers $Headers
+                    $Response = Invoke-RestMethod -Method $Method -Uri $Uri -Headers $Headers -ContentType $ContentType
                 }
             } Catch {
                 if($_.Exception.Response.StatusCode.value__ -eq 429 ){
