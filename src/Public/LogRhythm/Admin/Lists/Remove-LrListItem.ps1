@@ -94,6 +94,9 @@ Function Remove-LrListItem {
 
 
         [Parameter(Mandatory = $false, Position = 2)]
+        [ValidateSet('Application','Classification', 'CommonEvent', 'Host', 'Location', 'MsgSource', 
+        'MsgSourceType', 'MPERule', 'Network', 'User', 'GeneralValue', 'Entity', 'RootEntity', 'IP',
+        'IPRange', 'Identity',  ignorecase=$true)]
         [string] $ItemType,
 
 
@@ -245,13 +248,13 @@ Function Remove-LrListItem {
                     }
                 }
             }
+            Entity {
+                $ListItemDataType = "Int32"
+                $ListItemType = "Entity"
+            }
             GeneralValue {
                 $ListItemDataType = "String"
                 $ListItemType = "StringValue"
-            }
-            Identity {
-                $ListItemDataType = "Int32"
-                $ListItemType = "Identity"
             }
             Host {
                 # If ItemType is not defined, attempt to determine the item type.
@@ -385,6 +388,10 @@ Function Remove-LrListItem {
                     }
                 }
             }
+            Identity {
+                $ListItemDataType = "Int32"
+                $ListItemType = "Identity"
+            }
             IP {
                 # Validate IP Address format
                 if ($Value -is [array]) {
@@ -463,9 +470,29 @@ Function Remove-LrListItem {
                 $ListItemDataType = "IPRange"
                 $ListItemType = "IPRange"
             }
+            Location {
+                $ListItemDataType = "Int32"
+                $ListItemType = "Location"
+            }
+            MPERule {
+                $ListItemDataType = "Int32"
+                $ListItemType = "MPERule"
+            }
+            RootEntity {
+                $ListItemDataType = "Int32"
+                $ListItemType = "RootEntity"
+            }
             User {
                 $ListItemDataType = "String"
                 $ListItemType = "StringValue"
+            }
+            MsgSource {
+                $ListItemDataType = "Int32"
+                $ListItemType = "MsgSource"
+            }
+            MsgSourceType {
+                $ListItemDataType = "Int32"
+                $ListItemType = "MsgSourceType"
             }
             Default {}
         }
