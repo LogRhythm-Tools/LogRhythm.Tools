@@ -97,7 +97,7 @@ Function Get-LrIdentities {
 
 
         [Parameter(Mandatory = $false, Position = 6)]
-        [ValidateSet('asc','desc', ignorecase=$true)]
+        [ValidateSet('asc','desc', 'ascending', 'descending', ignorecase=$true)]
         [string] $Direction = "asc",
 
 
@@ -192,29 +192,26 @@ Function Get-LrIdentities {
 
         # Return results direction, ascending or descending
         if ($Direction) {
-            $ValidStatus = "ASC", "DESC"
-            if ($ValidStatus.Contains($($Direction.ToUpper()))) {
-                if ($LrtConfig.LogRhythm.Version -match '7.[0-4].\d') {
-                    if($Direction.ToUpper() -eq "ASC") {
-                        $_direction = "asc"
-                    } else {
-                        $_direction = "desc"
-                    }
+            if ($LrtConfig.LogRhythm.Version -match '7.[0-4].\d') {
+                if(($Direction.ToUpper() -eq "ASC") -or ($Direction.ToUpper() -eq "ASCENDING")) {
+                    $_direction = "asc"
                 } else {
-                    if($Direction.ToUpper() -eq "ASC") {
-                        $_direction = "ascending"
-                    } else {
-                        $_direction = "descending"
-                    }
+                    $_direction = "desc"
                 }
-                $QueryParams.Add("dir", $_direction)
+            } else {
+                if(($Direction.ToUpper() -eq "ASC") -or ($Direction.ToUpper() -eq "ASCENDING")) {
+                    $_direction = "ascending"
+                } else {
+                    $_direction = "descending"
+                }
             }
+            $QueryParams.Add("dir", $_direction)
         }
 
 
         # RecordStatus
         if ($RecordStatus) {
-            $_recordStatus = $RecordStatus.ToLower()
+            $_recordStatus = [CultureInfo]::InvariantCulture.TextInfo.ToTitleCase($RecordStatus.ToLowerInvariant())
             $QueryParams.Add("recordStatus", $_recordStatus)
         }
 
