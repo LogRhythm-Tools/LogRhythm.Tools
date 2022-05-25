@@ -58,7 +58,7 @@ function Get-RfSoarEnrichment {
 
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("X-RFToken", "$Token")
-        $Headers.Add("Content-Type","application/json")
+        
     }
 
     Process {
@@ -71,7 +71,7 @@ function Get-RfSoarEnrichment {
         Write-Verbose "[$Me] Request Body:`n$Body"
 
         Try {
-            $rfResponse = Invoke-RestMethod -Uri $RequestUrl -Method $Method -Headers $Headers -Body $Body
+            $rfResponse = Invoke-RestMethod -Uri $RequestUrl -Method $Method -Headers $Headers -Body $Body -ContentType "application/json"
         }
         catch {
             $Err = Get-RestErrorMessage $_
