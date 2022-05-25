@@ -68,7 +68,6 @@ Function New-UrlScanRequest {
         # Request Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("API-Key", "$Token")
-        $Headers.Add("Content-Type","application/json")
 
 
         # Request URI   
@@ -84,7 +83,7 @@ Function New-UrlScanRequest {
         Write-Verbose "[$Me]: request body is:`n$Body"
 
         Try {
-            $Response = Invoke-RestMethod $RequestUrl -Method $Method -Headers $Headers -Body $Body
+            $Response = Invoke-RestMethod $RequestUrl -Method $Method -Headers $Headers -Body $Body -ContentType "application/json"
         }
         catch {
             $Err = Get-RestErrorMessage $_

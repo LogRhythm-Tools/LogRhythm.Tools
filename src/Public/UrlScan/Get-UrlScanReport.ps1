@@ -66,7 +66,6 @@ Function Get-UrlScanReport {
         # Request Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("API-Key", "$Token")
-        $Headers.Add("Content-Type","application/json")
 
 
         # Request URI   
@@ -75,7 +74,7 @@ Function Get-UrlScanReport {
         Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         Try {
-            $Response = Invoke-RestMethod $RequestUrl -Method $Method -Headers $Headers -Body $Body
+            $Response = Invoke-RestMethod $RequestUrl -Method $Method -Headers $Headers -Body $Body -ContentType "application/json"
         }
         catch {
             return $_
