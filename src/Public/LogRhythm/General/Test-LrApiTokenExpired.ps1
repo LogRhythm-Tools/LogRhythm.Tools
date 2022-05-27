@@ -2,13 +2,13 @@ using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
 
-Function Test-LrApiToken {
+Function Test-LrApiTokenExpired {
     <#
     .SYNOPSIS
         Test the LR API Token for validity
     .DESCRIPTION
         The LogRhythm API Token is a JWT consisting of several parts.
-        
+
         By default this function will test whether the token is within it's expiry time.
 
     .PARAMETER Credential
@@ -27,7 +27,7 @@ Function Test-LrApiToken {
     .OUTPUTS
         PSCustomObject representing the (new|modified) LogRhythm object.
     .EXAMPLE
-        PS C:\> 
+        PS C:\>
     .NOTES
         LogRhythm-API
     .LINK
@@ -42,14 +42,6 @@ Function Test-LrApiToken {
 
 
         [Parameter(
-            Mandatory = $true,
-            ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true,
-            Position = 1
-        )]
-        [object] $Id,
-
-        [Parameter(
             Mandatory = $false
         )]
         [int] $WarningInterval = 30
@@ -59,22 +51,8 @@ Function Test-LrApiToken {
         $Me = $MyInvocation.MyCommand.Name
 
         Write-Verbose "Invoking $($Me)"
-    
-        # $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
-        $BaseUrl = $LrtConfig.LogRhythm.BaseUrl
 
-        $Token = $Credential.GetNetworkCredential().Password
-        
-        # Request Headers
-        $Headers = [Dictionary[string,string]]::new()
-        $Headers.Add("Authorization", "Bearer $Token")
-        $Headers.Add("Content-Type","application/json")
-        
-        # Request URI   
-        $Method = $HttpMethod.Post
-
-        # Enable self-signed certificates and Tls1.2
-        Enable-TrustAllCertsPolicy
+        $TokenInfo = Get-LrApiTokenInfo -Credential $Credential
     }
 
 
@@ -88,36 +66,37 @@ Function Test-LrApiToken {
             Raw                   =   $_
         }
 
-        # Define RequestUri
-        $RequestUri = $BaseUrl + "/path/"
-
-
-        # Request Body
-        $Body = [PSCustomObject]@{
-            Name = "value"
+        $OutObject = [PSCustomObject]@{
+            IsExpired = $false
+            IsWarning = $false
+            Expires = $TokenInfo.Expires
         }
-        $Body = $Body | ConvertTo-Json
 
-
-        # REQUEST
+        # Test Expiry Date of Token
         try {
-            $Response = Invoke-RestMethod `
-                -Uri $RequestUri `
-                -Headers $Headers `
-                -Method $Method `
-                -Body $Body
+            if ($TokenInfo.Expiry -le (Get-Date).Date){
+                # Token is expired
+                Write-Error "Token is expired: $($TokenInfo.Expires)"
+                $OutObject.IsExpired = $true
+                $OutObject.IsWarning = $true
+            }
+            elseif ($TokenInfo.Expiry -le (Get-Date).AddDays($WarningInterval).Date) {
+                # Token Expiry is within WarningInterval Days
+                Write-Warning "Token expires in less than $($WarningInterval) Days. Token Expiry: $($TokenInfo.Expires)"
+                $OutObject.IsWarning = $true
+            }
         }
         catch {
             $Err = Get-RestErrorMessage $_
             $ErrorObject.Code = $Err.statusCode
-            $ErrorObject.Type = "WebException"
+            $ErrorObject.Type = "Exception"
             $ErrorObject.Note = $Err.message
             $ErrorObject.Raw = $_
             $ErrorObject.Error = $true
             return $ErrorObject
         }
 
-        return $Response
+        return $OutObject
     }
 
 
