@@ -20,12 +20,10 @@ Function Test-LrApiTokenExpired {
         Number of days before expiry at which to generate a warning.
 
         Default: 30 days
-    .PARAMETER XXXX
-        xxxxxx
     .INPUTS
         Type -> Parameter
     .OUTPUTS
-        PSCustomObject representing the (new|modified) LogRhythm object.
+        PSCustomObject representing the status of token expiry.
     .EXAMPLE
         PS C:\>
     .NOTES
