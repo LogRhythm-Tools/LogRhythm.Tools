@@ -78,17 +78,17 @@ Function Get-LrApiTokenInfo {
             $LrTokenInfo = ConvertFrom-Base64 -Encoding UTF8 -String $PaddedLrTokenInfoPart | ConvertFrom-Json
 
             # Get the bits we actually care about
-            $TokenInfo = @{}
-            $TokenInfo.Add('UserId', $LrTokenInfo.uid)
-            $TokenInfo.Add('PersonId', $LrTokenInfo.pid)
-            $TokenInfo.Add('DefaultEntityId', $LrTokenInfo.deid)
-            $TokenInfo.Add('RoleId', $LrTokenInfo.rid)
-            $TokenInfo.Add('Subject', $LrTokenInfo.sub)
-            $TokenInfo.Add('Entity', $LrTokenInfo.eids)
-            $TokenInfo.Add('TokenId', $LrTokenInfo.jti)
-            $TokenInfo.Add('AppConnectionId', $LrTokenInfo.cid)
-            $TokenInfo.Add('Issued', ($LrTokenInfo.iat | ConvertFrom-UnixEpoch))
-            $TokenInfo.Add('Expires', ($LrTokenInfo.exp | ConvertFrom-UnixEpoch))
+            $OutObject = @{}
+            $OutObject.Add('UserId', $LrTokenInfo.uid)
+            $OutObject.Add('PersonId', $LrTokenInfo.pid)
+            $OutObject.Add('DefaultEntityId', $LrTokenInfo.deid)
+            $OutObject.Add('RoleId', $LrTokenInfo.rid)
+            $OutObject.Add('Subject', $LrTokenInfo.sub)
+            $OutObject.Add('Entity', $LrTokenInfo.eids)
+            $OutObject.Add('TokenId', $LrTokenInfo.jti)
+            $OutObject.Add('AppConnectionId', $LrTokenInfo.cid)
+            $OutObject.Add('Issued', ($LrTokenInfo.iat | ConvertFrom-UnixEpoch))
+            $OutObject.Add('Expires', ($LrTokenInfo.exp | ConvertFrom-UnixEpoch))
         }
         catch {
             $Err = Get-RestErrorMessage $_
@@ -100,7 +100,7 @@ Function Get-LrApiTokenInfo {
             return $ErrorObject
         }
 
-        return $TokenInfo
+        return $OutObject
     }
 
 
