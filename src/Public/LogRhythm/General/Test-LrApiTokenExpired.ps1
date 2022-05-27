@@ -74,13 +74,13 @@ Function Test-LrApiTokenExpired {
 
         # Test Expiry Date of Token
         try {
-            if ($TokenInfo.Expiry -le (Get-Date).Date){
+            if ($TokenInfo.Expires -le (Get-Date).Date){
                 # Token is expired
                 Write-Error "Token is expired: $($TokenInfo.Expires)"
                 $OutObject.IsExpired = $true
                 $OutObject.IsWarning = $true
             }
-            elseif ($TokenInfo.Expiry -le (Get-Date).AddDays($WarningInterval).Date) {
+            elseif ($TokenInfo.Expires -le (Get-Date).AddDays($WarningInterval).Date) {
                 # Token Expiry is within WarningInterval Days
                 Write-Warning "Token expires in less than $($WarningInterval) Days. Token Expiry: $($TokenInfo.Expires)"
                 $OutObject.IsWarning = $true
