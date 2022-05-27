@@ -85,6 +85,8 @@ Function Get-LrApiTokenInfo {
             $TokenInfo.Add('RoleId', $LrTokenInfo.rid)
             $TokenInfo.Add('Subject', $LrTokenInfo.sub)
             $TokenInfo.Add('Entity', $LrTokenInfo.eids)
+            $TokenInfo.Add('TokenId', $LrTokenInfo.jti)
+            $TokenInfo.Add('AppConnectionId', $LrTokenInfo.cid)
             $TokenInfo.Add('Issued', ($LrTokenInfo.iat | ConvertFrom-UnixEpoch))
             $TokenInfo.Add('Expires', ($LrTokenInfo.exp | ConvertFrom-UnixEpoch))
         }
