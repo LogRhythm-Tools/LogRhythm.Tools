@@ -408,16 +408,9 @@ Function Update-LrHost {
 
         # Ensure proper syntax RecordStatus
         if ($RecordStatus) {
-            $ValidStatus = @("retired", "active")
-            if ($ValidStatus.Contains($($RecordStatus.ToLower()))) {
-                $_recordStatus = (Get-Culture).TextInfo.ToTitleCase($RecordStatus)
-            } else {
-                $ErrorObject.Error = $true
-                $ErrorObject.Note = "RecordStatus [$RecordStatus] must be: all, active, or retired."
-                return $ErrorObject
-            }
+            $_recordStatus = (Get-Culture).TextInfo.ToTitleCase($RecordStatus)
         } else {
-            $Recordstatus = $OriginHostRecord.recordStatusName
+            $_recordStatus = $OriginHostRecord.recordStatusName
         }
 
         # Ensure proper syntax RiskLevel
@@ -564,6 +557,8 @@ Function Update-LrHost {
 
         # Define Query URL
         $RequestUrl = $BaseUrl + "/lr-admin-api/hosts/$Guid/"
+
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
         if ($Response.Error) {
