@@ -111,10 +111,14 @@ Function Sync-LrListItems {
 
 
         [Parameter(Mandatory = $false, Position = 3)]
-        [switch] $PassThru,
+        [switch] $IsPattern,
 
 
         [Parameter(Mandatory = $false, Position = 4)]
+        [switch] $PassThru,
+
+
+        [Parameter(Mandatory = $false, Position = 5)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -201,16 +205,16 @@ Function Sync-LrListItems {
 
 
         if ($OutObject.ListGuid) {
-            Write-Verbose "$(Get-TimeStamp) - Retrieving List Values for: $($OutObject.ListName)"
+            Write-Verbose "[$Me]: $(Get-TimeStamp) - Retrieving List Values for: $($OutObject.ListName)"
             $ListValues = Get-LrListItems -Name $OutObject.ListGuid -ValuesOnly
             if ($Value.Count -ge 1 -And $ListValues.Count -ge 1) {
-                Write-Verbose "$(Get-TimeStamp) - Number of ListValues: $($ListValues.Count) - Number of Values: $($Value.Count)"
+                Write-Verbose "[$Me]: $(Get-TimeStamp) - Number of ListValues: $($ListValues.Count) - Number of Values: $($Value.Count)"
                 $ComparisonResults = Compare-StringArrays $Value $ListValues -Unsorted
-                Write-Verbose "$(Get-TimeStamp) - Comparison Complete"
+                Write-Verbose "[$Me]: $(Get-TimeStamp) - Comparison Complete"
                 $RemoveList = $ComparisonResults | Where-Object SideIndicator -eq "=>" | Select-Object -ExpandProperty InputObject
-                Write-Verbose "$(Get-TimeStamp) - RemoveList Count: $($RemoveList.Count)"
+                Write-Verbose "[$Me]: $(Get-TimeStamp) - RemoveList Count: $($RemoveList.Count)"
                 $AddList = $ComparisonResults | Where-Object SideIndicator -eq "<=" | Select-Object -ExpandProperty InputObject
-                Write-Verbose "$(Get-TimeStamp) - AddList Count: $($AddList.Count)"
+                Write-Verbose "[$Me]: $(Get-TimeStamp) - AddList Count: $($AddList.Count)"
             } elseif ($Value.Count -eq 0 -And $ListValues.Count -ge 1) {
                 $RemoveList = $ListValues
             } else {
@@ -220,16 +224,16 @@ Function Sync-LrListItems {
 
             # Bulk remove of the RemoveList items
             if ($RemoveList) {
-                Write-Verbose "$(Get-TimeStamp) - Remove Count: $($RemoveList.Count)"
+                Write-Verbose "[$Me]: $(Get-TimeStamp) - Remove Count: $($RemoveList.Count)"
                 # Set quantity of removed values
                 $OutObject.Removed = $RemoveList.Count
                 # For large number of removals, break the additions into 10,000 items per API call
                 if ($RemoveList.Count -ge 1000) {
-                    Write-Verbose "$(Get-TimeStamp) - Enter Removal Segmentation"
+                    Write-Verbose "[$Me]: $(Get-TimeStamp) - Enter Removal Segmentation"
                     $SegmentCount = ([Math]::Round(($($RemoveList.Count) / 1000), 0)) + 1
                     $SegmentedRemoveList = Create-LrPsArraySegments -InputArray $RemoveList -Segments $SegmentCount
                     foreach ($RemoveArray in $SegmentedRemoveList) {
-                        Write-Verbose "$(Get-TimeStamp) - Submitting $($RemoveArray.count)"
+                        Write-Verbose "[$Me]: $(Get-TimeStamp) - Submitting $($RemoveArray.count)"
                         Try {
                             Remove-LrListItem -name $OutObject.ListGuid -Value $RemoveArray -ItemType $OutObject.ListType
                         } Catch {
@@ -237,7 +241,6 @@ Function Sync-LrListItems {
                             $ErrorObject.Note = "Failed to submit removal entries."
                             $ErrorObject.Value = $RemoveArray
                         }
-                        start-sleep .2
                     }
                 } else {
                     if ($ItemType) {
@@ -265,29 +268,36 @@ Function Sync-LrListItems {
 
             # Bulk addition of the AddList items
             if ($AddList) {
-                Write-Verbose "$(Get-TimeStamp) - Addition Count: $($AddList.Count)"
+                Write-Verbose "[$Me]: $(Get-TimeStamp) - Addition Count: $($AddList.Count)"
                 # Set quantity of removed values
                 $OutObject.Added = $AddList.Count
                 # For large number of additions, break the additions into 1,000 items per API call
                 if ($AddList.Count -ge 1000) {
-                    Write-Verbose "$(Get-TimeStamp) - Enter Addition Segmentation"
+                    Write-Verbose "[$Me]: $(Get-TimeStamp) - Enter Addition Segmentation"
                     $SegmentCount = ([Math]::Round(($($AddList.Count) / 1000), 0)) +1
                     $SegmentedAddList = Create-LrPsArraySegments -InputArray $AddList -Segments $SegmentCount
                     foreach ($AddArray in $SegmentedAddList) {
-                        Write-Verbose "$(Get-TimeStamp) - Submitting $($AddArray.count)"
+                        Write-Verbose "[$Me]: $(Get-TimeStamp) - Submitting $($AddArray.count)"
                         Try {
-                            Add-LrListItem -name $OutObject.ListGuid -Value $AddArray -ItemType $OutObject.ListType
+                            if ($IsPattern) {
+                                Add-LrListItem -name $OutObject.ListGuid -Value $AddArray -ItemType $OutObject.ListType -IsPattern
+                            } else {
+                                Add-LrListItem -name $OutObject.ListGuid -Value $AddArray -ItemType $OutObject.ListType
+                            }
                         } Catch {
                             $ErrorObject.Error = $true
                             $ErrorObject.Note = "Failed to submit addition entries."
                             $ErrorObject.Value = $AddArray
                         }
-                        start-sleep .2
                     }
                 } else {
                     if ($ItemType) {
                         Try {
-                            Add-LrListItem -Name $OutObject.ListGuid -Value $AddList -ItemType $OutObject.ListType
+                            if ($IsPattern) {
+                                Add-LrListItem -name $OutObject.ListGuid -Value $AddArray -ItemType $OutObject.ListType -IsPattern
+                            } else {
+                                Add-LrListItem -name $OutObject.ListGuid -Value $AddArray -ItemType $OutObject.ListType
+                            }
                         } Catch {
                             $ErrorObject.Error = $true
                             $ErrorObject.Note = "Failed to submit addition entries."
