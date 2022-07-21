@@ -78,23 +78,22 @@ Function Get-LrApiTokenInfo {
             $LrTokenInfo = ConvertFrom-Base64 -Encoding UTF8 -String $PaddedLrTokenInfoPart | ConvertFrom-Json
 
             # Get the bits we actually care about
-            $OutObject = @{}
-            $OutObject.Add('UserId', $LrTokenInfo.uid)
-            $OutObject.Add('PersonId', $LrTokenInfo.pid)
-            $OutObject.Add('DefaultEntityId', $LrTokenInfo.deid)
-            $OutObject.Add('RoleId', $LrTokenInfo.rid)
-            $OutObject.Add('Subject', $LrTokenInfo.sub)
-            $OutObject.Add('Entity', $LrTokenInfo.eids)
-            $OutObject.Add('TokenId', $LrTokenInfo.jti)
-            $OutObject.Add('AppConnectionId', $LrTokenInfo.cid)
-            $OutObject.Add('Issued', ($LrTokenInfo.iat | ConvertFrom-UnixEpoch))
-            $OutObject.Add('Expires', ($LrTokenInfo.exp | ConvertFrom-UnixEpoch))
+            $OutObject = [PSCustomObject]@{
+                UserId = $LrTokenInfo.uid
+                PersonId = $LrTokenInfo.pid
+                DefaultEntityId = $LrTokenInfo.deid
+                RoleId = $LrTokenInfo.rid
+                Subject = $LrTokenInfo.sub
+                Entity = $LrTokenInfo.eids
+                TokenId = $LrTokenInfo.jti
+                AppConnectionId = $LrTokenInfo.cid
+                Issued = ($LrTokenInfo.iat | ConvertFrom-UnixEpoch)
+                Expires = ($LrTokenInfo.exp | ConvertFrom-UnixEpoch)
+            }
         }
         catch {
-            $Err = Get-RestErrorMessage $_
-            $ErrorObject.Code = $Err.statusCode
             $ErrorObject.Type = "Exception"
-            $ErrorObject.Note = $Err.message
+            $ErrorObject.Note = "Unable to convert JWT to API User Info."
             $ErrorObject.Raw = $_
             $ErrorObject.Error = $true
             return $ErrorObject
