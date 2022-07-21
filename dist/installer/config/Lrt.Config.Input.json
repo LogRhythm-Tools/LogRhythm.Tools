@@ -62,14 +62,14 @@
         "Fields": {
             "Version": {
                 "Prompt": "LogRhythm Version",
-                "Hint": "x.x.x",
+                "Hint": "7.9.0",
                 "InputCmd": "Get-InputVersion",
                 "FallThru": false
             },
     
             "BaseUrl": {
                 "Prompt": "LogRhythm Platform Manager",
-                "Hint": "Hostname or IP (x.x.x.x)",
+                "Hint": "Hostname or IP (x.x.x.x)\r\n      Example 1: logrhythm-pm.local.lan\r\n      Example 2: tenant-api.logrhythm.cloud\r\n      Example 3: 127.0.0.1",
                 "InputCmd": "Get-InputApiUrl",
                 "FallThru": false
             }
@@ -119,7 +119,7 @@
         "Fields": {
             "OAuth2Url": {
                 "Prompt": "Tenant ID (GUID)",
-                "Hint": "Example: f8da285a-3816-438e-825a-928a4bed1bd3",
+                "Hint": "Example: f8da285a-5555-5555-5555-928a4bed1bd3",
                 "InputCmd": "Get-InputTenantId",
                 "FallThru": false
             },
@@ -144,7 +144,7 @@
         "Fields": {
             "OAuth2Url": {
                 "Prompt": "Tenant ID (GUID)",
-                "Hint": "Example: f8da285a-3816-438e-825a-928a4bed1bd3",
+                "Hint": "Example: f8da285a-5555-5555-5555-928a4bed1bd3",
                 "InputCmd": "Get-InputTenantId",
                 "FallThru": false
             },
