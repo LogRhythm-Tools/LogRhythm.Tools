@@ -64,15 +64,6 @@ Function Get-LrListItems {
     }
 
     Process {
-        # Establish General Error object Output
-        $ErrorObject = [PSCustomObject]@{
-            Code                  =   $null
-            Error                 =   $false
-            Value                 =   $Value
-            Note                  =   $null
-            Raw                   =   $null
-        }
-
         # Process Identity Object
         if (($Name.GetType() -eq [System.Guid]) -Or (Test-Guid $Name)) {
             $Guid = $Name.ToString()
