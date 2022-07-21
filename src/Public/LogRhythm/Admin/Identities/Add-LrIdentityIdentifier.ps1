@@ -56,7 +56,7 @@ Function Add-LrIdentityIdentifier {
 
         [Parameter(Mandatory = $true, ValueFromPipeline = $false, Position = 1)]
         [ValidateSet('login', 'email', ignorecase=$true)]
-        [string] $IdentifierType = "Login",
+        [string] $IdentifierType,
 
 
         [Parameter(Mandatory = $true, ValueFromPipeline = $false, Position = 2)]
@@ -92,24 +92,7 @@ Function Add-LrIdentityIdentifier {
     }
 
     Process {
-        # Establish General Error object Output
-        $ErrorObject = [PSCustomObject]@{
-            Error                 =   $false
-            Note                  =   $null
-            Code                  =   $null
-            Type                  =   $IdentifierType
-            IdentityId            =   $IdentityId
-            NameFirst             =   $null
-            NameLast              =   $null
-            Raw                   =   $null
-        }
-
-
-        $ValidStatus = @("login", "email")
-        if ($ValidStatus.Contains($($IdentifierType.ToLower()))) {
-            $_identifierType = (Get-Culture).TextInfo.ToTitleCase($IdentifierType)
-        }
-
+        $_identifierType = (Get-Culture).TextInfo.ToTitleCase($IdentifierType)
 
         # Define HTTP Body
         $Body = @{
@@ -121,6 +104,8 @@ Function Add-LrIdentityIdentifier {
         
         # Define Endpoint URL
         $RequestUrl = $BaseUrl + "/lr-admin-api/identities/" + $IdentityId + "/identifiers"
+
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
         # Test if Identifier exists
         $IdentifierStatus = Test-LrIdentityIdentifierValue -IdentityId $IdentityId -IdentifierType $IdentifierType -Value $IdentifierValue
