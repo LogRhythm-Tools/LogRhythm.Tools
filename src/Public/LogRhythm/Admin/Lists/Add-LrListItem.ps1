@@ -21,6 +21,8 @@ Function Add-LrListItem {
     .PARAMETER ItemType
         For use with Lists that support multiple item types.  Add-LrListItem will attempt to auto-define
         this value.  This parameter enables setting the ItemType.
+    .PARAMETER IsPattern
+        Switch paramater that will set the added value as a pattern value, enabling wildcard matching.
     .PARAMETER LoadListItems
         LoadListItems adds the Items property to the return of the PSCustomObject representing the 
         specified LogRhythm List when an item is successfully added.
@@ -100,12 +102,16 @@ Function Add-LrListItem {
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 3)]
         [switch] $LoadListItems,
 
-                        
+
         [Parameter(Mandatory = $false, Position = 4)]
+        [switch] $IsPattern,
+        
+
+        [Parameter(Mandatory = $false, Position = 5)]
         [switch] $PassThru,
 
 
-        [Parameter(Mandatory = $false, Position = 5)]
+        [Parameter(Mandatory = $false, Position = 6)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -160,7 +166,7 @@ Function Add-LrListItem {
                 return $TargetList
             }
         } else {
-            $TargetList = Get-LrList -Name $Name.ToString() -Exact
+            $TargetList = Get-LrLists -Name $Name.ToString() -Exact
             if ($TargetList -is [array]) {
                 $ErrorObject.Error = $true
                 $ErrorObject.ListName = $Name.ToString()
@@ -181,6 +187,8 @@ Function Add-LrListItem {
 
         # Set HTTP Request URL
         $RequestUrl = $BaseUrl + "/lr-admin-api/lists/$ListGuid/items/"
+
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
         # Map listItemDataType
         switch ($LrListType) {
@@ -410,7 +418,7 @@ Function Add-LrListItem {
                         $IPValid = $Entry -as [IPAddress] -as [Bool]
                         
                         if ($IPValid -eq $false) {
-                            Write-Verbose "[$Me] IPValid: $IPValid  Value: $Entry"
+                            Write-Verbose "[$Me]: IPValid: $IPValid  Value: $Entry"
                             $ErrorObject.Error = $true
                             $ErrorObject.FieldType =  "IP"
                             $ErrorObject.TypeMismatch = $true
@@ -420,7 +428,7 @@ Function Add-LrListItem {
                     }
                 } else {
                     $IPValid = $Value -as [IPAddress] -as [Bool]
-                    Write-Verbose "[$Me] IPValid: $IPValid"
+                    Write-Verbose "[$Me]: IPValid: $IPValid"
                     if ($IPValid -eq $false) {
                         $ErrorObject.Error = $true
                         $ErrorObject.FieldType =  "IP"
@@ -509,6 +517,12 @@ Function Add-LrListItem {
             Default {}
         }
 
+        if ($IsPattern) {
+            $_isPattern = $true
+        } else {
+            $_isPattern = $false
+        }
+
         #$ExpDate = (Get-Date).AddDays(7).ToString("yyyy-MM-dd")
 
         # Stage Post Body for Array
@@ -516,30 +530,42 @@ Function Add-LrListItem {
             $Items = [list[object]]::new()
             $ItemValues = [PSCustomObject]@{}
             ForEach ($Entry in $Value) {
+                if ($_isPattern) {
+                    if (!$Entry.StartsWith('%') -and !$Entry.EndsWith('%')) {
+                        $Entry = '%' + $Entry + '%'
+                    }
+                }
+
                 $ItemValue = [PSCustomObject]@{
                         displayValue = $Entry
                         expirationDate = $ExpDate
                         isExpired =  $false
                         isListItem = $false
-                        isPattern = $false
+                        isPattern = $_isPattern
                         listItemDataType = $ListItemDataType
                         listItemType = $ListItemType
                         value = $Entry
                 }
                 $Items.add($ItemValue)
             }
-            Write-Verbose "Number of values submitted: $($Items.count)"
+
             $ItemValues | Add-Member -NotePropertyName items -NotePropertyValue $Items
             # Check length of Items to Add to List
             if ($ItemValues.length -gt 1000) {
                 #Split Items into multiple body contents
                 # TO DO
-                Write-Host "Over 1000 items submitted.  Currently not supported."
+                Write-Host "[$Me]: Over 1000 items submitted.  Currently not supported."
             } else {
                 # Establish Body Contents
                 $BodyContents = $ItemValues
             }
         } else {
+            if ($_isPattern) {
+                if (!$Value.StartsWith('%') -and !$Value.EndsWith('%')) {
+                    $Value = '%' + $Value + '%'
+                }
+            }
+
             # Request Body
             $BodyContents = [PSCustomObject]@{
                 items = @([PSCustomObject]@{
@@ -547,7 +573,7 @@ Function Add-LrListItem {
                         expirationDate = $ExpDate
                         isExpired =  $false
                         isListItem = $false
-                        isPattern = $false
+                        isPattern = $_isPattern
                         listItemDataType = $ListItemDataType
                         listItemType = $ListItemType
                         value = $Value
@@ -558,7 +584,7 @@ Function Add-LrListItem {
         }
 
         $Body = $BodyContents | ConvertTo-Json -Depth 5 -Compress
-        Write-Verbose "[$Me] Request Body:`n$Body"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
 
         # Check for Object Errors
         if ($Value -is [array]) {
@@ -569,21 +595,9 @@ Function Add-LrListItem {
                 return $Response
             }
         } else {
-            # Check for Duplicates for single items
-            $ExistingValue = Test-LrListValue -Name $Guid -Value $Value
-            if (($ExistingValue.IsPresent -eq $false) -and ($ExistingValue.ListValid -eq $true)) {
-                # Send Request
-                $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
-                if ($Response.Error) {
-                    return $Response
-                }
-            } else {
-                $ErrorObject.Error = $true
-                $ErrorObject.Value = $ExistingValue.Value
-                $ErrorObject.FieldType = $ListItemType
-                $ErrorObject.Duplicate = $true
-                $ErrorObject.Note = "Duplicate Value.  Value: $Value"
-                return $ErrorObject
+            $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
+            if ($Response.Error) {
+                return $Response
             }
         }  
 
