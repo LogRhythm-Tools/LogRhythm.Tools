@@ -71,7 +71,8 @@ function Get-ShodanDirectorySearch {
         }
 
         while ($PollingShodan -eq $True) {
-            $RequestUrl = $BaseUrl +"/shodan/query/search?query="+ $Keyword +"&page="+ $Page +"&key="+ $Token           
+            $RequestUrl = $BaseUrl +"/shodan/query/search?query="+ $Keyword +"&page="+ $Page +"&key="+ $Token
+            Write-Verbose "[$Me]: Request URL: $RequestUrl"        
             try {
                 $Response = Invoke-RestMethod $RequestUrl
             } catch {

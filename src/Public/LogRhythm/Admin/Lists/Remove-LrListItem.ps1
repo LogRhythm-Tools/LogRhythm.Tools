@@ -397,7 +397,7 @@ Function Remove-LrListItem {
                 if ($Value -is [array]) {
                     ForEach ($Entry in $Value) {
                         $IPValid = $Entry -as [IPAddress] -as [Bool]
-                        Write-Verbose "[$Me] IPValid: $IPValid"
+                        Write-Verbose "[$Me]: IPValid: $IPValid"
                         if ($IPValid -eq $false) {
                             $ErrorObject.Error = $true
                             $ErrorObject.FieldType =  "IP"
@@ -408,7 +408,7 @@ Function Remove-LrListItem {
                     }
                 } else {
                     $IPValid = $Value -as [IPAddress] -as [Bool]
-                    Write-Verbose "[$Me] IPValid: $IPValid"
+                    Write-Verbose "[$Me]: IPValid: $IPValid"
                     if ($IPValid -eq $false) {
                         $ErrorObject.Error = $true
                         $ErrorObject.FieldType =  "IP"
@@ -545,11 +545,13 @@ Function Remove-LrListItem {
         
         # Set Request Body
         $Body = $BodyContents | ConvertTo-Json -Depth 5 -Compress
-        Write-Verbose "[$Me] Request Body:`n$Body"
+        
 
         # Set HTTP Request URL
         $RequestUrl = $BaseUrl + "/lr-admin-api/lists/$ListGuid/items/"
 
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
 
         # Check for Object Errors
         if ($Value -is [array]) {

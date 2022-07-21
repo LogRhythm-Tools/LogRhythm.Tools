@@ -78,8 +78,7 @@ Function Import-LrPlaybook {
         }
 
         $RequestUrl = $BaseUrl + "/lr-case-api/playbooks/import"
-        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
-
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
         if (-not $ContentType)
         {

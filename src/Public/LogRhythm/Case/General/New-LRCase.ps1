@@ -124,16 +124,6 @@ Function New-LrCase {
     }
 
     Process {
-        # Establish General Error object Output
-        $ErrorObject = [PSCustomObject]@{
-            Code                  =   $null
-            Error                 =   $false
-            Type                  =   $null
-            Note                  =   $null
-            Case                  =   $Id
-            Raw                   =   $null
-        }  
-
         # Request Body
         $Body = [PSCustomObject]@{
             name = $Name
@@ -142,6 +132,9 @@ Function New-LrCase {
             dueDate = ($DueDate.ToUniversalTime()).ToString("yyyy-MM-ddTHH:mm:ssZ")
             summary = $Summary
         } | ConvertTo-Json
+
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
 
         # Send Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me

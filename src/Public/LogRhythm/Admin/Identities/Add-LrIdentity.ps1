@@ -385,6 +385,8 @@ Function Add-LrIdentity {
         # Define Query URL
         $RequestUrl = $BaseUrl + "/lr-admin-api/identities/bulk/?entityID=" + $EntityId
 
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+
         # Send Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
         if ($Response.Error) {

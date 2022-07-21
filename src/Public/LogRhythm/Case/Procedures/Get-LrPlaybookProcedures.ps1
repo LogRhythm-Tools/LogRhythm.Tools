@@ -155,6 +155,7 @@ Function Get-LrPlaybookProcedures {
         # Request URI
         $RequestUrl = $BaseUrl + "/lr-case-api/playbooks/$($Pb.id)/procedures/"
 
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
         # REQUEST
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me

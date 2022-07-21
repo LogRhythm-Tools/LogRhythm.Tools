@@ -430,11 +430,12 @@ Function New-LrNetwork {
         # Establish Body Contents
         $Body = $BodyContents | ConvertTo-Json -Depth 3
 
-        Write-Verbose "$Body"
-
         # Define Query URL
         $RequestUrl = $BaseUrl + "/lr-admin-api/networks/"
 
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
+        
         # Send Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
         if ($Response.Error) {

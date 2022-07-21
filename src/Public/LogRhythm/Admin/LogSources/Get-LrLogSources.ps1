@@ -393,6 +393,8 @@ Function Get-LrLogSources {
         # Request URL
         $RequestUrl = $BaseUrl + "/lr-admin-api/logsources/" + $QueryString
 
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+
         # Send Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
         if ($Response.Error) {

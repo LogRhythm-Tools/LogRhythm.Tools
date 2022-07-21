@@ -88,18 +88,7 @@ Function Get-LrCaseMetrics {
 
 
     Process {
-        # Establish General Error object Output
-        $ErrorObject = [PSCustomObject]@{
-            Code                  =   $null
-            Error                 =   $false
-            Type                  =   $null
-            Note                  =   $null
-            Case                  =   $Id
-            Raw                   =   $null
-        } 
-
         $_COUNT++
-        $RunAgain = $false
 
         # Test CaseID Format
         $Case = Test-LrCaseIdFormat $Id
@@ -111,7 +100,7 @@ Function Get-LrCaseMetrics {
      
         # Request URI
         $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/metrics"
-
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
         #region: Send Request - First Attempt                                                      
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
@@ -175,14 +164,12 @@ Function Get-LrCaseMetrics {
         }
         #endregion
 
-        Start-Sleep -Milliseconds 50
-
         # End
         return $Response
     }
 
 
     End {
-        Write-Verbose "Processed $_COUNT cases."
+        Write-Verbose "[$Me]: Processed $_COUNT cases."
     }
 }

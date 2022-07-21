@@ -146,15 +146,6 @@ Function Get-LrIdentities {
     }
 
     Process {
-        # Establish General Error object Output
-        $ErrorObject = [PSCustomObject]@{
-            Error                 =   $false
-            Note                  =   $null
-            Code                  =   $null
-            Type                  =   $null
-            Raw                   =   $null
-        }
-
         #region: Process Query Parameters
         $QueryParams = [Dictionary[string,string]]::new()
 
@@ -231,6 +222,8 @@ Function Get-LrIdentities {
 
         # Define Search URL
         $RequestUrl = $BaseUrl + "/lr-admin-api/identities/" + $QueryString
+
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
         # Send Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me

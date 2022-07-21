@@ -141,6 +141,8 @@ function Get-ShodanHostIp {
             Note                  =   $null
         }
 
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"   
+
         # Query DNS and obtain domain IP address
         try {
             $shodanDNSResults = Invoke-RestMethod $RequestUrl

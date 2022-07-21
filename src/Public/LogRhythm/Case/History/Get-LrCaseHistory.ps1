@@ -181,7 +181,8 @@ Function Get-LrCaseHistory {
         #endregion
         
         $RequestUrl = $BaseUrl + "/lr-case-api/cases/$Id/history/"
-
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
         if ($Response.Error) {
             return $Response
@@ -195,7 +196,7 @@ Function Get-LrCaseHistory {
                 $Offset = ($PageNumber -1) * $Count
                 # Update Header Pagination Paramater
                 $Headers.offset = $Offset
-                
+                Write-Verbose "[$Me]: Request URL: $RequestUrl"
                 # Retrieve Query Results
                 $PaginationResults = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
                 if ($PaginationResults.Error) {

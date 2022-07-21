@@ -70,7 +70,7 @@ Function Get-Secret {
         # Load Credential File if provided.
         if ($AuthFilePath) {
             if (Test-Path $AuthFilePath) {
-                Write-Verbose "[$Me] Loading SecretServer credential from: $AuthFilePath"
+                Write-Verbose "[$Me]: Loading SecretServer credential from: $AuthFilePath"
                 try {
                     $Credential = Import-CliXml -Path $AuthFilePath
                 } catch { $PSCmdlet.ThrowTerminatingError($PSItem) }
@@ -83,7 +83,7 @@ Function Get-Secret {
         # Create WebServiceProxy for SecretServer Soap API
         try {
             if ($Credential) {
-                Write-Verbose "[$Me] SecretServer authenticating with credential $($Credential.UserName)"
+                Write-Verbose "[$Me]: SecretServer authenticating with credential $($Credential.UserName)"
                 $SecretServerService = New-WebServiceProxy -uri $SecretServerUrl -Credential $Credential -ErrorAction Stop
             } else {
                 $SecretServerService = New-WebServiceProxy -uri $SecretServerUrl -UseDefaultCredential -ErrorAction Stop

@@ -142,6 +142,7 @@ Function Update-LrCaseStatus {
         }
         # Request URI
         $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/actions/changeStatus/"
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
         if ($Force) {
             $CurrentCase = Get-LrCaseById -Id $CaseNumber
@@ -152,6 +153,7 @@ Function Update-LrCaseStatus {
                             $Body = [PSCustomObject]@{
                                 statusNumber = 3
                             } | ConvertTo-Json
+                            Write-Verbose "[$Me]: Request Body:`n$Body"
                             $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
                             if ($Response.Error) {
                                 return $Response
@@ -161,6 +163,7 @@ Function Update-LrCaseStatus {
                             $Body = [PSCustomObject]@{
                                 statusNumber = 3
                             } | ConvertTo-Json
+                            Write-Verbose "[$Me]: Request Body:`n$Body"
                             $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
                             if ($Response.Error) {
                                 return $Response
@@ -168,6 +171,7 @@ Function Update-LrCaseStatus {
                             $Body = [PSCustomObject]@{
                                 statusNumber = 4
                             } | ConvertTo-Json
+                            Write-Verbose "[$Me]: Request Body:`n$Body"
                             $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
                             if ($Response.Error) {
                                 return $Response
@@ -184,6 +188,7 @@ Function Update-LrCaseStatus {
                             $Body = [PSCustomObject]@{
                                 statusNumber = 1
                             } | ConvertTo-Json
+                            Write-Verbose "[$Me]: Request Body:`n$Body"
                             $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
                             if ($Response.Error) {
                                 return $Response
@@ -193,6 +198,7 @@ Function Update-LrCaseStatus {
                             $Body = [PSCustomObject]@{
                                 statusNumber = 1
                             } | ConvertTo-Json
+                            Write-Verbose "[$Me]: Request Body:`n$Body"
                             $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
                             if ($Response.Error) {
                                 return $Response
@@ -200,6 +206,7 @@ Function Update-LrCaseStatus {
                             $Body = [PSCustomObject]@{
                                 statusNumber = 3
                             } | ConvertTo-Json
+                            Write-Verbose "[$Me]: Request Body:`n$Body"
                             $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
                             if ($Response.Error) {
                                 return $Response
@@ -209,6 +216,7 @@ Function Update-LrCaseStatus {
                             $Body = [PSCustomObject]@{
                                 statusNumber = 1
                             } | ConvertTo-Json
+                            Write-Verbose "[$Me]: Request Body:`n$Body"
                             $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
                             if ($Response.Error) {
                                 return $Response
@@ -216,6 +224,7 @@ Function Update-LrCaseStatus {
                             $Body = [PSCustomObject]@{
                                 statusNumber = 3
                             } | ConvertTo-Json
+                            Write-Verbose "[$Me]: Request Body:`n$Body"
                             $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
                             if ($Response.Error) {
                                 return $Response
@@ -224,6 +233,7 @@ Function Update-LrCaseStatus {
                             $Body = [PSCustomObject]@{
                                 statusNumber = 4
                             } | ConvertTo-Json
+                            Write-Verbose "[$Me]: Request Body:`n$Body"
                             $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
                             if ($Response.Error) {
                                 return $Response
@@ -240,6 +250,7 @@ Function Update-LrCaseStatus {
                             $Body = [PSCustomObject]@{
                                 statusNumber = 1
                             } | ConvertTo-Json
+                            Write-Verbose "[$Me]: Request Body:`n$Body"
                             $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
                             if ($Response.Error) {
                                 return $Response
@@ -249,6 +260,7 @@ Function Update-LrCaseStatus {
                             $Body = [PSCustomObject]@{
                                 statusNumber = 4
                             } | ConvertTo-Json
+                            Write-Verbose "[$Me]: Request Body:`n$Body"
                             $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
                             if ($Response.Error) {
                                 return $Response
@@ -265,6 +277,7 @@ Function Update-LrCaseStatus {
                             $Body = [PSCustomObject]@{
                                 statusNumber = 3
                             } | ConvertTo-Json
+                            Write-Verbose "[$Me]: Request Body:`n$Body"
                             $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
                             if ($Response.Error) {
                                 return $Response
@@ -274,6 +287,7 @@ Function Update-LrCaseStatus {
                             $Body = [PSCustomObject]@{
                                 statusNumber = 3
                             } | ConvertTo-Json
+                            Write-Verbose "[$Me]: Request Body:`n$Body"
                             $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
                             if ($Response.Error) {
                                 return $Response
@@ -281,6 +295,7 @@ Function Update-LrCaseStatus {
                             $Body = [PSCustomObject]@{
                                 statusNumber = 1
                             } | ConvertTo-Json
+                            Write-Verbose "[$Me]: Request Body:`n$Body"
                             $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
                             if ($Response.Error) {
                                 return $Response
@@ -297,6 +312,7 @@ Function Update-LrCaseStatus {
                             $Body = [PSCustomObject]@{
                                 statusNumber = 4
                             } | ConvertTo-Json
+                            Write-Verbose "[$Me]: Request Body:`n$Body"
                             $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
                             if ($Response.Error) {
                                 return $Response
@@ -304,6 +320,7 @@ Function Update-LrCaseStatus {
                             $Body = [PSCustomObject]@{
                                 statusNumber = 3
                             } | ConvertTo-Json
+                            Write-Verbose "[$Me]: Request Body:`n$Body"
                             $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
                             if ($Response.Error) {
                                 return $Response
@@ -313,6 +330,7 @@ Function Update-LrCaseStatus {
                             $Body = [PSCustomObject]@{
                                 statusNumber = 4
                             } | ConvertTo-Json
+                            Write-Verbose "[$Me]: Request Body:`n$Body"
                             $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
                             if ($Response.Error) {
                                 return $Response
@@ -320,6 +338,7 @@ Function Update-LrCaseStatus {
                             $Body = [PSCustomObject]@{
                                 statusNumber = 3
                             } | ConvertTo-Json
+                            Write-Verbose "[$Me]: Request Body:`n$Body"
                             $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
                             if ($Response.Error) {
                                 return $Response
@@ -327,6 +346,7 @@ Function Update-LrCaseStatus {
                             $Body = [PSCustomObject]@{
                                 statusNumber = 1
                             } | ConvertTo-Json
+                            Write-Verbose "[$Me]: Request Body:`n$Body"
                             $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
                             if ($Response.Error) {
                                 return $Response
@@ -336,6 +356,7 @@ Function Update-LrCaseStatus {
                             $Body = [PSCustomObject]@{
                                 statusNumber = 4
                             } | ConvertTo-Json
+                            Write-Verbose "[$Me]: Request Body:`n$Body"
                             $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
                             if ($Response.Error) {
                                 return $Response
@@ -355,7 +376,7 @@ Function Update-LrCaseStatus {
         } | ConvertTo-Json
 
         # Send Request
-        Write-Verbose "[$Me]: request body is:`n$Body"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
 
 
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
@@ -374,7 +395,7 @@ Function Update-LrCaseStatus {
     
     End { 
         if ($Summary) {
-            Write-Host "Updated $ProcessedCount cases to status $Status"
+            Write-Host "[$Me]: Updated $ProcessedCount cases to status $Status"
         }
     }
 }

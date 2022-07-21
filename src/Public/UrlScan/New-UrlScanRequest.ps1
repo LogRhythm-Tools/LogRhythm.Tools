@@ -53,6 +53,14 @@ Function New-UrlScanRequest {
         $BaseUrl = $LrtConfig.UrlScan.BaseUrl
         $UsPublic = $($LrtConfig.UrlScan.PublicScans).ToString().ToLower()
         $Token = $Credential.GetNetworkCredential().Password
+
+        # Request Headers
+        $Headers = [Dictionary[string,string]]::new()
+        $Headers.Add("API-Key", "$Token")
+
+
+        # Request URI   
+        $Method = $HttpMethod.Post
     }
 
     Process {
@@ -65,13 +73,6 @@ Function New-UrlScanRequest {
             Url                   =   $Url
         }
 
-        # Request Headers
-        $Headers = [Dictionary[string,string]]::new()
-        $Headers.Add("API-Key", "$Token")
-
-
-        # Request URI   
-        $Method = $HttpMethod.Post
         $RequestUrl = $BaseUrl + "/scan/"
         Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
@@ -80,8 +81,10 @@ Function New-UrlScanRequest {
             url = $Url
             public = $UsPublic    
         } | ConvertTo-Json
-        Write-Verbose "[$Me]: request body is:`n$Body"
 
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
+        
         Try {
             $Response = Invoke-RestMethod $RequestUrl -Method $Method -Headers $Headers -Body $Body -ContentType "application/json"
         }

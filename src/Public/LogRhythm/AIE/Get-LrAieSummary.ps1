@@ -87,9 +87,6 @@ Function Get-LrAieSummary {
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
     #endregion
-
-
-
     #region: Begin                                                                       
     Begin {
         $Me = $MyInvocation.MyCommand.Name
@@ -116,6 +113,8 @@ Function Get-LrAieSummary {
         # Request URI   
         $RequestUrl = $BaseUrl + "/lr-drilldown-cache-api/drilldown/$AlarmId/summary"
      
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+
         # Send Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
         if ($Response.Error) {

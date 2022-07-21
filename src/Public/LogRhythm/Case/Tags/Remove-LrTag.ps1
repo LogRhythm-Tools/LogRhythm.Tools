@@ -68,7 +68,6 @@ Function Remove-LrTag {
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
         
-
         # Request URI
         $Method = $HttpMethod.delete
 
@@ -78,20 +77,8 @@ Function Remove-LrTag {
 
 
     Process {
-        # Establish General Error object Output
-        $ErrorObject = [PSCustomObject]@{
-            Code                  =   $null
-            Error                 =   $false
-            Type                  =   $null
-            Note                  =   $null
-            Tag                   =   $Tag
-            Raw                   =   $null
-        }
         #region: Process Tags                                                            
         # Request Body - Tags
-        Write-Verbose "[$Me]: Validating Tags"
-
-
         if ([int]::TryParse($Tag, [ref]$_int)) {
             $_tagNumber = $Tag | Get-LrTag 
             if ($_tagNumber.number) {
@@ -111,7 +98,7 @@ Function Remove-LrTag {
 
         # Request URI
         $RequestUrl = $BaseUrl + "/lr-case-api/tags/$_tagNumber/"
-        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
         
         # Make Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me

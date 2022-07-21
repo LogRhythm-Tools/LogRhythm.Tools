@@ -39,8 +39,7 @@ Function Get-LrtMacVendors {
 
         # Define lookup URL
         $RequestUrl = $BaseUrl + $Mac
-        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
-
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
         $Results = Invoke-WebRequest $RequestUrl -Method $Method -Headers $Headers -ErrorAction SilentlyContinue
 

@@ -61,13 +61,14 @@ Function Get-VTHashReport {
 
         $BaseUrl = $LrtConfig.VirusTotal.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
+
+        $Method = $HttpMethod.Get
     }
 
     Process {
         # Request URI   
-        $Method = $HttpMethod.Get
         $RequestUrl = $BaseUrl + "/file/report?apikey=$Token&resource=$Hash"
-        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
         Try {
             $vtResponse = Invoke-RestMethod $RequestUrl -Method $Method 

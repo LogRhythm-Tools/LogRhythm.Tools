@@ -195,6 +195,8 @@ Function Get-LrAlarmEvents {
 
         $RequestUrl = $BaseUrl + "/lr-alarm-api/alarms/" + $AlarmId + "/events"
 
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+
         # Send Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
         if ($Response.Error) {

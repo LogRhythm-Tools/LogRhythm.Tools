@@ -143,17 +143,7 @@ Function Update-LrCase {
     }
 
 
-    Process {
-        # Establish General Error object Output
-        $ErrorObject = [PSCustomObject]@{
-            Code                  =   $null
-            Error                 =   $false
-            Type                  =   $null
-            Note                  =   $null
-            Case                  =   $Id
-            Raw                   =   $null
-        } 
-        
+    Process {    
         # Test CaseId Format
         $IdStatus = Test-LrCaseIdFormat $Id
         if ($IdStatus.IsValid -eq $true) {
@@ -206,7 +196,8 @@ Function Update-LrCase {
         
 
         #region: Send Request                                                                      
-        Write-Verbose "[$Me]: request body is:`n$Body"
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
 
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
         if ($Response.Error) {

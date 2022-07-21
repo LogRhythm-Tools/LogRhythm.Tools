@@ -81,8 +81,6 @@ Function Get-LrCasePlaybookProcedures {
         # Request Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("Authorization", "Bearer $Token")
-        
-        
 
         # Request Method
         $Method = $HttpMethod.Get
@@ -93,16 +91,6 @@ Function Get-LrCasePlaybookProcedures {
 
 
     Process {
-        # Establish General Error object Output
-        $ErrorObject = [PSCustomObject]@{
-            Code                  =   $null
-            Error                 =   $false
-            Type                  =   $null
-            Note                  =   $null
-            Case                  =   $Id
-            Raw                   =   $null
-        }
-        
         # Test CaseID Format
         $IdStatus = Test-LrCaseIdFormat $CaseId
         if ($IdStatus.IsValid -eq $true) {
@@ -118,7 +106,7 @@ Function Get-LrCasePlaybookProcedures {
         # Validate or Retrieve Playbook Id
         if ($Id) {
             if ($null -eq $CasePlaybooks) {
-                throw [ArgumentException] "No Playbooks located on case: $CaseNumber."
+                throw [ArgumentException] "[$Me]: No Playbooks located on case: $CaseNumber."
             } else {
                 # Validate Playbook Id
                 # Step through array of Playbooks assigned to case looking for match
@@ -137,13 +125,13 @@ Function Get-LrCasePlaybookProcedures {
                     }
                 }
                 if ($null -eq $PlaybookGuid) {
-                    throw [ArgumentException] "Parameter [Id:$Id] cannot be matched to playbooks on case: $CaseId."
+                    throw [ArgumentException] "[$Me]: Parameter [Id:$Id] cannot be matched to playbooks on case: $CaseId."
                 }
             }
         } else {
             # No matches.  Only one playbook assigned to case.  Default to single Playbook assigned to case
             if (($CasePlaybooks).Count -ge 2) {
-                throw [ArgumentException] "No Playbook specified.  More than one playbook assigned to case: $CaseId."
+                throw [ArgumentException] "[$Me]: No Playbook specified.  More than one playbook assigned to case: $CaseId."
             } elseif ($CasePlaybooks) {
                 $PlaybookGuid = $CasePlaybooks.Id
                 Write-Verbose "[$Me]: No Playbook specified.  One Playbook on case, applying Id: $Id"
@@ -152,7 +140,7 @@ Function Get-LrCasePlaybookProcedures {
         
 
         $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/playbooks/$PlaybookGuid/procedures/"
-        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
         # REQUEST
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me

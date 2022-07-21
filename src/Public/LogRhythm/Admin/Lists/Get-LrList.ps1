@@ -113,6 +113,7 @@ Function Get-LrList {
         # Define HTTP URI
         $RequestUrl = $BaseUrl + "/lr-admin-api/lists/$Guid/"
 
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
         # Send Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me

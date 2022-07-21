@@ -232,9 +232,10 @@ Function Merge-LrIdentities {
         }
 
         if ($Mode -like "7.5") {
-
             # Define URL
             $RequestUrl = $BaseUrl + "/lr-admin-api/identities/$DestinationIdentityId/merge/"
+
+            Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
             # Define request body
             $Body = [PSCustomObject]@{

@@ -96,15 +96,6 @@ Function Get-LrSearchResults {
     }
 
     Process {
-        # Establish General Error object Output
-        $ErrorObject = [PSCustomObject]@{
-            Code                  =   $null
-            Error                 =   $false
-            Type                  =   $null
-            Note                  =   $null
-            Raw                   =   $null
-        }
-
         # Establish Body Contents
         $Body = [PSCustomObject]@{
             data = @{
@@ -121,11 +112,12 @@ Function Get-LrSearchResults {
             }
         } | ConvertTo-Json -Depth 3
 
-        Write-Verbose $Body
-
 
         # Define Query URL
         $RequestUrl = $BaseUrl + "/lr-search-api/actions/search-result"
+
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
 
         # Send Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me

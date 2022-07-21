@@ -61,9 +61,9 @@ Function ConvertTo-LrCaseStatusId {
         # Validate Case Status
         $_int = $null
         if (! ([int]::TryParse($Status, [ref]$_int))) {
-            Write-Verbose "[$Me] Status did not parse as Int32"
+            Write-Verbose "[$Me]: Status did not parse as Int32"
             if ($LrCaseStatus.$Status) {
-                Write-Verbose "[$Me] Found match for $Status. Return $($LrCaseStatus.Status)"
+                Write-Verbose "[$Me]: Found match for $Status. Return $($LrCaseStatus.Status)"
                 return $LrCaseStatus.$Status
             } else {
                 $ErrorObject.Code = 404
@@ -71,7 +71,7 @@ Function ConvertTo-LrCaseStatusId {
                 $ErrorObject.Raw = "[$Me] No match found for $Status"
                 $ErrorObject.Type = 'Invalid status name'
                 $ErrorObject.Value = $Status
-                Write-Verbose "[$Me] No match found for $Status"
+                Write-Verbose "[$Me]: No match found for $Status"
                 return $ErrorObject
             }
         }
@@ -84,7 +84,7 @@ Function ConvertTo-LrCaseStatusId {
             $ErrorObject.Raw = "[$Me] No match found for $Status"
             $ErrorObject.Type = 'Invalid status value'
             $ErrorObject.Value = $Status
-            Write-Verbose "[$Me] No match found for $Status"
+            Write-Verbose "[$Me]: No match found for $Status"
             return $ErrorObject
         }
         # int outside of range, and not a string.

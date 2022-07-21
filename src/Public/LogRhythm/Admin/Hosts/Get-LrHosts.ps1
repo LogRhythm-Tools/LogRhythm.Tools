@@ -206,6 +206,8 @@ Function Get-LrHosts {
 
         $RequestUrl = $BaseUrl + "/lr-admin-api/hosts/" + $QueryString
 
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        
         # Send Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
         if ($Response.Error) {
@@ -225,6 +227,7 @@ Function Get-LrHosts {
                 # Update Query URL
                 $RequestUrl = $BaseUrl + "/lr-admin-api/hosts/" + $QueryString
                 # Retrieve Query Results
+                Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
                 $PaginationResults = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
                 if ($PaginationResults.Error) {

@@ -124,15 +124,6 @@ Function Get-LrUsers {
 
 
     Process {
-        # Establish General Error object Output
-        $ErrorObject = [PSCustomObject]@{
-            Code                  =   $null
-            Error                 =   $false
-            Type                  =   $null
-            Note                  =   $null
-            Raw                   =   $null
-        }
-
         # Transform OnlyUsers switch into a boolean
         # Note: Omitting OnlyUsers is the same as setting OnlyUsers to "false" as 
         # far as the LogRhythm API handles it.
@@ -152,6 +143,8 @@ Function Get-LrUsers {
         # Request URI
         $RequestUrl = $BaseUrl + "/lr-case-api/persons/" + $Params
 
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+
         # REQUEST
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
         if ($Response.Error) {
@@ -167,6 +160,7 @@ Function Get-LrUsers {
                 $Offset = ($PageNumber -1) * $Count
                 # Update Header Pagination Paramater
                 $Headers.offset = $Offset
+                Write-Verbose "[$Me]: Request URL: $RequestUrl"
                 
                 # Retrieve Query Results
                 $PaginationResults = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me

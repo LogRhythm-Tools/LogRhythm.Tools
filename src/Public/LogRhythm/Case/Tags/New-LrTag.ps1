@@ -80,14 +80,9 @@ Function New-LrTag {
 
         # Request URI
         $RequestUrl = $BaseUrl + "/lr-case-api/tags/"
-        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
-
-
 
         #region: Process Tags                                                            
         # Request Body - Tags
-        Write-Verbose "[$Me]: Validating Tags"
-
         # Convert / Validate Tags to Tag Numbers array
         $_tagNumber = $Tag | Get-LrTagNumber
         if (($_tagNumber.Error -eq $true) -or ($_tagNumber)) {
@@ -101,10 +96,10 @@ Function New-LrTag {
         # Create Body
         $Body = ([PSCustomObject]@{ text = $Tag }) | ConvertTo-Json
 
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
 
-        #region: Make Request                                                            
-        Write-Verbose "[$Me]: request body is:`n$Body"
-
+        #region: Make Request
         # Make Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
         if ($Response.Error) {

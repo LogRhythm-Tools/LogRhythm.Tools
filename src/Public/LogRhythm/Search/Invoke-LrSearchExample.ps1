@@ -90,17 +90,6 @@ Function Invoke-LrSearchExample {
     }
 
     Process {
-        # Establish General Error object Output
-        $ErrorObject = [PSCustomObject]@{
-            Code                  =   $null
-            Error                 =   $false
-            Type                  =   $null
-            Note                  =   $null
-            ResponseUrl           =   $null
-            Raw                   =   $null
-            Value                 =   $Name
-        }
-
         $JSON = '{"name":"Rest - SearchAPI Example","description":"This is a JSON body example to serve as a reference to perform searches for Hostname (Origin/Impacted) OR IP Address (Origin/Impacted) over a given time frame with a maximum of 30,000 logs returned.","maxMsgsToQuery":30000,"logCacheSize":10000,"aggregateLogCacheSize":10000,"queryTimeout":900,"isOriginatedFromWeb":false,"webLayoutId":0,"queryRawLog":true,"queryFilter":{"msgFilterType":2,"isSavedFilter":false,"filterGroup":{"filterItemType":1,"fieldOperator":2,"filterMode":1,"filterGroupOperator":1,"filterItems":[{"filterItemType":0,"fieldOperator":0,"filterMode":1,"filterType":23,"values":[{"filterType":23,"valueType":4,"value":{"value":"hostvalue1","matchType":0},"displayValue":"hostvalue1"},{"filterType":23,"valueType":4,"value":{"value":"hostvalue2","matchType":0},"displayValue":"hostvalue2"}],"name":"HostName (Origin or Impacted)"},{"filterItemType":0,"fieldOperator":0,"filterMode":1,"filterType":17,"values":[{"filterType":17,"valueType":5,"value":"127.0.0.2","displayValue":"127.0.0.2"},{"filterType":17,"valueType":5,"value":"127.0.0.3","displayValue":"127.0.0.3"}],"name":"IP Address (Origin or Impacted)"}],"name":"Filter Group"}},"queryEventManager":false,"useDefaultLogRepositories":true,"dateCreated":"2021-03-10T11:58:58.7800347Z","dateSaved":"2021-03-10T11:58:58.7800347Z","dateUsed":"2021-03-10T11:58:58.7800347Z","includeDiagnosticEvents":true,"searchMode":2,"nextPageToken":"","pagedTimeout":300,"restrictedUserId":0,"createdVia":0,"searchType":1,"queryOrigin":0,"searchServerIPAddress":null,"dateCriteria":{"useInsertedDate":false,"dateMin":"2021-03-09T05:00:00Z","dateMax":"2021-03-11T04:59:59Z"},"repositoryPattern":"","ownerId":1,"searchId":0,"queryLogSourceLists":[],"queryLogSources":[],"logRepositoryIds":[1],"refreshRate":0,"isRealTime":false,"objectSecurity":{"objectId":0,"objectType":20,"readPermissions":2,"writePermissions":2,"entityId":1,"ownerId":1,"canEdit":true,"canDelete":false,"canDeleteObject":false,"entityName":"","ownerName":"","isSystemObject":true},"enableIntelligentIndexing":false}' | ConvertFrom-Json
 
         #Update search paramater values for Hostname1 and Hostname2
@@ -135,7 +124,8 @@ Function Invoke-LrSearchExample {
         # Establish Body Contents
         $Body = $JSON | ConvertTo-Json -Depth 20
 
-        Write-Verbose $BodyContents
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
 
         # Define Query URL
         $RequestUrl = $BaseUrl + "/lr-search-api/actions/search-task"

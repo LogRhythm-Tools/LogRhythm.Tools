@@ -156,7 +156,7 @@ Function Get-RfHashRiskLists {
 
         # Define Search URL
         $RequestUrl = $BaseUrl + "hash/riskrules"
-        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
         Try {
             $Results = Invoke-RestMethod $RequestUrl -Method $Method -Headers $Headers

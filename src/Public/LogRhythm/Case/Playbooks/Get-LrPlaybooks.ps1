@@ -176,7 +176,7 @@ Function Get-LrPlaybooks {
 
         # Request URI
         $RequestUrl = $BaseUrl + "/lr-case-api/playbooks/?playbook=$Name"
-
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
         # REQUEST
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
@@ -192,6 +192,7 @@ Function Get-LrPlaybooks {
                 $Offset = ($PageNumber -1) * $Count
                 # Update Header Pagination Paramater
                 $Headers.offset = $Offset
+                Write-Verbose "[$Me]: Request URL: $RequestUrl"
                 
                 # Retrieve Query Results
                 $PaginationResults = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me

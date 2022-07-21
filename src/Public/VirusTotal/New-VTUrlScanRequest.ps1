@@ -55,6 +55,8 @@ Function New-VTUrlScanRequest {
 
         $BaseUrl = $LrtConfig.VirusTotal.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
+
+        $Method = $HttpMethod.Post
     }
 
     Process {
@@ -68,12 +70,12 @@ Function New-VTUrlScanRequest {
         }
 
         # Request URI   
-        $Method = $HttpMethod.Post
         $RequestUrl = $BaseUrl + "/url/scan"
-        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
+
         $Body = @{ url = $Url; apikey = $Token}
-        Write-Verbose "[$Me]: RequestBody: $Body"
-        
+
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"        
 
         Try {
             $vtResponse = Invoke-RestMethod $RequestUrl -Method $Method -Body $Body

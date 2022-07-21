@@ -174,10 +174,10 @@ Function Update-LrAlarm {
         # Establish Body Contents
         $Body = $BodyContents | ConvertTo-Json
 
-        Write-Verbose "$Body"
-
-
         $RequestUrl = $BaseUrl + "/lr-alarm-api/alarms/" + $AlarmId
+
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
 
         # Send Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me

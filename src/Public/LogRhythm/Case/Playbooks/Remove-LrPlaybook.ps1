@@ -101,15 +101,14 @@ Function Remove-LrPlaybook {
 
 
         $RequestUrl = $BaseUrl + "/lr-case-api/playbooks/$($Pb.id)/"
-        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         # Request Body
         $Body = [PSCustomObject]@{
             id = $Pb.id
-        }
-        $Body = $Body | ConvertTo-Json
-        Write-Verbose "[$Me]: Body: $Body"
+        } | ConvertTo-Json
 
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
 
         # Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me

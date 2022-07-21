@@ -101,18 +101,10 @@ Function Get-LrIdentityById {
     }
 
     Process {
-        # Establish General Error object Output
-        $ErrorObject = [PSCustomObject]@{
-            Error                 =   $false
-            Note                  =   $null
-            Code                  =   $null
-            Type                  =   $null
-            IdentityId            =   $IdentityId
-            Raw                   =   $null
-        }
-
         # Define Query URL
         $RequestUrl = $BaseUrl + "/lr-admin-api/identities/" + $IdentityId
+
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
         # Send Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me

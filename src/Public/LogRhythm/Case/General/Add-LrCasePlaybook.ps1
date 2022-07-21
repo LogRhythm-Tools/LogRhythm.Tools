@@ -87,16 +87,6 @@ Function Add-LrCasePlaybook {
 
 
     Process {
-        # Establish General Error object Output
-        $ErrorObject = [PSCustomObject]@{
-            Code                  =   $null
-            Error                 =   $false
-            Type                  =   $null
-            Note                  =   $null
-            Case                  =   $Id
-            Raw                   =   $null
-        }      
-
         # Test CaseID Format
         $IdStatus = Test-LrCaseIdFormat $Id
         if ($IdStatus.IsValid -eq $true) {
@@ -124,15 +114,14 @@ Function Add-LrCasePlaybook {
         }
 
         $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/playbooks/"
-        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         # Request Body
         $Body = [PSCustomObject]@{
             id = $Pb.id
-        }
-        $Body = $Body | ConvertTo-Json
-        Write-Verbose "[$Me]: Body: $Body"
+        } | ConvertTo-Json
 
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
 
         # Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me

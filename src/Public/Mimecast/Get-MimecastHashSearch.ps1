@@ -89,15 +89,6 @@ function Get-MimecastHashSearch {
     }
 
     Process {
-        # Establish General Error object Output
-        $ErrorObject = [PSCustomObject]@{
-            Error                 =   $false
-            Value                 =   $null
-            Code                  =   $Null
-            Type                  =   $null
-            Note                  =   $null
-        }
-
         $Body = [PSCustomObject]@{
             data = @(
                 [PSCustomObject]@{
@@ -105,6 +96,9 @@ function Get-MimecastHashSearch {
                 }
             )
         } | ConvertTo-Json -Depth 3
+
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
 
         # Query DNS and obtain domain IP address
         try {

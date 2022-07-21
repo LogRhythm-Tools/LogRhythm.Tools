@@ -75,17 +75,7 @@ Function Remove-LrCaseAssociatedCase {
     }
 
 
-    Process {
-        # Establish General Error object Output
-        $ErrorObject = [PSCustomObject]@{
-            Code                  =   $null
-            Error                 =   $false
-            Type                  =   $null
-            Note                  =   $null
-            Case                  =   $Id
-            Raw                   =   $null
-        }  
-        
+    Process {       
         # Test CaseID Format
         $IdStatus = Test-LrCaseIdFormat $Id
         if ($IdStatus.IsValid -eq $true) {
@@ -112,11 +102,11 @@ Function Remove-LrCaseAssociatedCase {
             $Body = [PSCustomObject]@{ ids = $ValidIds } | ConvertTo-Json
         }
 
-        Write-Verbose "Body: $Body"
-        
         $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/associated/"
-        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
+        
         # Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
         if ($Response.Error) {

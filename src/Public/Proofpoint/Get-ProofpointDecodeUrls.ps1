@@ -52,9 +52,11 @@ function Get-ProofpointDecodeUrls {
         $Body = [PSCustomObject]@{
             urls = $urls
         } | ConvertTo-Json -Depth 3
-        Write-Verbose $Body
 
         $RequestUrl = $BaseUrl + "/v2/url/decode"
+
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
 
         # Query DNS and obtain domain IP address
         try {

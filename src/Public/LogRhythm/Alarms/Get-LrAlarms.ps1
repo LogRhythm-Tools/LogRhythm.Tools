@@ -303,6 +303,8 @@ Function Get-LrAlarms {
 
         $RequestUrl = $BaseUrl + "/lr-alarm-api/alarms" + $QueryString
 
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+
         # Send Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
         if ($Response.Error) {
@@ -328,6 +330,8 @@ Function Get-LrAlarms {
                 $QueryString = $QueryParams | ConvertTo-QueryString
                 # Update Query URL
                 $RequestUrl = $BaseUrl + "/lr-alarm-api/alarms" + $QueryString
+                Write-Verbose "[$Me]: Request URL: $RequestUrl"
+                
                 # Retrieve Query Results
                 $PaginationResults = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
                 if ($PaginationResults.Error) {

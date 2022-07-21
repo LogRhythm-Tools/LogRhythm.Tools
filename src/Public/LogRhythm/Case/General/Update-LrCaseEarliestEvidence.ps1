@@ -187,7 +187,8 @@ Function Update-LrCaseEarliestEvidence {
 
         
         # Send Request
-        Write-Verbose "[$Me]: request body is:`n$Body"
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
         if ($UpdateEvidence -eq $true) {
             $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
             if ($Response.Error) {

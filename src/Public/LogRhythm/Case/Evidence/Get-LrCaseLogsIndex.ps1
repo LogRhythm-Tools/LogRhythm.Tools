@@ -70,19 +70,10 @@ Function Get-LrCaseLogsIndex {
 
 
     Process {
-        # Establish General Error object Output
-        $ErrorObject = [PSCustomObject]@{
-            Case                  =   $Id
-            Code                  =   $null
-            Error                 =   $false
-            Note                  =   $null
-            Type                  =   $null
-            Raw                   =   $null
-        }
-
         # Request URI
         $RequestUrl = $BaseUrl + "/lr-case-api/cases/$Id/logs-index/"
 
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
         # Submit request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me

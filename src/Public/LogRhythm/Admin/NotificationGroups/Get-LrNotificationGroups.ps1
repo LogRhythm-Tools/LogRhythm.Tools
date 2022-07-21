@@ -161,15 +161,6 @@ Function Get-LrNotificationGroups {
     }
 
     Process {
-        # Establish General Error object Output
-        $ErrorObject = [PSCustomObject]@{
-            Error                 =   $false
-            Type                  =   $null
-            Code                  =   $null
-            Note                  =   $null
-            Raw                   =   $null
-        }
-
         #region: Process Query Parameters____________________________________________________
         $QueryParams = [Dictionary[string,string]]::new()
 
@@ -223,6 +214,8 @@ Function Get-LrNotificationGroups {
         # Request URL
         $RequestUrl = $BaseUrl + "/lr-admin-api/notification-groups/" + $QueryString
 
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+
         # Send Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
         if ($Response.Error) {
@@ -241,6 +234,9 @@ Function Get-LrNotificationGroups {
                 $QueryString = $QueryParams | ConvertTo-QueryString
                 # Update Query URL
                 $RequestUrl = $BaseUrl + "/lr-admin-api/notification-groups/" + $QueryString
+
+                Write-Verbose "[$Me]: Request URL: $RequestUrl"
+
                 # Retrieve Query Results
                 $PaginationResults = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
                 if ($PaginationResults.Error) {

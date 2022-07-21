@@ -92,17 +92,6 @@ Function Add-LrCaseCollaborators {
 
 
     Process {
-        # Establish General Error object Output
-        $ErrorObject = [PSCustomObject]@{
-            Code                  =   $null
-            Error                 =   $false
-            Type                  =   $null
-            Note                  =   $null
-            Case                  =   $Id
-            Raw                   =   $null
-        }
-        Write-Verbose "[$Me]: Case Id: $Id"
-
         # Test CaseID Format
         $IdStatus = Test-LrCaseIdFormat $Id
         if ($IdStatus.IsValid -eq $true) {
@@ -112,8 +101,6 @@ Function Add-LrCaseCollaborators {
         }                                                      
 
         $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/actions/addCollaborators/"
-        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
-        #endregion
 
         [int32[]]$ValidUserID = @()
         if ($Names) {
@@ -133,7 +120,7 @@ Function Add-LrCaseCollaborators {
                 }
             }
         }
-        Write-Verbose "ValidUserId: $ValidUserId"
+
         # Create request body with people numbers
         if (!($ValidUserId -Is [System.Array])) {
             # only one tag, use simple json
@@ -148,7 +135,8 @@ Function Add-LrCaseCollaborators {
 
 
         #region: Make Request                                                            
-        Write-Verbose "[$Me]: request body is:`n$Body"
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
 
         # Make Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me

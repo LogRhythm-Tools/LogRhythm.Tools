@@ -119,18 +119,6 @@ Function Remove-LrCaseTags {
 
 
     Process {
-        # Establish General Error object Output
-        $ErrorObject = [PSCustomObject]@{
-            Code                  =   $null
-            Error                 =   $false
-            Type                  =   $null
-            Note                  =   $null
-            Tags                  =   $Tags
-            Case                  =   $Id
-            Raw                   =   $null
-        }
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)]: Case Id: $Id"
-
         # Test CaseID Format
         $IdStatus = Test-LrCaseIdFormat $Id
         if ($IdStatus.IsValid -eq $true) {
@@ -140,15 +128,12 @@ Function Remove-LrCaseTags {
         }                                                  
 
         $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/actions/removeTags/"
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)]: RequestUrl: $RequestUrl"
         #endregion
 
 
 
         #region: Process Tags                                                            
         # Request Body - Tags
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)]: Validating Tags"
-
         # Convert / Validate Tags to Tag Numbers array
         $_tagNumbers = $Tags | Get-LrTagNumber
         if ($_tagNumbers.Error -eq $true) {
@@ -165,10 +150,9 @@ Function Remove-LrCaseTags {
         }
         #endregion
 
-
-
         #region: Make Request                                                            
-        Write-Verbose "[$($Me)]: request body is:`n$Body"
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
 
         # Make Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me

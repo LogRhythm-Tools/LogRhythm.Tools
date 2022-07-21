@@ -60,18 +60,18 @@ Function Get-UrlScanReport {
 
         $BaseUrl = $LrtConfig.UrlScan.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
-    }
 
-    Process {
         # Request Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("API-Key", "$Token")
 
-
-        # Request URI   
         $Method = $HttpMethod.Get
+    }
+
+    Process {
+        # Request URI   
         $RequestUrl = $BaseUrl + "/result/$Uuid"
-        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
         Try {
             $Response = Invoke-RestMethod $RequestUrl -Method $Method -Headers $Headers -Body $Body -ContentType "application/json"

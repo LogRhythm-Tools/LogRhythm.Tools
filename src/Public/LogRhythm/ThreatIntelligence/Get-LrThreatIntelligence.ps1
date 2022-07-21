@@ -81,23 +81,16 @@ function Get-LrThreatIntelligence
     }
 
     Process {
-        $ErrorObject = [PSCustomObject]@{
-            Code                  =   $null
-            Error                 =   $false
-            Type                  =   $null
-            Note                  =   $null
-            Raw                   =   $null
-        }
-
         # Search for the IoC
         $Body = [PSCustomObject]@{
             value = $IoC
         } | ConvertTo-Json -Depth 8
 
-        Write-Verbose $Body
-
         # Define Query URL
         $RequestUrl = $BaseUrl + "/Observables/actions/search"
+
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
 
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
         if ($Response.Error) {

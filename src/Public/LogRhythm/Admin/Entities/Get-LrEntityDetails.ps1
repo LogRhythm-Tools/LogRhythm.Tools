@@ -120,6 +120,9 @@ Function Get-LrEntityDetails {
 
         
         $RequestUrl = $BaseUrl + "/lr-admin-api/entities/" + $Guid + "/"
+
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+
         # Error Output - Used to support Pipeline Paramater ID
         Write-Verbose "[$Me]: Id: $Id - Guid: $Guid - ErrorStatus: $($ErrorObject.Error)"
         if ($ErrorObject.Error -eq $false) {

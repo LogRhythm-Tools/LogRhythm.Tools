@@ -130,16 +130,6 @@ Function Get-LrCaseEvidence {
 
 
     Process {
-        # Establish General Error object Output
-        $ErrorObject = [PSCustomObject]@{
-            Case                  =   $Id
-            Code                  =   $null
-            Error                 =   $false
-            Note                  =   $null
-            Type                  =   $null
-            Raw                   =   $null
-        }
-
         $QueryParams = [Dictionary[string,string]]::new()
 
         # Type
@@ -161,6 +151,7 @@ Function Get-LrCaseEvidence {
         # Request URI
         $RequestUrl = $BaseUrl + "/lr-case-api/cases/$Id/evidence/" + $QueryString
 
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
         # REQUEST
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me

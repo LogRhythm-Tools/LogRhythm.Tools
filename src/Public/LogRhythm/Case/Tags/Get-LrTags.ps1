@@ -145,18 +145,10 @@ Function Get-LrTags {
 
 
     Process {
-        # Establish General Error object Output
-        $ErrorObject = [PSCustomObject]@{
-            Code                  =   $null
-            Error                 =   $false
-            Type                  =   $null
-            Note                  =   $null
-            Tag                   =   $Name
-            Raw                   =   $null
-        }
-
         # Request URI
         $RequestUrl = $BaseUrl + "/lr-case-api/tags/?tag=$Name"
+
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
         # Make Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
@@ -172,6 +164,7 @@ Function Get-LrTags {
                 $Offset = ($PageNumber -1) * $Count
                 # Update Header Pagination Paramater
                 $Headers.offset = $Offset
+                Write-Verbose "[$Me]: Request URL: $RequestUrl"
                 
                 # Retrieve Query Results
                 $PaginationResults = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me

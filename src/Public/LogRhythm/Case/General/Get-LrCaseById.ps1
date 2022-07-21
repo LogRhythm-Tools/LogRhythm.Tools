@@ -111,6 +111,8 @@ Function Get-LrCaseById {
         }
         
         $RequestUrl = $BaseUrl + "/lr-case-api/cases/$Id/"
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+
 
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
         if ($Response.Error) {

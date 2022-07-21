@@ -292,15 +292,6 @@ Function New-LrSearch {
     }
 
     Process {
-        # Establish General Error object Output
-        $ErrorObject = [PSCustomObject]@{
-            Code                  =   $null
-            Error                 =   $false
-            Type                  =   $null
-            Note                  =   $null
-            Raw                   =   $null
-        }
-
         if ($LogSources) {
             $_logSources = [List[int]]::new()
             ForEach ($LogSource in $LogSources) {
@@ -535,11 +526,11 @@ Function New-LrSearch {
             }
         } | ConvertTo-Json -Depth 7
 
-        Write-Verbose $Body
-
-
         # Define Query URL
         $RequestUrl = $BaseUrl + "/lr-search-api/actions/search-task"
+
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
 
         # Send Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me

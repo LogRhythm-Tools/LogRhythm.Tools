@@ -93,8 +93,8 @@ Function Get-LrNetworkDetails {
 
         
         $RequestUrl = $BaseUrl + "/lr-admin-api/networks/" + $Guid + "/"
-        # Error Output - Used to support Pipeline Paramater ID
-        Write-Verbose "[$Me]: Id: $Id - Guid: $Guid - ErrorStatus: $($ErrorObject.Error)"
+        
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
         
         # Send Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me

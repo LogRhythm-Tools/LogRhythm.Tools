@@ -420,7 +420,8 @@ Function Update-LrList {
  
 
         $Body = $BodyContents | ConvertTo-Json -Depth 5 -Compress
-        Write-Verbose "[$Me] Request Body:`n$Body"
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
 
 
         # Send Request

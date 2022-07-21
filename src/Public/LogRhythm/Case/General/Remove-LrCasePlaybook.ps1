@@ -144,8 +144,9 @@ Function Remove-LrCasePlaybook {
         }
 
         $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/playbooks/$PlaybookId/"
-        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
-
+        
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
 
         # Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me

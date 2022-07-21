@@ -106,9 +106,9 @@ Function Find-LrNetworkByIP {
             }
             # Inspect each Network Entry for IP Address within Network Range
             ForEach ($Network in $LrNetworks) {
-                Write-Verbose "$(Get-TimeStamp) IP: $IP NetworkId: $($Network.Id)  BIP: $($Network.BIP) EIP: $($Network.EIP)"
+                Write-Verbose "[$Me]: $(Get-TimeStamp) IP: $IP NetworkId: $($Network.Id)  BIP: $($Network.BIP) EIP: $($Network.EIP)"
                 $AddressWithin = Test-IPv4AddressInRange -IP $IP -BIP $Network.BIP -EIP $Network.EIP
-                Write-Verbose "$(Get-TimeStamp) Address Within: $AddressWithin"
+                Write-Verbose "[$Me]: $(Get-TimeStamp) Address Within: $AddressWithin"
                 if ($AddressWithin) {
                     # If AddressWithin discovered append results retaining only unique entries
                     if ($null -ne $IPResults) {

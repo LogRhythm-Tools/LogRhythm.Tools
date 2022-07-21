@@ -59,16 +59,16 @@ function Get-RfSoarEnrichment {
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("X-RFToken", "$Token")
         
+        $Method = $HttpMethod.post
     }
 
     Process {
         # Request URI   
-        $Method = $HttpMethod.post
         $RequestUrl = $BaseUrl + "/soar/enrichment?metadata=false"
-        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         $Body = $IoCList | ConvertTo-Json -Depth 5 -Compress
-        Write-Verbose "[$Me] Request Body:`n$Body"
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
 
         Try {
             $rfResponse = Invoke-RestMethod -Uri $RequestUrl -Method $Method -Headers $Headers -Body $Body -ContentType "application/json"

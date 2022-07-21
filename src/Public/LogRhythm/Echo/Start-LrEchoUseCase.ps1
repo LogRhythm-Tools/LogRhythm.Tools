@@ -54,6 +54,8 @@ Function Start-LrEchoUseCase {
             Return "Please provide Echo Case ID# or Title"
         }
 
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+
         # Define HTTP URI
         $RequestUrl = $BaseUrl + "/execute/$Id"
 

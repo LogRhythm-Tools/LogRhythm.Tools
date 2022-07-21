@@ -124,8 +124,8 @@ function Get-MimecastDecodeUrls {
         }
 
 
-        write-verbose "$Body"
-
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
 
         # Query DNS and obtain domain IP address
         try {

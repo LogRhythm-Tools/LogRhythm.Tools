@@ -179,7 +179,7 @@ Function New-LrPlaybook {
                     }
                 # Tag exists, set _tags to TagResults
                 } else {
-                    Write-Verbose "$(Get-TimeStamp) Adding existing tag number: $TagResults to variable: _tags"
+                    Write-Verbose "[$Me]: Adding existing tag number: $TagResults to variable: _tags"
                     $_tags += $TagResults
                 }
             }
@@ -217,7 +217,6 @@ Function New-LrPlaybook {
 
 
         $RequestUrl = $BaseUrl + "/lr-case-api/playbooks/"
-        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         # Request Body
         $Body = [PSCustomObject]@{
@@ -234,9 +233,9 @@ Function New-LrPlaybook {
                 $_tags
             )
         } | ConvertTo-Json
-
-        Write-Verbose "[$Me]: Body: $Body"
-
+        
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
 
         # Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me

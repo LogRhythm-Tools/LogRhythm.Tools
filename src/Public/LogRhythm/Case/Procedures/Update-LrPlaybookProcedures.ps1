@@ -269,12 +269,12 @@ Function Update-LrPlaybookProcedures {
         }
 
         $RequestUrl = $BaseUrl + "/lr-case-api/playbooks/$($Pb.id)/procedures/"
-        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
-        Write-Verbose "Procedures: $Procedures"
         # Request Body
         $Body = @($Procedures) | ConvertTo-Json
-        Write-Verbose "[$Me]: Body: $Body"
+        
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
 
 
         # Request

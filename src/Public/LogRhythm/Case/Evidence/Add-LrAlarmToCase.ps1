@@ -116,17 +116,6 @@ Function Add-LrAlarmToCase {
     #endregion
 
     Process {
-        # Establish General Error object Output
-        $ErrorObject = [PSCustomObject]@{
-            Case                  =   $Id
-            Code                  =   $null
-            Error                 =   $false
-            Note                  =   $null
-            Type                  =   $null
-            Raw                   =   $null
-        }
-
-
         # Test CaseID Format
         $IdStatus = Test-LrCaseIdFormat $Id
         if ($IdStatus.IsValid -eq $true) {
@@ -148,10 +137,9 @@ Function Add-LrAlarmToCase {
         $Body = [PSCustomObject]@{
             alarmNumbers = $AlarmNumbers
         } | ConvertTo-Json
-        Write-Verbose "[$Me] Request Body:`n$Body"
-        #endregion
 
-
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
 
         #region: Send Request                                                            
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
@@ -164,7 +152,7 @@ Function Add-LrAlarmToCase {
         # Done!
         if ($PassThru) {
             #region: Get Updated Case                                                        
-            Write-Verbose "[$Me] Getting Updated Case"
+            Write-Verbose "[$Me]: Getting Updated Case"
             $UpdatedCase = Get-LrCaseById -Id $CaseNumber    
 
             return $UpdatedCase

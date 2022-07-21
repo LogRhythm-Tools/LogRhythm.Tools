@@ -183,10 +183,10 @@ Function Get-LrLogSourceDetails {
 
         
         $RequestUrl = $BaseUrl + "/lr-admin-api/logsources/" + $Guid + "/"
-        # Error Output - Used to support Pipeline Paramater ID
-        Write-Verbose "[$Me]: Id: $Id - Guid: $Guid - ErrorStatus: $($ErrorObject.Error)"
 
-            # Send Request
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+
+        # Send Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
         if ($Response.Error) {
             return $Response

@@ -104,7 +104,7 @@ Function Get-LrPlaybookById {
 
         
         $RequestUrl = $BaseUrl + "/lr-case-api/playbooks/$Id/"
-        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
         # REQUEST
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me

@@ -242,6 +242,9 @@ Function Get-LrAgentDetails {
 
         
         $RequestUrl = $BaseUrl + "/lr-admin-api/agents/" + $Guid + "/"
+
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        
         # Send Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
         if ($Response.Error) {

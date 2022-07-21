@@ -158,17 +158,7 @@ Function Update-LrCasePlaybookProcedure {
     }
 
 
-    Process {
-        # Establish General Error object Output
-        $ErrorObject = [PSCustomObject]@{
-            Code                  =   $null
-            Error                 =   $false
-            Type                  =   $null
-            Note                  =   $null
-            Case                  =   $Id
-            Raw                   =   $null
-        }   
-        
+    Process {       
         # Test CaseID Format
         $IdStatus = Test-LrCaseIdFormat $CaseId
         if ($IdStatus.IsValid -eq $true) {
@@ -189,7 +179,7 @@ Function Update-LrCasePlaybookProcedure {
 
         # Scenario: Case has no playbooks
         if (! $CasePlaybooks) {
-            throw [ArgumentException] "No Playbooks found on case: $CaseNumber."
+            throw [ArgumentException] "[$Me]: No Playbooks found on case: $CaseNumber."
         }
 
         # Scenario: Only one playbook assigned to case
@@ -219,7 +209,7 @@ Function Update-LrCasePlaybookProcedure {
 
         # Scenario: No matches found
         if (! $UpdatePlaybook) {
-            throw [ArgumentException] "Case number $CaseNumber does not have a playbook matching $PlaybookId"
+            throw [ArgumentException] "[$Me]: Case number $CaseNumber does not have a playbook matching $PlaybookId"
         }
         #endregion
         
@@ -248,24 +238,22 @@ Function Update-LrCasePlaybookProcedure {
         # Scenario: Procedure $Id is a procedure step #
         if ($ProcedureType.IsInt) {
             if (($Id -gt $($CaseProcedures.Count)) -Or ($Id -lt 0)) {
-                throw [ArgumentException] "Procedure step number $Id falls outside of Procedure Count."
+                throw [ArgumentException] "[$Me]: Procedure step number $Id falls outside of Procedure Count."
             } else {
                 $UpdateProcedure = $CaseProcedures[($Id - 1)]
-                Write-Verbose "Targeted procedure step $Id - $($UpdateProcedure.Name)"
+                Write-Verbose "[$Me]: Targeted procedure step $Id - $($UpdateProcedure.Name)"
             }
         }
 
         # Scenario: No procedure found
         if (! $UpdateProcedure) {
-            throw [ArgumentException] "Procedure [Id:$Id] cannot be matched to any procedures for playbook $($UpdatePlaybook.Name)."
+            throw [ArgumentException] "[$Me]: Procedure [Id:$Id] cannot be matched to any procedures for playbook $($UpdatePlaybook.Name)."
         }
         #endregion
         
 
         # Request URI
         $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/playbooks/$($UpdatePlaybook.Id)/procedures/$($UpdateProcedure.Id)/"
-        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
-
 
         # Inspect Date for proper format
         # Set provided EarliestEvidence Date
@@ -282,33 +270,33 @@ Function Update-LrCasePlaybookProcedure {
                 Write-Verbose "[$Me]: Assignee String: $Assignee Assignee Result: $($AssigneeResult.Name)"
                 if ($AssigneeResult) {
                     if ($AssigneeResult.disabled -eq $true) {
-                        throw [ArgumentException] "Parameter [Assignee:$Assignee] is currently disabled"
+                        throw [ArgumentException] "[$Me]: Parameter [Assignee:$Assignee] is currently disabled"
                     } else {
                         [int32] $AssigneeNumber = $AssigneeResult.number
                     }
                 } else {
-                    throw [ArgumentException] "Parameter [Assignee:$Assignee] not found in LrUsers"
+                    throw [ArgumentException] "[$Me]: Parameter [Assignee:$Assignee] not found in LrUsers"
                 }
             } elseif ($AssigneeType.IsInt -eq $true) {
                 $AssigneeResult = Get-LrUsers | Select-Object number, disabled | Where-Object number -eq $Assignee
                 Write-Verbose "[$Me]: Assignee Int: $Assignee Assignee Result: $($AssigneeResult.Name)"
                 if ($AssigneeResult) {
                     if ($AssigneeResult.disabled -eq $true) {
-                        throw [ArgumentException] "Parameter [Assignee:$Assignee] is currently disabled"
+                        throw [ArgumentException] "[$Me]: Parameter [Assignee:$Assignee] is currently disabled"
                     } else {
                         [int32] $AssigneeNumber = $AssigneeResult.number
                     }
                 } else {
-                    throw [ArgumentException] "Parameter [Assignee:$Assignee] not found in LrUsers"
+                    throw [ArgumentException] "[$Me]: Parameter [Assignee:$Assignee] not found in LrUsers"
                 }
             } else {
-                throw [ArgumentException] "Parameter [Assignee] must be valid user name or user id #"
+                throw [ArgumentException] "[$Me]: Parameter [Assignee] must be valid user name or user id #"
             }
 
             $CaseCollaborators = Get-LrCaseById -Id $CaseNumber | Select-Object -ExpandProperty collaborators
             if ($CaseCollaborators -and $AssigneeNumber) {
                 if (!$CaseCollaborators.number -contains $AssigneeNumber) {
-                    throw [ArgumentException] "Parameter [Assignee:$Assignee] not a collaborator on case $CaseNumber"
+                    throw [ArgumentException] "[$Me]: Parameter [Assignee:$Assignee] not a collaborator on case $CaseNumber"
                 }
             }
         }
@@ -331,7 +319,9 @@ Function Update-LrCasePlaybookProcedure {
         $Body = $Body | ConvertTo-Json
         
         # REQUEST
-        Write-Verbose "[$Me]: request body is:`n$Body"
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
+        
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
         if ($Response.Error) {
             return $Response

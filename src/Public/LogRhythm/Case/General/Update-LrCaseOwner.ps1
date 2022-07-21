@@ -69,17 +69,7 @@ Function Update-LrCaseOwner {
     }
 
 
-    Process {
-        # Establish General Error object Output
-        $ErrorObject = [PSCustomObject]@{
-            Code                  =   $null
-            Error                 =   $false
-            Type                  =   $null
-            Note                  =   $null
-            Case                  =   $Id
-            Raw                   =   $null
-        } 
-        
+    Process {       
         #region: Validate Parameters                                                               
         # Test CaseId Format
         $IdStatus = Test-LrCaseIdFormat $Id
@@ -100,7 +90,7 @@ Function Update-LrCaseOwner {
                 if ($User) {
                     $UserNumber = $User
                 } else {
-                    throw [ArgumentException] "Unable to find a user with name $Name."
+                    throw [ArgumentException] "[$Me]: Unable to find a user with name $Name."
                 }
             }
             # User by Number
@@ -112,15 +102,15 @@ Function Update-LrCaseOwner {
             $CaseCollaborators = Get-LrCaseById -Id $CaseNumber | Select-Object -ExpandProperty collaborators
             if ($CaseCollaborators) {
                 if (!$CaseCollaborators.number -contains $UserNumber) {
-                    throw [ArgumentException] "Parameter [Name:$Name] is not a collaborator on case $CaseNumber"
+                    throw [ArgumentException] "[$Me]: Parameter [Name:$Name] is not a collaborator on case $CaseNumber"
                 }
             }
         } else {
-            throw [ArgumentException] "Unable to find an active LogRhythm ID for $Name."
+            throw [ArgumentException] "[$Me]: Unable to find an active LogRhythm ID for $Name."
         }
 
         if (! $UserNumber) {
-            throw [ArgumentException] "Unable to find an active LogRhythm ID for $Name."
+            throw [ArgumentException] "[$Me]: Unable to find an active LogRhythm ID for $Name."
         }
         #endregion
 
@@ -133,7 +123,9 @@ Function Update-LrCaseOwner {
         # Request Body
         $Body = [PSCustomObject]@{ number = $UserNumber } | ConvertTo-Json
         
-        Write-Verbose "[$Me]: request body is:`n$Body"
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
+        
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
         if ($Response.Error) {
             return $Response

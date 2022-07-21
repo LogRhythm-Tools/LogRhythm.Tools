@@ -103,16 +103,6 @@ Function Add-LrLogsToCase {
 
 
     Process {
-        # Establish General Error object Output
-        $ErrorObject = [PSCustomObject]@{
-            Case                  =   $Id
-            Code                  =   $null
-            Error                 =   $false
-            Note                  =   $null
-            Type                  =   $null
-            Raw                   =   $null
-        }
-
         # Test CaseID Format
         $IdStatus = Test-LrCaseIdFormat $Id
         if ($IdStatus.IsValid -eq $true) {
@@ -130,8 +120,10 @@ Function Add-LrLogsToCase {
             query = $Query
             note = $Note
         } | ConvertTo-Json
-        Write-Verbose "[$Me] Request Body:`n$Body"
 
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
+        
         # REQUEST
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
         if ($Response.Error) {

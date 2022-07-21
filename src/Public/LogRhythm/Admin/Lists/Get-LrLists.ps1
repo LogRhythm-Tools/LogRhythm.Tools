@@ -165,19 +165,11 @@ Function Get-LrLists {
     }
 
     Process {
-        # Define ErrorObject
-        $ErrorObject = [PSCustomObject]@{
-            Code                  =   $null
-            Error                 =   $false
-            Type                  =   $null
-            Note                  =   $null
-            Raw                   =   $null
-        }
-
-
         if ($Name) {
             $Headers.Add("name", $Name)
         }
+
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
         # Send Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
@@ -194,6 +186,8 @@ Function Get-LrLists {
                 $PageNumber = $PageNumber + 1
                 # Update Header Pagination Paramater
                 $Headers.PageNumber = $PageNumber
+
+                Write-Verbose "[$Me]: Request URL: $RequestUrl"
                 
                 # Retrieve Query Results
                 $PaginationResults = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me

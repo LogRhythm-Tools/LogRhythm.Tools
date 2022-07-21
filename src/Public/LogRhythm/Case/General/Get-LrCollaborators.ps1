@@ -87,15 +87,6 @@ Function Get-LrCollaborators {
 
 
     Process {
-        # Establish General Error object Output
-        $ErrorObject = [PSCustomObject]@{
-            Code                  =   $null
-            Error                 =   $false
-            Type                  =   $null
-            Note                  =   $null
-            Raw                   =   $null
-        }
-
         #region: Process Query Parameters____________________________________________________
         $QueryParams = [Dictionary[string,string]]::new()
 
@@ -113,7 +104,8 @@ Function Get-LrCollaborators {
 
         
         $RequestUrl = $BaseUrl + "/lr-case-api/collaborators/$QueryString"
-        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+
 
         # REQUEST
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
@@ -130,6 +122,9 @@ Function Get-LrCollaborators {
                 # Update Header Pagination Paramater
                 $Headers.offset = $Offset
                 
+                Write-Verbose "[$Me]: Request URL: $RequestUrl"
+
+
                 # Retrieve Query Results
                 $PaginationResults = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
                 if ($PaginationResults.Error) {

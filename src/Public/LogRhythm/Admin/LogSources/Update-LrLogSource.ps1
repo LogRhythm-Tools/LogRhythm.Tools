@@ -199,11 +199,10 @@ Function Update-LrLogSource {
         
         
         $RequestUrl = $BaseUrl + "/lr-admin-api/logsources/" + $Guid + "/"
-        # Error Output - Used to support Pipeline Paramater ID
-        Write-Verbose "[$Me]: Id: $Id - Guid: $Guid - ErrorStatus: $($ErrorObject.Error)"
-        Write-Verbose "[$Me]: Id: $Id - Body: $($Body | ConvertTo-Json)"
-
-            # Send Request
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
+        
+        # Send Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $($Body | ConvertTo-Json) -Origin $Me
         if ($Response.Error) {
             return $Response

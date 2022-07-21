@@ -47,6 +47,8 @@ function Get-ShodanDirectoryTags {
             Type                  =   $null
             Note                  =   $null
         }
+
+        Write-Verbose "[$Me]: Request URL: $RequestUrl" 
         
         try {
             $Results = Invoke-RestMethod $RequestUrl

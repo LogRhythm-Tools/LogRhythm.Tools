@@ -49,8 +49,8 @@ Function Get-UrlScanScreenshot {
         # Request URI   
 
         $RequestUrl = $BaseUrl + $Uuid + ".png"
-        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
-
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        
         if (!$Path) {
             $Path = "./"
         }

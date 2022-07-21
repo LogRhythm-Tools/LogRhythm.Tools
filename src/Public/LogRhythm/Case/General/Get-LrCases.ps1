@@ -364,7 +364,7 @@ Function Get-LrCases {
         if ($Status) {
             $_statusNumbers = $Status | ConvertTo-LrCaseStatusId
             if (! $_statusNumbers) {
-                throw [ArgumentException] "Status in [$Status] not found."
+                throw [ArgumentException] "[$Me]: Status in [$Status] not found."
             }
             if ($_statusNumbers.count -gt 1) {
                 $_status = $_statusNumbers -join ','
@@ -427,7 +427,6 @@ Function Get-LrCases {
                             $ErrorObject.Note = "Tag [$Tag] not found."
                             return $ErrorObject
                         }
-                        Start-Sleep 0.1
                     }
                 }
                 "any" {
@@ -438,7 +437,6 @@ Function Get-LrCases {
                                 $_tagNumbers.add($TagResults)
                             }
                         }
-                        Start-Sleep 0.1
                     }
                     if ($null -eq $TagResults -or $TagResults.count -eq 0) {
                         $ErrorObject.Error = $true
@@ -514,6 +512,8 @@ Function Get-LrCases {
         # Request URI
         $RequestUrl = $BaseUrl + "/lr-case-api/cases/" + $QueryString
 
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+
         # REQUEST
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
         if ($Response.Error) {
@@ -523,13 +523,14 @@ Function Get-LrCases {
         # Pagination
         if ($Response.Count -eq $Count) {
             DO {
-                Start-Sleep 0.1
                 # Increment Page Count / Offset
                 $PageNumber = $PageNumber + 1
                 $Offset = ($PageNumber -1) * $Count
                 # Update Header Pagination Paramater
                 $Headers.offset = $Offset
                 
+                Write-Verbose "[$Me]: Request URL: $RequestUrl"
+
                 # Retrieve Query Results
                 $PaginationResults = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
                 if ($PaginationResults.Error) {
@@ -549,7 +550,6 @@ Function Get-LrCases {
             if ($Metrics) {
                 $_metrics = $CaseResult | Get-LrCaseMetrics
                 $CaseResult | Add-Member -MemberType NoteProperty -Name "Metrics" -Value $_metrics -Force
-                Start-Sleep 0.1
             }
             $Results.add($CaseResult) | Out-Null
         }
@@ -567,7 +567,7 @@ Function Get-LrCases {
                     # Check each case tag against Excluded Tags
                     ForEach ($excludedTag in $ExcludeTags) {
                         If ($tag.text -like $excludedTag) {
-                            Write-Verbose "Excluding Case $($case.number) because it contains tag $excludedTag."
+                            Write-Verbose "[$Me]: Excluding Case $($case.number) because it contains tag $excludedTag."
                             $Exclude = $true
                         }
                     }
@@ -594,7 +594,7 @@ Function Get-LrCases {
                 # Inspect each case's tags
                 foreach ($_tag in $_tagNumbers) {
                     if ($Case.tags.number -notcontains $_tag) {
-                        Write-Verbose "Case #: $($Case.number) Mising Tag #: $_tag"
+                        Write-Verbose "[$Me]: Case #: $($Case.number) Mising Tag #: $_tag"
                         $Exclude = $true
                     }
                 }
@@ -619,7 +619,7 @@ Function Get-LrCases {
                 # Inspect each case's tags
                 foreach ($_tag in $_tagNumbers) {
                     if ($case.tags.number -contains $_tag) {
-                        Write-Verbose "Case #: $($Case.number) Tag #: $_tag"
+                        Write-Verbose "[$Me]: Case #: $($Case.number) Tag #: $_tag"
                         $Include = $true
                     }
                 }
@@ -657,8 +657,8 @@ Function Get-LrCases {
 
             # [Exact Match] - Check Result Count
             if ($ExactCaseMatches.Count -gt 1) {
-                Write-Warning "More than one case found matching exact name: $Name"
-                Write-Warning "Only the first result will be returned"
+                Write-Warning "[$Me]: More than one case found matching exact name: $Name"
+                Write-Warning "[$Me]: Only the first result will be returned"
             }
 
             # For Summary, return a formatted report

@@ -266,7 +266,6 @@ Function Update-LrPlaybook {
         }
 
         $RequestUrl = $BaseUrl + "/lr-case-api/playbooks/$($Pb.id)/"
-        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         # Request Body
         $Body = [PSCustomObject]@{
@@ -284,7 +283,9 @@ Function Update-LrPlaybook {
                 $_tags
             )
         } | ConvertTo-Json
-        Write-Verbose "[$Me]: Body: $Body"
+        
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
 
 
         # Request

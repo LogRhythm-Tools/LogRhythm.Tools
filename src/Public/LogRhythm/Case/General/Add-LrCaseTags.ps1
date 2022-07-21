@@ -163,7 +163,6 @@ Function Add-LrCaseTags {
         }                                                   
 
         $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/actions/addTags/"
-        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
         #endregion
 
 
@@ -224,8 +223,9 @@ Function Add-LrCaseTags {
 
 
         #region: Make Request                                                            
-        Write-Verbose "[$Me]: request body is:`n$Body"
-
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
+        
         # Make Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
         if ($Response.Error) {

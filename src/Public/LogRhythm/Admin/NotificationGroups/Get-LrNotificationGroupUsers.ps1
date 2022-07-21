@@ -206,6 +206,8 @@ Function Get-LrNotificationGroupUsers {
         # Request URL
         $RequestUrl = $BaseUrl + "/lr-admin-api/notification-groups/$_id/users/" + $QueryString
 
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+
         # Send Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
         if ($Response.Error) {
@@ -224,6 +226,9 @@ Function Get-LrNotificationGroupUsers {
                 $QueryString = $QueryParams | ConvertTo-QueryString
                 # Update Query URL
                 $RequestUrl = $BaseUrl + "/lr-admin-api/notification-groups/$_id/users/" + $QueryString
+
+                Write-Verbose "[$Me]: Request URL: $RequestUrl"
+
                 # Retrieve Query Results
                 $PaginationResults = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
                 if ($PaginationResults.Error) {

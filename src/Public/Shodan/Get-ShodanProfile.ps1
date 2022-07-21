@@ -45,6 +45,8 @@ function Get-ShodanProfile {
             Note                  =   $null
         }
 
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"   
+
         try {
             $Results = Invoke-RestMethod $RequestUrl
         } catch {

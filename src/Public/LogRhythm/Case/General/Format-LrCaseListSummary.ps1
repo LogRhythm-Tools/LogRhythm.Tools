@@ -43,7 +43,8 @@ Function Format-LrCaseListSummary {
     )
 
 
-    Begin {$Me = $MyInvocation.MyCommand.Name
+    Begin {
+        $Me = $MyInvocation.MyCommand.Name
     }
 
 
@@ -51,8 +52,7 @@ Function Format-LrCaseListSummary {
         # Validation - This is just a small sanity check. If user passes an LR API response,
         # the input objects should be properly formed.
         if (! ($InputObject[0].PSobject.Properties.Name -contains "id")) {
-            throw [ArgumentException] `
-                "Property 'id' not found in InputObject. InputObject must be valid LrCase."
+            Write-Verbose  "[$Me] Property 'id' not found in InputObject. InputObject must be valid LrCase."
         }
 
         # Determine Average Time to Close Case

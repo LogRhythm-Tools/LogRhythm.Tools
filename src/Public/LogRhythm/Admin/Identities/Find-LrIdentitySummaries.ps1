@@ -77,22 +77,15 @@ Function Find-LrIdentitySummaries {
     }
 
     Process {
-        # Establish General Error object Output
-        $ErrorObject = [PSCustomObject]@{
-            Error                 =   $false
-            Note                  =   $null
-            Code                  =   $null
-            Type                  =   $null
-            Raw                   =   $null
-        }
-
         # Define HTTP Body
         $Body = [PSCustomObject]@{
             logins = @($Login)
             ids = @($Id)
         } | ConvertTo-Json
 
-        Write-Verbose "[$Me] Request Body:`n$Body"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
+
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
         # Send Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me

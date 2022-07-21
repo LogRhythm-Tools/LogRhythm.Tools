@@ -67,16 +67,6 @@ function Get-LrCaseEarliestEvidence {
     }
     
     Process {
-        # Establish General Error object Output
-        $ErrorObject = [PSCustomObject]@{
-            Code                  =   $null
-            Error                 =   $false
-            Type                  =   $null
-            Note                  =   $null
-            Case                  =   $Id
-            Raw                   =   $null
-        }  
-        
         # Test CaseID Format
         $IdStatus = Test-LrCaseIdFormat $Id
         if ($IdStatus.IsValid -eq $true) {
@@ -86,6 +76,7 @@ function Get-LrCaseEarliestEvidence {
         }   
 
         $RequestUrl = $BaseUrl + "/lr-case-api/cases/$CaseNumber/metrics/"
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
         # Send Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
@@ -112,9 +103,7 @@ function Get-LrCaseEarliestEvidence {
             return $EarliestDate
         } 
 
-
-	# No date could be found
-	return $null
-	
+        # No date could be found
+        return $null
     }
 }

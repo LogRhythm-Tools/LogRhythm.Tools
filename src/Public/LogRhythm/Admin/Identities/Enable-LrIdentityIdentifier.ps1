@@ -118,17 +118,6 @@ Function Enable-LrIdentityIdentifier {
     }
 
     Process {
-        # Establish General Error object Output
-        $ErrorObject = [PSCustomObject]@{
-            Error                 =   $false
-            Note                  =   $null
-            Code                  =   $null
-            Type                  =   $null
-            NameFirst             =   $NameFirst
-            NameLast              =   $NameLast
-            Raw                   =   $null
-        }
-
         # Establish Body Contents
         $Body = [PSCustomObject]@{
             recordStatus = "Active"
@@ -136,6 +125,8 @@ Function Enable-LrIdentityIdentifier {
         
         # Define Query URL
         $RequestUrl = $BaseUrl + "/lr-admin-api/identities/" + $IdentityId + "/identifiers/" + $IdentifierId + "/status/"
+
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
         # Test if Identifier exists
         $IdentifierStatus = Test-LrIdentityIdentifierId -IdentityId $IdentityId -Id $IdentifierId

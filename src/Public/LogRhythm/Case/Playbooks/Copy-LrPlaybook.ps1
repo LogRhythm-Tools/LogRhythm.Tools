@@ -128,16 +128,15 @@ Function Copy-LrPlaybook {
 
 
         $RequestUrl = $BaseUrl + "/lr-case-api/playbooks/clone/"
-        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
 
         # Request Body
         $Body = [PSCustomObject]@{
             id = $Pb.id
             name = $Name
-        }
-        $Body = $Body | ConvertTo-Json
-        Write-Verbose "[$Me]: Body: $Body"
+        } | ConvertTo-Json
 
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
 
         # Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me

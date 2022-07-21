@@ -118,6 +118,7 @@ Function Get-LrAieDrilldown {
         $Method = $HttpMethod.Get
         $RequestUrl = $BaseUrl + "/lr-drilldown-cache-api/drilldown/$AlarmId/"
 
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
         #region: Request Loop                                                            
         # Timer / Loop Setup

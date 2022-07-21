@@ -177,7 +177,7 @@ Function Get-RfHashRiskList {
 
         # Define Search URL
         $RequestUrl = $BaseUrl + "hash/risklist" + $QueryString
-        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
         # Submit API call
         Try {

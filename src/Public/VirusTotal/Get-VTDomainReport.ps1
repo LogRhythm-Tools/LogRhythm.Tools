@@ -124,13 +124,14 @@ Function Get-VTDomainReport {
 
         $BaseUrl = $LrtConfig.VirusTotal.BaseUrl
         $Token = $Credential.GetNetworkCredential().Password
+
+        $Method = $HttpMethod.Get
     }
 
     Process {
         # Request URI   
-        $Method = $HttpMethod.Get
         $RequestUrl = $BaseUrl + "/domain/report?apikey=$Token&domain=$Domain"
-        Write-Verbose "[$Me]: RequestUrl: $RequestUrl"
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
         Try {
             $vtResponse = Invoke-RestMethod $RequestUrl -Method $Method 
