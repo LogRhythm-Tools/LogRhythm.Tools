@@ -170,7 +170,7 @@ Function New-LrList {
 
 
         [Parameter(Mandatory = $false, Position = 17)]
-        [int64] $Owner = 0,
+        [int64] $Owner,
 
                                 
         [Parameter(Mandatory = $false, Position = 18)]
@@ -265,21 +265,13 @@ Function New-LrList {
     }
 
     Process {
-        # Establish General Error object Output
-        $ErrorObject = [PSCustomObject]@{
-            Error                 =   $false
-            Value                 =   $Name
-            Code                  =   $null
-            Type                  =   $null
-            Note                  =   $null
-            ListGuid              =   $null
-            ListName              =   $Name
-            FieldType             =   $ListType
-            Raw                   =   $null
-        }
-      
         #$ExpDate = (Get-Date).AddDays(7).ToString("yyyy-MM-dd")
 
+        if ($Owner) {
+            $_owner = $Owner
+        } else {
+            $_owner = Get-LrApiTokenInfo | Select-Object -ExpandProperty UserId
+        }
 
         # Request Body
         $BodyContents = [PSCustomObject]@{
@@ -301,7 +293,7 @@ Function New-LrList {
             entityName = $EntityName
             needToNotify = $NeedToNotify
             doesExpire = $DoesExpire
-            owner = $Owner
+            owner = $_owner
         }
 
         if ($ListType -eq "GeneralValue") {
@@ -310,7 +302,9 @@ Function New-LrList {
  
 
         $Body = $BodyContents | ConvertTo-Json -Depth 5 -Compress
-        Write-Verbose "[$Me] Request Body:`n$Body"
+        
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
 
 
         # Send Request
