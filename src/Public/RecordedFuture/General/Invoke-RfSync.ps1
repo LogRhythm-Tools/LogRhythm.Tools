@@ -68,10 +68,6 @@ Function Invoke-RfSync {
 
         [Parameter(Mandatory = $false, Position = 1)]
         [ValidateNotNull()]
-        [string] $ListOwner = "api, lrtools",
-
-        [Parameter(Mandatory = $false, Position = 1)]
-        [ValidateNotNull()]
         [string] $EntityName = "Primary Site",
 
         [Parameter(Mandatory = $false, Position = 2)]
@@ -111,17 +107,6 @@ Function Invoke-RfSync {
         [string] $ListWriteAccess = "PublicGlobalAdmin"
     )
 
-    $ListOwnerResults = Get-LrUsers -Name $ListOwner -Exact
-
-    # API Sleep - Delay after API call to prevent API rate limit
-    $ApiSleep = 0.2
-
-    if ($ListOwnerResults) {
-        $ListOwnerId = $ListOwnerResults | Select-Object -ExpandProperty number
-    } else {
-        return "$(Get-timestamp) Error - Unable to retrieve user identity ID for user: $ListOwner"
-    }
-
     # End Section - General Setup
     #---------------------------------------
     # Begin Section - Hash Setup & Control
@@ -135,7 +120,7 @@ Function Invoke-RfSync {
 
     # Create the list if it does not exist
     if (!$ListStatusHash) {
-        New-LrList -Name $RfHashConfThreatList -ListType "generalvalue" -UseContext "message" -ShortDescription "List of avaialable Recorded Future Hash Risk Lists.  Do not modify this list manually." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId -EntityName $EntityName
+        New-LrList -Name $RfHashConfThreatList -ListType "generalvalue" -UseContext "message" -ShortDescription "List of avaialable Recorded Future Hash Risk Lists.  Do not modify this list manually." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -EntityName $EntityName
     } else {
         Write-Verbose "$(Get-TimeStamp) - List Verification: $RfHashConfThreatList exists.  Synchronizing contents between Recorded Future and this LogRhythm list."
     }
@@ -163,7 +148,7 @@ Function Invoke-RfSync {
 
     # Create the list if it does not exist
     if (!$ListStatusHashEnabled) {
-        New-LrList -Name $RfHashEnabledThreatList -ListType "generalvalue" -UseContext "message" -ShortDescription "List of enabled Recorded Future Hash Threat Lists.  Modify this list manually with values from $RfHashConfThreatList." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId -EntityName $EntityName
+        New-LrList -Name $RfHashEnabledThreatList -ListType "generalvalue" -UseContext "message" -ShortDescription "List of enabled Recorded Future Hash Threat Lists.  Modify this list manually with values from $RfHashConfThreatList." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -EntityName $EntityName
     } else {
         Write-Verbose "$(Get-TimeStamp) - List Verification: $RfHashEnabledThreatList exists."
     }
@@ -173,8 +158,8 @@ Function Invoke-RfSync {
 
     # Create the list if it does not exist
     if (!$HashListStatusHashConfidence) {
-        $HashConfidenceList = New-LrList -Name $RfHashConfConfidenceThreshold -ListType "generalvalue" -UseContext "message" -ShortDescription "Single Integer value to signify minimum value for Confidence High qualification.  Reference Additional Settings/Additional Additional Details for more information." -LongDescription "Results from Risk Lists with a Confidence score lower than the value populated on this list will be categorized as ConfLo.  Results from Risk Lists with a Confidence score equal to or greater than the value populated on this list will be categorized as ConfHi.  Note this list should never contain more than a single integer value between 1-99 with a recommendation being greater than 65 due to Recorded Future lists typically not providing risk scores lower than 65." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId -PassThru -EntityName $EntityName
-        Start-Sleep $ApiSleep
+        $HashConfidenceList = New-LrList -Name $RfHashConfConfidenceThreshold -ListType "generalvalue" -UseContext "message" -ShortDescription "Single Integer value to signify minimum value for Confidence High qualification.  Reference Additional Settings/Additional Additional Details for more information." -LongDescription "Results from Risk Lists with a Confidence score lower than the value populated on this list will be categorized as ConfLo.  Results from Risk Lists with a Confidence score equal to or greater than the value populated on this list will be categorized as ConfHi.  Note this list should never contain more than a single integer value between 1-99 with a recommendation being greater than 65 due to Recorded Future lists typically not providing risk scores lower than 65." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -PassThru -EntityName $EntityName
+        
         Sync-LrListItems -Name $HashConfidenceList.Guid -Value $HashDefaultConfThreshold
     } else {
         Write-Verbose "$(Get-TimeStamp) - List Verification: $RfHashConfConfidenceThreshold exists."
@@ -199,7 +184,7 @@ Function Invoke-RfSync {
 
     # Create the list if it does not exist
     if (!$ListStatusUrlThreatList) {
-        New-LrList -Name $RfUrlConfThreatList -ListType "generalvalue" -UseContext "message" -ShortDescription "List of avaialable Recorded Future URL Risk Lists.  Do not modify this list manually." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId  -EntityName $EntityName
+        New-LrList -Name $RfUrlConfThreatList -ListType "generalvalue" -UseContext "message" -ShortDescription "List of avaialable Recorded Future URL Risk Lists.  Do not modify this list manually." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess  -EntityName $EntityName
     } else {
         Write-Verbose "$(Get-TimeStamp) - List Verification: $RfUrlConfThreatList exists.  Synchronizing contents between Recorded Future and this LogRhythm list."
     }
@@ -225,7 +210,7 @@ Function Invoke-RfSync {
 
     # Create the list if it does not exist
     if (!$ListStatusUrlEnabled) {
-        New-LrList -Name $RfUrlEnabledThreatList -ListType "generalvalue" -UseContext "message" -ShortDescription "List of enabled Recorded Future URL Threat Lists.  Modify this list manually with values from $RfUrlConfThreatList." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId -EntityName $EntityName
+        New-LrList -Name $RfUrlEnabledThreatList -ListType "generalvalue" -UseContext "message" -ShortDescription "List of enabled Recorded Future URL Threat Lists.  Modify this list manually with values from $RfUrlConfThreatList." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -EntityName $EntityName
     } else {
         Write-Verbose "$(Get-TimeStamp) - List Verification: $RfUrlEnabledThreatList exists."
     }
@@ -235,8 +220,8 @@ Function Invoke-RfSync {
 
     # Create the list if it does not exist
     if (!$UrlListStatusConfidenceThreshold) {
-        $UrlConfidenceList = New-LrList -Name $RfUrlConfConfidenceThreshold -ListType "generalvalue" -UseContext "message" -ShortDescription "Single Integer value to signify minimum value for Confidence High qualification.  Reference Additional Settings/Additional Additional Details for more information." -LongDescription "Results from Risk Lists with a Confidence score lower than the value populated on this list will be categorized as ConfLo.  Results from Risk Lists with a Confidence score equal to or greater than the value populated on this list will be categorized as ConfHi.  Note this list should never contain more than a single integer value between 1-99 with a recommendation being greater than 65 due to Recorded Future lists typically not providing risk scores lower than 65." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId -PassThru -EntityName $EntityName
-        Start-Sleep $ApiSleep
+        $UrlConfidenceList = New-LrList -Name $RfUrlConfConfidenceThreshold -ListType "generalvalue" -UseContext "message" -ShortDescription "Single Integer value to signify minimum value for Confidence High qualification.  Reference Additional Settings/Additional Additional Details for more information." -LongDescription "Results from Risk Lists with a Confidence score lower than the value populated on this list will be categorized as ConfLo.  Results from Risk Lists with a Confidence score equal to or greater than the value populated on this list will be categorized as ConfHi.  Note this list should never contain more than a single integer value between 1-99 with a recommendation being greater than 65 due to Recorded Future lists typically not providing risk scores lower than 65." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -PassThru -EntityName $EntityName
+        
         Sync-LrListItems -Name $UrlConfidenceList.Guid -Value $UrlDefaultConfThreshold
     } else {
         Write-Verbose "$(Get-TimeStamp) - List Verification: $RfUrlConfConfidenceThreshold exists."
@@ -263,7 +248,7 @@ Function Invoke-RfSync {
 
     # Create the list if it does not exist
     if (!$ListStatusDomain) {
-        New-LrList -Name $RfDomainConfThreatList -ListType "generalvalue" -UseContext "message" -ShortDescription "List of avaialable Recorded Future Domain Risk Lists.  Do not modify this list manually." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId -EntityName $EntityName
+        New-LrList -Name $RfDomainConfThreatList -ListType "generalvalue" -UseContext "message" -ShortDescription "List of avaialable Recorded Future Domain Risk Lists.  Do not modify this list manually." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -EntityName $EntityName
     } else {
         Write-Verbose "$(Get-TimeStamp) - List Verification: $RfDomainConfThreatList exists.  Synchronizing contents between Recorded Future and this LogRhythm list."
     }
@@ -288,7 +273,7 @@ Function Invoke-RfSync {
 
     # Create the list if it does not exist
     if (!$ListStatusDomainEnabled) {
-        New-LrList -Name $RfDomainEnabledThreatList -ListType "generalvalue" -UseContext "message" -ShortDescription "List of enabled Recorded Future Domain Threat Lists.  Modify this list manually with values from $RfDomainConfThreatList." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId -EntityName $EntityName
+        New-LrList -Name $RfDomainEnabledThreatList -ListType "generalvalue" -UseContext "message" -ShortDescription "List of enabled Recorded Future Domain Threat Lists.  Modify this list manually with values from $RfDomainConfThreatList." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -EntityName $EntityName
     } else {
         Write-Verbose "$(Get-TimeStamp) - List Verification: $RfDomainEnabledThreatList exists."
     }
@@ -298,8 +283,8 @@ Function Invoke-RfSync {
 
     # Create the list if it does not exist
     if (!$ListStatusDomainConfidence) {
-        $DomainConfidenceList = New-LrList -Name $RfDomainConfConfidenceThreshold -ListType "generalvalue" -UseContext "message" -ShortDescription "Single Integer value to signify minimum value for Confidence High qualification.  Reference Additional Settings/Additional Additional Details for more information." -LongDescription "Results from Risk Lists with a Confidence score lower than the value populated on this list will be categorized as ConfLo.  Results from Risk Lists with a Confidence score equal to or greater than the value populated on this list will be categorized as ConfHi.  Note this list should never contain more than a single integer value between 1-99 with a recommendation being greater than 65 due to Recorded Future lists typically not providing risk scores lower than 65." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId -PassThru -EntityName $EntityName
-        Start-Sleep $ApiSleep
+        $DomainConfidenceList = New-LrList -Name $RfDomainConfConfidenceThreshold -ListType "generalvalue" -UseContext "message" -ShortDescription "Single Integer value to signify minimum value for Confidence High qualification.  Reference Additional Settings/Additional Additional Details for more information." -LongDescription "Results from Risk Lists with a Confidence score lower than the value populated on this list will be categorized as ConfLo.  Results from Risk Lists with a Confidence score equal to or greater than the value populated on this list will be categorized as ConfHi.  Note this list should never contain more than a single integer value between 1-99 with a recommendation being greater than 65 due to Recorded Future lists typically not providing risk scores lower than 65." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -PassThru -EntityName $EntityName
+        
         Sync-LrListItems -Name $DomainConfidenceList.Guid -Value $DomainDefaultConfThreshold
     } else {
         Write-Verbose "$(Get-TimeStamp) - List Verification: $RfDomainConfConfidenceThreshold exists."
@@ -325,7 +310,7 @@ Function Invoke-RfSync {
 
     # Create the list if it does not exist
     if (!$ListStatusIP) {
-        New-LrList -Name $RfIPConfThreatList -ListType "generalvalue" -UseContext "message" -ShortDescription "List of avaialable Recorded Future IP Risk Lists.  Do not modify this list manually." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId -EntityName $EntityName
+        New-LrList -Name $RfIPConfThreatList -ListType "generalvalue" -UseContext "message" -ShortDescription "List of avaialable Recorded Future IP Risk Lists.  Do not modify this list manually." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -EntityName $EntityName
     } else {
         Write-Verbose "$(Get-TimeStamp) - List Verification: $RfIPConfThreatList exists.  Synchronizing contents between Recorded Future and this LogRhythm list."
     }
@@ -350,7 +335,7 @@ Function Invoke-RfSync {
 
     # Create the list if it does not exist
     if (!$ListStatusIPEnabled) {
-        New-LrList -Name $RfIPEnabledThreatList -ListType "generalvalue" -UseContext "message" -ShortDescription "List of enabled Recorded Future IP Threat Lists.  Modify this list manually with values from $RfIPConfThreatList." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId -EntityName $EntityName
+        New-LrList -Name $RfIPEnabledThreatList -ListType "generalvalue" -UseContext "message" -ShortDescription "List of enabled Recorded Future IP Threat Lists.  Modify this list manually with values from $RfIPConfThreatList." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -EntityName $EntityName
     } else {
         Write-Verbose "$(Get-TimeStamp) - List Verification: $RfIPEnabledThreatList exists."
     }
@@ -360,8 +345,8 @@ Function Invoke-RfSync {
 
     # Create the list if it does not exist
     if (!$ListStatusIPConfidence) {
-        $IPConfidenceList = New-LrList -Name $RfIPConfConfidenceThreshold -ListType "generalvalue" -UseContext "message" -ShortDescription "Single Integer value to signify minimum value for Confidence High qualification.  Reference Additional Settings/Additional Additional Details for more information." -LongDescription "Results from Risk Lists with a Confidence score lower than the value populated on this list will be categorized as ConfLo.  Results from Risk Lists with a Confidence score equal to or greater than the value populated on this list will be categorized as ConfHi.  Note this list should never contain more than a single integer value between 1-99 with a recommendation being greater than 65 due to Recorded Future lists typically not providing risk scores lower than 65." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId -PassThru -EntityName $EntityName
-        Start-Sleep $ApiSleep
+        $IPConfidenceList = New-LrList -Name $RfIPConfConfidenceThreshold -ListType "generalvalue" -UseContext "message" -ShortDescription "Single Integer value to signify minimum value for Confidence High qualification.  Reference Additional Settings/Additional Additional Details for more information." -LongDescription "Results from Risk Lists with a Confidence score lower than the value populated on this list will be categorized as ConfLo.  Results from Risk Lists with a Confidence score equal to or greater than the value populated on this list will be categorized as ConfHi.  Note this list should never contain more than a single integer value between 1-99 with a recommendation being greater than 65 due to Recorded Future lists typically not providing risk scores lower than 65." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -PassThru -EntityName $EntityName
+        
         Sync-LrListItems -Name $IPConfidenceList.Guid -Value $IPDefaultConfThreshold
     } else {
         Write-Verbose "$(Get-TimeStamp) - List Verification: $RfIPConfConfidenceThreshold exists."
@@ -385,7 +370,7 @@ Function Invoke-RfSync {
 
     # Create the list if it does not exist
     if (!$ListStatusVulnerability) {
-        New-LrList -Name $RfVulnerabilityConfThreatList -ListType "generalvalue" -UseContext "message" -ShortDescription "List of avaialable Recorded Future Vulnerability Risk Lists.  Do not modify this list manually." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId -EntityName $EntityName
+        New-LrList -Name $RfVulnerabilityConfThreatList -ListType "generalvalue" -UseContext "message" -ShortDescription "List of avaialable Recorded Future Vulnerability Risk Lists.  Do not modify this list manually." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -EntityName $EntityName
     } else {
         Write-Verbose "$(Get-TimeStamp) - List Verification: $RfVulnerabilityConfThreatList exists.  Synchronizing contents between Recorded Future and this LogRhythm list."
     }
@@ -410,7 +395,7 @@ Function Invoke-RfSync {
 
     # Create the list if it does not exist
     if (!$ListStatusVulnerabilityEnabled) {
-        New-LrList -Name $RfVulnerabilityEnabledThreatList -ListType "generalvalue" -UseContext "message" -ShortDescription "List of enabled Recorded Future Vulnerability Threat Lists.  Modify this list manually with values from $RfVulnerabilityConfThreatList." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId -EntityName $EntityName
+        New-LrList -Name $RfVulnerabilityEnabledThreatList -ListType "generalvalue" -UseContext "message" -ShortDescription "List of enabled Recorded Future Vulnerability Threat Lists.  Modify this list manually with values from $RfVulnerabilityConfThreatList." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -EntityName $EntityName
     } else {
         Write-Verbose "$(Get-TimeStamp) - List Verification: $RfVulnerabilityEnabledThreatList exists."
     }
@@ -420,8 +405,8 @@ Function Invoke-RfSync {
 
     # Create the list if it does not exist
     if (!$ListStatusVulnerabilityConfidence) {
-        $VulnConfidenceList = New-LrList -Name $RfVulnerabilityConfConfidenceThreshold -ListType "generalvalue" -UseContext "message" -ShortDescription "Single Integer value to signify minimum value for Confidence High qualification.  Reference Additional Settings/Additional Additional Details for more information." -LongDescription "Results from Risk Lists with a Confidence score lower than the value populated on this list will be categorized as ConfLo.  Results from Risk Lists with a Confidence score equal to or greater than the value populated on this list will be categorized as ConfHi.  Note this list should never contain more than a single integer value between 1-99 with a recommendation being greater than 65 due to Recorded Future lists typically not providing risk scores lower than 65." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId -PassThru -EntityName $EntityName
-        Start-Sleep $ApiSleep
+        $VulnConfidenceList = New-LrList -Name $RfVulnerabilityConfConfidenceThreshold -ListType "generalvalue" -UseContext "message" -ShortDescription "Single Integer value to signify minimum value for Confidence High qualification.  Reference Additional Settings/Additional Additional Details for more information." -LongDescription "Results from Risk Lists with a Confidence score lower than the value populated on this list will be categorized as ConfLo.  Results from Risk Lists with a Confidence score equal to or greater than the value populated on this list will be categorized as ConfHi.  Note this list should never contain more than a single integer value between 1-99 with a recommendation being greater than 65 due to Recorded Future lists typically not providing risk scores lower than 65." -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -PassThru -EntityName $EntityName
+        
         Sync-LrListItems -Name $VulnConfidenceList.Guid -Value $VulnDefaultConfThreshold
     } else {
         Write-Verbose "$(Get-TimeStamp) - List Verification: $RfVulnerabilityConfConfidenceThreshold exists."
@@ -469,10 +454,10 @@ Function Invoke-RfSync {
                 # If the list exists then update it.  Else create it.
                 if ($HashConfHiStatus) {
                     Write-Host "$(Get-TimeStamp) - Updating List: $HashConfHiList"
-                    Update-LrList -Guid $HashConfHiStatus.Guid -Name $HashConfHiList -ListType "generalvalue" -UseContext "hash" -ShortDescription "Recorded Future list of Hashes for $ThreatListHash.  Confidence score between $RiskCutoffHash and 100.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId 
+                    Update-LrList -Guid $HashConfHiStatus.Guid -Name $HashConfHiList -ListType "generalvalue" -UseContext "hash" -ShortDescription "Recorded Future list of Hashes for $ThreatListHash.  Confidence score between $RiskCutoffHash and 100.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess 
                 } else {
                     Write-Host "$(Get-TimeStamp) - Creating List: $HashConfHiList"
-                    New-LrList -Name $HashConfHiList -ListType "generalvalue" -UseContext "hash" -ShortDescription "Recorded Future list of Hashes for $ThreatListHash.  Confidence score between $RiskCutoffHash and 100.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId -EntityName $EntityName
+                    New-LrList -Name $HashConfHiList -ListType "generalvalue" -UseContext "hash" -ShortDescription "Recorded Future list of Hashes for $ThreatListHash.  Confidence score between $RiskCutoffHash and 100.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -EntityName $EntityName
                 }
 
                 # Suspicious Risk
@@ -485,10 +470,10 @@ Function Invoke-RfSync {
                 # If the list exists then update it.  Else create it.
                 if ($HashConfLoStatus) {
                     Write-Host "$(Get-TimeStamp) - Updating List: $HashConfLoList"
-                    Update-LrList -Guid $HashConfLoStatus.Guid -Name $HashConfLoList -ListType "generalvalue" -UseContext "hash" -ShortDescription "Recorded Future list of Hashes for $ThreatListHash.  Confidence score between 65 and $RiskCutoffHash.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId 
+                    Update-LrList -Guid $HashConfLoStatus.Guid -Name $HashConfLoList -ListType "generalvalue" -UseContext "hash" -ShortDescription "Recorded Future list of Hashes for $ThreatListHash.  Confidence score between 65 and $RiskCutoffHash.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess 
                 } else {
                     Write-Host "$(Get-TimeStamp) - Creating List: $HashConfLoList"
-                    New-LrList -Name $HashConfLoList -ListType "generalvalue" -UseContext "hash" -ShortDescription "Recorded Future list of Hashes for $ThreatListHash.  Confidence score score between 65 and $RiskCutoffHash.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId -EntityName $EntityName
+                    New-LrList -Name $HashConfLoList -ListType "generalvalue" -UseContext "hash" -ShortDescription "Recorded Future list of Hashes for $ThreatListHash.  Confidence score score between 65 and $RiskCutoffHash.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -EntityName $EntityName
                 }
 
                 # Pull list values
@@ -505,7 +490,7 @@ Function Invoke-RfSync {
                 # If the list has values with a Risk Score less than the default 65, update the list description to reflect the minimum.
                 if (($MinimumConfidenceScore -lt 65) -and ($Null -ne $MinimumConfidenceScore)) {
                     Write-Host "$(Get-TimeStamp) - Updating List: $HashConfLoList"
-                    Update-LrList -Guid $HashConfLoStatus.Guid -Name $HashConfLoList -ListType "generalvalue" -UseContext "hash" -ShortDescription "Recorded Future list of Hashes for $ThreatListHash.  Confidence score between $MinimumConfidenceScore and $RiskCutoffHash.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId 
+                    Update-LrList -Guid $HashConfLoStatus.Guid -Name $HashConfLoList -ListType "generalvalue" -UseContext "hash" -ShortDescription "Recorded Future list of Hashes for $ThreatListHash.  Confidence score between $MinimumConfidenceScore and $RiskCutoffHash.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess 
                 }
 
                 # Splitting results by Risk
@@ -587,10 +572,10 @@ Function Invoke-RfSync {
                 # If the list exists then update it.  Else create it.
                 if ($UrlConfHiStatus) {
                     Write-Host "$(Get-TimeStamp) - Updating List: $UrlConfHiList"
-                    Update-LrList -Guid $UrlConfHiStatus.Guid -Name $UrlConfHiList -ListType "generalvalue" -UseContext "url" -ShortDescription "Recorded Future list of URLs for $ThreatListUrl.  Confidence score between $RiskCutoffUrl and 100.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId 
+                    Update-LrList -Guid $UrlConfHiStatus.Guid -Name $UrlConfHiList -ListType "generalvalue" -UseContext "url" -ShortDescription "Recorded Future list of URLs for $ThreatListUrl.  Confidence score between $RiskCutoffUrl and 100.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess 
                 } else {
                     Write-Host "$(Get-TimeStamp) - Creating List: $UrlConfHiList"
-                    New-LrList -Name $UrlConfHiList -ListType "generalvalue" -UseContext "url" -ShortDescription "Recorded Future list of URLs for $ThreatListUrl.  Confidence score between $RiskCutoffUrl and 100.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId -EntityName $EntityName
+                    New-LrList -Name $UrlConfHiList -ListType "generalvalue" -UseContext "url" -ShortDescription "Recorded Future list of URLs for $ThreatListUrl.  Confidence score between $RiskCutoffUrl and 100.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -EntityName $EntityName
                 }
 
                 # Suspicious Risk
@@ -603,10 +588,10 @@ Function Invoke-RfSync {
                 # If the list exists then update it.  Else create it.
                 if ($UrlConfLoStatus) {
                     Write-Host "$(Get-TimeStamp) - Updating List: $UrlConfLoList"
-                    Update-LrList -Guid $UrlConfLoStatus.Guid -Name $UrlConfLoList -ListType "generalvalue" -UseContext "url" -ShortDescription "Recorded Future list of URLs for $ThreatListUrl.  Confidence score between 65 and $RiskCutoffUrl.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId 
+                    Update-LrList -Guid $UrlConfLoStatus.Guid -Name $UrlConfLoList -ListType "generalvalue" -UseContext "url" -ShortDescription "Recorded Future list of URLs for $ThreatListUrl.  Confidence score between 65 and $RiskCutoffUrl.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess 
                 } else {
                     Write-Host "$(Get-TimeStamp) - Creating List: $UrlConfLoList"
-                    New-LrList -Name $UrlConfLoList -ListType "generalvalue" -UseContext "url" -ShortDescription "Recorded Future list of URLs for $ThreatListUrl.  Confidence score score between 65 and $RiskCutoffUrl.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId -EntityName $EntityName
+                    New-LrList -Name $UrlConfLoList -ListType "generalvalue" -UseContext "url" -ShortDescription "Recorded Future list of URLs for $ThreatListUrl.  Confidence score score between 65 and $RiskCutoffUrl.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -EntityName $EntityName
                 }
 
                 # Pull list values
@@ -628,7 +613,7 @@ Function Invoke-RfSync {
                     # If the list has values with a Risk Score less than the default 65, update the list description to reflect the minimum.
                     if (($MinimumConfidenceScore -lt 65) -and ($Null -ne $MinimumConfidenceScore)) {
                         Write-Host "$(Get-TimeStamp) - Updating List: $UrlConfLoList"
-                        Update-LrList -Guid $UrlConfLoStatus.Guid -Name $UrlConfLoList -ListType "generalvalue" -UseContext "url" -ShortDescription "Recorded Future list of URLs for $ThreatListUrl.  Confidence score between $MinimumConfidenceScore and $RiskCutoffUrl.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId 
+                        Update-LrList -Guid $UrlConfLoStatus.Guid -Name $UrlConfLoList -ListType "generalvalue" -UseContext "url" -ShortDescription "Recorded Future list of URLs for $ThreatListUrl.  Confidence score between $MinimumConfidenceScore and $RiskCutoffUrl.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess 
                     }
 
                     # Splitting results by Risk
@@ -716,10 +701,10 @@ Function Invoke-RfSync {
                 # If the list exists then update it.  Else create it.
                 if ($DomainConfHiStatus) {
                     Write-Host "$(Get-TimeStamp) - Updating List: $DomainConfHiList"
-                    Update-LrList -Guid $DomainConfHiStatus.Guid -Name $DomainConfHiList -ListType "generalvalue" -UseContext "url" -ShortDescription "Recorded Future list of Domains for $ThreatListDomain.  Confidence score between $RiskCutoffDomain and 100.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId 
+                    Update-LrList -Guid $DomainConfHiStatus.Guid -Name $DomainConfHiList -ListType "generalvalue" -UseContext "url" -ShortDescription "Recorded Future list of Domains for $ThreatListDomain.  Confidence score between $RiskCutoffDomain and 100.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess 
                 } else {
                     Write-Host "$(Get-TimeStamp) - Creating List: $DomainConfHiList"
-                    New-LrList -Name $DomainConfHiList -ListType "generalvalue" -UseContext "url" -ShortDescription "Recorded Future list of Domains for $ThreatListDomain.  Confidence score between $RiskCutoffDomain and 100.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId -EntityName $EntityName
+                    New-LrList -Name $DomainConfHiList -ListType "generalvalue" -UseContext "url" -ShortDescription "Recorded Future list of Domains for $ThreatListDomain.  Confidence score between $RiskCutoffDomain and 100.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -EntityName $EntityName
                 }
 
                 # Suspicious Risk
@@ -730,10 +715,10 @@ Function Invoke-RfSync {
                 # If the list exists then update it.  Else create it.
                 if ($DomainConfLoStatus) {
                     Write-Host "$(Get-TimeStamp) - Updating List: $DomainConfLoList"
-                    Update-LrList -Guid $DomainConfLoStatus.Guid -Name $DomainConfLoList -ListType "generalvalue" -UseContext "url" -ShortDescription "Recorded Future list of Domains for $ThreatListDomain.  Confidence score between 65 and $RiskCutoffDomain.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId 
+                    Update-LrList -Guid $DomainConfLoStatus.Guid -Name $DomainConfLoList -ListType "generalvalue" -UseContext "url" -ShortDescription "Recorded Future list of Domains for $ThreatListDomain.  Confidence score between 65 and $RiskCutoffDomain.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess 
                 } else {
                     Write-Host "$(Get-TimeStamp) - Creating List: $DomainConfLoList"
-                    New-LrList -Name $DomainConfLoList -ListType "generalvalue" -UseContext "url" -ShortDescription "Recorded Future list of Domains for $ThreatListDomain.  Confidence score score between 65 and $RiskCutoffDomain.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId -EntityName $EntityName
+                    New-LrList -Name $DomainConfLoList -ListType "generalvalue" -UseContext "url" -ShortDescription "Recorded Future list of Domains for $ThreatListDomain.  Confidence score score between 65 and $RiskCutoffDomain.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -EntityName $EntityName
                 }
 
                 # Pull list values
@@ -755,7 +740,7 @@ Function Invoke-RfSync {
                     # If the list has values with a Risk Score less than the default 65, update the list description to reflect the minimum.
                     if (($MinimumConfidenceScore -lt 65) -and ($Null -ne $MinimumConfidenceScore)) {
                         Write-Host "$(Get-TimeStamp) - Updating List: $DomainConfLoList"
-                        Update-LrList -Guid $DomainConfLoStatus.Guid -Name $DomainConfLoList -ListType "generalvalue" -UseContext "url" -ShortDescription "Recorded Future list of Domains for $ThreatListDomain.  Confidence score between $MinimumConfidenceScore and $RiskCutoffDomain.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId 
+                        Update-LrList -Guid $DomainConfLoStatus.Guid -Name $DomainConfLoList -ListType "generalvalue" -UseContext "url" -ShortDescription "Recorded Future list of Domains for $ThreatListDomain.  Confidence score between $MinimumConfidenceScore and $RiskCutoffDomain.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess 
                     }
                     # Splitting results by Risk
                     Try {
@@ -838,10 +823,10 @@ Function Invoke-RfSync {
                 # If the list exists then update it.  Else create it.
                 if ($IPConfHiStatus) {
                     Write-Host "$(Get-TimeStamp) - Updating List: $IPConfHiList"
-                    Update-LrList -Guid $IPConfHiStatus.Guid -Name $IPConfHiList -ListType "ip" -ShortDescription "Recorded Future list of IPs for $ThreatListIP.  Confidence score between $RiskCutoffIP and 100.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId 
+                    Update-LrList -Guid $IPConfHiStatus.Guid -Name $IPConfHiList -ListType "ip" -ShortDescription "Recorded Future list of IPs for $ThreatListIP.  Confidence score between $RiskCutoffIP and 100.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess 
                 } else {
                     Write-Host "$(Get-TimeStamp) - Creating List: $IPConfHiList"
-                    New-LrList -Name $IPConfHiList -ListType "ip" -ShortDescription "Recorded Future list of IPs for $ThreatListIP.  Confidence score between $RiskCutoffIP and 100.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId -EntityName $EntityName
+                    New-LrList -Name $IPConfHiList -ListType "ip" -ShortDescription "Recorded Future list of IPs for $ThreatListIP.  Confidence score between $RiskCutoffIP and 100.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -EntityName $EntityName
                 }
 
                 # Suspicious Risk
@@ -854,10 +839,10 @@ Function Invoke-RfSync {
                 # If the list exists then update it.  Else create it.
                 if ($IPConfLoStatus) {
                     Write-Host "$(Get-TimeStamp) - Updating List: $IPConfLoList"
-                    Update-LrList -Guid $IPConfLoStatus.Guid -Name $IPConfLoList -ListType "ip" -ShortDescription "Recorded Future list of IPs for $ThreatListIP.  Confidence score between 65 and $RiskCutoffIP.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId 
+                    Update-LrList -Guid $IPConfLoStatus.Guid -Name $IPConfLoList -ListType "ip" -ShortDescription "Recorded Future list of IPs for $ThreatListIP.  Confidence score between 65 and $RiskCutoffIP.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess 
                 } else {
                     Write-Host "$(Get-TimeStamp) - Creating List: $IPConfLoList"
-                    New-LrList -Name $IPConfLoList -ListType "ip" -ShortDescription "Recorded Future list of IPs for $ThreatListIP.  Confidence score score between 65 and $RiskCutoffIP.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId -EntityName $EntityName
+                    New-LrList -Name $IPConfLoList -ListType "ip" -ShortDescription "Recorded Future list of IPs for $ThreatListIP.  Confidence score score between 65 and $RiskCutoffIP.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -EntityName $EntityName
                 }
 
                 # Pull list values
@@ -879,7 +864,7 @@ Function Invoke-RfSync {
                     # If the list has values with a Risk Score less than the default 65, update the list description to reflect the minimum.
                     if (($MinimumConfidenceScore -lt 65) -and ($Null -ne $MinimumConfidenceScore)) {
                         Write-Host "$(Get-TimeStamp) - Updating List: $IPConfLoList"
-                        Update-LrList -Guid $IPConfLoStatus.Guid -Name $IPConfLoList -ListType "ip" -ShortDescription "Recorded Future list of IPs for $ThreatListIP.  Confidence score between $MinimumConfidenceScore and $RiskCutoffIP.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId 
+                        Update-LrList -Guid $IPConfLoStatus.Guid -Name $IPConfLoList -ListType "ip" -ShortDescription "Recorded Future list of IPs for $ThreatListIP.  Confidence score between $MinimumConfidenceScore and $RiskCutoffIP.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess 
                     }
 
                     # Splitting results by Risk
@@ -971,10 +956,10 @@ Function Invoke-RfSync {
                 # If the list exists then update it.  Else create it.
                 if ($VulnerabilityConfHiStatus) {
                     Write-Host "$(Get-TimeStamp) - Updating List: $VulnerabilityConfHiList"
-                    Update-LrList -Guid $VulnerabilityConfHiStatus.Guid -Name $VulnerabilityConfHiList -ListType "generalvalue" -UseContext "cve" -ShortDescription "Recorded Future list of Vulnerabilitys for $ThreatListVulnerability.  Confidence score between $RiskCutoffVulnerability and 100.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId 
+                    Update-LrList -Guid $VulnerabilityConfHiStatus.Guid -Name $VulnerabilityConfHiList -ListType "generalvalue" -UseContext "cve" -ShortDescription "Recorded Future list of Vulnerabilitys for $ThreatListVulnerability.  Confidence score between $RiskCutoffVulnerability and 100.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess 
                 } else {
                     Write-Host "$(Get-TimeStamp) - Creating List: $VulnerabilityConfHiList"
-                    New-LrList -Name $VulnerabilityConfHiList -ListType "generalvalue" -UseContext "cve" -ShortDescription "Recorded Future list of Vulnerabilitys for $ThreatListVulnerability.  Confidence score between $RiskCutoffVulnerability and 100.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId -EntityName $EntityName
+                    New-LrList -Name $VulnerabilityConfHiList -ListType "generalvalue" -UseContext "cve" -ShortDescription "Recorded Future list of Vulnerabilitys for $ThreatListVulnerability.  Confidence score between $RiskCutoffVulnerability and 100.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -EntityName $EntityName
                 }
 
                 # Suspicious Risk
@@ -987,10 +972,10 @@ Function Invoke-RfSync {
                 # If the list exists then update it.  Else create it.
                 if ($VulnerabilityConfLoStatus) {
                     Write-Host "$(Get-TimeStamp) - Updating List: $VulnerabilityConfLoList"
-                    Update-LrList -Guid $VulnerabilityConfLoStatus.Guid -Name $VulnerabilityConfLoList -ListType "generalvalue" -UseContext "cve" -ShortDescription "Recorded Future list of Vulnerabilitys for $ThreatListVulnerability.  Confidence score between 65 and $RiskCutoffVulnerability.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId 
+                    Update-LrList -Guid $VulnerabilityConfLoStatus.Guid -Name $VulnerabilityConfLoList -ListType "generalvalue" -UseContext "cve" -ShortDescription "Recorded Future list of Vulnerabilitys for $ThreatListVulnerability.  Confidence score between 65 and $RiskCutoffVulnerability.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess 
                 } else {
                     Write-Host "$(Get-TimeStamp) - Creating List: $VulnerabilityConfLoList"
-                    New-LrList -Name $VulnerabilityConfLoList -ListType "generalvalue" -UseContext "cve" -ShortDescription "Recorded Future list of Vulnerabilitys for $ThreatListVulnerability.  Confidence score score between 65 and $RiskCutoffVulnerability.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId -EntityName $EntityName
+                    New-LrList -Name $VulnerabilityConfLoList -ListType "generalvalue" -UseContext "cve" -ShortDescription "Recorded Future list of Vulnerabilitys for $ThreatListVulnerability.  Confidence score score between 65 and $RiskCutoffVulnerability.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -EntityName $EntityName
                 }
 
                 # Pull list values
@@ -1012,7 +997,7 @@ Function Invoke-RfSync {
                     # If the list has values with a Risk Score less than the default 65, update the list description to reflect the minimum.
                     if (($MinimumConfidenceScore -lt 65) -and ($Null -ne $MinimumConfidenceScore)) {
                         Write-Host "$(Get-TimeStamp) - Updating List: $VulnerabilityConfLoList"
-                        Update-LrList -Guid $VulnerabilityConfLoStatus.Guid -Name $VulnerabilityConfLoList -ListType "generalvalue" -UseContext "cve" -ShortDescription "Recorded Future list of Vulnerabilitys for $ThreatListVulnerability.  Confidence score between $MinimumConfidenceScore and $RiskCutoffVulnerability.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess -Owner $ListOwnerId 
+                        Update-LrList -Guid $VulnerabilityConfLoStatus.Guid -Name $VulnerabilityConfLoList -ListType "generalvalue" -UseContext "cve" -ShortDescription "Recorded Future list of Vulnerabilitys for $ThreatListVulnerability.  Confidence score between $MinimumConfidenceScore and $RiskCutoffVulnerability.  Sync Time: $(Get-TimeStamp)" -ReadAccess $ListReadAccess -WriteAccess $ListWriteAccess 
                     }
 
                     # Splitting results by Risk
