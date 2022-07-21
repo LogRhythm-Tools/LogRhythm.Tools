@@ -161,10 +161,9 @@ foreach($ConfigCategory in $LrtConfigInput.PSObject.Properties) {
 
     #region: Category:: Process Fields Input                                                                
     foreach($ConfigField in $ConfigCategory.Value.Fields.PSObject.Properties) {
-
+        Write-Host "    For guidance enter help or hint as your input value." -ForegroundColor Magenta
         # Input Loop ------------------------------------------------------------------------------
         while (! $ResponseOk) {
-
             # Exiting Value for this field
             if ($PreviousLrtConfig) {
                 $OldValue = $PreviousLrtConfig.($ConfigCategory.Name).($ConfigField.Name)
@@ -183,6 +182,11 @@ foreach($ConfigCategory in $LrtConfigInput.PSObject.Properties) {
                 $Response = $Response.Trim()
                 $Response = Remove-SpecialChars -Value $Response -Allow @("-",".",":")
                 Write-Verbose "Response: $Response"
+            }
+            if (($Response -like "hint") -or ($Response -like 'help')) {
+                Write-Host "    Example input: $($ConfigField.Value.Hint)" -ForegroundColor Magenta
+                $ResponseOk = $false
+                continue
             }
 
             # Break the loop on this field if no input (keep the same value)
