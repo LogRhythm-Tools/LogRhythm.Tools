@@ -244,6 +244,7 @@ Function Get-LrIdentities {
                 $QueryString = $QueryParams | ConvertTo-QueryString
                 # Update Query URL
                 $RequestUrl = $BaseUrl + "/lr-admin-api/identities/" + $QueryString
+                Write-Verbose "[$Me]: Request URL: $RequestUrl"
                 # Retrieve Query Results
                 $PaginationResults = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
                 if ($PaginationResults.Error) {

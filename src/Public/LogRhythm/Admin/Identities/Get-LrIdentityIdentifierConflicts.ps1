@@ -111,6 +111,8 @@ Function Get-LrIdentityIdentifierConflicts {
             if ($ShowRetired) { $RequestUrl += "&showRetired=true" }
             if ($Filter) { $RequestUrl += "&$Filter" }
             
+            Write-Verbose "[$Me]: Request URL: $RequestUrl"
+
             $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
             if ($Response.Error) {
                 return $Response

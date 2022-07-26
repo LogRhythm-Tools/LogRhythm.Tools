@@ -83,9 +83,8 @@ Function Find-LrIdentitySummaries {
             ids = @($Id)
         } | ConvertTo-Json
 
-        Write-Verbose "[$Me]: Request Body:`n$Body"
-
         Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
 
         # Send Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me

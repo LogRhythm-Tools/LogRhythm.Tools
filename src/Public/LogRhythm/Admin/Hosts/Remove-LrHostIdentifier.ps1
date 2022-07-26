@@ -158,13 +158,12 @@ Function Remove-LrHostIdentifier {
         # Establish Body Contents
         $Body = $BodyContents | ConvertTo-Json
 
-        Write-Verbose "$Body"
-
         # Define Query URL
         $RequestUrl = $BaseUrl + "/lr-admin-api/hosts/$Guid/identifiers/"
 
         Write-Verbose "[$Me]: Request URL: $RequestUrl"
-
+        Write-Verbose "[$Me]: Request Body:`n$Body"
+        
         # Send Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method  -Body $Body -Origin $Me
         if ($Response.Error) {

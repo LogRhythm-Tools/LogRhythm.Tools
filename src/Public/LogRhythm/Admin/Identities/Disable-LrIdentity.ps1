@@ -90,7 +90,8 @@ Function Disable-LrIdentity {
         $RequestUrl = $BaseUrl + "/lr-admin-api/identities/" + $IdentityId + "/status"
 
         Write-Verbose "[$Me]: Request URL: $RequestUrl"
-
+        Write-Verbose "[$Me]: Request Body:`n$Body"
+        
         # Send Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
         if ($Response.Error) {

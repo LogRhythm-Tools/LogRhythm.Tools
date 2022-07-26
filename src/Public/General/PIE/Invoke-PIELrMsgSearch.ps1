@@ -112,11 +112,11 @@ Function Invoke-PIELrMsgSearch {
         # Establish Body Contents
         $BodyContents = $JSON | ConvertTo-Json -Depth 20
 
-        Write-Verbose $BodyContents
-
-
         # Define Query URL
         $RequestUrl = $BaseUrl + "/lr-search-api/actions/search-task"
+
+        Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
 
         # Send Request
         try {

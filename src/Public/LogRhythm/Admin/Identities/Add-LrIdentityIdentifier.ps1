@@ -100,12 +100,11 @@ Function Add-LrIdentityIdentifier {
             identifierType = $_identifierType
          } | ConvertTo-Json
 
-        Write-Verbose $Body
-        
         # Define Endpoint URL
         $RequestUrl = $BaseUrl + "/lr-admin-api/identities/" + $IdentityId + "/identifiers"
 
         Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
 
         # Test if Identifier exists
         $IdentifierStatus = Test-LrIdentityIdentifierValue -IdentityId $IdentityId -IdentifierType $IdentifierType -Value $IdentifierValue

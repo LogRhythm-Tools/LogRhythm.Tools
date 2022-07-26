@@ -211,17 +211,6 @@ Function Add-LrIdentity {
     }
 
     Process {
-        # Establish General Error object Output
-        $ErrorObject = [PSCustomObject]@{
-            Error                 =   $false
-            Note                  =   $null
-            Code                  =   $null
-            Type                  =   $null
-            NameFirst             =   $NameFirst
-            NameLast              =   $NameLast
-            Raw                   =   $null
-        }
-
         # Create vendorUniqueKey based on SyncName
         $StringBuilder = New-Object System.Text.StringBuilder
         [System.Security.Cryptography.HashAlgorithm]::Create("SHA1").ComputeHash([System.Text.Encoding]::UTF8.GetBytes($SyncName + "-" + (-join (((65..90)+(97..122)) | Get-Random -Count 10 | ForEach-Object {[char]$_})) )) | ForEach-Object {
@@ -380,12 +369,11 @@ Function Add-LrIdentity {
             accounts = $NewIdentities
         } | ConvertTo-Json -Depth 5
         
-        Write-Verbose $Body
-
         # Define Query URL
         $RequestUrl = $BaseUrl + "/lr-admin-api/identities/bulk/?entityID=" + $EntityId
 
         Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
 
         # Send Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me

@@ -65,8 +65,6 @@ Function Update-LrHostStatus {
         # Define HTTP Method
         $Method = $HttpMethod.Put
 
-        # Define LogRhythm Version
-        $LrVersion = $LrtConfig.LogRhythm.Version
 
         # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
         Enable-TrustAllCertsPolicy
@@ -141,16 +139,13 @@ Function Update-LrHostStatus {
         }
 
         # Request Body
-        $Body = @( $HostIDs )
-
-        $Body = ConvertTo-Json -InputObject $Body
-
-        Write-Verbose $Body
+        $Body = @( $HostIDs ) | ConvertTo-Json
 
         # Request URL
         $RequestUrl = $BaseUrl + "/lr-admin-api/hosts/status/"
 
         Write-Verbose "[$Me]: Request URL: $RequestUrl"
+        Write-Verbose "[$Me]: Request Body:`n$Body"
 
         # Send Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
