@@ -76,21 +76,19 @@ function Install-Lrt {
 
 
 
-    #region: Validate Module base install directory                                                
+    #region: Validate Module base install directory                                          
     $ScopeInfo = $InstallerInfo.InstallScopes.($Scope)
 
+    # If we didn't end up with an InstallPath for some reason, fail
+    if ([string]::IsNullOrEmpty($ScopeInfo.InstallPath)) {
+        throw [Exception] "[Install-Lrt]: Unable to determine module install location for $Scope."
+    }      
+
     # Validate the Modules installation directory for User/System
-    if (! (Test-Path -Path $ScopeInfo.Path)) {
-        if ($Scope -eq "User") {
-            # Ok to create missing Modules directory for [User] scope
-            $_created = New-Item -Path $HOME -Name "WindowsPowerShell\Modules" `
-                -ItemType Directory -ErrorAction SilentlyContinue | Out-Null
-            Write-Verbose "Created directory [$($_created.FullName)]"
-        }
-        if ($Scope -eq "System") {
-            # Fail for [System Scope]
-            throw [Exception] "[Install-Lrt]: $Scope module directory [$($ScopeInfo.Path)] is missing, cannot proceed."
-        }
+    if (! (Test-Path -Path $ScopeInfo.InstallPath)) {
+        $_created = New-Item -Path $ScopeInfo.InstallPath `
+            -ItemType Directory -ErrorAction SilentlyContinue | Out-Null
+        Write-Verbose "Created directory [$($_created.FullName)]"
     }
 
 
@@ -103,11 +101,6 @@ function Install-Lrt {
     }
 
     $InstallPath # = Join-Path -Path $ScopeInfo.Path -ChildPath $ModuleInfo.Name
-
-    # If we didn't end up with an InstallPath for some reason, fail
-    if ([string]::IsNullOrEmpty($ScopeInfo.InstallPath)) {
-        throw [Exception] "[Install-Lrt]: Unable to determine module install location for $Scope."
-    }
     #endregion
 
 

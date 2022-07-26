@@ -79,25 +79,60 @@ Function Get-LrtInstallerInfo {
 
     # System: Path / InstallPath
     $SystemScope = $Info.InstallScopes.System
-    $SystemScope.Path = Join-Path `
-        -Path $Env:ProgramFiles `
-        -ChildPath "WindowsPowerShell\Modules"
-    $SystemScope.InstallPath = Join-Path `
-        -Path $SystemScope.Path `
-        -ChildPath $Info.ModuleInfo.Name
+    if ($PSEdition -like 'Core'){
+        if ($IsWindows) {
+            $SystemScope.Path = Join-Path `
+                -Path $Env:ProgramFiles `
+                -ChildPath "PowerShell\Modules"
+            $SystemScope.InstallPath = Join-Path `
+                -Path $SystemScope.Path `
+                -ChildPath $Info.ModuleInfo.Name
 
 
-    # User: Path / InstallPath
-    $UserScope = $Info.InstallScopes.User
-    $UserScope.Path = Join-Path `
-        -Path $HOME `
-        -ChildPath "Documents\WindowsPowerShell\Modules"
+            # User: Path / InstallPath
+            $UserScope = $Info.InstallScopes.User
+            $UserScope.Path = Join-Path `
+                -Path $([Environment]::GetFolderPath('MyDocuments')) `
+                -ChildPath "PowerShell\Modules"
+            $UserScope.InstallPath = Join-Path `
+                -Path $UserScope.Path `
+                -ChildPath $Info.ModuleInfo.Name
+        } elseif ($IsLinux -or $IsMacOS) {
+            $SystemScope.Path = Join-Path `
+                -Path $HOME `
+                -ChildPath ".local/share/powershell/Modules"
+            $SystemScope.InstallPath = Join-Path `
+                -Path $SystemScope.Path `
+                -ChildPath $Info.ModuleInfo.Name
+
+
+            # User: Path / InstallPath
+            $UserScope = $Info.InstallScopes.User
+            $UserScope.Path = Join-Path `
+                -Path '/usr/local/share/' `
+                -ChildPath "powershell/Modules"
+            $UserScope.InstallPath = Join-Path `
+                -Path $UserScope.Path `
+                -ChildPath $Info.ModuleInfo.Name 
+        }
+    } else {
+        $SystemScope.Path = Join-Path `
+            -Path $Env:ProgramFiles `
+            -ChildPath "WindowsPowerShell\Modules"
+        $SystemScope.InstallPath = Join-Path `
+            -Path $SystemScope.Path `
+            -ChildPath $Info.ModuleInfo.Name
+
+
+        # User: Path / InstallPath
+        $UserScope = $Info.InstallScopes.User
+        $UserScope.Path = Join-Path `
+            -Path $([Environment]::GetFolderPath('MyDocuments')) `
+            -ChildPath "WindowsPowerShell\Modules"
         $UserScope.InstallPath = Join-Path `
-        -Path $UserScope.Path `
-        -ChildPath $Info.ModuleInfo.Name
-        
-
-
+            -Path $UserScope.Path `
+            -ChildPath $Info.ModuleInfo.Name
+    }
 
     # User: Check if module is installed & create version list
     if (Test-Path $UserScope.InstallPath) {
