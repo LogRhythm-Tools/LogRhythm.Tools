@@ -325,6 +325,9 @@ if (! $ConfirmInstall) {
 # Install Scope
 $Scopes = @("User","System")
 Write-Host "  > You can install this module for the current user (profile) or system-wide (program files)."
+Write-Host "  -- Notice --`n    API Credentials are only accessible to the user currently installing LogRhythm.Tools"
+Write-Host "    Current User: "
+write-host "$($env:UserName)" -NoNewline -ForegroundColor Magenta
 $InstallScope = Confirm-Selection -Message "  > Install for user or system?" -Values $Scopes
 
 
