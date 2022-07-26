@@ -37,14 +37,18 @@ Function Update-LrIdentity {
     .OUTPUTS
         PSCustomObject representing LogRhythm TrueIdentity Identity and its status.
     .EXAMPLE
-        PS C:\> Update-LrIdentity -EntityId 1 --IdentityID 7 NameFirst Eric -NameLast Hart -DisplayIdentifier Eric.Hart -Department "Customer Success" -Company "LogRhythm Inc." -PassThru
+        PS C:\> Update-LrIdentity -IdentityID 8 -NameLast "Hart" -PassThru
         ---
-        vendorUniqueKey                          identityID identifierSourceAccountID
-        ---------------                          ---------- -------------------------
-        24638670afc7cd4e75fb8e107b223cd0680f6bae          7                         0
-    .EXAMPLE
-        PS C:\> Update-LrIdentity -EntityId 1 -IdentityID 8 -NameFirst Jody -NameLast Hart -DisplayIdentifier Jody.Hart -Department "Success Customer" -Company "LogRhythm Inc."
-
+        nameFirst         : Eric
+        nameMiddle        : 
+        nameLast          : Hart
+        displayIdentifier : Eric.Hart
+        company           : LogRhythm
+        department        : Customer Success
+        title             : Manager, Subscription Services
+        manager           : Chuck Talley
+        addressCity       : 
+        recordStatus      : Active
     .NOTES
         LogRhythm-API        
     .LINK
@@ -115,7 +119,7 @@ Function Update-LrIdentity {
         
 
         # Define HTTP Method
-        $Method = $HttpMethod.Post
+        $Method = $HttpMethod.Put
 
         # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
         Enable-TrustAllCertsPolicy
@@ -123,11 +127,10 @@ Function Update-LrIdentity {
 
     Process {
         # Lookup Existing TrueIdentity Record for Update
-        $ExistingIdentity = Get-LrIdentityById -Id $IdentityId
+        $ExistingIdentity = Get-LrIdentityById -IdentityId $IdentityId
         if ($ExistingIdentity.Error) {
             return $ExistingIdentity
         }
-
 
          # Section - Build JSON Body - Begin
         $Identity = [PSCustomObject]@{}
