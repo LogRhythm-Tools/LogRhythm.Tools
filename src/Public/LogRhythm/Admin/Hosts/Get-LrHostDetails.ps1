@@ -109,7 +109,6 @@ Function Get-LrHostDetails {
             Note                  =   $null
             Raw                   =   $null
         }
-        
 
         # Check if ID value is an integer
         if ([int]::TryParse($Id, [ref]$_int)) {
@@ -121,7 +120,8 @@ Function Get-LrHostDetails {
             if (!$Guid) {
                 $ErrorObject.Error = $true
                 $ErrorObject.Code = 404
-                $ErrorObject.Raw = $Guid
+                $ErrorObject.Raw = $Id
+                $ErrorObject.Type = "Input.Validation.Lookup"
                 $ErrorObject.Note = "Id String [$Id] not found in LrHosts List."
                 return $ErrorObject
             }
