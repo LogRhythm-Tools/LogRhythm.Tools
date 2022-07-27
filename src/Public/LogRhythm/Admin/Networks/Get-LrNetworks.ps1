@@ -19,7 +19,7 @@ Function Get-LrNetworks {
     .PARAMETER RecordStatus,
         String used to restrict results based on RecordStatus.
         Valid entries: All, Active, Retired
-    .PARAMETER Exact,
+    .PARAMETER Exact
         Switch used to specify Name search for Entity Network record is explicit.
     .INPUTS
         [System.Int]    -> PageCount

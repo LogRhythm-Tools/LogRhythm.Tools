@@ -22,7 +22,7 @@ Function Get-LrNotificationGroups {
         Default behavior is to OrderBy Id #.
     .PARAMETER Direction
         Sorts records by ascending or descending.
-    .PARAMETER Exact,
+    .PARAMETER Exact
         Switch used to specify Name value is explicit.  Only exact matches will be returned.
     .PARAMETER PageCount
         Integer representing number of pages to return.  Default is maximum, 1000.

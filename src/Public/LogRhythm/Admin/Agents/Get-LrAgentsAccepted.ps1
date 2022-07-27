@@ -58,7 +58,7 @@ Function Get-LrAgentsAccepted {
         Filters results by whether AIE records should be fetched.
 
         Valud values: true, false
-    .PARAMETER Exact,
+    .PARAMETER Exact
         Switch used to specify Name is explicit.
     .INPUTS
 

@@ -39,7 +39,7 @@ Function Get-LrLogSources {
         Integer representing number of pages to return.  Default is maximum, 1000.
     .PARAMETER Name
         String used to search Entity Host records by Name.
-    .PARAMETER Exact,
+    .PARAMETER Exact
         Switch used to specify Name search for Entity Host record is explicit.
     .OUTPUTS
         PSCustomObject representing LogRhythm TrueIdentity Identities and their contents.
