@@ -249,7 +249,7 @@ Function Update-LrEntity {
 
 
         #>
-        $BodyContents = [PSCustomObject]@{
+        $Body  = [PSCustomObject]@{
             id = $($_entity.id)
             parentEntityName = $($_parentEntity.Name)
             name =  $_name
@@ -258,10 +258,7 @@ Function Update-LrEntity {
             shortDesc = $_shortDesc
             longDesc = $_longDesc
             recordStatusName = $_recordStatus
-        }
-
-        # Establish Body Contents
-        $Body = $BodyContents | ConvertTo-Json -Depth 3
+        } | ConvertTo-Json -Depth 3
 
         # Define Query URL
         $RequestUrl = $BaseUrl + "/lr-admin-api/entities/"
