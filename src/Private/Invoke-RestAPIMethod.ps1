@@ -26,6 +26,7 @@ function Invoke-RestAPIMethod {
         [string]$Origin
     )
     Begin {
+        $Me = $MyInvocation.MyCommand.Name
         $RetryCounter = 0
      }
 
@@ -51,30 +52,44 @@ function Invoke-RestAPIMethod {
             } Catch {
                 if($_.Exception.Response.StatusCode.value__ -eq 429 ){
                     if($RetryCounter -ge $MaxRetries){
+                        Write-Verbose "[$Me]:[$Origin]: HTTP Error 429 - C:$RetryCounter M:$MaxRetries - Max Retries encountered."
                         $RetryRequest = $false
                     } else {
                         $RetryCounter += 1
                         $RetryRequest = $true
+                        Write-Verbose "[$Me]:[$Origin]: HTTP Error 429 - C:$RetryCounter M:$MaxRetries"
                         Start-Sleep -Milliseconds $Delay
                     }
+                } elseif (($_.Exception.Response.StatusCode.value__ -eq 500) -and ($Origin -like "Add-LrListItem" -or $Origin -like "Remove-LrListItem")) {
+                    if($RetryCounter -ge $MaxRetries){
+                        Write-Verbose "[$Me]:[$Origin]: HTTP Error 500 - C:$RetryCounter M:$MaxRetries - Max Retries encountered."
+                        $RetryRequest = $false
+                    } else {
+                        $RetryCounter += 1
+                        $RetryRequest = $true
+                        Write-Verbose "[$Me]:[$Origin]: HTTP Error 500 - C:$RetryCounter M:$MaxRetries"
+                        Start-Sleep -Milliseconds $Delay
+                    }                   
                 } else {
                     $ErrorObject.Error = $true
                     $ErrorObject.Request = $_.CategoryInfo.Activity
                     $ErrorObject.Reason = $_.CategoryInfo.Reason
                     $ErrorObject.Code = $_.Exception.Response.StatusCode.value__
                     switch ($_.Exception.Response.StatusCode.value__){
-                        400 {$ErrorObject.Note = "Bad request.  Validate request data and/or API services."}
-                        401 {$ErrorObject.Note = "Unauthorized to access resource.  Validate API Key."}
-                        403 {$ErrorObject.Note = "Access Forbidden.  Validate API Key."}
-                        404 {$ErrorObject.Note = "Resource not found or you do not have permission to view it."}
-                        405 {$ErrorObject.Note = "Method Not Allowed.  Validate request data."}
-                        408 {$ErrorObject.Note = "Connection timeout.  Validate API access from execution source."}
+                        400 {$ErrorObject.Note = "Bad request.  Validate request data and/or API services.";break}
+                        401 {$ErrorObject.Note = "Unauthorized to access resource.  Validate API Key.";break}
+                        403 {$ErrorObject.Note = "Access Forbidden.  Validate API Key.";break}
+                        404 {$ErrorObject.Note = "Resource not found or you do not have permission to view it.";break}
+                        405 {$ErrorObject.Note = "Method Not Allowed.  Validate request data.";break}
+                        408 {$ErrorObject.Note = "Connection timeout.  Validate API access from execution source.";break}
                         default {
                             $ErrorObject.Note = $_.ErrorDetails.Message
                         }
                     }
-
-                    $ErrorObject.Type = $_.Exception.Response.StatusCode
+                    if ($_.Exception.Source) {
+                        $ErrorObject.Type = $_.Exception.Source
+                    }
+                    
                     $ErrorObject.Raw = $_
                     return $ErrorObject
                 }
