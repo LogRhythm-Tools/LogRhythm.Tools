@@ -138,21 +138,21 @@ Contributions are welcome. Please review the [Contributing](CONTRIBUTING.md) gui
 * As part of maintaining coding standards various aspects of unused code have been removed to ensure easier code review, scanning, and maintaining.
 #### New Cmdlets
 ##### General
-Get-LrApiTokenInfo: Allows the user to review key information related to the current API key's context.  
-Test-LrApiTokenExpired: Allows the user to test the API expiration status of their current in-use API key.
+*Get-LrApiTokenInfo: Allows the user to review key information related to the current API key's context.  
+*Test-LrApiTokenExpired: Allows the user to test the API expiration status of their current in-use API key.
 ##### Agent Management
-Get-LrAgentsPending: Allows the retrieval of multiple pending Sysmon agent records based on user provided criteria.
-Get-LrAgentPendingDetails:  Retrieves the details for a specific pending Sysmon agent record.
-Update-LrAgentPending: Provides capability to associate a pending agent to an existing Sysmon agent.  Also provides the ability to reject a pending agent.
-Remove-LrAgentPending: Allows the removal of a pending Sysmon agent record.
+*Get-LrAgentsPending: Allows the retrieval of multiple pending Sysmon agent records based on user provided criteria.
+*Get-LrAgentPendingDetails:  Retrieves the details for a specific pending Sysmon agent record.
+*Update-LrAgentPending: Provides capability to associate a pending agent to an existing Sysmon agent.  Also provides the ability to reject a pending agent.
+*Remove-LrAgentPending: Allows the removal of a pending Sysmon agent record.
 ##### Log Source Management
-Update-LrLogSource: This is an early-release cmdlet that permits modifying a subset of an existing LogSource's properties like Max Message Count, Name, Status, or File Path.
+*Update-LrLogSource: This is an early-release cmdlet that permits modifying a subset of an existing LogSource's properties like Max Message Count, Name, Status, or File Path.
 ##### TrueIdentity
 * Update-LrIdentity: Allows the modification of an existing TrueIdentity record to update data fields such as Name, Address, Manager, or other relevant data schema objects.
 ##### Entity - Hosts
-Format-LrHostPsObject:  Converts the nested JSON structure provided from the LogRhythm API to a flat schema to support operations like exporting to CSV.
+*Format-LrHostPsObject:  Converts the nested JSON structure provided from the LogRhythm API to a flat schema to support operations like exporting to CSV.
 ##### Entity - Networks
-Format-LrNetworkPsObject:  Converts the nested JSON structure provided from the LogRhythm API to a flat schema to support operations like exporting to CSV.
+*Format-LrNetworkPsObject:  Converts the nested JSON structure provided from the LogRhythm API to a flat schema to support operations like exporting to CSV.
 #### Updated Cmdlets
 ##### TrueIdentity
 * Get-LrIdentities:  Resolved an defect introduced when using the -exact flag when leveraged with the -identifier parameter.
@@ -163,7 +163,7 @@ Format-LrNetworkPsObject:  Converts the nested JSON structure provided from the 
 * Add-LrListItem: Added capability to add Log Source or LogSource Type data types to a list.
 * Remove-LrListItem: Added capabiity to remove Log Source or LogSource Type data types from a list.
 ##### Case Management
-Update-LrCaseStatus: Added switch parameter force to trigger the behavior to automatically transition the target case from any current status to the target status specified.  
+*Update-LrCaseStatus: Added switch parameter force to trigger the behavior to automatically transition the target case from any current status to the target status specified.  
 
 ### 1.2.1
 * Invoke-RfSync: Allow Entity to be specified for established and managed lists.
