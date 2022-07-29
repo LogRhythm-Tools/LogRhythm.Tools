@@ -145,7 +145,7 @@ Get-LrAgentsPending: Allows the retrieval of multiple pending Sysmon agent recor
 Get-LrAgentPendingDetails:  Retrieves the details for a specific pending Sysmon agent record.
 Update-LrAgentPending: Provides capability to associate a pending agent to an existing Sysmon agent.  Also provides the ability to reject a pending agent.
 Remove-LrAgentPending: Allows the removal of a pending Sysmon agent record.
-# Log Source Management
+##### Log Source Management
 Update-LrLogSource: This is an early-release cmdlet that permits modifying a subset of an existing LogSource's properties like Max Message Count, Name, Status, or File Path.
 ##### TrueIdentity
 * Update-LrIdentity: Allows the modification of an existing TrueIdentity record to update data fields such as Name, Address, Manager, or other relevant data schema objects.
