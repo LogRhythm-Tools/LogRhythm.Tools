@@ -227,7 +227,7 @@ Function Get-LrIdentities {
 
         # Send Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
-        if ($Response.Error) {
+        if (($null -ne $Response.Error) -and ($Response.Error -eq $true)) {
             return $Response
         }
 
@@ -262,6 +262,7 @@ Function Get-LrIdentities {
         if ($Exact) {
             if ($Name) {
                 $Pattern = "^$Name$"
+                Write-Verbose "[$Me]: Performing exact match lookup for Name: $($Pattern)"
                 $Response | ForEach-Object {
                     if(($_.name -match $Pattern) -or ($_.name -eq $Name)) {
                         Write-Verbose "[$Me]: Exact name match found."
@@ -271,6 +272,7 @@ Function Get-LrIdentities {
             }
             if ($Identifier) {
                 $Pattern = "^$Identifier$"
+                Write-Verbose "[$Me]: Performing exact match lookup for Identifier: $($Pattern)"
                 $Response | ForEach-Object {
                     ForEach ($IdIdentifier in $_.identifiers) {
                         if(($IdIdentifier.value -match $Pattern) -or ($IdIdentifier.value -eq $Identifier)) {
@@ -281,6 +283,7 @@ Function Get-LrIdentities {
                 }
             }
         } else {
+            Write-Verbose "[$Me]: No Exact flag provided, returning all results."
             return $Response
         }
     }

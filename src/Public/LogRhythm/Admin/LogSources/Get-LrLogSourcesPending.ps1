@@ -254,7 +254,7 @@ Function Get-LrLogSourcesPending {
         Write-Verbose "URL: $RequestUrl"
         # Send Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
-        if ($Response.Error) {
+        if (($null -ne $Response.Error) -and ($Response.Error -eq $true)) {
             return $Response
         }
 

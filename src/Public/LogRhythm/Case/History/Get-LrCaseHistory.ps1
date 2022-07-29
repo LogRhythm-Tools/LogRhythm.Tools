@@ -184,7 +184,7 @@ Function Get-LrCaseHistory {
         Write-Verbose "[$Me]: Request URL: $RequestUrl"
         
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
-        if ($Response.Error) {
+        if (($null -ne $Response.Error) -and ($Response.Error -eq $true)) {
             return $Response
         }
 

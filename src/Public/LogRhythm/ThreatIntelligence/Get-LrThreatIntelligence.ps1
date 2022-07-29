@@ -93,7 +93,7 @@ function Get-LrThreatIntelligence
         Write-Verbose "[$Me]: Request Body:`n$Body"
 
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
-        if ($Response.Error) {
+        if (($null -ne $Response.Error) -and ($Response.Error -eq $true)) {
             return $Response
         }
 
