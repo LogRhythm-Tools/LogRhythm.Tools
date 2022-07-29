@@ -39,6 +39,9 @@ function Invoke-RestAPIMethod {
             Type                  =   $null
             Note                  =   $null
             Origin                =   $Origin
+            Uri                   =   $Uri
+            Method                =   $Method
+            Body                  =   $null
             Raw                   =   $null
         }
         Do {
@@ -88,6 +91,10 @@ function Invoke-RestAPIMethod {
                     }
                     if ($_.Exception.Source) {
                         $ErrorObject.Type = $_.Exception.Source
+                    }
+
+                    if ($Body) {
+                        $ErrorObject.Body = $Body
                     }
                     
                     $ErrorObject.Raw = $_
