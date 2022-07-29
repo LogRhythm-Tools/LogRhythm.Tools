@@ -278,6 +278,7 @@ Function Update-LrAgentPending {
             # Define Query URL
             $RequestUrl = $BaseUrl + "/lr-admin-api/agents-request/" + $Guid + "/reject"
         } elseif ($AcceptanceStatus -like 'associate') {
+            # Identify the target existing agent for the association
             if ([int]::TryParse($AssociateAgentId, [ref]$_int)) {
                 Write-Verbose "[$Me]: AssociateAgentId parses as int."
                 $AssociateAgentLookup = Get-LrAgentDetails -Id $AssociateAgentId
@@ -302,6 +303,7 @@ Function Update-LrAgentPending {
                 }
             }
 
+            # Establish the JSON body
             $Body  = [PSCustomObject]@{
                 agentId = $_associateAgentId
             } | ConvertTo-Json -Compress
@@ -312,7 +314,7 @@ Function Update-LrAgentPending {
             $ErrorObject.Error = $true
             $ErrorObject.Code = 500
             $ErrorObject.Raw = $SystemMonitorId
-            $ErrorObject.Type = "Accept.Reject"
+            $ErrorObject.Type = "Accept.Deny"
             $ErrorObject.Note = "Accepting an agent is currently not available in this version of LogRhythm.Tools."
             return $ErrorObject
 
