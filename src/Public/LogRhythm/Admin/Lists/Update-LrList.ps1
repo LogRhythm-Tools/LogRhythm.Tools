@@ -120,6 +120,10 @@ Function Update-LrList {
             'SessionType',
             'Action',
             'ResponseCode',
+            'MACAddress',
+            "ObjectName", 
+            "UserAgent", 
+            "Command",
             ignorecase=$true)]
         [string[]] $UseContext,
 
@@ -271,7 +275,7 @@ Function Update-LrList {
         }
 
         if ($UseContext) {
-            $ValidContexts = @("None", "Address", "DomainImpacted", "Group", "HostName", "Message", "Object", "Process", "Session", "Subject", "URL", "User", "VendorMsgID", "DomainOrigin", "Hash", "Policy", "VendorInfo", "Result", "ObjectType", "CVE", "UserAgent", "ParentProcessId", "ParentProcessName", "ParentProcessPath", "SerialNumber", "Reason", "Status", "ThreatId", "ThreatName", "SessionType", "Action", "ResponseCode")
+            $ValidContexts = @("None", "Address", "DomainImpacted", "Group", "HostName", "Message", "MACAddress", "Object", "Process", "Session", "Subject", "URL", "User", "VendorMsgID", "DomainOrigin", "Hash", "Policy", "VendorInfo", "Result", "ObjectType", "CVE", "UserAgent", "ParentProcessId", "ParentProcessName", "ParentProcessPath", "SerialNumber", "Reason", "Status", "ThreatId", "ThreatName", "SessionType", "Action", "ResponseCode", "ObjectName", "UserAgent", "Command")
             [string[]] $_finalContext = @()
             
             ForEach ($Context in $UseContext) {
@@ -379,7 +383,7 @@ Function Update-LrList {
             $_needToNotify = $ExistingList.needToNotify
         }
 
-        if ($DoesExpire) {
+        if ($null -ne $DoesExpire) {
             $_doesExpire = $DoesExpire
         } else {
             $_doesExpire = $ExistingList.doesExpire
@@ -417,6 +421,16 @@ Function Update-LrList {
             doesExpire = $_DoesExpire
             owner = $_Owner
         }
+
+        if ($DoesExpire -and !$TimeToLiveSeconds) {
+            $ErrorObject.Error = $True
+            $ErrorObject.Value = $Name
+            $ErrorObject.Type = "Input.Validation"
+            $ErrorObject.Note = "Does expire is set to true, requires input parameter TimeToLiveSeconds to be provided."
+            $ErrorObject.FieldType = $ListType
+        } else {
+            $BodyContents | Add-Member -MemberType NoteProperty -Name 'timeToLiveSeconds' -Value $TimeToLiveSeconds
+        }
  
 
         $Body = $BodyContents | ConvertTo-Json -Depth 5 -Compress
@@ -426,7 +440,7 @@ Function Update-LrList {
 
         # Send Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
-        if ($Response.Error) {
+        if (($null -ne $Response.Error) -and ($Response.Error -eq $true)) {
             return $Response
         }
 

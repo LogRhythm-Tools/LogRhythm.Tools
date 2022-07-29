@@ -116,7 +116,11 @@ Function New-LrList {
             'ThreatName', 
             'SessionType', 
             'Action', 
-            'ResponseCode', 
+            'ResponseCode',
+            'MACAddress',
+            "ObjectName", 
+            "UserAgent", 
+            "Command",
             ignorecase=$true
         )]
         [string[]] $UseContext,
@@ -158,6 +162,7 @@ Function New-LrList {
 
 
         [Parameter(Mandatory = $false, Position = 14)]
+        [ValidateRange(1, 7862400)]
         [int] $TimeToLiveSeconds = $null,
 
 
@@ -231,7 +236,7 @@ Function New-LrList {
 
 
         if ($UseContext) {
-            $ValidContexts = @("None", "Address", "DomainImpacted", "Group", "HostName", "Message", "Object", "Process", "Session", "Subject", "URL", "User", "VendorMsgID", "DomainOrigin", "Hash", "Policy", "VendorInfo", "Result", "ObjectType", "CVE", "UserAgent", "ParentProcessId", "ParentProcessName", "ParentProcessPath", "SerialNumber", "Reason", "Status", "ThreatId", "ThreatName", "SessionType", "Action", "ResponseCode")
+            $ValidContexts = @("None", "Address", "DomainImpacted", "Group", "HostName", "Message", "MACAddress", "Object", "Process", "Session", "Subject", "URL", "User", "VendorMsgID", "DomainOrigin", "Hash", "Policy", "VendorInfo", "Result", "ObjectType", "CVE", "UserAgent", "ParentProcessId", "ParentProcessName", "ParentProcessPath", "SerialNumber", "Reason", "Status", "ThreatId", "ThreatName", "SessionType", "Action", "ResponseCode", "ObjectName", "UserAgent", "Command")
             [string[]] $FinalContext = @()
             
             ForEach ($Context in $UseContext) {
@@ -265,6 +270,17 @@ Function New-LrList {
     }
 
     Process {
+        # Establish General Error object Output
+        $ErrorObject = [PSCustomObject]@{
+            Error                 =   $false
+            Value                 =   $null
+            Type                  =   $null
+            Note                  =   $null
+            ListGuid              =   $Guid
+            ListName              =   $Name
+            FieldType             =   $ListType
+            Raw                   =   $null
+        }
         #$ExpDate = (Get-Date).AddDays(7).ToString("yyyy-MM-dd")
 
         if ($Owner) {
@@ -299,6 +315,16 @@ Function New-LrList {
         if ($ListType -eq "GeneralValue") {
             $BodyContents | Add-Member -MemberType NoteProperty -Name 'useContext' -Value @($FinalContext)
         }
+
+        if ($DoesExpire -and !$TimeToLiveSeconds) {
+            $ErrorObject.Error = $True
+            $ErrorObject.Value = $Name
+            $ErrorObject.Type = "Input.Validation"
+            $ErrorObject.Note = "Does expire is set to true, requires input parameter TimeToLiveSeconds to be provided."
+            $ErrorObject.FieldType = $ListType
+        } else {
+            $BodyContents | Add-Member -MemberType NoteProperty -Name 'timeToLiveSeconds' -Value $TimeToLiveSeconds
+        }
  
 
         $Body = $BodyContents | ConvertTo-Json -Depth 5 -Compress
@@ -309,7 +335,7 @@ Function New-LrList {
 
         # Send Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Body $Body -Origin $Me
-        if ($Response.Error) {
+        if (($null -ne $Response.Error) -and ($Response.Error -eq $true)) {
             return $Response
         }
         
