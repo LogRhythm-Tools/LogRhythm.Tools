@@ -64,8 +64,18 @@ function Install-Lrt {
     # By default it should be located in .\installer\packages\
     if (! $Path) {
         $BaseDir = (([DirectoryInfo]::new($PSScriptRoot)).Parent).Parent
-        $ArchivePath = Join-Path -Path $BaseDir.FullName -ChildPath "installer\packages" | 
+        if ($PSEdition -like 'Core'){
+            if ($IsWindows) {
+                $ArchivePath = Join-Path -Path $BaseDir.FullName -ChildPath "installer\packages" | 
+                Join-Path -ChildPath $ModuleInfo.ArchiveFileName
+            } elseif ($IsLinux -or $IsMacOS) {
+                $ArchivePath = Join-Path -Path $BaseDir.FullName -ChildPath "installer/packages" | 
+                Join-Path -ChildPath $ModuleInfo.ArchiveFileName
+            }
+        } else {
+            $ArchivePath = Join-Path -Path $BaseDir.FullName -ChildPath "installer\packages" | 
             Join-Path -ChildPath $ModuleInfo.ArchiveFileName
+        }
         $Path = [System.IO.FileInfo]::new($ArchivePath)
     }
 
