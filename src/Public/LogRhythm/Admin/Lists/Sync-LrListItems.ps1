@@ -23,6 +23,15 @@ Function Sync-LrListItems {
     .PARAMETER ItemType
         For use with Lists that support multiple item types.  Add-LrListItem will attempt to auto-define
         this value.  This parameter enables setting the ItemType.
+    .PARAMETER IsPattern
+        Switch Paramater that will specify the values being added are patterns.  
+
+        If the values are provided with a prefix or postfix of % then that will be applied.  
+        If no pattern % character is specified the default behavior will be to wrap the supplied value in %.
+
+        Default behavior example:
+            Submitted Value: hostname
+            List Value: %hostname%
     .PARAMETER Clear
         Switch Paramater that will perform a synchronization of $null into the target list.  
 
@@ -164,6 +173,12 @@ Function Sync-LrListItems {
             ListType              =   $null
         }
 
+        if ($IsPattern) {
+            $_isPattern = $true
+        } else {
+            $_isPattern = $false
+        }
+
         # Process Name
         if (($Name.GetType() -eq [System.Guid]) -Or (Test-Guid $Name)) {
             Write-Verbose "Inspecting for List Name by GUID"
@@ -209,7 +224,19 @@ Function Sync-LrListItems {
             $ListValues = Get-LrListItems -Name $OutObject.ListGuid -ValuesOnly
             if ($Value.Count -ge 1 -And $ListValues.Count -ge 1) {
                 Write-Verbose "[$Me]: $(Get-TimeStamp) - Number of ListValues: $($ListValues.Count) - Number of Values: $($Value.Count)"
-                $ComparisonResults = Compare-StringArrays $Value $ListValues -Unsorted
+                if ($_isPattern) {
+                    $Items = [list[string]]::new()
+                    ForEach ($Entry in $Value) {
+                        if (!$Entry.StartsWith('%') -and !$Entry.EndsWith('%')) {
+                            $Entry = '%' + $Entry + '%'
+                        }
+                        $Items.Add($Entry)
+                    }
+                }
+                else {
+                    $Items = $Value
+                }
+                $ComparisonResults = Compare-StringArrays $Items $ListValues -Unsorted
                 Write-Verbose "[$Me]: $(Get-TimeStamp) - Comparison Complete"
                 $RemoveList = $ComparisonResults | Where-Object SideIndicator -eq "=>" | Select-Object -ExpandProperty InputObject
                 Write-Verbose "[$Me]: $(Get-TimeStamp) - RemoveList Count: $($RemoveList.Count)"
@@ -227,7 +254,7 @@ Function Sync-LrListItems {
                 Write-Verbose "[$Me]: $(Get-TimeStamp) - Remove Count: $($RemoveList.Count)"
                 # Set quantity of removed values
                 $OutObject.Removed = $RemoveList.Count
-                # For large number of removals, break the additions into 10,000 items per API call
+                # For large number of removals, break the additions into 1,000 items per API call
                 if ($RemoveList.Count -ge 1000) {
                     Write-Verbose "[$Me]: $(Get-TimeStamp) - Enter Removal Segmentation"
                     $SegmentCount = ([Math]::Round(($($RemoveList.Count) / 1000), 0)) + 1
@@ -279,7 +306,7 @@ Function Sync-LrListItems {
                     foreach ($AddArray in $SegmentedAddList) {
                         Write-Verbose "[$Me]: $(Get-TimeStamp) - Submitting $($AddArray.count)"
                         Try {
-                            if ($IsPattern) {
+                            if ($_isPattern) {
                                 Add-LrListItem -name $OutObject.ListGuid -Value $AddArray -ItemType $OutObject.ListType -IsPattern
                             } else {
                                 Add-LrListItem -name $OutObject.ListGuid -Value $AddArray -ItemType $OutObject.ListType
@@ -293,7 +320,7 @@ Function Sync-LrListItems {
                 } else {
                     if ($ItemType) {
                         Try {
-                            if ($IsPattern) {
+                            if ($_isPattern) {
                                 Add-LrListItem -name $OutObject.ListGuid -Value $AddArray -ItemType $OutObject.ListType -IsPattern
                             } else {
                                 Add-LrListItem -name $OutObject.ListGuid -Value $AddArray -ItemType $OutObject.ListType
@@ -305,7 +332,11 @@ Function Sync-LrListItems {
                         }
                     } else {
                         Try {
-                            Add-LrListItem -Name $OutObject.ListGuid -Value $AddList
+                            if ($_isPattern) {
+                                Add-LrListItem -Name $OutObject.ListGuid -Value $AddList -IsPattern
+                            } else {
+                                Add-LrListItem -Name $OutObject.ListGuid -Value $AddList
+                            }
                         } Catch {
                             $ErrorObject.Error = $true
                             $ErrorObject.Note = "Failed to submit addition entries."
