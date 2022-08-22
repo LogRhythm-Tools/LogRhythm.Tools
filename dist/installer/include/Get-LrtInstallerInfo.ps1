@@ -99,8 +99,8 @@ Function Get-LrtInstallerInfo {
                 -ChildPath $Info.ModuleInfo.Name
         } elseif ($IsLinux -or $IsMacOS) {
             $SystemScope.Path = Join-Path `
-                -Path $HOME `
-                -ChildPath ".local/share/powershell/Modules"
+                -Path '/usr/local/share/' `
+                -ChildPath "powershell/Modules"
             $SystemScope.InstallPath = Join-Path `
                 -Path $SystemScope.Path `
                 -ChildPath $Info.ModuleInfo.Name
@@ -109,8 +109,8 @@ Function Get-LrtInstallerInfo {
             # User: Path / InstallPath
             $UserScope = $Info.InstallScopes.User
             $UserScope.Path = Join-Path `
-                -Path '/usr/local/share/' `
-                -ChildPath "powershell/Modules"
+            -Path $HOME `
+            -ChildPath ".local/share/powershell/Modules"
             $UserScope.InstallPath = Join-Path `
                 -Path $UserScope.Path `
                 -ChildPath $Info.ModuleInfo.Name 
