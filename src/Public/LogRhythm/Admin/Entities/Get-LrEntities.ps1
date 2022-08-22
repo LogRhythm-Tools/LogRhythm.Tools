@@ -199,6 +199,7 @@ Function Get-LrEntities {
 
         # Check if pagination is required, if so - paginate!
         if ($Response.Count -eq $PageValuesCount) {
+            Write-Verbose "[$Me]: Begin Pagination"
             DO {
                 # Increment Page Count / Offset
                 #$PageCount = $PageCount + 1
@@ -214,7 +215,7 @@ Function Get-LrEntities {
 
                 # Retrieve Query Results
                 $PaginationResults = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
-                if ($PaginationResults.Error) {
+                if (($null -ne $PaginationResults.Error) -and ($PaginationResults.Error -eq $true)) {
                     return $PaginationResults
                 }
                 
@@ -222,6 +223,7 @@ Function Get-LrEntities {
                 $Response = $Response + $PaginationResults
             } While ($($PaginationResults.Count) -eq $PageValuesCount)
             $Response = $Response | Sort-Object -Property Id -Unique
+            Write-Verbose "[$Me]: End Pagination"
         }
 
         

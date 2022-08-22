@@ -281,7 +281,7 @@ Function Get-LrAlarmHistory {
                 
                 # Retrieve Query Results
                 $PaginationResults = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
-                if ($PaginationResults.Error) {
+                if (($null -ne $PaginationResults.Error) -and ($PaginationResults.Error -eq $true)) {
                     return $PaginationResults
                 }
 

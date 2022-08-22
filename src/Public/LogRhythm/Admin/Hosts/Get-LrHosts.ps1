@@ -151,15 +151,6 @@ Function Get-LrHosts {
     }
 
     Process {
-        $ErrorObject = [PSCustomObject]@{
-            Code                  =   $null
-            Error                 =   $false
-            Type                  =   $null
-            Note                  =   $null
-            Raw                   =   $null
-        }
-
-
         #region: Process Query Parameters____________________________________________________
         $QueryParams = [Dictionary[string,string]]::new()
 
@@ -216,7 +207,8 @@ Function Get-LrHosts {
 
 
         if ($Response.Count -eq $PageValuesCount) {
-            write-verbose "Response Count: $($Response.Count)  Page Value Count: $PageValuesCount"
+            Write-Verbose "[$Me]: Begin Pagination"
+            write-verbose "[$Me]: Response Count: $($Response.Count)  Page Value Count: $PageValuesCount"
             DO {
                 # Increment Offset
                 $Offset = $Offset + 1
@@ -230,7 +222,7 @@ Function Get-LrHosts {
                 Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
                 $PaginationResults = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
-                if ($PaginationResults.Error) {
+                if (($null -ne $PaginationResults.Error) -and ($PaginationResults.Error -eq $true)) {
                     return $PaginationResults
                 }
                 
@@ -239,6 +231,7 @@ Function Get-LrHosts {
                 write-verbose "Response Count: $($PaginationResults.Count)  Page Value Count: $PageValuesCount"
             } While ($($PaginationResults.Count) -eq $PageValuesCount)
             $Response = $Response | Sort-Object -Property Id -Unique
+            Write-Verbose "[$Me]: End Pagination"
         }
 
 

@@ -313,6 +313,7 @@ Function Get-LrAlarms {
 
 
         if ($Response.alarmsCount -eq $PageValuesCount) {
+            Write-Verbose "[$Me]: Begin Pagination"
             write-verbose "Response Count: $($Response.alarmsCount)  Page Value Count: $PageValuesCount"
             $AlarmResults = [list[object]]::new()
             ForEach ($AlarmDetails in $Response.alarmSearchDetails) {
@@ -334,7 +335,7 @@ Function Get-LrAlarms {
                 
                 # Retrieve Query Results
                 $PaginationResults = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
-                if ($PaginationResults.Error) {
+                if (($null -ne $PaginationResults.Error) -and ($PaginationResults.Error -eq $true)) {
                     return $PaginationResults
                 }
 
@@ -355,6 +356,7 @@ Function Get-LrAlarms {
                 statusMessage = $PaginationResults.statusMessage
                 responseMessage = $PaginationResults.responseMessage
             }
+            Write-Verbose "[$Me]: End Pagination"
         }
 
         # If ResultsOnly flag is provided, return only the alarmSearchDetails.

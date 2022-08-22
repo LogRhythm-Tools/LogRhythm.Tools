@@ -256,8 +256,6 @@ Function Get-LrLogSources {
         # Define HTTP Method
         $Method = $HttpMethod.Get
 
-        # Define LogRhythm Version
-        $LrVersion = $LrtConfig.LogRhythm.Version
 
         # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
         Enable-TrustAllCertsPolicy        
@@ -403,6 +401,7 @@ Function Get-LrLogSources {
 
         # Check if pagination is required, if so - paginate!
         if ($Response.Count -eq $PageValuesCount) {
+            Write-Verbose "[$Me]: Begin Pagination"
             DO {
                 # Increment Page Count / Offset
                 $PageCount = $PageCount + 1
@@ -413,15 +412,18 @@ Function Get-LrLogSources {
                 $QueryString = $QueryParams | ConvertTo-QueryString
                 # Update Query URL
                 $RequestUrl = $BaseUrl + "/lr-admin-api/logsources/" + $QueryString
+                Write-Verbose "[$Me]: Request URL: $RequestUrl"
                 # Retrieve Query Results
                 $PaginationResults = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me
-                if ($PaginationResults.Error) {
+                if (($null -ne $PaginationResults.Error) -and ($PaginationResults.Error -eq $true)) {
                     return $PaginationResults
                 }
                 
                 # Append results to Response
                 $Response = $Response + $PaginationResults
             } While ($($PaginationResults.Count) -eq $PageValuesCount)
+            $Response = $Response | Sort-Object -Property id -Unique
+            Write-Verbose "[$Me]: End Pagination"
         }
 
         # [Exact] Parameter
