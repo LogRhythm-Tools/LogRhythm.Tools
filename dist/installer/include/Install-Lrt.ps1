@@ -44,10 +44,22 @@ function Install-Lrt {
     # Possible Cleanup: We do pretty much the same thing twice - unify
     if ($Scope -eq "System") {
         Write-Verbose "Installing with scope: System"
-        
-        # Check admin privileges
-        if (! (([WindowsPrincipal][WindowsIdentity]::GetCurrent()).IsInRole([WindowsBuiltInRole]::Administrator))) {
-            throw [Exception] "Setup needs to be run with Administrator privileges to install to system."
+        if ($PSEdition -like 'Core'){
+            if ($IsWindows) {
+                # Check admin privileges
+                if (! (([WindowsPrincipal][WindowsIdentity]::GetCurrent()).IsInRole([WindowsBuiltInRole]::Administrator))) {
+                    throw [Exception] "Setup needs to be run with Administrator privileges to install to system."
+                }
+            } elseif ($IsLinux -or $IsMacOS) {
+                if ($(whoami) -like "root") {
+                    throw [Exception] "Setup needs to be run with Root/Sudo privileges to install to system."
+                }
+            }
+        } else {
+            # Check admin privileges
+            if (! (([WindowsPrincipal][WindowsIdentity]::GetCurrent()).IsInRole([WindowsBuiltInRole]::Administrator))) {
+                throw [Exception] "Setup needs to be run with Administrator privileges to install to system."
+            }
         }
     }
     #endregion

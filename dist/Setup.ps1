@@ -143,7 +143,7 @@ foreach($ConfigCategory in $LrtConfigInput.PSObject.Properties) {
 
     # Display category message to user
     if ($ConfigCategory.Value.Message) {
-        Write-Host $ConfigCategory.Value.Message -ForegroundColor DarkGray
+        Write-Host $ConfigCategory.Value.Message -ForegroundColor DarkGreen
     }
     $ConfigOpt = $true
 
@@ -336,7 +336,15 @@ if (! $ConfirmInstall) {
 $Scopes = @("User","System")
 Write-Host "  > You can install this module for the current user (profile) or system-wide (program files)."
 Write-Host "  -- Notice --`n    API Credentials are only accessible to the user currently installing LogRhythm.Tools"
-Write-Host "    Current User: $($env:UserName)" -ForegroundColor Magenta
+if ($PSEdition -like 'Core'){
+    if ($IsWindows) {
+        Write-Host "    Current User: $($env:UserName)" -ForegroundColor Magenta
+    } elseif ($IsLinux -or $IsMacOS) {
+        Write-Host "    Current User: $(whoami)" -ForegroundColor Magenta
+    }
+} else {
+    Write-Host "    Current User: $($env:UserName)" -ForegroundColor Magenta
+}
 $InstallScope = Confirm-Selection -Message "  > Install for user or system?" -Values $Scopes
 
 
