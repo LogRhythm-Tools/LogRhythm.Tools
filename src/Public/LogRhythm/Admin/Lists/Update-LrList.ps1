@@ -428,7 +428,7 @@ Function Update-LrList {
             $ErrorObject.Type = "Input.Validation"
             $ErrorObject.Note = "Does expire is set to true, requires input parameter TimeToLiveSeconds to be provided."
             $ErrorObject.FieldType = $ListType
-        } else {
+        } elseif ($DoesExpire) {
             $BodyContents | Add-Member -MemberType NoteProperty -Name 'timeToLiveSeconds' -Value $TimeToLiveSeconds
         }
  
