@@ -494,6 +494,12 @@ Function Remove-LrListItem {
                 $ListItemDataType = "Int32"
                 $ListItemType = "MsgSourceType"
             }
+            Network {
+                # Entity Network
+                # Only accepts NetworkIDs
+                $ListItemDataType = "Int32"
+                $ListItemType = "Network"
+            }
             Default {}
         }
 
