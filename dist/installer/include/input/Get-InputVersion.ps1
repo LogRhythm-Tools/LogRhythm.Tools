@@ -25,7 +25,7 @@ Function Get-InputVersion {
     )
 
     # Validation Regexes
-    $ValidRegex = [regex]::new("^[1-9]\.[0-9](\.[0-9]([0-9])?)?$")
+    $ValidRegex = [regex]::new("^[1-9]\.\d+\.\d+?$")
 
     
     $Return = [PSCustomObject]@{
