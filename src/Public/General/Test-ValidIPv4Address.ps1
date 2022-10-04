@@ -37,7 +37,7 @@ Function Test-ValidIPv4Address {
     }
 
     # Check if IP value is a valid IP address, and is IPv4 by parsing it as an [ipaddress]
-    if ($IP -as [ipaddress] -and ($IP -as [ipaddress]).AddressFamily -eq 'InterNetworkV4') {
+    if (($IP -as [ipaddress]) -and ($IP -as [ipaddress]).AddressFamily -eq 'InterNetwork') {
         $OutObject.Value = $IP.ToString()
         $OutObject.IsValid = $true
         if ($IP -Match '(^127\.)|(^192\.168\.)|(^10\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)') {
