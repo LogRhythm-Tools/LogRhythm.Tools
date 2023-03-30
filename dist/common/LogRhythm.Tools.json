@@ -12,7 +12,7 @@
     },
 
     "LogRhythm": {
-        "Version":"7.7.0",
+        "Version":"7.11.0",
         "BaseUrl": "https://[NOT_SET]:8501",
         "ApiKey": ""
     },
