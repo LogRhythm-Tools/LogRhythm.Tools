@@ -4,9 +4,9 @@ using namespace System.Collections.Generic
 Function Get-RfAlert {
     <#
     .SYNOPSIS
-        Get RecordedFuture Alert details.
+        Get RecordedFuture Alert detail for a specified alert.
     .DESCRIPTION
-        Get RecordedFuture Alert details based on Alert ID.  
+        Get RecordedFuture Alert allows for retrieving the details for a specific alert.  
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
     .PARAMETER Id
@@ -14,19 +14,19 @@ Function Get-RfAlert {
     .INPUTS
 
     .NOTES
-        RecordedFuture-API
+        RecordedFuture-API v3
     .LINK
         https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $false, Position = 0)]
+        [Parameter(Mandatory = $true, Position = 0)]
         [ValidateNotNullOrEmpty()]
-        [string] $Id,
+        [string] $AlertId,
 
 
-        [Parameter(Mandatory = $false, Position = 1)]
+        [Parameter(Mandatory = $false, Position = 2)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.RecordedFuture.ApiKey
     )
@@ -49,15 +49,15 @@ Function Get-RfAlert {
     }
 
     Process {
+
         # Define Search URL
-        $RequestUrl = $BaseUrl + "alert/" + $Id
+        $RequestUrl = $BaseUrl + "/v3/alerts/" + $AlertId
         Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
 
         Try {
             $Results = Invoke-RestMethod $RequestUrl -Method $Method -Headers $Headers
-        }
-        catch {
+        } catch {
             If ($_.Exception.Response.StatusCode.value__) {
                 $HTTPCode = ($_.Exception.Response.StatusCode.value__ ).ToString().Trim()
                 Write-Verbose "HTTP Code: $HTTPCode"

@@ -58,7 +58,7 @@
     },
 
     "RecordedFuture": {
-        "BaseUrl": "https://api.recordedfuture.com/v2/",
+        "BaseUrl": "https://api.recordedfuture.com/",
         "ApiKey": ""
     },
 

@@ -199,7 +199,7 @@ Function Get-RfIPRiskLists {
 
 
         # Define Search URL
-        $RequestUrl = $BaseUrl + "ip/riskrules"
+        $RequestUrl = $BaseUrl + "/v2/ip/riskrules"
         Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
         Try {

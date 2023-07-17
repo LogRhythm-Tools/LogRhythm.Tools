@@ -64,7 +64,7 @@ function Get-RfSoarEnrichment {
 
     Process {
         # Request URI   
-        $RequestUrl = $BaseUrl + "/soar/enrichment?metadata=false"
+        $RequestUrl = $BaseUrl + "/v2//soar/enrichment?metadata=false"
 
         $Body = $IoCList | ConvertTo-Json -Depth 5 -Compress
         Write-Verbose "[$Me]: Request URL: $RequestUrl"

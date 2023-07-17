@@ -111,7 +111,7 @@ Function Get-RfDomainRiskLists {
 
 
         # Define Search URL
-        $RequestUrl = $BaseUrl + "domain/riskrules"
+        $RequestUrl = $BaseUrl + "/v2/domain/riskrules"
         Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
         Try {
