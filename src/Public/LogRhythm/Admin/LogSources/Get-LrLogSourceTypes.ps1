@@ -5,14 +5,11 @@ function Get-LrLogSourceTypes
         [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true, Position = 0)]
         [string] $Name,
 
-
         [Parameter(Mandatory = $false, Position = 1)]
         [int] $PageValuesCount = 1000,
 
-        
         [Parameter(Mandatory = $false, Position = 2)]
         [int] $PageCount = 1,
-
 
         [Parameter(Mandatory = $false, Position = 3)]
         [ValidateNotNull()]
