@@ -71,22 +71,21 @@ ForEach ($LogSourceReq in $LogSourceRemoves) {
 Write-Host "$(Get-TimeStamp) | Retrieving Active Agents | Begin"
 $Agents = Get-LrAgentsAccepted -RecordStatus 'active' -AgentType 'Windows'
 Write-Host "$(Get-TimeStamp) | Retrieving Active Agents | End"
-ForEach ($Agent in $Agents) {
+ForEach ($Agent in $Agents[2000..3844]) {
     $LogSources = Get-LrAgentLogSources -Id $Agent.Id -RecordStatus active
-    $AgentHost = Get-LrHostDetails -Id $Agent.hostId
-
+    
     # Adds
     ForEach ($LogSourceAddId in $LogSourceAddIds) {
-
-        $LogSourceMPEPolicies = Get-LrMpePolicies -msgSourceTypeId $LogSourceAddId.id
-
-        if ($MPEv2 -eq $true -and $LogSourceMPEPolicies.name -match ".*?V2\.0") {
-            $MPEPolicy = $LogSourceMPEPolicies | Where-Object -FilterScript {$_.name -match ".*?V2\.0"}
-        } else {
-            $MPEPolicy = $LogSourceMPEPolicies | Where-Object -FilterScript {$_.name -match "LogRhythm Default"}
-        }
-
         if ($LogSources.logSourceType.id -notcontains $LogSourceAddId.id) {
+            $AgentHost = Get-LrHostDetails -Id $Agent.hostId
+            $LogSourceMPEPolicies = Get-LrMpePolicies -msgSourceTypeId $LogSourceAddId.id
+
+            if ($MPEv2 -eq $true -and $LogSourceMPEPolicies.name -match ".*?V2\.0") {
+                $MPEPolicy = $LogSourceMPEPolicies | Where-Object -FilterScript {$_.name -match ".*?V2\.0"}
+            } else {
+                $MPEPolicy = $LogSourceMPEPolicies | Where-Object -FilterScript {$_.name -match "LogRhythm Default"}
+            }
+
             # Define $LogFilePath
             $LogFilePath = "$($Agent.hostname):$($LogSourceAddId.path)"
             $AddResult = Add-LrLogSource -systemMonitorId $Agent.id -name "$($Agent.hostName) | $($LogSourceAddId.abbreviation)" -hostId $($Agent.hostId) -entityId $($AgentHost.entity.id) -logSourceTypeId $($LogSourceAddId.id) -mpePolicyId $($MPEPolicy.id) -mpeProcessingMode 'EventForwardingEnabled' -maxMsgCount $MaxMsgCount -longDescription "$(Get-TimeStamp) | Log Source Added through automation from $($env:computername)" -filePath $LogFilePath -RecordStatus Active -Status Enabled
