@@ -71,7 +71,18 @@ ForEach ($LogSourceReq in $LogSourceRemoves) {
 Write-Host "$(Get-TimeStamp) | Retrieving Active Agents | Begin"
 $Agents = Get-LrAgentsAccepted -RecordStatus 'active' -AgentType 'Windows'
 Write-Host "$(Get-TimeStamp) | Retrieving Active Agents | End"
-ForEach ($Agent in $Agents[2000..3844]) {
+$Counters = [PSCustomObject]@{
+    TotalAgents = 0
+    Add = 0
+    Remove = 0
+    AddError = 0
+    RemoveError = 0
+    AddSkip = 0
+    RemoveSkip = 0
+}
+ForEach ($Agent in $Agents[500..$($Agents.count)]) {
+    Write-Host "$(Get-TimeStamp) | Automation Runtime | Begin | Agent: $($Agent.hostName)"
+    $Counters.TotalAgents += 1
     $LogSources = Get-LrAgentLogSources -Id $Agent.Id -RecordStatus active
     
     # Adds
@@ -91,11 +102,14 @@ ForEach ($Agent in $Agents[2000..3844]) {
             $AddResult = Add-LrLogSource -systemMonitorId $Agent.id -name "$($Agent.hostName) | $($LogSourceAddId.abbreviation)" -hostId $($Agent.hostId) -entityId $($AgentHost.entity.id) -logSourceTypeId $($LogSourceAddId.id) -mpePolicyId $($MPEPolicy.id) -mpeProcessingMode 'EventForwardingEnabled' -maxMsgCount $MaxMsgCount -longDescription "$(Get-TimeStamp) | Log Source Added through automation from $($env:computername)" -filePath $LogFilePath -RecordStatus Active -Status Enabled
             if (($null -ne $AddResult.Error) -and ($AddResult.Error -eq $true)) {
                 write-host $AddResult
+                $Counters.AddError += 1
             } else {
+                $Counters.Add += 1
                 Write-Host "$(Get-TimeStamp) | Automation Runtime | Adding Logsource | Success | Agent: $($Agent.hostName) Log Source: $($LogSourceAddId.name)"
             }
             # Add it
         } else {
+            $Counters.AddSkip += 1
             Write-Host "$(Get-TimeStamp) | Automation Runtime | Adding Logsource | Skip | Agent: $($Agent.hostName) Log Source: $($LogSourceAddId.name)"
         }
     }
@@ -107,18 +121,28 @@ ForEach ($Agent in $Agents[2000..3844]) {
         if ($LogSourceRemIds.id -contains $LogSource.logSourceType.id) {
             if ($LogSource.systemMonitorName -like $LogSource.host.name) {
                 #Update-LrLogSource -Id $LogSource.id
-                Update-LrLogSource -Id $($LogSource.id) -RecordStatus Retired
-                Write-Host "$(Get-TimeStamp) | Automation Runtime | Retire Logsource | Success | Agent: $($Agent.hostName) Log Source: $($LogSource.name)"
+                $UpdateResult = Update-LrLogSource -Id $($LogSource.id) -RecordStatus Retired
+                if (($null -ne $UpdateResult.Error) -and ($UpdateResult.Error -eq $true)) {
+                    write-host $UpdateResult
+                    $Counters.RemoveError += 1
+                } else {
+                    $Counters.Remove += 1
+                    Write-Host "$(Get-TimeStamp) | Automation Runtime | Retire Logsource | Success | Agent: $($Agent.hostName) Log Source: $($LogSource.name)"
+                }                
                 # Remove it
             } else {
+                $Counters.RemoveSkip += 1
                 Write-Host "$(Get-TimeStamp) | Automation Runtime | Retire Logsource | Skip | Agent: $($Agent.hostName) Log Source: $($LogSource.name) | Remote Collection"
             }
 
         } else {
+            $Counters.RemoveSkip += 1
             Write-Host "$(Get-TimeStamp) | Automation Runtime | Retire Logsource | Skip | Agent: $($Agent.hostName) Log Source: $($LogSource.name) | Criteria Miss"
         }
     }
+    Write-Host "$(Get-TimeStamp) | Automation Runtime | End | Agent: $($Agent.hostName)"
 }
+write-host "$(Get-TimeStamp) | Automation Complete | Summary | Agent Total: $($Counters.TotalAgents)  Added Sources: $($Counters.Add)  Add Errors: $($Counters.AddError)  Removes: $($Counters.Remove)  Remove Errors: $($Counters.RemoveError)"
 
 # Set all Windows Security Event Logs to same Policy
 $WinSecLogSources = $(get-lrlogsources -RecordStatus 'active' -MessageSourceTypeId $(Get-LrLogSourceTypes -Name "MS Windows Event Logging XML - Security" | Select-Object -ExpandProperty id)) | Where-Object -FilterScript {$_.mpePolicy.name -notlike 'LogRhythm Default v2.0'}
