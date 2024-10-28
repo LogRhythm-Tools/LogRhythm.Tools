@@ -2,10 +2,16 @@ using namespace System.Collections.Generic
 
 ## Manual Config Begin
 # Array of Log Sources Names we want to Automatically Add
+$Lists = get-lrlists 
 $LogSourceAdds = [list[object]]::new()
 $LogSourceAdds.add([PSCustomObject]@{
     Name = "MS Windows Event Logging - Firewall With Advanced Security"
     Path = 'Microsoft-Windows-Windows Firewall With Advanced Security/Firewall'
+}) 
+
+$LogSourceAdds.add([PSCustomObject]@{
+    Name = "MS Windows Event Logging XML - Windows Defender"
+    Path = 'Microsoft-Windows-Windows Defender/Operational'
 }) 
 
 $LogSourceAdds.add([PSCustomObject]@{
@@ -23,6 +29,11 @@ $LogSourceAdds.add([PSCustomObject]@{
     Path = 'Application'
 })
 
+$LogSourceAdds.add([PSCustomObject]@{
+    Name = "MS Windows Event Logging XML - PowerShell"
+    Path = 'Windows PowerShell'
+})
+
 $LogSourceRemoves = @("MS Windows Event Logging - System", "MS Windows Event Logging - Security", "MS Windows Event Logging - Application")
 
 # Defines the amount of messages the LR Agent will retrieve per cycle
@@ -31,6 +42,9 @@ $MaxMsgCount = 2000
 # Set log sources to LSO 2.0 policy where applicable 
 $MPEv2 = $true
 ## Manual Config End
+
+# Cmdlet to get past a potential local issue with firewall/network connection
+Get-LrEntities
 
 ## Automation Begin
 # Generate the Log Source IDs based on the LogSourceReqs defined
@@ -72,6 +86,9 @@ Write-Host "$(Get-TimeStamp) | Retrieving Active Agents | Begin"
 $Agents = Get-LrAgentsAccepted -RecordStatus 'active' -AgentType 'Windows'
 Write-Host "$(Get-TimeStamp) | Retrieving Active Agents | End"
 $Counters = [PSCustomObject]@{
+    StartTime = Get-Date
+    EndTime = 0
+    Duration = 0
     TotalAgents = 0
     Add = 0
     Remove = 0
@@ -80,7 +97,7 @@ $Counters = [PSCustomObject]@{
     AddSkip = 0
     RemoveSkip = 0
 }
-ForEach ($Agent in $Agents[500..$($Agents.count)]) {
+ForEach ($Agent in $Agents) {
     Write-Host "$(Get-TimeStamp) | Automation Runtime | Begin | Agent: $($Agent.hostName)"
     $Counters.TotalAgents += 1
     $LogSources = Get-LrAgentLogSources -Id $Agent.Id -RecordStatus active
@@ -99,8 +116,10 @@ ForEach ($Agent in $Agents[500..$($Agents.count)]) {
 
             # Define $LogFilePath
             $LogFilePath = "$($Agent.hostname):$($LogSourceAddId.path)"
-            $AddResult = Add-LrLogSource -systemMonitorId $Agent.id -name "$($Agent.hostName) | $($LogSourceAddId.abbreviation)" -hostId $($Agent.hostId) -entityId $($AgentHost.entity.id) -logSourceTypeId $($LogSourceAddId.id) -mpePolicyId $($MPEPolicy.id) -mpeProcessingMode 'EventForwardingEnabled' -maxMsgCount $MaxMsgCount -longDescription "$(Get-TimeStamp) | Log Source Added through automation from $($env:computername)" -filePath $LogFilePath -RecordStatus Active -Status Enabled
+            $RID = $(Get-Random -Maximum 999 -Minimum 100)
+            $AddResult = Add-LrLogSource -systemMonitorId $Agent.id -name "$($Agent.hostName) | $($RID) | $($LogSourceAddId.abbreviation)" -hostId $($Agent.hostId) -entityId $($AgentHost.entity.id) -logSourceTypeId $($LogSourceAddId.id) -mpePolicyId $($MPEPolicy.id) -mpeProcessingMode 'EventForwardingEnabled' -maxMsgCount $MaxMsgCount -longDescription "$(Get-TimeStamp) | Log Source Added through automation from $($env:computername)" -filePath $LogFilePath -RecordStatus Active -Status Enabled
             if (($null -ne $AddResult.Error) -and ($AddResult.Error -eq $true)) {
+                Write-Host "$(Get-TimeStamp) | Automation Runtime | Adding Logsource | Error | Agent: $($Agent.hostName) Log Source: $($LogSourceAddId.name)"
                 write-host $AddResult
                 $Counters.AddError += 1
             } else {
@@ -116,7 +135,6 @@ ForEach ($Agent in $Agents[500..$($Agents.count)]) {
 
     # Removes
     ForEach ($LogSource in $LogSources) {
-
         # Removals
         if ($LogSourceRemIds.id -contains $LogSource.logSourceType.id) {
             if ($LogSource.systemMonitorName -like $LogSource.host.name) {
@@ -134,7 +152,6 @@ ForEach ($Agent in $Agents[500..$($Agents.count)]) {
                 $Counters.RemoveSkip += 1
                 Write-Host "$(Get-TimeStamp) | Automation Runtime | Retire Logsource | Skip | Agent: $($Agent.hostName) Log Source: $($LogSource.name) | Remote Collection"
             }
-
         } else {
             $Counters.RemoveSkip += 1
             Write-Host "$(Get-TimeStamp) | Automation Runtime | Retire Logsource | Skip | Agent: $($Agent.hostName) Log Source: $($LogSource.name) | Criteria Miss"
@@ -142,6 +159,9 @@ ForEach ($Agent in $Agents[500..$($Agents.count)]) {
     }
     Write-Host "$(Get-TimeStamp) | Automation Runtime | End | Agent: $($Agent.hostName)"
 }
+$Counters.EndTime = $(Get-Date)
+$Counters.Duration = New-TimeSpan -Start $Counters.StartTime -End $Counters.EndTime
+write-host "$(Get-TimeStamp) | Automation Complete | Duration | Start: $($Counters.StartTime)  End: $($Counters.EndTime)  Duration: $($Counters.Duration.Days)d $($Counters.Duration.Hours)h $($Counters.Duration.Minutes)m $($Counters.Duration.Seconds)s"
 write-host "$(Get-TimeStamp) | Automation Complete | Summary | Agent Total: $($Counters.TotalAgents)  Added Sources: $($Counters.Add)  Add Errors: $($Counters.AddError)  Removes: $($Counters.Remove)  Remove Errors: $($Counters.RemoveError)"
 
 # Set all Windows Security Event Logs to same Policy
