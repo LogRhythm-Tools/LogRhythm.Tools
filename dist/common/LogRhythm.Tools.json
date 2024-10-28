@@ -17,6 +17,12 @@
         "ApiKey": ""
     },
 
+    "Exabeam": {
+        "BaseUrl": "https://api.us-east.exabeam.cloud/",
+        "ApiKey": "",
+        "Token": ""
+    },
+
     "LogRhythmEcho": {
         "BaseUrl": "https://[NOT_SET]:33333/api"
     },
