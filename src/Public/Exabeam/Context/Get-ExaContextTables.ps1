@@ -66,52 +66,8 @@ Function Get-ExaContextTables {
         [ValidateNotNull()]
         [string] $Name,
 
-
-        [Parameter(Mandatory = $false, Position = 1)]
-        [ValidateSet(
-            'Active',
-            'Retired', 
-            'All',
-            ignorecase=$true
-        )]
-        [string] $Status = 'Active',
-        
-
-        [Parameter(Mandatory = $false, Position = 2)]
-        [ValidateSet(
-            'application',
-            'classification', 
-            'commonevent',
-            'host',
-            'location',
-            'msgsource',
-            'msgsourcetype',
-            'mperule',
-            'network',
-            'user',
-            'generalvalue',
-            'entity',
-            'rootentity',
-            'ip',
-            'iprange',
-            'identity',
-            'none',
-            ignorecase=$true
-        )]
-        [string] $ListType,
-
-
         [Parameter(Mandatory = $false, Position = 3)]
         [switch] $Exact,
-
-        
-        [Parameter(Mandatory = $false, Position = 4)]
-        [ValidateRange(1,1000)]
-        [int] $PageSize = 1000,
-
-
-        [Parameter(Mandatory = $false, Position = 5)]
-        [int] $PageNumber = 1,
 
         [Parameter(Mandatory = $false, Position = 6)]
         [ValidateNotNull()]
@@ -148,7 +104,21 @@ Function Get-ExaContextTables {
         if (($null -ne $Response.Error) -and ($Response.Error -eq $true)) {
             return $Response
         }
-        
+
+        if ($null -ne $Name) {
+            ForEach ($List in $Response) {
+                if ($Exact) {
+                    if ($List.name -like $Name) {
+                        return $List
+                    }
+                } else {
+                    if ($List.name -match "$Name.*") {
+                        return $List
+                    }
+                }
+            }
+            return
+        }
         return $Response
     }
 
