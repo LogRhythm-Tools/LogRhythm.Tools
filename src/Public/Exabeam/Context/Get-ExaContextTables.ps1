@@ -105,7 +105,8 @@ Function Get-ExaContextTables {
             return $Response
         }
 
-        if ($null -ne $Name) {
+        if ($Name.length -gt 0) {
+            $Results = [list[object]]::new()
             ForEach ($List in $Response) {
                 if ($Exact) {
                     if ($List.name -like $Name) {
@@ -113,11 +114,15 @@ Function Get-ExaContextTables {
                     }
                 } else {
                     if ($List.name -match "$Name.*") {
-                        return $List
+                        $Results.add($List)
                     }
                 }
             }
-            return
+            if ($Results) {
+                return $Results
+            } else {
+                return
+            }
         }
         return $Response
     }

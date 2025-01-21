@@ -85,7 +85,9 @@ Function Get-ExaContextRecords {
 
         if ($Response.paging.next) {
             $Results = [list[object]]::new()
-            $Results.add($Response.records)
+            ForEach($Record in $Response.records) {
+                $Results.add($Record)
+            }
             $Counter = 0
             DO {
                 if ($Counter -eq 0) {
@@ -101,14 +103,17 @@ Function Get-ExaContextRecords {
                 }
                 
                 # Append results to Response
-                $Results.add($PaginationResults.records)
+                ForEach($Record in $PaginationResults.records) {
+                    $Results.add($Record)
+                }
                 $Counter += 1
             } While ($PaginationResults.paging.next)
-            return $Results
+            $PaginationResults.records = $Results
+
+            return $PaginationResults
         }
         
         return $Response
-        
     }
 
     End { }
