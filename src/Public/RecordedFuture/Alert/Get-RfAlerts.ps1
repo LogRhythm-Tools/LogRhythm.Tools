@@ -80,7 +80,7 @@ Function Get-RfAlerts {
         }
 
         # Define Search URL
-        $RequestUrl = $BaseUrl + "/v3/alerts/" + $QueryString
+        $RequestUrl = $BaseUrl + "v3/alerts/" + $QueryString
         Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
 

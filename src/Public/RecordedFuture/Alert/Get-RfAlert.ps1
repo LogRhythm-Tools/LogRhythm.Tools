@@ -51,7 +51,7 @@ Function Get-RfAlert {
     Process {
 
         # Define Search URL
-        $RequestUrl = $BaseUrl + "/v3/alerts/" + $AlertId
+        $RequestUrl = $BaseUrl + "v3/alerts/" + $AlertId
         Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
 

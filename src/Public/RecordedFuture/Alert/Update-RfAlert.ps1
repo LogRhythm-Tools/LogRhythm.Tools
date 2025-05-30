@@ -61,7 +61,7 @@ Function Update-RfAlert {
     Process {
 
         # Define Search URL
-        $RequestUrl = $BaseUrl + "/v2/alert/update"
+        $RequestUrl = $BaseUrl + "v2/alert/update"
         Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
         # Establish JSON Body contents
