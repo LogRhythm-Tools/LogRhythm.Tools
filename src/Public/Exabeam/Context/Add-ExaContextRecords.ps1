@@ -5,7 +5,7 @@ using namespace System.Collections.Generic
 Function Add-ExaContextRecords {
     <#
     .NOTES
-        LogRhythm-API        
+        Exabeam-API
     .LINK
         https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>

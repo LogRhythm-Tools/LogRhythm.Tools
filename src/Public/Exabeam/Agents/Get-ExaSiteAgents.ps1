@@ -2,33 +2,48 @@ using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
 
-Function Get-ExaContextRecords {
+Function Get-ExaSiteAgents {
     <#
+    .SYNOPSIS
+        Get a list of Site Collector agents.
+    .DESCRIPTION
+        To monitor configuration and management changes, you can retrieve a list of all Site Collector 
+        agents with relevant details such as status. You can obtain these details for Site Collector 
+        agents collectively or separately. Results are paginated.
+    .PARAMETER Credential
+        PSCredential containing an API Token in the Password field.
+    .INPUTS
+        The Name parameter can be provided via the PowerShell pipeline.
+    .OUTPUTS
+        PSCustomObject representing the specified LogRhythm List and its contents.
+
+        If parameter ListItemsOnly is specified, a string collection is returned containing the
+        list's item values.
+    .EXAMPLE
+        PS C:\> Get-ExaSiteAgents
+        ---
+        id            : 82a96a97-90f8-4b32-8734-039edf7d54e6
+        name          : Example
+        type          : Ldap
+        status        : RUNNING
+        statusMessage : Collector hasn't been receiving heartbeats more than 10 minutes
+        settings      : @{primaryHost=examplehost.example.com; secondaryHosts=System.Object[]; port=636; ssl=True; globalCatalog=False; baseDn=DC=example, DC=com; bindDn=exacct; pullFullContext=False; pollingInterval=3600}
+        coreId        : e6696714-5555-5555-5555-6f68c675b2ea
+        coreName      : Example Prod1
+        heartbeat     : @{timestamp=2025-05-30T14:49:47Z}
     .NOTES
-        Exabeam-API
+        Exabeam-API 
     .LINK
         https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
-    
+
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
-        [ValidateNotNull()]
-        [string] $id,
-
-        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 1)]
-        [ValidateNotNull()]
-        [int32] $limit,
-
-        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 2)]
-        [ValidateNotNull()]
-        [int32] $offset,
-
-        [Parameter(Mandatory = $false, Position = 3)]
+        [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.Exabeam.ApiKey
     )
-
+                                                                    
     Begin {
         $Me = $MyInvocation.MyCommand.Name
         Set-LrtExaToken
@@ -38,13 +53,13 @@ Function Get-ExaContextRecords {
 
         # Define HTTP Headers
         $Headers = [Dictionary[string,string]]::new()
-        $Headers.Add("accept", "application/json")
         $Headers.Add("Authorization", "Bearer $Token")
 
         # Define HTTP Method
         $Method = $HttpMethod.Get
-
-        $RequestUrl = $BaseUrl + "context-management/v1/tables/" + $id + "/records"
+        
+        # Define HTTP URI
+        $RequestUrl = $BaseUrl + "site-collectors/v1/collectors"
 
         # Check preference requirements for self-signed certificates and set enforcement for Tls1.2
         Enable-TrustAllCertsPolicy
@@ -61,8 +76,8 @@ Function Get-ExaContextRecords {
 
         if ($Response.paging.next) {
             $Results = [list[object]]::new()
-            ForEach($Record in $Response.records) {
-                $Results.add($Record)
+            ForEach($Item in $Response.items) {
+                $Results.add($Item)
             }
             $Counter = 0
             DO {
@@ -79,17 +94,19 @@ Function Get-ExaContextRecords {
                 }
                 
                 # Append results to Response
-                ForEach($Record in $PaginationResults.records) {
-                    $Results.add($Record)
+                ForEach ($Item in $PaginationResults.items) {
+                    $Results.add($Item)
                 }
                 $Counter += 1
             } While ($PaginationResults.paging.next)
-            $PaginationResults.records = $Results
-
-            return $PaginationResults
+            return $Results
         }
         
-        return $Response
+        if ($Response.items) {
+            return $Response.items
+        } else {
+            return $Response
+        }
     }
 
     End { }
