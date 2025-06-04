@@ -16,8 +16,7 @@ if (-not $MonthFiles) {
     $EventPath = Join-Path $RootFolderPath "$FilePrefix`_1.csv"
     $FHK = [list[object]]::new()
     $DaysBetween = $SearchDays
-}
-else {
+} else {
     # Use last file for this month
     $LastFile = $MonthFiles | Select-Object -Last 1
     $CurFileNum = [int]($LastFile.BaseName -replace '.*_(\d+)$','$1')
@@ -33,8 +32,7 @@ else {
         $LastDate = $FHK.timestamp | ForEach-Object {[datetime]$_} | Sort-Object -Descending | Select-Object -First 1
         $Timespan = New-TimeSpan -Start $LastDate -End (Get-Date)
         $DaysBetween = [math]::Max($Timespan.Days, 1)
-    }
-    else {
+    } else {
         $DaysBetween = $SearchDays
     }
 
@@ -50,7 +48,8 @@ else {
 $SearchResults = Get-LrtExaFHKResults -RouteId 'GOV' -Days $DaysBetween
 $AddRows = [list[object]]::new()
 if ($SearchResults.rows) {
-    foreach ($Row in $SearchResults.rows) {
+    $Rows = $SearchResults.rows | Sort-Object approxLogTime
+    foreach ($Row in $Rows) {
         # Only records for the current month & no duplicate sha1
         if ((Get-Date $($Row.timestamp)).ToString("MM") -eq $CurMonth) {
             if ($FHK.sha1 -notcontains $Row.sha1) {
