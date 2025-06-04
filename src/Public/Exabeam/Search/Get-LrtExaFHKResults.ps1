@@ -59,7 +59,8 @@ Function Get-LrtExaFHKResults {
         # Temporary variables
         $yesterday = (Get-Date).ToUniversalTime().Date.AddDays(-$Days)
         $startTime = $yesterday.ToString("yyyy-MM-ddT00:00:00.000Z")
-        $endTime = $yesterday.AddDays($Days).ToString("yyyy-MM-ddT00:00:00.000Z")
+        $endTime = $yesterday.AddDays($Days).ToString("yyyy-MM-ddT23:59:99.000Z")
+
 
         # Check preference requirements for self-signed certificates and set enforcement for Tls1.2
         Enable-TrustAllCertsPolicy
@@ -87,6 +88,7 @@ Function Get-LrtExaFHKResults {
             )
         } | ConvertTo-Json -Compress
 
+        Write-Verbose $Body
  
         # Send Request
         $Response = Invoke-RestAPIMethod -Uri $RequestUrl -Headers $Headers -Method $Method -Origin $Me -Body $body
@@ -97,12 +99,17 @@ Function Get-LrtExaFHKResults {
         $sha1 = New-Object System.Security.Cryptography.SHA1CryptoServiceProvider
 
         if ($Response.rows) {
+            $AddRows = [list[object]]::new()
             ForEach($Row in $Response.rows) {
                 $timestamp = $(ConvertFrom-UnixEpoch -UnixTime $($row.approxLogTime / 1000000))
                 $Row | Add-Member -MemberType NoteProperty -Name 'timestamp' -Value $timestamp.ToString("M/d/yyyy h:mm:ss tt")
                 $hashBytes = $sha1.ComputeHash([System.Text.Encoding]::UTF8.GetBytes("$($Row.approxLogTime)$($Row.host)$($Row.user)$($Row.uri_path)"))
                 $Row | Add-Member -MemberType NoteProperty -Name 'sha1' -Value $([BitConverter]::ToString($hashBytes) -replace '-', '')
+                if ($AddRows.sha1 -notcontains $Row.sha1) {
+                    $AddRows.add($Row)
+                }
             }
+            $Response.rows = @($AddRows)
         }
 
 
