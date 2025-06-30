@@ -30,6 +30,10 @@ Function Get-LrtExaFHKResults {
 
         [Parameter(Mandatory = $false, Position = 1)]
         [ValidateNotNull()]
+        [int] $StartHour = 0,
+
+        [Parameter(Mandatory = $false, Position = 2)]
+        [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.Exabeam.ApiKey
     )
                                                                     
@@ -54,7 +58,12 @@ Function Get-LrtExaFHKResults {
         $CurrentDate = (Get-Date).ToUniversalTime()
         # Temporary variables
         $PastDate = $CurrentDate.Date.AddDays(-$Days)
-        $startTime = $PastDate.ToString("yyyy-MM-ddT00:00:00.000Z")
+        
+        # Use StartHour parameter for start time (validated between 0-23)
+        $ValidatedStartHour = [Math]::Max(0, [Math]::Min(23, $StartHour))
+        Write-Verbose "[$Me]: Using start hour: $ValidatedStartHour"
+        
+        $startTime = $PastDate.AddHours($ValidatedStartHour).ToString("yyyy-MM-ddTHH:00:00.000Z")
         $endTime = $PastDate.AddDays($Days).ToString("yyyy-MM-ddT23:59:59.000Z")
 
 
