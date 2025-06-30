@@ -74,15 +74,20 @@ Function Get-LrtExaFHKResults {
         
         Write-Verbose "[$Me]: Using time range: $ValidatedStartHour:00 to $ValidatedEndHour:59"
         
-        # Create precise time range for this query
+        # Create precise time range for this query with guaranteed non-overlapping time windows
         $startTime = $PastDate.AddHours($ValidatedStartHour).ToString("yyyy-MM-ddTHH:00:00.000Z")
         
-        # If we're querying the same day, use the end hour
-        # If we're querying multiple days, the first day uses the end hour, but last day is always end of day
+        # If we're querying the same day, use the end hour with precise formatting
+        # If we're querying multiple days, handle differently
         if ($Days -le 1) {
+            # Create an exclusive end time that doesn't overlap with the next time block
+            # End time is the last second of the specified end hour (HH:59:59)
             $endTime = $PastDate.AddHours($ValidatedEndHour).AddMinutes(59).AddSeconds(59).ToString("yyyy-MM-ddTHH:mm:ss.000Z")
+            Write-Verbose "[$Me]: Time window: $startTime to $endTime"
         } else {
+            # For multi-day queries, keep the existing behavior
             $endTime = $PastDate.AddDays($Days).ToString("yyyy-MM-ddT23:59:59.000Z")
+            Write-Verbose "[$Me]: Multi-day time window: $startTime to $endTime"
         }
 
 

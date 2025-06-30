@@ -123,10 +123,12 @@ for ($day = $DaysBetween; $day -ge 0; $day--) {
     
     # Process each 4-hour increment in the day, starting from the optimized hour
     for ($startHour = $skipToHour; $startHour -lt 24; $startHour += $HoursPerIncrement) {
+        # Calculate the end hour for this time block (exclusive of next block's start)
         $endHour = [Math]::Min($startHour + $HoursPerIncrement - 1, 23)
         Write-Verbose "Processing time block: $startHour:00 to $endHour:59"
         
         # Get data for this time block with precise start and end hours
+        # Each block is distinct: startHour:00:00 to endHour:59:59
         $SearchResults = Get-LrtExaFHKResults -Days 1 -StartHour $startHour -EndHour $endHour -Verbose
         
         if ($SearchResults.rows) {
