@@ -31,8 +31,12 @@ Function Get-LrtExaFHKResults {
         [Parameter(Mandatory = $false, Position = 1)]
         [ValidateNotNull()]
         [int] $StartHour = 0,
-
+        
         [Parameter(Mandatory = $false, Position = 2)]
+        [ValidateNotNull()]
+        [int] $EndHour = 23,
+
+        [Parameter(Mandatory = $false, Position = 3)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.Exabeam.ApiKey
     )
@@ -59,12 +63,27 @@ Function Get-LrtExaFHKResults {
         # Temporary variables
         $PastDate = $CurrentDate.Date.AddDays(-$Days)
         
-        # Use StartHour parameter for start time (validated between 0-23)
+        # Validate hour parameters (between 0-23)
         $ValidatedStartHour = [Math]::Max(0, [Math]::Min(23, $StartHour))
-        Write-Verbose "[$Me]: Using start hour: $ValidatedStartHour"
+        $ValidatedEndHour = [Math]::Max(0, [Math]::Min(23, $EndHour))
         
+        # Ensure EndHour isn't less than StartHour
+        if ($ValidatedEndHour -lt $ValidatedStartHour) {
+            $ValidatedEndHour = $ValidatedStartHour
+        }
+        
+        Write-Verbose "[$Me]: Using time range: $ValidatedStartHour:00 to $ValidatedEndHour:59"
+        
+        # Create precise time range for this query
         $startTime = $PastDate.AddHours($ValidatedStartHour).ToString("yyyy-MM-ddTHH:00:00.000Z")
-        $endTime = $PastDate.AddDays($Days).ToString("yyyy-MM-ddT23:59:59.000Z")
+        
+        # If we're querying the same day, use the end hour
+        # If we're querying multiple days, the first day uses the end hour, but last day is always end of day
+        if ($Days -le 1) {
+            $endTime = $PastDate.AddHours($ValidatedEndHour).AddMinutes(59).AddSeconds(59).ToString("yyyy-MM-ddTHH:mm:ss.000Z")
+        } else {
+            $endTime = $PastDate.AddDays($Days).ToString("yyyy-MM-ddT23:59:59.000Z")
+        }
 
 
         # Check preference requirements for self-signed certificates and set enforcement for Tls1.2

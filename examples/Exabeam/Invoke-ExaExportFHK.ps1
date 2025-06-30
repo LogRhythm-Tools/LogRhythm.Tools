@@ -126,8 +126,8 @@ for ($day = $DaysBetween; $day -ge 0; $day--) {
         $endHour = [Math]::Min($startHour + $HoursPerIncrement - 1, 23)
         Write-Verbose "Processing time block: $startHour:00 to $endHour:59"
         
-        # Get data for this time block
-        $SearchResults = Get-LrtExaFHKResults -Days 1 -StartHour $startHour -Verbose
+        # Get data for this time block with precise start and end hours
+        $SearchResults = Get-LrtExaFHKResults -Days 1 -StartHour $startHour -EndHour $endHour -Verbose
         
         if ($SearchResults.rows) {
             $Rows = $SearchResults.rows | Sort-Object approxLogTime
