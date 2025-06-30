@@ -129,7 +129,8 @@ for ($day = $DaysBetween; $day -ge 0; $day--) {
         
         # Get data for this time block with precise start and end hours
         # Each block is distinct: startHour:00:00 to endHour:59:59
-        $SearchResults = Get-LrtExaFHKResults -Days 1 -StartHour $startHour -EndHour $endHour -Verbose
+        # Pass the specific date and time range parameters
+        $SearchResults = Get-LrtExaFHKResults -SearchDate $ProcessDate -StartHour $startHour -EndHour $endHour -Verbose
         
         if ($SearchResults.rows) {
             $Rows = $SearchResults.rows | Sort-Object approxLogTime
