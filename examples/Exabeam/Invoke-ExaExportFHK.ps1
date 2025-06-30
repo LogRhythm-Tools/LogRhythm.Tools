@@ -1,5 +1,5 @@
-using namespace System.Collections.Generic
 using namespace System
+using namespace System.Collections.Generic
 Import-Module LogRhythm.Tools
 
 $RootFolderPath = "C:\TEMP\Exabeam\FHK"
@@ -77,7 +77,7 @@ if (-not (Test-Path $RootFolderPath)) {
         $null = New-Item -Path $RootFolderPath -ItemType Directory -Force
         Write-Verbose "Created directory: $RootFolderPath"
     } catch {
-        Write-Error "Failed to create directory $RootFolderPath: $_"
+        Write-Error "Failed to create directory $($RootFolderPath): $_"
         return
     }
 }
