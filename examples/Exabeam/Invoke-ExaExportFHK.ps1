@@ -1,4 +1,5 @@
 using namespace System.Collections.Generic
+using namespace System
 Import-Module LogRhythm.Tools
 
 $RootFolderPath = "C:\TEMP\Exabeam\FHK"
@@ -6,15 +7,16 @@ $RowLimit = 500000
 $FilePrefix = "fhk_$($(get-date).ToString('MMyyyy'))"
 $CurMonth = (Get-Date).ToString("MM")
 $SearchDays = 5
-$DefaultStartHour = 0  # Default start hour if no previous logs found
+$HoursPerIncrement = 4  # Search in 4-hour increments
 
 # Find all files for current month
 $MonthFiles = Get-ChildItem -Path $RootFolderPath -Filter "${FilePrefix}_*.csv" | Sort-Object Name
 
 # Initialize variables
-$LastHour = $DefaultStartHour
+$LastLogDate = $null
+$LastLogHour = 0
 
-# If there are no files, start at 1 with default hour
+# If there are no files, start at 1
 if (-not $MonthFiles) {
     Write-Verbose "No existing files found. Starting new file."
     $CurFileNum = 1
@@ -36,14 +38,16 @@ if (-not $MonthFiles) {
 
         # Calculate how many days to look back
         if ($FHK.Count -gt 0) {
-            # Get the latest timestamp and extract its hour
+            # Get the latest timestamp to determine how far back to search
             $LastTimestamps = $FHK.timestamp | Where-Object { $_ } | ForEach-Object {[datetime]::Parse($_)}
             if ($LastTimestamps.Count -gt 0) {
+                # Store the last timestamp and its hour for optimization
                 $LastTimestamp = $LastTimestamps | Sort-Object -Descending | Select-Object -First 1
-                $LastHour = $LastTimestamp.Hour
+                $LastLogDate = $LastTimestamp.Date
+                $LastLogHour = $LastTimestamp.Hour
                 $Timespan = New-TimeSpan -Start $LastTimestamp -End (Get-Date)
                 $DaysBetween = [math]::Max($Timespan.Days, 1)
-                Write-Verbose "Found last timestamp: $LastTimestamp (Hour: $LastHour), Days between: $DaysBetween"
+                Write-Verbose "Found last timestamp: $LastTimestamp (Hour: $LastLogHour), Days between: $DaysBetween"
             } else {
                 $DaysBetween = $SearchDays
                 Write-Verbose "No valid timestamps found. Using default search days: $DaysBetween"
@@ -78,37 +82,82 @@ if (-not (Test-Path $RootFolderPath)) {
     }
 }
 
-# Fetch and filter new data
-Write-Verbose "Fetching data with Days: $DaysBetween, StartHour: $LastHour"
-$SearchResults = Get-LrtExaFHKResults -Days $DaysBetween -StartHour $LastHour -Verbose
+# Set up the HashSet for duplicate checking
+$existingSha1 = [System.Collections.Generic.HashSet[string]]::new()
+foreach ($item in $FHK) {
+    if ($item.sha1) { [void]$existingSha1.Add($item.sha1) }
+}
 
+# Combined new rows will go here
 $AddRows = [list[object]]::new()
-if ($SearchResults.rows) {
-    $Rows = $SearchResults.rows | Sort-Object approxLogTime
-    Write-Verbose "Retrieved $($Rows.Count) rows from Exabeam"
+
+# Current date for reference
+$CurrentDate = Get-Date
+
+# Get each day to process
+for ($day = $DaysBetween; $day -ge 0; $day--) {
+    $ProcessDate = $CurrentDate.AddDays(-$day).Date
+    Write-Verbose "Processing date: $($ProcessDate.ToString('yyyy-MM-dd'))"
     
-    # Use a faster approach with a HashSet for duplicate checking
-    $existingSha1 = [System.Collections.Generic.HashSet[string]]::new()
-    foreach ($item in $FHK) {
-        if ($item.sha1) { [void]$existingSha1.Add($item.sha1) }
+    # Determine starting hour based on if this is the first day with the last timestamp
+    $skipToHour = 0
+    $skipRemainingTimeBlocks = $false
+    
+    # If this is the same day as our last log, start from that hour's block
+    # This optimization prevents redundant queries for time we've already processed
+    if ($LastLogDate -and $ProcessDate.Date -eq $LastLogDate.Date) {
+        # Calculate which block the last hour belongs to
+        $skipToHour = [Math]::Floor($LastLogHour / $HoursPerIncrement) * $HoursPerIncrement
+        Write-Verbose "Optimizing: Starting from hour block $skipToHour on $($ProcessDate.ToString('yyyy-MM-dd')) based on last timestamp"
+    }
+    # If we're looking at dates before the last log, skip them entirely
+    elseif ($LastLogDate -and $ProcessDate.Date -lt $LastLogDate.Date) {
+        Write-Verbose "Optimizing: Skipping date $($ProcessDate.ToString('yyyy-MM-dd')) as it's earlier than last timestamp"
+        $skipRemainingTimeBlocks = $true
     }
     
-    foreach ($Row in $Rows) {
-        try {
-            # Only records for the current month & no duplicate sha1
-            if ((Get-Date $($Row.timestamp) -ErrorAction Stop).ToString("MM") -eq $CurMonth) {
-                if (-not $existingSha1.Contains($Row.sha1)) {
-                    $AddRows.Add($Row)
-                    [void]$existingSha1.Add($Row.sha1) # Add to HashSet to prevent duplicates in current batch
+    # Skip this date if it's before our last timestamp
+    if ($skipRemainingTimeBlocks) {
+        continue
+    }
+    
+    # Process each 4-hour increment in the day, starting from the optimized hour
+    for ($startHour = $skipToHour; $startHour -lt 24; $startHour += $HoursPerIncrement) {
+        $endHour = [Math]::Min($startHour + $HoursPerIncrement - 1, 23)
+        Write-Verbose "Processing time block: $startHour:00 to $endHour:59"
+        
+        # Get data for this time block
+        $SearchResults = Get-LrtExaFHKResults -Days 1 -StartHour $startHour -Verbose
+        
+        if ($SearchResults.rows) {
+            $Rows = $SearchResults.rows | Sort-Object approxLogTime
+            Write-Verbose "Retrieved $($Rows.Count) rows from Exabeam for $startHour:00 to $endHour:59"
+            
+            foreach ($Row in $Rows) {
+                try {
+                    # Check if timestamp is within our date range 
+                    $rowDate = Get-Date $($Row.timestamp) -ErrorAction Stop
+                    
+                    # Only records for the current month & no duplicate sha1 & within the right day
+                    if (($rowDate.ToString("MM") -eq $CurMonth) -and 
+                        ($rowDate.Date -eq $ProcessDate.Date) -and
+                        ($rowDate.Hour -ge $startHour) -and 
+                        ($rowDate.Hour -le $endHour)) {
+                        
+                        if (-not $existingSha1.Contains($Row.sha1)) {
+                            $AddRows.Add($Row)
+                            [void]$existingSha1.Add($Row.sha1) # Add to HashSet to prevent duplicates
+                        }
+                    }
+                } catch {
+                    Write-Warning "Error processing row: $_"
                 }
             }
-        } catch {
-            Write-Warning "Error processing row: $_"
         }
     }
-    
-    Write-Verbose "Found $($AddRows.Count) new unique rows for the current month"
 }
+
+Write-Verbose "Found $($AddRows.Count) total new unique rows for the current month"
 
 # Append rows—if we cross the row limit, spill into next file(s)
 while ($AddRows.Count -gt 0) {
