@@ -5,57 +5,17 @@ using namespace System.Collections.Generic
 Function Get-ExaSiteCollectorCerts {
     <#
     .SYNOPSIS
-        Retrieve a list of lists from LogRhythm.
+        Download a Site Collector Core certificate
     .DESCRIPTION
-        Get-LrList returns a full LogRhythm List object, including it's details and list items.
-
-        [NOTE]: Due to the way LogRhythm REST API is built, if the specified MaxItemsThreshold
-        is less than the number of actual items in the list, this cmdlet will return an http 400 error.
-    .PARAMETER Name
-        [System.String] (Name or Guid) or [System.Guid]
-        Specifies a LogRhythm list object by providing one of the following property values:
-          + List Name (as System.String), e.g. "LogRhythm: Suspicious Hosts"
-          + List Guid (as System.String or System.Guid), e.g. D378A76F-1D83-4714-9A7C-FC04F9A2EB13
-    .PARAMETER Status
-        Specifies a LogRhythm list status.  Default behavior is to return only Active lists.
-
-        Valid entries: Active, Retired, All
-    .PARAMETER MaxItemsThreshold
-        The maximum number of list items to retrieve from LogRhythm.
-        The default value for this parameter is set to 1001.
-    .PARAMETER Exact
-        Switch to force PARAMETER Name to be matched explicitly.
-    .PARAMETER Credential
-        PSCredential containing an API Token in the Password field.
-    .INPUTS
-        The Name parameter can be provided via the PowerShell pipeline.
-    .OUTPUTS
-        PSCustomObject representing the specified LogRhythm List and its contents.
-
-        If parameter ListItemsOnly is specified, a string collection is returned containing the
-        list's item values.
+        Download the certificate for a Site Collector Core identified by its Core ID.
+    .PARAMETER Path
+        Location where certificates will be downloaded to.  Must be in format of full path plus file name.
+    .PARAMETER CoreID
+        Site Collector Core ID. To retrieve the ID, see Get Site Collector Core details.
     .EXAMPLE
-        PS C:\> Get-LrList -Name "LR Threat List : URL : Attack"
-        ---
-        listType         : GeneralValue
-        status           : Active
-        name             : LR Threat List : URL : Attack
-        useContext       : {URL, DomainImpacted}
-        autoImportOption : @{enabled=False; usePatterns=False; replaceExisting=False}
-        id               : -2208
-        guid             : 7A5C7812-0BA9-4C9F-B4D3-09DC5FA79ACA
-        dateCreated      : 2014-06-04T20:10:09.3Z
-        dateUpdated      : 2020-07-23T19:47:12.61Z
-        readAccess       : PublicAll
-        writeAccess      : PublicGlobalAdmin
-        restrictedRead   : False
-        entityName       : Global Entity
-        entryCount       : 0
-        needToNotify     : False
-        doesExpire       : False
-        owner            : -1000000
+        PS C:\> Get-ExaSiteCollectorCerts -Path "C:\TEMP\certs.zip" -CoreID e6696714-5555-5555-5555-6f68c675b2ea
     .NOTES
-        LogRhythm-API        
+        Exabeam-API
     .LINK
         https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>

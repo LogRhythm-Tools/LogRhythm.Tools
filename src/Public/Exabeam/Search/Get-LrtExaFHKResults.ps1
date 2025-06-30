@@ -26,10 +26,6 @@ Function Get-LrtExaFHKResults {
     Param(
         [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 0)]
         [ValidateNotNull()]
-        [string] $RouteId,
-
-        [Parameter(Mandatory = $false, ValueFromPipeline = $true, Position = 1)]
-        [ValidateNotNull()]
         [int] $Days = 1,
 
         [Parameter(Mandatory = $false, Position = 1)]
@@ -55,11 +51,11 @@ Function Get-LrtExaFHKResults {
         
         # Define HTTP URI
         $RequestUrl = $BaseUrl + "search/v2/events"
-
+        $CurrentDate = (Get-Date).ToUniversalTime()
         # Temporary variables
-        $yesterday = (Get-Date).ToUniversalTime().Date.AddDays(-$Days)
-        $startTime = $yesterday.ToString("yyyy-MM-ddT00:00:00.000Z")
-        $endTime = $yesterday.AddDays($Days).ToString("yyyy-MM-ddT23:59:99.000Z")
+        $PastDate = $CurrentDate.Date.AddDays(-$Days)
+        $startTime = $PastDate.ToString("yyyy-MM-ddT00:00:00.000Z")
+        $endTime = $PastDate.AddDays($Days).ToString("yyyy-MM-ddT23:59:59.000Z")
 
 
         # Check preference requirements for self-signed certificates and set enforcement for Tls1.2
@@ -72,7 +68,7 @@ Function Get-LrtExaFHKResults {
         $body = [PSCustomObject]@{
             limit     = 1000000
             distinct  = $false
-            filter    = "msg_type: `"microsoft-iis-str-http-session-dq-gov-custom`" AND c_route_id: `"$($RouteId)`" AND NOT http_response_code: 400"
+            filter    = 'NOT user IN "FHK Approved Users"."Primary User Name" AND NOT user: null AND uri_path:WLDi("*aspx*") AND url:WLDi("*?*") AND NOT http_response_code: 401 AND c_route_id="Gov" AND m_origin_hostname IN "WIndWard Prod Hosts"."Hostname"'
             startTime = $startTime
             endTime   = $endTime
             fields    = @(

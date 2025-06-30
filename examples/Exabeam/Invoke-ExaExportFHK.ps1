@@ -45,7 +45,7 @@ if (-not $MonthFiles) {
 }
 
 # Fetch and filter new data
-$SearchResults = Get-LrtExaFHKResults -RouteId 'GOV' -Days $DaysBetween
+$SearchResults = Get-LrtExaFHKResults -Days $DaysBetween -Verbose
 $AddRows = [list[object]]::new()
 if ($SearchResults.rows) {
     $Rows = $SearchResults.rows | Sort-Object approxLogTime
