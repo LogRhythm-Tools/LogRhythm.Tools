@@ -9,6 +9,24 @@ $CurMonth = (Get-Date).ToString("MM")
 # Number of days to search back, limited by month boundary check below
 $SearchDays = 2
 $HoursPerIncrement = 1 
+$Filter = 'NOT user IN "FHK Approved Users"."Primary User Name" AND NOT user: null AND uri_path:WLDi("*aspx*") AND url:WLDi("*?*") AND NOT http_response_code: 401 AND c_route_id="Gov" AND m_origin_hostname IN "WIndWard Prod Hosts"."Hostname"'
+$ReturnFields = @(
+                "approxLogTime",
+                "host",
+                "user",
+                "object",
+                "uri_path",
+                "uri_query",
+                "url",
+                "method",
+                "c_route_id"
+            )
+
+$ShaFields = @(
+    "host",
+    "uri_path"
+)
+
 
 # Find all files for current month
 $MonthFiles = Get-ChildItem -Path $RootFolderPath -Filter "${FilePrefix}_*.csv" | Sort-Object Name
@@ -92,9 +110,6 @@ foreach ($item in $FHK) {
 # Combined new rows will go here
 $AddRows = [list[object]]::new()
 
-# Current date for reference
-$CurrentDate = Get-Date
-
 # Calculate start date for search - but don't go beyond current month
 $Today = Get-Date
 $StartDate = $Today.AddDays(-$SearchDays)
@@ -145,7 +160,7 @@ for ($day = ($Today - $StartDate).Days; $day -ge 0; $day--) {
         # Get data for this time block with precise start and end hours
         # Each block is distinct: startHour:00:00 to endHour:59:59
         # Pass the specific date and time range parameters
-        $SearchResults = Get-LrtExaFHKResults -SearchDate $ProcessDate -StartHour $startHour -EndHour $endHour -Verbose
+        $SearchResults = Get-LrtExaSearch -SearchDate $ProcessDate -StartHour $startHour -EndHour $endHour -Filter $Filter -Fields $ReturnFields -ShaFields $ShaFields -Verbose
         
         if ($SearchResults.rows) {
             $Rows = $SearchResults.rows | Sort-Object approxLogTime
