@@ -6,6 +6,7 @@ $RootFolderPath = "C:\TEMP\Exabeam\FHK"
 $RowLimit = 500000
 $FilePrefix = "fhk_$($(get-date).ToString('MMyyyy'))"
 $CurMonth = (Get-Date).ToString("MM")
+# Number of days to search back, limited by month boundary check below
 $SearchDays = 2
 $HoursPerIncrement = 1 
 
@@ -94,9 +95,23 @@ $AddRows = [list[object]]::new()
 # Current date for reference
 $CurrentDate = Get-Date
 
+# Calculate start date for search - but don't go beyond current month
+$Today = Get-Date
+$StartDate = $Today.AddDays(-$SearchDays)
+
+# Ensure we don't cross month boundaries - limit to first day of current month
+$FirstDayOfMonth = Get-Date -Year $Today.Year -Month $Today.Month -Day 1
+if ($StartDate -lt $FirstDayOfMonth) {
+    Write-Verbose "Limiting search to start of current month instead of going back to previous month"
+    $StartDate = $FirstDayOfMonth
+}
+
+# Display date range
+Write-Verbose "Date range: $StartDate - $Today"
+
 # Get each day to process
-for ($day = $DaysBetween; $day -ge 0; $day--) {
-    $ProcessDate = $CurrentDate.AddDays(-$day).Date
+for ($day = ($Today - $StartDate).Days; $day -ge 0; $day--) {
+    $ProcessDate = $StartDate.AddDays($day).Date
     Write-Verbose "Processing date: $($ProcessDate.ToString('yyyy-MM-dd'))"
     
     # Determine starting hour based on if this is the first day with the last timestamp
