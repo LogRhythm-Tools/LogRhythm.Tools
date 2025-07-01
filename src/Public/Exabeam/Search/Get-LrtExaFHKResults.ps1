@@ -73,8 +73,6 @@ Function Get-LrtExaFHKResults {
             $ValidatedEndHour = $ValidatedStartHour
         }
         
-        Write-Verbose "[$Me]: Using time range: $ValidatedStartHour:00 to $ValidatedEndHour:59"
-        
         # Create precise time range for this query with guaranteed non-overlapping time windows
         $startTime = $QueryDate.AddHours($ValidatedStartHour).ToString("yyyy-MM-ddTHH:00:00.000Z")
         

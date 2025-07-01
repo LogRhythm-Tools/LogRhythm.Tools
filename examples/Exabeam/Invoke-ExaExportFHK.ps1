@@ -6,8 +6,8 @@ $RootFolderPath = "C:\TEMP\Exabeam\FHK"
 $RowLimit = 500000
 $FilePrefix = "fhk_$($(get-date).ToString('MMyyyy'))"
 $CurMonth = (Get-Date).ToString("MM")
-$SearchDays = 5
-$HoursPerIncrement = 4  # Search in 4-hour increments
+$SearchDays = 2
+$HoursPerIncrement = 1 
 
 # Find all files for current month
 $MonthFiles = Get-ChildItem -Path $RootFolderPath -Filter "${FilePrefix}_*.csv" | Sort-Object Name
@@ -157,6 +157,7 @@ for ($day = $DaysBetween; $day -ge 0; $day--) {
                 }
             }
         }
+        Write-Verbose "RowData Count: $($AddRows.Count) after processing $startHour to $endHour"
     }
 }
 
