@@ -2,7 +2,7 @@ using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
 
-Function Get-LrtExaFHKResults {
+Function Get-LrtExaSearch {
     <#
     .SYNOPSIS
 
@@ -36,7 +36,19 @@ Function Get-LrtExaFHKResults {
         [ValidateNotNull()]
         [DateTime] $SearchDate = (Get-Date), 
         
-        [Parameter(Mandatory = $false, Position = 3)]
+        [Parameter(Mandatory = $true, Position = 3)]
+        [ValidateNotNull()]
+        [string] $Filter, 
+
+        [Parameter(Mandatory = $true, Position = 4)]
+        [ValidateNotNull()]
+        [string[]] $Fields, 
+
+        [Parameter(Mandatory = $true, Position = 5)]
+        [ValidateNotNull()]
+        [string[]] $ShaFields, 
+
+        [Parameter(Mandatory = $false, Position = 6)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.Exabeam.ApiKey
     )
@@ -89,23 +101,17 @@ Function Get-LrtExaFHKResults {
     Process {
         Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
+        if ($Fields -notcontains 'approxLogTime') {
+            $Fields += 'approxLogTime'
+        }
+
         $body = [PSCustomObject]@{
             limit     = 1000000
             distinct  = $false
-            filter    = 'NOT user IN "FHK Approved Users"."Primary User Name" AND NOT user: null AND uri_path:WLDi("*aspx*") AND url:WLDi("*?*") AND NOT http_response_code: 401 AND c_route_id="Gov" AND m_origin_hostname IN "WIndWard Prod Hosts"."Hostname"'
+            filter    = $Filter
             startTime = $startTime
             endTime   = $endTime
-            fields    = @(
-                "approxLogTime",
-                "host",
-                "user",
-                "object",
-                "uri_path",
-                "uri_query",
-                "url",
-                "method",
-                "c_route_id"
-            )
+            fields    = $Fields
         } | ConvertTo-Json -Compress
 
         Write-Verbose $Body
@@ -116,21 +122,27 @@ Function Get-LrtExaFHKResults {
             return $Response
         }
 
-        $sha1 = New-Object System.Security.Cryptography.SHA1CryptoServiceProvider
+        if ($ShaFields -and $ShaFields.Count -gt 0) {
+            $sha1 = New-Object System.Security.Cryptography.SHA1CryptoServiceProvider
 
-        if ($Response.rows) {
-            $AddRows = [list[object]]::new()
-            ForEach($Row in $Response.rows) {
-                $timestamp = $(ConvertFrom-UnixEpoch -UnixTime $($row.approxLogTime / 1000000))
-                $Row | Add-Member -MemberType NoteProperty -Name 'timestamp' -Value $timestamp.ToString("M/d/yyyy h:mm:ss tt")
-                $hashBytes = $sha1.ComputeHash([System.Text.Encoding]::UTF8.GetBytes("$($Row.approxLogTime)$($Row.host)$($Row.user)$($Row.uri_path)"))
-                $Row | Add-Member -MemberType NoteProperty -Name 'sha1' -Value $([BitConverter]::ToString($hashBytes) -replace '-', '')
-                if ($AddRows.sha1 -notcontains $Row.sha1) {
-                    $AddRows.add($Row)
+            if ($Response.rows) {
+                $AddRows = [list[object]]::new()
+                ForEach($Row in $Response.rows) {
+                    $timestamp = $(ConvertFrom-UnixEpoch -UnixTime $($row.approxLogTime / 1000000))
+                    $Row | Add-Member -MemberType NoteProperty -Name 'timestamp' -Value $timestamp.ToString("M/d/yyyy h:mm:ss tt")
+                    $hashBytes = $sha1.ComputeHash([System.Text.Encoding]::UTF8.GetBytes("$($Row.approxLogTime)$($Row.$($ShaFields[0]))$($Row.$($ShaFields[1]))"))
+                    $Row | Add-Member -MemberType NoteProperty -Name 'sha1' -Value $([BitConverter]::ToString($hashBytes) -replace '-', '')
+                    if ($AddRows.sha1 -notcontains $Row.sha1) {
+                        $AddRows.add($Row)
+                    }
                 }
+                $Response.rows = @($AddRows)
             }
-            $Response.rows = @($AddRows)
         }
+
+        
+
+
 
 
         return $Response
