@@ -7,7 +7,7 @@ $RowLimit = 500000
 $FilePrefix = "fhk_$($(get-date).ToString('MMyyyy'))"
 $CurMonth = (Get-Date).ToString("MM")
 # Number of days to search back, limited by month boundary check below
-$SearchDays = 2
+$SearchDays = 5
 $HoursPerIncrement = 1 
 $Filter = 'NOT user IN "FHK Approved Users"."Primary User Name" AND NOT user: null AND uri_path:WLDi("*aspx*") AND url:WLDi("*?*") AND NOT http_response_code: 401 AND c_route_id="Gov" AND m_origin_hostname IN "WIndWard Prod Hosts"."Hostname"'
 $ReturnFields = @(
@@ -127,7 +127,7 @@ Write-Verbose "Date range: $StartDate - $Today"
 # Get each day to process
 for ($day = ($Today - $StartDate).Days; $day -ge 0; $day--) {
     $ProcessDate = $StartDate.AddDays($day).Date
-    Write-Verbose "Processing date: $($ProcessDate.ToString('yyyy-MM-dd'))"
+    Write-Host "Processing date: $($ProcessDate.ToString('yyyy-MM-dd'))"
     
     # Determine starting hour based on if this is the first day with the last timestamp
     $skipToHour = 0
@@ -155,16 +155,16 @@ for ($day = ($Today - $StartDate).Days; $day -ge 0; $day--) {
     for ($startHour = $skipToHour; $startHour -lt 24; $startHour += $HoursPerIncrement) {
         # Calculate the end hour for this time block (exclusive of next block's start)
         $endHour = [Math]::Min($startHour + $HoursPerIncrement - 1, 23)
-        Write-Verbose "Processing time block: $startHour:00 to $endHour:59"
+        Write-Host "Processing time block: $($startHour):00 to $($endHour):59"
         
         # Get data for this time block with precise start and end hours
         # Each block is distinct: startHour:00:00 to endHour:59:59
         # Pass the specific date and time range parameters
-        $SearchResults = Get-LrtExaSearch -SearchDate $ProcessDate -StartHour $startHour -EndHour $endHour -Filter $Filter -Fields $ReturnFields -ShaFields $ShaFields -Verbose
+        $SearchResults = Get-ExaSearch -SearchDate $ProcessDate -StartHour $startHour -EndHour $endHour -Filter $Filter -Fields $ReturnFields -ShaFields $ShaFields -Verbose
         
         if ($SearchResults.rows) {
             $Rows = $SearchResults.rows | Sort-Object approxLogTime
-            Write-Verbose "Retrieved $($Rows.Count) rows from Exabeam for $startHour:00 to $endHour:59"
+            Write-Host "Retrieved $($Rows.Count) rows from Exabeam for $($startHour):00 to $($endHour):59"
             
             foreach ($Row in $Rows) {
                 try {
@@ -187,7 +187,7 @@ for ($day = ($Today - $StartDate).Days; $day -ge 0; $day--) {
                 }
             }
         }
-        Write-Verbose "RowData Count: $($AddRows.Count) after processing $startHour to $endHour"
+        Write-Host "RowData Count: $($AddRows.Count) after processing $startHour to $endHour"
     }
 }
 
@@ -201,7 +201,7 @@ while ($AddRows.Count -gt 0) {
     $AddRows.RemoveRange(0, $Chunk.Count)
 
     # Write the file
-    $FHK | Export-Csv -Path $EventPath -NoTypeInformation
+    $FHK | Sort-Object approxLogTime | Export-Csv -Path $EventPath -NoTypeInformation
 
     # If more rows left, bump to next file, reset buffer
     if ($AddRows.Count -gt 0) {

@@ -2,7 +2,7 @@ using namespace System
 using namespace System.IO
 using namespace System.Collections.Generic
 
-Function Get-LrtExaSearch {
+Function Get-ExaSearch {
     <#
     .SYNOPSIS
 
@@ -49,6 +49,10 @@ Function Get-LrtExaSearch {
         [string[]] $ShaFields, 
 
         [Parameter(Mandatory = $false, Position = 6)]
+        [ValidateNotNull()]
+        [bool] $Distinct = $false, 
+
+        [Parameter(Mandatory = $false, Position = 7)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.Exabeam.ApiKey
     )
@@ -107,7 +111,7 @@ Function Get-LrtExaSearch {
 
         $body = [PSCustomObject]@{
             limit     = 1000000
-            distinct  = $false
+            distinct  = $Distinct
             filter    = $Filter
             startTime = $startTime
             endTime   = $endTime
