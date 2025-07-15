@@ -215,6 +215,19 @@ for ($day = 0; $day -le ($Today - $StartDate).Days; $day++) {
             }
         }
     }
+    
+    # Clean up variables to free memory at the end of each day's processing
+    if ($SearchResults) {
+        $SearchResults.rows = $null
+        $SearchResults = $null
+    }
+    if ($Rows) { $Rows = $null }
+    if ($AddRows) { $AddRows.Clear() }
+    
+    # Force garbage collection to release memory
+    [System.GC]::Collect()
+    [System.GC]::WaitForPendingFinalizers()
+    Write-Verbose "Memory cleanup completed for date: $($ProcessDate.ToString('yyyy-MM-dd'))"
 }
 
 Write-Verbose "Completed processing all dates"
