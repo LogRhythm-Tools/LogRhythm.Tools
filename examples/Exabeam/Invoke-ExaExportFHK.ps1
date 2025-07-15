@@ -107,9 +107,6 @@ foreach ($item in $FHK) {
     if ($item.sha1) { [void]$existingSha1.Add($item.sha1) }
 }
 
-# Combined new rows will go here
-$AddRows = [list[object]]::new()
-
 # Calculate start date for search - but don't go beyond current month
 $Today = Get-Date
 $StartDate = $Today.AddDays(-$SearchDays)
@@ -124,14 +121,17 @@ if ($StartDate -lt $FirstDayOfMonth) {
 # Display date range
 Write-Verbose "Date range: $StartDate - $Today"
 
-# Get each day to process
-for ($day = ($Today - $StartDate).Days; $day -ge 0; $day--) {
+# Get each day to process - iterate from oldest to newest
+for ($day = 0; $day -le ($Today - $StartDate).Days; $day++) {
     $ProcessDate = $StartDate.AddDays($day).Date
     Write-Host "Processing date: $($ProcessDate.ToString('yyyy-MM-dd'))"
     
     # Determine starting hour based on if this is the first day with the last timestamp
     $skipToHour = 0
     $skipRemainingTimeBlocks = $false
+
+    # Combined new rows will go here
+    $AddRows = [list[object]]::new()
     
     # If this is the same day as our last log, start from that hour's block
     # This optimization prevents redundant queries for time we've already processed
@@ -151,7 +151,7 @@ for ($day = ($Today - $StartDate).Days; $day -ge 0; $day--) {
         continue
     }
     
-    # Process each 4-hour increment in the day, starting from the optimized hour
+    # Process each hour increment in the day, starting from the optimized hour
     for ($startHour = $skipToHour; $startHour -lt 24; $startHour += $HoursPerIncrement) {
         # Calculate the end hour for this time block (exclusive of next block's start)
         $endHour = [Math]::Min($startHour + $HoursPerIncrement - 1, 23)
@@ -189,29 +189,38 @@ for ($day = ($Today - $StartDate).Days; $day -ge 0; $day--) {
         }
         Write-Host "RowData Count: $($AddRows.Count) after processing $startHour to $endHour"
     }
-}
-
-Write-Verbose "Found $($AddRows.Count) total new unique rows for the current month"
-
-# Append rows—if we cross the row limit, spill into next file(s)
-while ($AddRows.Count -gt 0) {
-    $SpaceLeft = $RowLimit - $FHK.Count
-    $Chunk = $AddRows | Select-Object -First $SpaceLeft
-    $FHK.AddRange($Chunk)
-    $AddRows.RemoveRange(0, $Chunk.Count)
-
-    # Write the file
-    $FHK | Sort-Object approxLogTime | Export-Csv -Path $EventPath -NoTypeInformation
-
-    # If more rows left, bump to next file, reset buffer
+    
+    # After processing each day, update CSV(s) with any collected rows
+    Write-Verbose "Updating CSV with $($AddRows.Count) new rows after processing date $($ProcessDate.ToString('yyyy-MM-dd'))"
+    
+    # Process the rows collected for this day
     if ($AddRows.Count -gt 0) {
-        $CurFileNum++
-        $EventPath = Join-Path $RootFolderPath "$FilePrefix`_${CurFileNum}.csv"
-        $FHK = [list[object]]::new()
+        # Append rows—if we cross the row limit, spill into next file(s)
+        while ($AddRows.Count -gt 0) {
+            $SpaceLeft = $RowLimit - $FHK.Count
+            $Chunk = $AddRows | Select-Object -First $SpaceLeft
+            $FHK.AddRange($Chunk)
+            $AddRows.RemoveRange(0, [Math]::Min($SpaceLeft, $AddRows.Count))
+
+            # Write the file
+            $FHK | Sort-Object approxLogTime | Export-Csv -Path $EventPath -NoTypeInformation
+            Write-Host "Updated file: $EventPath with $($FHK.Count) rows"
+
+            # If more rows left, bump to next file, reset buffer
+            if ($AddRows.Count -gt 0) {
+                $CurFileNum++
+                $EventPath = Join-Path $RootFolderPath "$FilePrefix`_${CurFileNum}.csv"
+                $FHK = [list[object]]::new()
+                Write-Verbose "Creating next file: $EventPath for remaining $($AddRows.Count) rows"
+            }
+        }
     }
 }
 
-# If no new rows and file is empty (brand new run), still create the file (optional)
+Write-Verbose "Completed processing all dates"
+
+# If no new rows were ever added and file is empty (brand new run), still create the file (optional)
 if (($FHK.Count -eq 0) -and !(Test-Path $EventPath)) {
+    Write-Verbose "Creating empty initial file: $EventPath"
     $FHK | Export-Csv -Path $EventPath -NoTypeInformation
 }
