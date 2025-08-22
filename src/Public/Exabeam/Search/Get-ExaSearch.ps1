@@ -21,7 +21,6 @@ Function Get-ExaSearch {
     .LINK
         https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>
-
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $false, Position = 0)]
@@ -44,7 +43,7 @@ Function Get-ExaSearch {
         [ValidateNotNull()]
         [string[]] $Fields, 
 
-        [Parameter(Mandatory = $true, Position = 5)]
+        [Parameter(Mandatory = $false, Position = 5)]
         [ValidateNotNull()]
         [string[]] $ShaFields, 
 
