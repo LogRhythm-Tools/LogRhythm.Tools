@@ -414,7 +414,7 @@ Function New-LrHost {
             id = -1
             entity = [PSCustomObject]@{
                     id = $($_entity.Id)
-                    name = $($_entity.Name)
+                    name = $($_entity.fullName)
             }
             name =  $Name
             shortDesc = $shortDesc

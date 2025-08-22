@@ -89,31 +89,28 @@ Function Update-LrLogSource {
         [Parameter(Mandatory = $false, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, Position = 1)]
         [string] $Name,
 
-
         [Parameter(Mandatory = $false, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, Position = 2)]
         [ValidateSet('Active','Retired', ignorecase=$true)]
         [string] $RecordStatus,
-
 
         [Parameter(Mandatory = $false, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, Position = 3)]
         [ValidateSet('Enabled','Disabled', 'Unregistered', ignorecase=$true)]
         [string] $Status,
 
-
         [Parameter(Mandatory = $false, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, Position = 4)]
         [string] $FilePath,
-
 
         [Parameter(Mandatory = $false, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, Position = 5)]
         [ValidateRange(1, 10000)]
         [int32] $maxMsgCount,
 
-
-        [Parameter(Mandatory = $false, Position = 6)]
-        [switch] $PassThru,
-
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, Position = 6)]
+        [int32] $MpePolicyId,
 
         [Parameter(Mandatory = $false, Position = 7)]
+        [switch] $PassThru,
+
+        [Parameter(Mandatory = $false, Position = 8)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.LogRhythm.ApiKey
     )
@@ -189,12 +186,25 @@ Function Update-LrLogSource {
         }
 
         if ($FilePath) {
+            if ($null -eq $Body.filePath) {
+                $Body | Add-Member -MemberType NoteProperty -Name 'filePath' -Value 'Bogus' -Force
+            }
             $Body.filePath = $FilePath
         }
 
         if ($maxMsgCount) {
             $Body.maxMsgCount = $maxMsgCount
             $Body.msgPerCycle = $maxMsgCount
+        }
+
+        if ($MpePolicyId) {
+            $MpePolicy = Get-LrMpePolicy -Id $MpePolicyId
+            if (($null -ne $MpePolicy.Error) -and ($MpePolicy.Error -eq $true)) {
+                return $MpePolicy
+            } else {
+                $Body.mpePolicy.id = $MpePolicy.id
+                $Body.mpePolicy.name = $MpePolicy.name
+            }
         }
         
         

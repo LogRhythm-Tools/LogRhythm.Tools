@@ -36,15 +36,19 @@ Function Test-ValidIPv4Address {
         IsPrivate   =   $false
     }
 
-    # Check if ID value is an integer
-    if ($IP -as [ipaddress]) {
+    # Check if IP value is a valid IP address, and is IPv4 by parsing it as an [ipaddress]
+    if (($IP -as [ipaddress]) -and ($IP -as [ipaddress]).AddressFamily -eq 'InterNetwork') {
         $OutObject.Value = $IP.ToString()
         $OutObject.IsValid = $true
         if ($IP -Match '(^127\.)|(^192\.168\.)|(^10\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)') {
-            $OutObject.IsPrivate =$true
+            $OutObject.IsPrivate = $true
         }
         else {
             $OutObject.IsPrivate = $false
+        }
+
+        if ($IP -match '(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))') {
+            $OutObject.IsValid = $false
         }
     } else {
         $OutObject.IsValid = $false

@@ -76,6 +76,18 @@
         }
     },
 
+    "Exabeam": {
+        "Name": "Exabeam",
+        "Optional": true,
+        "Message": "Use of Exabeam requires an API key.",
+        "HasKey": true,
+        "HasClientId": true,
+        
+        "Fields": {}
+    },
+
+
+
     "LogRhythmEcho": {
         "Name": "LogRhythm Echo",
         "Optional": true,

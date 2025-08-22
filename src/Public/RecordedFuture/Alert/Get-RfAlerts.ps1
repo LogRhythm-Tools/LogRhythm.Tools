@@ -1,12 +1,12 @@
 using namespace System
 using namespace System.Collections.Generic
 
-Function Get-RfAlert {
+Function Get-RfAlerts {
     <#
     .SYNOPSIS
-        Get RecordedFuture Alert detail for a specified alert.
+        Get RecordedFuture Alerts detail.
     .DESCRIPTION
-        Get RecordedFuture Alert allows for retrieving the details for a specific alert.  
+        Get RecordedFuture Alerts allows for searching for triggered alerts.  
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
     .PARAMETER Id
@@ -21,9 +21,18 @@ Function Get-RfAlert {
 
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $true, Position = 0)]
+        [Parameter(Mandatory = $false, Position = 0)]
         [ValidateNotNullOrEmpty()]
-        [string] $AlertId,
+        [string] $AlertRuleId,
+
+
+        [Parameter(Mandatory = $false, Position = 1)]
+        [ValidateSet('New','Resolved', 'Pending', 'Flag for Tuning', ignorecase=$true)]
+        [string] $Status,
+
+
+        [Parameter(Mandatory = $false, Position = 1)]
+        [string] $Triggered,
 
 
         [Parameter(Mandatory = $false, Position = 2)]
@@ -49,9 +58,29 @@ Function Get-RfAlert {
     }
 
     Process {
+        # Establish Query Parameters object
+        $QueryParams = [Dictionary[string,string]]::new()
+
+        if ($AlertRuleId) {
+            $QueryParams.Add("alertRule", $AlertRuleId)
+        }
+
+        if ($Status) {
+            $QueryParams.Add("statusInPortal", $Status)
+        }
+
+        
+        if ($Triggered) {
+            $QueryParams.Add("triggered", "["+$Triggered+",]")
+        }
+
+        if ($QueryParams.Count -gt 0) {
+            $QueryString = $QueryParams | ConvertTo-QueryString
+            Write-Verbose "[$Me]: QueryString is [$QueryString]"
+        }
 
         # Define Search URL
-        $RequestUrl = $BaseUrl + "v3/alerts/" + $AlertId
+        $RequestUrl = $BaseUrl + "v3/alerts/" + $QueryString
         Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
 

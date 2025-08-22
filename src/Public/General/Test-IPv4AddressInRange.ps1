@@ -21,7 +21,7 @@ param(
             [array]::Reverse($ipAddress)
             $ipAddress = [system.BitConverter]::ToUInt32($ipAddress, 0)
         } else {
-            return $IPValid
+            return $false
         }
 
         if ($BIPValid.IsValid) {
@@ -29,7 +29,7 @@ param(
             [array]::Reverse($bipAddress)
             $bipAddress = [system.BitConverter]::ToUInt32($bipAddress, 0)
         } else {
-            return $BIPValid
+            return $false
         }
 
         if ($EIPValid.IsValid) {
@@ -37,7 +37,7 @@ param(
             [array]::Reverse($eipAddress)
             $eipAddress = [system.BitConverter]::ToUInt32($eipAddress, 0)
         } else {
-            return $EIPValid
+            return $false
         }
 
     

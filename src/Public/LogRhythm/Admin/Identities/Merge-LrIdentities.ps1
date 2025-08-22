@@ -38,13 +38,9 @@ Function Merge-LrIdentities {
         Required integer
         The IdentityId of the TrueIdentity which will be retired after merging
         All Identifiers will be moved from the Secondary TrueIdentity to the Primary TrueIdentity
-    .PARAMETER TestMode
-        Enabled by default. Disabling "TestMode" will perform the TrueIdentity migration.
-        
-        With TestMode on the cmdlet will check for errors but not make any changes to the TrueIdentities
     .EXAMPLE
-        C:\> Merge-LrIdentities -PrimaryIdentity 8 -SecondaryIdentity 1 -TestMode $false
-        Merge-LrIdentities -PrimaryIdentityId 8 -SecondaryIdentityId 1 -TestMode $false
+        C:\> Merge-LrIdentities -PrimaryIdentity 8 -SecondaryIdentity 1
+        Merge-LrIdentities -PrimaryIdentityId 8 -SecondaryIdentityId 1
         Primary Identity: 'Eric Hart (Eric.Hart)'
         Secondary Identity: 'Eric Hart (Eric.Hart)'
         Moving Identifiers:
@@ -52,19 +48,6 @@ Function Merge-LrIdentities {
             Identifier 'eric.hart@logrhythm.com' type 'Email' already exists in the Primary Identity
             Successfully moved Identifier 'eric23hart@gmail.com' type 'Email'
         @{identityID=1; nameFirst=Eric; nameMiddle=W; nameLast=Hart; displayIdentifier=Eric.Hart; company=LogRhythm; department=Customer Success; title=; manager=Chuck Talley; addressCity=; domainName=; entity=; dateUpdated=2020-06-19T14:25:33.883Z; recordStatus=Retired; identifiers=System.Object[]; groups=System.Object[]}
-    .EXAMPLE
-        C:\> Merge-LrIdentities -IdentityObject @(8,1)
-        ---
-        Running in Preview mode; no changes to TrueIdentities will be made
-        Primary Identity: 'Eric Hart (Eric.Hart)'
-        Secondary Identity: 'Eric Hart (Eric.Hart)'
-        Moving Identifiers:
-                Identifier 'eric.hart@logrhythm.com' type 'Login' already exists in the Primary Identity
-                Identifier 'eric.hart@logrhythm.com' type 'Email' already exists in the Primary Identity
-                Successfully moved Identifier 'eric23hart@gmail.com' type 'Email'
-        Test Mode: Disable-LrIdentity -IdentityId 1
-        identityID        : 1
-        status            : Retired
     .LINK
         https://github.com/LogRhythm-Tools/LogRhythm.Tools
     #>  

@@ -1,12 +1,12 @@
 using namespace System
 using namespace System.Collections.Generic
 
-Function Get-RfAlert {
+Function Update-RfAlert {
     <#
     .SYNOPSIS
-        Get RecordedFuture Alert detail for a specified alert.
+        Update RecordedFuture Alert details for a specified alert.
     .DESCRIPTION
-        Get RecordedFuture Alert allows for retrieving the details for a specific alert.  
+        Update RecordedFuture Alert allows for updating the details for a specific alert.  
     .PARAMETER Credential
         PSCredential containing an API Token in the Password field.
     .PARAMETER Id
@@ -14,9 +14,9 @@ Function Get-RfAlert {
     .INPUTS
 
     .NOTES
-        RecordedFuture-API v3
+        RecordedFuture-API v2
     .LINK
-        https://github.com/LogRhythm-Tools/LogRhythm.Tools
+        https://api.recordedfuture.com/v2/#!/Alerts/Alert_Notification_Update
     #>
 
     [CmdletBinding()]
@@ -26,7 +26,16 @@ Function Get-RfAlert {
         [string] $AlertId,
 
 
+        [Parameter(Mandatory = $false, Position = 1)]
+        [ValidateSet('unassigned','assigned', 'pending', 'dismiss', 'no-action', 'actionable', 'tuning', ignorecase=$true)]
+        [string] $Status,
+
+
         [Parameter(Mandatory = $false, Position = 2)]
+        [string] $Note,
+
+
+        [Parameter(Mandatory = $false, Position = 3)]
         [ValidateNotNull()]
         [pscredential] $Credential = $LrtConfig.RecordedFuture.ApiKey
     )
@@ -38,11 +47,12 @@ Function Get-RfAlert {
         # Request Headers
         $Headers = [Dictionary[string,string]]::new()
         $Headers.Add("X-RFToken", $Token)
+        $Headers.Add("Content-Type", "application/json")
 
         Write-Verbose "$($Headers | Out-String)"
 
         # Request Setup
-        $Method = $HttpMethod.Get
+        $Method = $HttpMethod.Post
 
         # Check preference requirements for self-signed certificates and set enforcement for Tls1.2 
         Enable-TrustAllCertsPolicy
@@ -51,12 +61,30 @@ Function Get-RfAlert {
     Process {
 
         # Define Search URL
-        $RequestUrl = $BaseUrl + "v3/alerts/" + $AlertId
+        $RequestUrl = $BaseUrl + "v2/alert/update"
         Write-Verbose "[$Me]: Request URL: $RequestUrl"
 
+        # Establish JSON Body contents
+        $BodyContents = [PSCustomObject]@{
+            id = $AlertId
+        }
+
+        if ($Status) {
+            $BodyContents | Add-Member -MemberType NoteProperty -Name 'status' -Value $Status
+        }
+
+        if ($Note) {
+            $BodyContents | Add-Member -MemberType NoteProperty -Name 'note' -Value $Note
+        }
+
+
+
+        # Establish Body Contents
+        $Body = '[' + $(@($BodyContents) | ConvertTo-Json) + ']'
+        Write-Verbose "[$Me]: Request Body:`n$Body"
 
         Try {
-            $Results = Invoke-RestMethod $RequestUrl -Method $Method -Headers $Headers
+            $Results = Invoke-RestMethod $RequestUrl -Method $Method -Headers $Headers -Body $Body
         } catch {
             If ($_.Exception.Response.StatusCode.value__) {
                 $HTTPCode = ($_.Exception.Response.StatusCode.value__ ).ToString().Trim()
