@@ -45,6 +45,10 @@ Function Get-ExaSearch {
 
         [Parameter(Mandatory = $false, Position = 5)]
         [ValidateNotNull()]
+        [int] $Limit = 1000000,
+
+        [Parameter(Mandatory = $false, Position = 5)]
+        [ValidateNotNull()]
         [string[]] $ShaFields, 
 
         [Parameter(Mandatory = $false, Position = 6)]
@@ -109,7 +113,7 @@ Function Get-ExaSearch {
         }
 
         $body = [PSCustomObject]@{
-            limit     = 1000000
+            limit     = $Limit
             distinct  = $Distinct
             filter    = $Filter
             startTime = $startTime
