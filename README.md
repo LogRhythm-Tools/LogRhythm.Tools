@@ -1,9 +1,7 @@
 <!-- markdownlint-disable MD026 -->
 
-![Logo](../assets/logos/logo.v1.png?raw=true)
-
-[![Last Release](https://badgen.net/badge/release/v1.3.0/green)](https://github.com/LogRhythm-Tools/LogRhythm.Tools/releases)
-[![Dev Version](https://badgen.net/badge/dev/v1.3.0/green)](https://github.com/LogRhythm-Tools/LogRhythm.Tools/tree/development/)
+[![Last Release](https://badgen.net/badge/release/v1.4.0/green)](https://github.com/LogRhythm-Tools/LogRhythm.Tools/releases)
+[![Dev Version](https://badgen.net/badge/dev/v1.4.0/green)](https://github.com/LogRhythm-Tools/LogRhythm.Tools/tree/development/)
 
 LogRhythm.Tools is a PowerShell module for interacting with LogRhythm APIs. The module is a powerful addition to a LogRhythm analyst's toolbox, and can be used interactively within PowerShell or as a framework for developing SmartResponse plugins - without requiring an understanding of LogRhythm's API layer.
 
@@ -40,21 +38,6 @@ Each command included in the LogRhythm.Tools module is deigned to be modular and
 
 ## [Requirements](#Requirements)
 
-**Operating Systems**
-
-- CentOS/RHEL 7
-- CentOS/RHEL 8
-- macOS 12
-- Ubuntu 22.04 LTS
-- Windows 7
-- Windows 8.1
-- Windows 10
-- Windows Server 2008r2
-- Windows Server 2012
-- Windows Server 2012r2
-- Windows Server 2019
-- Windows Server 2022
-
 **Software**
 
 Windows PowerShell
@@ -62,7 +45,7 @@ Windows PowerShell
 - Windows .Net Framework 4.5.2
 
 PowerShell Core
-- Windows .Net Framework 6.0 LTS
+- Windows .Net Framework 6.0 LTS or newer
 
 **Permissions**
 
@@ -120,6 +103,30 @@ Contributions are welcome. Please review the [Contributing](CONTRIBUTING.md) gui
 
 # Additional Details
 ## Change Log
+### 1.4.0
+LogRhythm additions:
+* Add-LrLogSource
+* Get-LrLogSourceTypeDetails
+* Get-LrMpePolicies
+* Get-LrMpePolicy
+* Get-LrMpeRules
+
+Recorded Future additions:
+* Get-RfAlerts
+* Update-RfAlert
+
+Exabeam additions:
+* Add context tables
+* Retrieve context tables
+* Retrieve context table properties
+* Add values to context table
+* Remove Context tables
+* Download Site Collector Certificates
+* Retrieve list of Site Collectors
+* Perform Exabeam search
+* Get Exabeam Site Agent Install Command
+* Get Exabeam Site Agents
+
 ### 1.3.0
 #### General Changes
 ##### PowerShell Core Support
