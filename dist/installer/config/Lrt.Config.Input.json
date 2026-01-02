@@ -86,7 +86,21 @@
         "Fields": {}
     },
 
-
+    "Qualys": {
+        "Name": "Qualys",
+        "Optional": true,
+        "Message": "Use of Qualys requires an API key.",
+        "HasCredential": true,
+        
+        "Fields": {
+            "BaseUrl": {
+                "Prompt": "Qualys Base URL",
+                "Hint": "FQDN - Example: https://qualysapi.qualys.com",
+                "InputCmd": "Get-InputApiUrl",
+                "FallThru": false
+            }
+        }
+    },
 
     "LogRhythmEcho": {
         "Name": "LogRhythm Echo",
