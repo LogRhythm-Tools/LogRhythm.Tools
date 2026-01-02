@@ -114,7 +114,7 @@ Function Invoke-RfExaSync {
         }
     }
 
-    $Results = Add-ExaContextRecords -ContextId $ListStatusHash.id -Data $RfHashRiskDescriptions -Operation 'append'
+    $Results = Add-ExaContextRecords -ContextId $ListStatusHash.id -Data $RfHashRiskDescriptions -Operation 'replace'
 
     Start-Sleep -Seconds 30
     # User Enabled Hash List
@@ -165,7 +165,7 @@ Function Invoke-RfExaSync {
         }
     }
 
-    $Results = Add-ExaContextRecords -ContextId $ListStatusUrl.id -Data $RfUrlRiskDescriptions -Operation 'append'
+    $Results = Add-ExaContextRecords -ContextId $ListStatusUrl.id -Data $RfUrlRiskDescriptions -Operation 'replace'
 
     Start-Sleep -Seconds 30
     # User Enabled URL List
@@ -216,7 +216,7 @@ Function Invoke-RfExaSync {
         }
     }
 
-    $Results = Add-ExaContextRecords -ContextId $ListStatusDomain.id -Data $RfDomainRiskDescriptions -Operation 'append'
+    $Results = Add-ExaContextRecords -ContextId $ListStatusDomain.id -Data $RfDomainRiskDescriptions -Operation 'replace'
 
     Start-Sleep -Seconds 30
     # User Enabled URL List
@@ -267,7 +267,7 @@ Function Invoke-RfExaSync {
         }
     }
 
-    $Results = Add-ExaContextRecords -ContextId $ListStatusIP.id -Data $RfIPRiskDescriptions -Operation 'append'
+    $Results = Add-ExaContextRecords -ContextId $ListStatusIP.id -Data $RfIPRiskDescriptions -Operation 'replace'
 
     Start-Sleep -Seconds 30
     # User Enabled URL List
@@ -317,7 +317,7 @@ Function Invoke-RfExaSync {
         }
     }
 
-    $Results = Add-ExaContextRecords -ContextId $ListStatusVuln.id -Data $RfVulnRiskDescriptions -Operation 'append'
+    $Results = Add-ExaContextRecords -ContextId $ListStatusVuln.id -Data $RfVulnRiskDescriptions -Operation 'replace'
 
     Start-Sleep -Seconds 30
     # User Enabled URL List
@@ -400,7 +400,7 @@ Function Invoke-RfExaSync {
                         })
                     }
 
-                    $Results = Add-ExaContextRecords -ContextId $HashListStatus.id -Data $($Data | Sort-Object risk_level ) -Operation 'append'
+                    $Results = Add-ExaContextRecords -ContextId $HashListStatus.id -Data $($Data | Sort-Object risk_level ) -Operation 'replace'
                 }
                 
                 Write-Host "$(Get-TimeStamp) - Clearing Variables: Hash*"
@@ -488,7 +488,7 @@ Function Invoke-RfExaSync {
                         })
                     }
 
-                    $Results = Add-ExaContextRecords -ContextId $UrlListStatus.id -Data $($Data | Sort-Object risk_level ) -Operation 'append'
+                    $Results = Add-ExaContextRecords -ContextId $UrlListStatus.id -Data $($Data | Sort-Object risk_level ) -Operation 'replace'
                 }
                 Write-Host "$(Get-TimeStamp) - Clearing Variables: Url*"
                 Clear-Variable -Name Url* -ErrorAction SilentlyContinue
@@ -576,7 +576,7 @@ Function Invoke-RfExaSync {
                         })
                     }
 
-                    $Results = Add-ExaContextRecords -ContextId $DomainListStatus.id -Data $($Data | Sort-Object risk_level ) -Operation 'append'
+                    $Results = Add-ExaContextRecords -ContextId $DomainListStatus.id -Data $($Data | Sort-Object risk_level ) -Operation 'replace'
                 }
                 
                 Write-Host "$(Get-TimeStamp) - Clearing Variables: Domain*"
@@ -666,7 +666,7 @@ Function Invoke-RfExaSync {
                         })
                     }
 
-                    $Results = Add-ExaContextRecords -ContextId $IPListStatus.id -Data $($Data | Sort-Object risk_level ) -Operation 'append'
+                    $Results = Add-ExaContextRecords -ContextId $IPListStatus.id -Data $($Data | Sort-Object risk_level ) -Operation 'replace'
                 }
                 
                 Write-Host "$(Get-TimeStamp) - Clearing Variables: IP*"
@@ -758,7 +758,7 @@ Function Invoke-RfExaSync {
                         })
                     }
 
-                    $Results = Add-ExaContextRecords -ContextId $VulnListStatus.id -Data $($Data | Sort-Object risk_level ) -Operation 'append'
+                    $Results = Add-ExaContextRecords -ContextId $VulnListStatus.id -Data $($Data | Sort-Object risk_level ) -Operation 'replace'
                 }
                 
                 Write-Host "$(Get-TimeStamp) - Clearing Variables: Vuln*"
